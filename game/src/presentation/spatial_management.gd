@@ -371,6 +371,7 @@ func _build_inventory()->void:
 	heading.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	heading.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
 	heading.name="inventory_selection_header"
+	heading.tooltip_text=heading.text
 	var drop:Button=_button(right,"inventory_detail_drop",_label("ui.copy.select_drop_item_here_574430c9"),func()->void: pass,false,true)
 	drop.clip_text=true
 	drop.accepts=_detail_drop_allowed
@@ -644,6 +645,18 @@ func _build_detail(area:VBoxContainer,actions:Control,footer:VBoxContainer,selec
 		_line(area,_label("ui.copy.select_an_item_review_is_free_4169758e"))
 	else:
 		var overview:VBoxContainer=_detail_section(area,"overview")
+		# Ownership, footprint and recorded basis are decision inputs, not decoration.
+		_line(overview,_label("ui.copy.player_owned_stock_632e1d7a") if selected.owned else _label("ui.copy.customer_owned_authorized_service_only_77420968")).name="inventory_overview_ownership"
+		_line(overview,_label("inventory.format.footprint",{"width":str(selected.width),"height":str(selected.height)})).name="inventory_overview_footprint"
+		if selected.owned:
+			_line(overview,_label("inventory.format.root_basis" if not _components.is_empty() else "inventory.format.individual_basis",{"basis":_money_basis(selected.basis)})).name="inventory_overview_basis"
+		var availability:String=""
+		if not evening:
+			availability=_label("ui.copy.restoration_and_composition_changes_availab_24359ec5")
+		elif job.is_empty():
+			var status:String=str(selected.get("restoration",{}).get("status",""))
+			var reason:String="review.work."+status if status in ["review_required","incomplete","known_bad_component","serviceable"] else "ui.copy.no_available_restoration_77a6ed7c"
+			availability=_label(reason)
 		if preview_native_v23:
 			# Cost and completion status precede the illustration, so even a short
 			# detail pane presents the transaction consequence before work.
@@ -661,6 +674,9 @@ func _build_detail(area:VBoxContainer,actions:Control,footer:VBoxContainer,selec
 					var done:=_line(overview,_label("ui.copy.service_complete_awaiting_customer_pickup_89f3cde7"))
 					done.name="native_service_complete"
 					done.add_theme_color_override("font_color",Color("#9BB2A5"))
+			# Keep the work eligibility explanation above the optional image as well.
+			if not availability.is_empty():
+				_line(overview,availability).name="inventory_overview_availability"
 			var texture:Texture2D=NativeArt.stock_texture(selected)
 			if texture!=null:
 				var portrait:=_native_texture(texture)
@@ -677,10 +693,6 @@ func _build_detail(area:VBoxContainer,actions:Control,footer:VBoxContainer,selec
 				illustration_frame.name="native_item_frame"
 				overview.add_child(illustration_frame)
 				illustration_frame.add_child(portrait)
-		_line(overview,_label("ui.copy.player_owned_stock_632e1d7a") if selected.owned else _label("ui.copy.customer_owned_authorized_service_only_77420968"))
-		_line(overview,_label("inventory.format.footprint",{"width":str(selected.width),"height":str(selected.height)}))
-		if selected.owned:
-			_line(overview,_label("inventory.format.root_basis" if not _components.is_empty() else "inventory.format.individual_basis",{"basis":_money_basis(selected.basis)}))
 		if evening and selected.owned and discard_query.is_valid():
 			var preview:Dictionary=discard_query.call(str(selected.id))
 			if preview.get("ok",false) and preview.revision==_revision:
@@ -712,14 +724,11 @@ func _build_detail(area:VBoxContainer,actions:Control,footer:VBoxContainer,selec
 				# portion of its independently scrolling detail is displayed.
 				_button(actions,"care_exterior",_label("ui.copy.wipe_exterior_86cb1372"),func()->void:
 					_emit("clean_exterior",{"actor":"player","item_id":_selected}),not care.allowed or _view.locked or _view.complete)
-		if not evening:
-			_line(overview,_label("ui.copy.restoration_and_composition_changes_availab_24359ec5"))
-		elif job.is_empty():
-			var status:String=str(selected.get("restoration",{}).get("status",""))
-			var reason:String="review.work."+status if status in ["review_required","incomplete","known_bad_component","serviceable"] else "ui.copy.no_available_restoration_77a6ed7c"
-			_line(overview,_label(reason))
-		elif not preview_native_v23:
-			_line(overview,_label("inventory.format.restoration_cost",{"cost":_money_basis(job.cost)}))
+		if not preview_native_v23:
+			if not availability.is_empty():
+				_line(overview,availability).name="inventory_overview_availability"
+			elif not job.is_empty():
+				_line(overview,_label("inventory.format.restoration_cost",{"cost":_money_basis(job.cost)}))
 		if not preview_native_v23:
 			for id:String in _view.get("services",{}):
 				var service:Dictionary=_view.services[id]

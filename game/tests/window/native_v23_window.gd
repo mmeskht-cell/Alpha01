@@ -546,6 +546,7 @@ func inventory_route()->void:
 	check(host._management.find_child("native_stock_summary",true,false)!=null and host._management.find_child("native_item_frame",true,false)!=null,"stock summary and selected illustration frame")
 	var stock_art:=host._management.find_child("stock_room_layer",true,false) as TextureRect
 	check(stock_art!=null and stock_art.texture.resource_path.ends_with("/rooms/stock_room.png") and stock_art.mouse_filter==Control.MOUSE_FILTER_IGNORE,"independent stock room art")
+	verify_overview_context("stock default")
 	await capture("native-v24-stock")
 	await responsive_review("stock")
 	if not await click("inventory_legend_toggle"):
@@ -612,6 +613,7 @@ func inventory_route()->void:
 		return
 	var before:Dictionary=host.runtime.snapshot()
 	verify_work_ticket()
+	verify_overview_context("workshop default")
 	await responsive_review("workshop")
 	if not await click("work_confirm"):
 		return
@@ -662,6 +664,31 @@ func inventory_route()->void:
 func verify_native_speech()->void:
 	var speech:=host._spatial.find_child("spatial_speech_background",true,false) as Control
 	check(speech!=null and not speech.get_global_rect().intersects(host._spatial._npc.get_global_rect()) and not speech.get_global_rect().intersects(host._spatial._item.get_global_rect()),"native fixed/service dialogue clear of portrait and item")
+
+func verify_overview_context(tag:String)->void:
+	var management=host._management
+	var selected:Dictionary={}
+	for row:Dictionary in host.runtime.view().stock:
+		if row.id==management._selected:
+			selected=row
+	if not check(not selected.is_empty(),"overview selected public item "+tag):
+		return
+	var heading:=management.find_child("inventory_selection_header",true,false) as Label
+	check(heading!=null and heading.tooltip_text==heading.text and heading.text.contains(str(selected.id)),"full selected identity accessible "+tag)
+	var image:=management.find_child("native_item_frame",true,false) as Control
+	var owner:=management.find_child("inventory_overview_ownership",true,false) as Label
+	var footprint:=management.find_child("inventory_overview_footprint",true,false) as Label
+	var expected:String=host.tr_key("ui.copy.player_owned_stock_632e1d7a" if selected.owned else "ui.copy.customer_owned_authorized_service_only_77420968")
+	check(owner!=null and owner.text==expected,"selected ownership is explicit "+tag)
+	check(footprint!=null and footprint.text==host.tr_key("inventory.format.footprint",{"width":str(selected.width),"height":str(selected.height)}),"selected actual footprint "+tag)
+	var fields:Array[Control]=[owner,footprint]
+	if selected.owned:
+		fields.append(management.find_child("inventory_overview_basis",true,false) as Control)
+	var eligibility:=management.find_child("inventory_overview_availability",true,false) as Control
+	var ticket:=management.find_child("native_service_work_ticket",true,false) as Control
+	fields.append(ticket if ticket!=null else eligibility)
+	for field:Control in fields:
+		check(field!=null and image!=null and field.get_index()<image.get_index() and field.is_visible_in_tree() and management._detail_scroll.get_global_rect().encloses(field.get_global_rect()) and root.get_visible_rect().encloses(field.get_global_rect()),"decision context before art and visible without scroll "+tag+" "+(str(field.name) if field!=null else "missing"))
 
 func verify_work_ticket()->void:
 	var ticket:=host._management.find_child("native_service_work_ticket",true,false) as Control
@@ -1183,6 +1210,7 @@ func responsive_review(context:String)->void:
 			check(footer!=null and root.get_visible_rect().encloses(footer.get_global_rect()),"fixed footer fully visible "+tag)
 			for id:String in (["stock_rotate","stock_confirm","inventory_detail_drop"] if context=="stock" else ["work_confirm","work_next_day","inventory_detail_drop"]):
 				responsive_target(management,id,tag)
+			verify_overview_context(tag)
 			check(host._management._selected==selection,"resize retains selected item "+tag)
 		check(host.runtime.snapshot()==before,"responsive presentation only "+tag)
 		await RenderingServer.frame_post_draw
