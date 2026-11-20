@@ -3947,3 +3947,35 @@ msgstr ""
 msgid "counter.price.previous_basis"
 msgstr ""
 
+#. Named arguments: statement; plain text.
+msgid "history.statement.hypothesis"
+msgstr ""
+
+#. Named arguments: statement; plain text.
+msgid "history.statement.withdrawal"
+msgstr ""
+
+#. Named arguments: statement; plain text.
+msgid "history.statement.superseded_hypothesis"
+msgstr ""
+
+#. Named arguments: statement; plain text.
+msgid "history.statement.corrected_hypothesis"
+msgstr ""
+
+#. Named arguments: statement; plain text.
+msgid "history.statement.superseded_observation"
+msgstr ""
+
+#. Named arguments: statement; plain text.
+msgid "history.statement.disclosure"
+msgstr ""
+
+#. Named arguments: statement; plain text.
+msgid "history.statement.accepted_basis"
+msgstr ""
+
+#. Named arguments: operation, role, item; plain text.
+msgid "history.work.relation"
+msgstr ""
+

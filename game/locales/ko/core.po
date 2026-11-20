@@ -3305,3 +3305,35 @@ msgstr "이번 제안에 포함될 공개 주장"
 #. Public negotiation context, not adjudication.
 msgid "counter.price.previous_basis"
 msgstr "이전 제안 당시의 공개 주장"
+
+#. Historical record; named arguments.
+msgid "history.statement.hypothesis"
+msgstr "당시 가설: {statement}"
+
+#. Historical record; named arguments.
+msgid "history.statement.withdrawal"
+msgstr "철회 기록: {statement}"
+
+#. Historical record; named arguments.
+msgid "history.statement.superseded_hypothesis"
+msgstr "변경된 이전 가설: {statement}"
+
+#. Historical record; named arguments.
+msgid "history.statement.corrected_hypothesis"
+msgstr "정정 가설: {statement}"
+
+#. Historical record; named arguments.
+msgid "history.statement.superseded_observation"
+msgstr "변경된 이전 관찰: {statement}"
+
+#. Historical record; named arguments.
+msgid "history.statement.disclosure"
+msgstr "당시 공개 관찰: {statement}"
+
+#. Historical record; named arguments.
+msgid "history.statement.accepted_basis"
+msgstr "{statement} · 수락 가격 근거"
+
+#. Historical record; named arguments.
+msgid "history.work.relation"
+msgstr "{operation} · {role} · {item}"

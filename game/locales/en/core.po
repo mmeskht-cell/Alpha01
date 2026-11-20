@@ -3173,3 +3173,27 @@ msgstr "Public statements for this offer"
 
 msgid "counter.price.previous_basis"
 msgstr "Public statements at previous offer"
+
+msgid "history.statement.hypothesis"
+msgstr "Historical hypothesis: {statement}"
+
+msgid "history.statement.withdrawal"
+msgstr "Withdrawal: {statement}"
+
+msgid "history.statement.superseded_hypothesis"
+msgstr "Superseded hypothesis: {statement}"
+
+msgid "history.statement.corrected_hypothesis"
+msgstr "Corrected hypothesis: {statement}"
+
+msgid "history.statement.superseded_observation"
+msgstr "Superseded observation: {statement}"
+
+msgid "history.statement.disclosure"
+msgstr "Historical disclosure: {statement}"
+
+msgid "history.statement.accepted_basis"
+msgstr "{statement} · accepted price basis"
+
+msgid "history.work.relation"
+msgstr "{operation} · {role} · {item}"

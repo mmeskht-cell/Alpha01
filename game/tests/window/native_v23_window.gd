@@ -507,6 +507,10 @@ func inventory_route()->void:
 	check(host._office._ledger_item=="R001" and host._office.find_child("office_ledger",true,false)!=null and host._office.find_children("history_trade_*_R001","Label",true,false).size()>0 and host.runtime.snapshot()==purchased,"selected purchase detail preserves recorded transaction and snapshot")
 	var receipts:Array=host._office.find_children("history_receipt_*","PanelContainer",true,false)
 	check(not receipts.is_empty(),"actual purchase uses grouped receipt")
+	var notice:=host._office.find_child("history_scope_notice",true,false) as Label
+	check(notice!=null and notice.text==host.tr_key("ui.copy.unrecorded_external_history_and_current_con_5b18354a") and root.get_visible_rect().encloses(notice.get_global_rect()),"historical scope warning visible before reading")
+	if notice!=null and not receipts.is_empty():
+		check(notice.get_index()<receipts[0].get_index(),"historical scope precedes actual receipt")
 	var disclosures:Array=host._office.find_children("history_receipt_toggle_*","Button",true,false)
 	if not disclosures.is_empty():
 		var disclosure:Button=disclosures[0]
@@ -519,6 +523,19 @@ func inventory_route()->void:
 		if detail!=null:
 			for offer_label:Node in detail.find_children("history_accepted_offer_*","Label",true,false):
 				check(not str(offer_label.text).contains("demo_"),"native receipt hides internal offer ID")
+			var recorded:Dictionary=host.runtime.item_history("R001").items[0].history.records[0]
+			var recorded_sheet:Dictionary=recorded.get("appraisal_sheet",{})
+			var recorded_offer:Dictionary=recorded.get("offer",{})
+			var accepted_ids:Array=[]
+			for accepted:Dictionary in recorded_offer.get("presentations",[]):
+				accepted_ids.append(accepted.presentation_id)
+			var statements:Array=recorded_offer.get("presentations",[]) if recorded_sheet.is_empty() else recorded_sheet.statements
+			for statement:Dictionary in statements:
+				var row:=detail.find_child("history_statement_"+str(statement.presentation_id),true,false) as Label
+				check(row!=null and row.get_meta("accepted_basis",null)==(statement.presentation_id in accepted_ids) and not row.text.begins_with("history.statement."),"receipt localizes actual statement and preserves accepted price membership")
+				if row!=null and statement.argument.get("statement_kind")=="observation" and not statement.has("withdraws_presentation_id"):
+					var expected_key:String="history.statement.superseded_observation" if not recorded_sheet.is_empty() and statement.presentation_id not in recorded_sheet.current_ids else "history.statement.disclosure"
+					check(row.get_meta("statement_key","")==expected_key,"historical observation category preserved")
 		await capture("native-ledger-public-receipt")
 		if not await click(disclosure_id):
 			return

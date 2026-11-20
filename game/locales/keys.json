@@ -1391,5 +1391,31 @@
   ],
   "counter.price.no_basis": [],
   "counter.price.current_basis": [],
-  "counter.price.previous_basis": []
+  "counter.price.previous_basis": [],
+  "history.statement.hypothesis": [
+    "statement"
+  ],
+  "history.statement.withdrawal": [
+    "statement"
+  ],
+  "history.statement.superseded_hypothesis": [
+    "statement"
+  ],
+  "history.statement.corrected_hypothesis": [
+    "statement"
+  ],
+  "history.statement.superseded_observation": [
+    "statement"
+  ],
+  "history.statement.disclosure": [
+    "statement"
+  ],
+  "history.statement.accepted_basis": [
+    "statement"
+  ],
+  "history.work.relation": [
+    "operation",
+    "role",
+    "item"
+  ]
 }

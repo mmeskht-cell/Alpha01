@@ -67,6 +67,9 @@ func configure(index: Dictionary,translator: Callable,locale: String) -> void:
 	horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(_body)
 	_line(_body,_label("ui.copy.known_transaction_and_work_history_2d7614b9"))
+	# A receipt describes the recorded past, never present external condition.
+	if native_receipts:
+		_line(_body,_label("ui.copy.unrecorded_external_history_and_current_con_5b18354a"),"history_scope_notice")
 	if index.get("items",[]).is_empty():
 		_line(_body,_label("ui.copy.no_completed_transactions_or_work_d389140d"))
 	for item: Dictionary in index.get("items",[]):
@@ -103,15 +106,20 @@ func configure(index: Dictionary,translator: Callable,locale: String) -> void:
 				accepted_ids.append(accepted.presentation_id)
 			var statements: Array = offer.get("presentations",[]) if sheet.is_empty() else sheet.statements
 			for speech: Dictionary in statements:
-				var prefix: String = _label("ui.copy.historical_hypothesis_e6e5938a")
+				var statement_key:String="history.statement.hypothesis"
 				if speech.has("withdraws_presentation_id"):
-					prefix = _label("ui.copy.withdrawal_a0a18d3f")
+					statement_key="history.statement.withdrawal"
 				elif not sheet.is_empty():
-					prefix = _label("ui.copy.superseded_hypothesis_897d2a20") if speech.presentation_id not in sheet.current_ids else (_label("ui.copy.corrected_hypothesis_10da6774") if speech.has("corrects_presentation_id") else prefix)
+					statement_key="history.statement.superseded_hypothesis" if speech.presentation_id not in sheet.current_ids else ("history.statement.corrected_hypothesis" if speech.has("corrects_presentation_id") else statement_key)
 				if speech.argument.get("statement_kind")=="observation" and not speech.has("withdraws_presentation_id"):
-					prefix=_label("ui.copy.superseded_observation_d1db4d1c") if not sheet.is_empty() and speech.presentation_id not in sheet.current_ids else _label("ui.copy.historical_disclosure_4e27737a")
-				var used:String=_label("ui.copy.accepted_price_basis_410208f") if speech.presentation_id in accepted_ids else ""
-				_line(detail,prefix+_argument_text(speech.argument)+used)
+					statement_key="history.statement.superseded_observation" if not sheet.is_empty() and speech.presentation_id not in sheet.current_ids else "history.statement.disclosure"
+				var statement_text:String=_label(statement_key,{"statement":_argument_text(speech.argument)})
+				var accepted_basis:bool=speech.presentation_id in accepted_ids
+				if accepted_basis:
+					statement_text=_label("history.statement.accepted_basis",{"statement":statement_text})
+				var statement_line:=_line(detail,statement_text,"history_statement_"+str(speech.presentation_id))
+				statement_line.set_meta("statement_key",statement_key)
+				statement_line.set_meta("accepted_basis",accepted_basis)
 				var response: Dictionary=speech.get("customer_response",{})
 				if not response.is_empty():
 					_line(detail,_label("ui.format.receipt_customer_claim",{"claim":_label(response.label_key)}))
@@ -128,7 +136,8 @@ func configure(index: Dictionary,translator: Callable,locale: String) -> void:
 			_line(_body,_label("ui.format.older_transactions",{"count":str(item.history.omitted)}))
 	if index.get("omitted",0)>0:
 		_line(_body,_label("ui.format.older_items",{"count":str(index.omitted)}))
-	_line(_body,_label("ui.copy.unrecorded_external_history_and_current_con_5b18354a"))
+	if not native_receipts:
+		_line(_body,_label("ui.copy.unrecorded_external_history_and_current_con_5b18354a"))
 
 func _argument_text(arg: Dictionary)->String:
 	if arg.get("statement_kind")=="observation":
@@ -143,7 +152,7 @@ func _show_work(row: Dictionary,item_id: String) -> void:
 	match row.kind:
 		"attach","detach":
 			description=_label("ui.copy.assembly_d235871e") if row.kind=="attach" else _label("ui.copy.disassembly_95945c61")
-			description+=" · "+(_label("ui.copy.root_49448c67") if row.role=="root" else _label("ui.copy.component_411f045"))+" · "+row.related_item_id
+			description=_label("history.work.relation",{"operation":description,"role":_label("ui.copy.root_49448c67") if row.role=="root" else _label("ui.copy.component_411f045"),"item":str(row.related_item_id)})
 		"replace_component":
 			description=_label("ui.format.history_exchange",{"root":str(row.root_id),"outgoing":str(row.old_child_id),"incoming":str(row.child_id)})
 		"clean_exterior":
