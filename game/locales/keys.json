@@ -1417,5 +1417,16 @@
     "operation",
     "role",
     "item"
+  ],
+  "checkout.place.choose": [],
+  "checkout.place.selected": [],
+  "checkout.place.position": [
+    "column",
+    "row"
+  ],
+  "counter.table.start_hint": [],
+  "counter.table.first_hint": [],
+  "book.watch.case.observed_limit": [
+    "reading"
   ]
 }

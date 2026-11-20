@@ -124,6 +124,8 @@ func run()->void:
 	check(host.runtime.snapshot()==opening,"contract browsing free")
 	var paper_title:=host._office.find_child("office_contract_rad1_first",true,false) as Label
 	check(paper_title!=null and paper_title.get_theme_color("font_color")==Color("#252A2D"),"readable paper document ink")
+	var deadline:=host._office.find_child("office_contract_schedule_rad1_first",true,false) as Label
+	check(deadline!=null and deadline.text.count("18:00")==2 and host._office.get_global_rect().encloses(deadline.get_global_rect()),"first RAD1 contract displays both exact D4/D5 18:00 deadlines")
 	await capture("native-v24-contract")
 	if not await click("office_contract_accept_rad1_first"):
 		await finish()
@@ -487,6 +489,14 @@ func inventory_route()->void:
 	await capture("native-card-checkout")
 	if not await click("place_player_stock_0_0"):
 		return
+	var checkout_grid_title:=host._spatial._notebook.find_child("checkout_grid_heading",true,false) as Label
+	var checkout_hint:=host._spatial._notebook.find_child("checkout_placement_hint",true,false) as Label
+	var placed0:=button("place_player_stock_0_0")
+	var placed1:=button("place_player_stock_1_0")
+	var placed_other:=button("place_player_stock_2_0")
+	check(checkout_grid_title!=null and not checkout_grid_title.text.contains("player_stock") and checkout_hint!=null and checkout_hint.text==host.tr_key("checkout.place.selected"),"checkout uses a public stock heading and explicit uncommitted preview hint")
+	check(placed0!=null and placed1!=null and placed_other!=null and placed0.get_meta("checkout_preview_covered",false) and placed1.get_meta("checkout_preview_covered",false) and not placed_other.get_meta("checkout_preview_covered",false),"selected two-cell footprint highlights without changing inventory")
+	await capture("native-card-checkout-footprint")
 	var final_button:=button("confirm_checkout")
 	check(final_button!=null and root.get_visible_rect().encloses(final_button.get_global_rect()),"checkout confirmation entirely visible")
 	if not await click("confirm_checkout"):
@@ -929,6 +939,9 @@ func verify_live_specimen(id:String,asset:String,comparison_id:String)->bool:
 			if not await click("book_slot_next") or not await click("book_reference"):
 				return false
 			verify_text_comparison(comparison)
+			if comparison=="book_watch_case_comparison":
+				var caution:=host._spatial._notebook.find_child("book_watch_case_reasoning",true,false) as Label
+				check(caution!=null and caution.get_meta("case_type_unproven",false) and caution.text==host.tr_key("book.compare.case.caption") and host.runtime.snapshot()==before,"watch case inference is intentionally unresolved without fabricated evidence")
 			await capture("native-"+comparison)
 	if not await click("open_book"):
 		return false

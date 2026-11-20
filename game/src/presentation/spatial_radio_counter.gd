@@ -1554,7 +1554,9 @@ func _build_customer()->void:
 			var edge:=Color(0.55,0.46,0.33,0.70) if mode in ["hover","focus","pressed"] else Color(0.48,0.42,0.34,0.38)
 			drop.add_theme_stylebox_override(mode,_card_style(Color(0.13,0.12,0.10,0.24),edge))
 		if _app.deck.presented.is_empty():
-			var hint:=_text(_label("counter.table.hint"),HORIZONTAL_ALIGNMENT_CENTER)
+			var first_hint:String="counter.table.start_hint" if not has_cards else "counter.table.first_hint"
+			var hint:=_text(_label(first_hint),HORIZONTAL_ALIGNMENT_CENTER)
+			hint.name="counter_first_visit_hint"
 			hint.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
 			drop.add_child(hint)
 			hint.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

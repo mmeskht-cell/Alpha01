@@ -1177,7 +1177,7 @@ msgid "appraisal.customer_unconfirmed"
 msgstr "Customer claim · unverified"
 
 msgid "p2.watch.source"
-msgstr "Fictional watch reference (test)"
+msgstr "Public watch reference"
 
 msgid "p2.watch.meridian12"
 msgstr "Meridian 12"
@@ -3109,7 +3109,7 @@ msgid "ui.format.native_hud"
 msgstr "Day {day}  {time}  ·  {vkc} VKC  /  {usd} USD"
 
 msgid "book.compare.case.caption"
-msgstr "Grain alone cannot distinguish these cases"
+msgstr "Either case may share this grain · leave the judgment open if evidence is insufficient."
 
 msgid "book.compare.mark.caption"
 msgstr "Distinguish model marks from commemorative evidence"
@@ -3197,3 +3197,21 @@ msgstr "{statement} · accepted price basis"
 
 msgid "history.work.relation"
 msgstr "{operation} · {role} · {item}"
+
+msgid "checkout.place.choose"
+msgstr "Choose a placement · the footprint will be highlighted."
+
+msgid "checkout.place.selected"
+msgstr "Highlighted cells are a preview · nothing moves until confirmation."
+
+msgid "checkout.place.position"
+msgstr "Placement origin · column {column}, row {row}"
+
+msgid "counter.table.start_hint"
+msgstr "Inspect the item or choose a judgment in the book."
+
+msgid "counter.table.first_hint"
+msgstr "Present a card here · offer the price separately."
+
+msgid "book.watch.case.observed_limit"
+msgstr "Observed: {reading} · grain alone cannot establish the case type."

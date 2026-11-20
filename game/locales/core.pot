@@ -3979,3 +3979,27 @@ msgstr ""
 msgid "history.work.relation"
 msgstr ""
 
+#. Named arguments: none; plain text.
+msgid "checkout.place.choose"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "checkout.place.selected"
+msgstr ""
+
+#. Named arguments: column, row; plain text.
+msgid "checkout.place.position"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.table.start_hint"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.table.first_hint"
+msgstr ""
+
+#. Named arguments: reading; plain text.
+msgid "book.watch.case.observed_limit"
+msgstr ""
+

@@ -166,7 +166,11 @@ func _contracts(parent:Control)->void:
 		var panel:=_paper(parent,true)
 		var contract_heading:=_line(panel,_label("ui.format.contract_price",{"price":_label("inventory.format.offer_amount",{"amount":str(c.price.VKC),"currency":str("VKC")})}),"office_contract_"+id)
 		contract_heading.add_theme_font_size_override("font_size",22)
-		_line(panel,_label("ui.format.contract_status",{"due":str(c.due_day),"delivery":str(c.delivery_day),"status":_label("ui.contract.status."+str(c.status))}))
+		# The authored first RAD-1 contract has 18:00 due/delivery deadlines.
+		# This is presentation only; other future contracts retain their own terms.
+		var hour:String=" 18:00" if id=="rad1_first" else ""
+		var deadline:=_line(panel,_label("ui.format.contract_status",{"due":str(c.due_day)+hour,"delivery":str(c.delivery_day)+hour,"status":_label("ui.contract.status."+str(c.status))}))
+		deadline.name="office_contract_schedule_"+id
 		if _view.phase!="shop" or _view.get("locked",true) or _view.get("complete",false):
 			continue
 		var actions:=HFlowContainer.new()

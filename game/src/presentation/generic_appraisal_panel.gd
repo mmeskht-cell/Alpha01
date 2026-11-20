@@ -373,7 +373,7 @@ func _build_paged_book(app:Dictionary,revision:int,locked:bool)->void:
 		_line(_body,_label("book.reference.no_detail" if description.is_empty() else description))
 		_reference_comparison(app.catalog,slot,func(index:int)->void:
 			_book_entry=index
-			_book_rebuild(app,revision,locked))
+			_book_rebuild(app,revision,locked),app.evidence)
 		var source:String=str(app.catalog.get("source_key",""))
 		if not source.is_empty():
 			_line(_body,_label(source))
@@ -438,11 +438,22 @@ func _texture_swatch(pattern:String)->TextureRect:
 	view.custom_minimum_size=Vector2(84,56)
 	return view
 
-func _reference_comparison(catalog:Dictionary,slot:Dictionary,change:Callable)->void:
+func _reference_comparison(catalog:Dictionary,slot:Dictionary,change:Callable,evidence:Array=[])->void:
 	var comparison:Dictionary=ReferenceGuide.comparison(catalog,slot)
 	if comparison.is_empty():
 		return
-	_line(_body,_label(comparison.caption_key))
+	var guidance:=_line(_body,_label(comparison.caption_key))
+	if catalog.get("def_id")=="fictional_watch_p2" and slot.get("id")=="material_id":
+		# The real public catalog cannot distinguish these cases from grain alone.
+		# Show only legitimately acquired observations, never the private specimen.
+		guidance.name="book_watch_case_reasoning"
+		guidance.set_meta("case_type_unproven",true)
+		for fact:Dictionary in evidence:
+			if fact.get("observation_key")=="case_texture" and fact.get("current",false) and not fact.get("is_claim",true):
+				var reading:String=PublicObservationText.fact("case_texture",fact.get("observed_value"),_translator)
+				var measured:=_line(_body,_label("book.watch.case.observed_limit",{"reading":reading}))
+				measured.name="book_watch_case_observation"
+				break
 	var row:=HBoxContainer.new()
 	row.name=comparison.id
 	_body.add_child(row)
@@ -699,9 +710,30 @@ func _page_controls(prefix:String,index:int,total:int,change:Callable,chapters:A
 	next.pressed.connect(func()->void: change.call(index+1))
 	nav.add_child(next)
 
+# Only the local checkout preview uses the highlighted footprint.
+# This never changes inventory, validity, price, action ID or saved state.
+func _paint_checkout_preview(tiles:Dictionary,choice:Dictionary,inventory:String,rotated:bool,footprint:Array)->void:
+	var selected:bool=not choice.is_empty() and choice.get("inventory","")==inventory and choice.get("rotated",null)==rotated
+	var w:int=int(footprint[1]) if rotated else int(footprint[0])
+	var h:int=int(footprint[0]) if rotated else int(footprint[1])
+	var x0:int=int(choice.get("x",-1))
+	var y0:int=int(choice.get("y",-1))
+	for point:Vector2i in tiles:
+		var tile:Button=tiles[point]
+		var covered:bool=selected and point.x>=x0 and point.x<x0+w and point.y>=y0 and point.y<y0+h
+		tile.set_meta("checkout_preview_covered",covered)
+		var frame:=StyleBoxFlat.new()
+		frame.bg_color=Color("#786A4B") if covered else (Color("#344447") if not tile.disabled else Color("#23292B"))
+		frame.border_color=Color("#E3D29C") if covered else (Color("#74898A") if not tile.disabled else Color("#485253"))
+		frame.set_border_width_all(2 if covered else 1)
+		frame.set_corner_radius_all(2)
+		for mode:String in ["normal","pressed","hover","focus","disabled"]:
+			tile.add_theme_stylebox_override(mode,frame)
+
 func _checkout_controls(app: Dictionary,revision: int,locked: bool,paged:bool=false) -> void:
 	var checkout: Dictionary = app.checkout
-	_line(_body,_label("ui.copy.choose_stock_location_a32e0265"))
+	var placement_hint:=_line(_body,_label("checkout.place.choose") if paged else _label("ui.copy.choose_stock_location_a32e0265"))
+	placement_hint.name="checkout_placement_hint"
 	if checkout.has("quality_condition"):
 		_line(_body,_label("ui.copy.agreed_trade_condition_ee639037")+(_label("ui.copy.working_8ec30d03") if checkout.quality_condition.observed_value=="serviceable" else _label("ui.copy.inoperable_b9430e79"))+_label("ui.copy.at_transaction_only_c7402a31"))
 	_line(_body,_label("ui.format.checkout_balance",{"amount":str(checkout.amount),"balance":str(checkout.balance),"currency":str(checkout.currency)}))
@@ -740,7 +772,8 @@ func _checkout_controls(app: Dictionary,revision: int,locked: bool,paged:bool=fa
 			page_index+=1
 			if paged and page_index!=_checkout_page:
 				continue
-			_line(_body,str(store.inventory)+(" · "+_label("ui.copy.rotated_809425c0") if rotated else ""))
+			_line(_body,(_label("ui.copy.player_owned_stock_632e1d7a") if store.inventory=="player_stock" else str(store.inventory))+(" · "+_label("ui.copy.rotated_809425c0") if rotated else "")).name="checkout_grid_heading"
+			var visible_tiles:Dictionary={}
 			var cells := GridContainer.new()
 			cells.columns = int(store.width)
 			_body.add_child(cells)
@@ -749,13 +782,16 @@ func _checkout_controls(app: Dictionary,revision: int,locked: bool,paged:bool=fa
 					var candidate: Dictionary = {"inventory":store.inventory,"x":x,"y":y,"rotated":rotated}
 					var cell := CheckoutDrag.new()
 					cell.name = "place_"+str(store.inventory)+"_"+str(x)+"_"+str(y)+("_r" if rotated else "")
-					cell.text = str(x+1)+","+str(y+1) if candidate in store.options else "×"
+					cell.text = ("·" if candidate in store.options else "×") if paged else (str(x+1)+","+str(y+1) if candidate in store.options else "×")
+					if paged:
+						cell.tooltip_text=_label("checkout.place.position",{"column":str(x+1),"row":str(y+1)}) if candidate in store.options else _label("ui.copy.no_available_placement_ed72b32b")
 					cell.custom_minimum_size = Vector2(32,32)
 					cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 					cell.toggle_mode = true
 					cell.button_group = group
 					cell.disabled = locked or candidate not in store.options
 					cells.add_child(cell)
+					visible_tiles[Vector2i(x,y)]=cell
 					cell.set_pressed_no_signal(candidate == _checkout_choice)
 					var choose:=func() -> void:
 						if epoch != _epoch or cell.disabled or _presentation_sent:
@@ -763,11 +799,18 @@ func _checkout_controls(app: Dictionary,revision: int,locked: bool,paged:bool=fa
 						_checkout_choice = candidate.duplicate(true)
 						cell.set_pressed_no_signal(true)
 						confirm.disabled = not checkout.affordable
+						if paged:
+							placement_hint.text=_label("checkout.place.selected")
+							_paint_checkout_preview(visible_tiles,_checkout_choice,str(store.inventory),rotated,checkout.footprint)
 					cell.pressed.connect(choose)
 					cell.accepts=func(data:Variant)->bool:
 						return epoch==_epoch and not _presentation_sent and not locked and data is Dictionary and data==token and candidate in possible
 					cell.commit=func(_data:Variant)->void:
 						choose.call()
+			if paged:
+				_paint_checkout_preview(visible_tiles,_checkout_choice,str(store.inventory),rotated,checkout.footprint)
+				if not _checkout_choice.is_empty() and _checkout_choice.get("inventory","")==store.inventory and _checkout_choice.get("rotated",null)==rotated:
+					placement_hint.text=_label("checkout.place.selected")
 	if possible.is_empty():
 		_line(_body,_label("ui.copy.no_available_placement_ed72b32b"))
 	if not checkout.affordable:

@@ -1181,7 +1181,7 @@ msgid "appraisal.customer_unconfirmed"
 msgstr "고객의 주장 · 미확인"
 
 msgid "p2.watch.source"
-msgstr "가상 시계 공개 도감 (시험용)"
+msgstr "시계 공개 참고 자료"
 
 msgid "p2.watch.meridian12"
 msgstr "메리디언 12"
@@ -3220,7 +3220,7 @@ msgstr "영업일 {day}  {time}  ·  {vkc} VKC  /  {usd} USD"
 
 #. Public comparisons, not specimen truth.
 msgid "book.compare.case.caption"
-msgstr "표면 결만으로 두 외장을 구분할 수 없음"
+msgstr "표면 결은 양쪽 외장 모두 가능 · 근거가 부족하면 판단을 보류하세요."
 
 #. Public comparisons, not specimen truth.
 msgid "book.compare.mark.caption"
@@ -3337,3 +3337,27 @@ msgstr "{statement} · 수락 가격 근거"
 #. Historical record; named arguments.
 msgid "history.work.relation"
 msgstr "{operation} · {role} · {item}"
+
+#. BR06 presentation only; public information, no new authority.
+msgid "checkout.place.choose"
+msgstr "입고할 칸을 선택하세요 · 물품 영역은 밝게 표시됩니다."
+
+#. BR06 presentation only; public information, no new authority.
+msgid "checkout.place.selected"
+msgstr "밝은 칸은 입고 미리보기입니다 · 확정 전에는 이동하지 않습니다."
+
+#. BR06 presentation only; public information, no new authority.
+msgid "checkout.place.position"
+msgstr "배치 시작 칸 · {column}열 {row}행"
+
+#. BR06 presentation only; public information, no new authority.
+msgid "counter.table.start_hint"
+msgstr "물품을 조사하거나 도감에서 판단을 선택하세요."
+
+#. BR06 presentation only; public information, no new authority.
+msgid "counter.table.first_hint"
+msgstr "카드를 이곳에 공개하세요 · 가격은 별도로 제안합니다."
+
+#. BR06 presentation only; public information, no new authority.
+msgid "book.watch.case.observed_limit"
+msgstr "당시 관찰: {reading} · 이 결만으로 외장 유형은 확정할 수 없습니다."
