@@ -389,14 +389,20 @@ func inventory_route()->void:
 	check(is_instance_valid(customer) and customer.is_inside_tree() and customer.get_meta("claim_id","")==latest_claim.beat_id,"current claim geometry is bound to the latest live customer card")
 	# Require actual button and card geometry, then a real pointer transition.
 	var claim_prev:=button("claim_previous")
-	var claim_next:=button("claim_next")
+	# button() deliberately returns only enabled controls; the next button is
+	# disabled on the last claim, but its visible geometry still matters.
+	var claim_next:=host._spatial.find_child("claim_next",true,false) as Button
 	check(claim_prev!=null and is_instance_valid(customer) and customer.is_inside_tree() and not claim_prev.get_global_rect().intersects(customer.get_global_rect()),"claim previous button separated from drop target")
-	check(claim_next!=null and is_instance_valid(customer) and customer.is_inside_tree() and not claim_next.get_global_rect().intersects(customer.get_global_rect()),"claim next button separated from drop target")
+	check(claim_next!=null and claim_next.is_visible_in_tree() and claim_next.disabled and is_instance_valid(customer) and customer.is_inside_tree() and not claim_next.get_global_rect().intersects(customer.get_global_rect()),"disabled last-page next button separated from drop target")
 	if not await click("claim_previous"):
 		return
 	customer=host._spatial.find_child("counter_customer_claim",true,false) as Control
 	check(host._spatial._claim_page==0,"previous claim pointer changes local page")
 	check(customer!=null and customer.get_meta("claim_id","")==published.customer_response.beat_id and customer.get_meta("claim_page",-1)==0 and customer.get_meta("claim_count",0)==2 and host.runtime.snapshot()==paper_before,"earlier actual customer card accessible without new claim or price mutation")
+	claim_next=button("claim_next")
+	claim_prev=host._spatial.find_child("claim_previous",true,false) as Button
+	check(claim_next!=null and customer!=null and not claim_next.get_global_rect().intersects(customer.get_global_rect()),"enabled first-page next button separated from drop target")
+	check(claim_prev!=null and claim_prev.is_visible_in_tree() and claim_prev.disabled and customer!=null and not claim_prev.get_global_rect().intersects(customer.get_global_rect()),"disabled first-page previous button separated from drop target")
 	if not await click("claim_next"):
 		return
 	customer=host._spatial.find_child("counter_customer_claim",true,false) as Control
