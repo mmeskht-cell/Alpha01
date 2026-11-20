@@ -527,8 +527,8 @@ func inventory_route()->void:
 			var recorded_sheet:Dictionary=recorded.get("appraisal_sheet",{})
 			var recorded_offer:Dictionary=recorded.get("offer",{})
 			var accepted_ids:Array=[]
-			for accepted:Dictionary in recorded_offer.get("presentations",[]):
-				accepted_ids.append(accepted.presentation_id)
+			for recorded_basis:Dictionary in recorded_offer.get("presentations",[]):
+				accepted_ids.append(recorded_basis.presentation_id)
 			var statements:Array=recorded_offer.get("presentations",[]) if recorded_sheet.is_empty() else recorded_sheet.statements
 			for statement:Dictionary in statements:
 				var row:=detail.find_child("history_statement_"+str(statement.presentation_id),true,false) as Label
