@@ -1,0 +1,125 @@
+name: Gate 1-4 window probe
+on:
+  workflow_dispatch:
+  push:
+    branches: [development]
+    paths:
+      - 'game/**'
+      - '.github/workflows/game-ci.yml'
+      - '.github/workflows/gate1-window.yml'
+      - 'development/FULL_CI_CHECKPOINT.md'
+permissions:
+  contents: read
+concurrency:
+  group: zt-gate1-window
+  cancel-in-progress: false
+jobs:
+  window:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          # One atomic push has its parent available without retaining credentials.
+          fetch-depth: 2
+      - name: Select bounded verification scope
+        id: scope
+        shell: bash
+        env:
+          BEFORE: ${{ github.event.before }}
+          FORCED: ${{ github.event.forced }}
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          python3 game/tools/select_ci_scope.py --self-test
+          scope="$(python3 game/tools/select_ci_scope.py --before "$BEFORE" --head "$GITHUB_SHA" --event "$GITHUB_EVENT_NAME" --forced "$FORCED")"
+          case "$scope" in
+            focused) fixed=gate1 ;;
+            full) fixed=all ;;
+            *) exit 1 ;;
+          esac
+          printf 'scope=%s\nfixed=%s\n' "$scope" "$fixed" | tee evidence/ci-scope.txt
+          printf 'mode=%s\nfixed=%s\n' "$scope" "$fixed" >> "$GITHUB_OUTPUT"
+      - name: Install pinned engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/zt-window" evidence
+          printf 'commit=%s\nrun=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > evidence/identity.txt
+          curl -fL --retry 2 --max-time 120 -o "$RUNNER_TEMP/zt-window/engine.zip" 'https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip'
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/zt-window/engine.zip" | sha256sum -c -
+          unzip -q "$RUNNER_TEMP/zt-window/engine.zip" -d "$RUNNER_TEMP/zt-window"
+          chmod +x "$RUNNER_TEMP/zt-window/Godot_v4.7.2-stable_linux.x86_64"
+      - name: Real rendered UI and pointer probe
+        shell: bash
+        env:
+          CI_SCOPE: ${{ steps.scope.outputs.mode }}
+        run: |
+          set -euo pipefail
+          export XDG_DATA_HOME="$RUNNER_TEMP/zt-window-data"
+          export XDG_CONFIG_HOME="$RUNNER_TEMP/zt-window-config"
+          engine="$RUNNER_TEMP/zt-window/Godot_v4.7.2-stable_linux.x86_64"
+          python3 game/tools/prepare_runtime_assets.py | tee evidence/font.log
+          "$engine" --headless --editor --path game --import --quit 2>&1 | tee evidence/import.log
+          if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:' evidence/import.log; then exit 1; fi
+          if [ "$CI_SCOPE" = full ]; then
+            # One bounded real-runtime test for the isolated art candidate.
+            echo '42ca8bd246f0de222201b02a8e498b797bad2a8edd2d13590d1822ee6826fba6  game/assets/art/items/r001_pixel_front_candidate.png' | sha256sum -c -
+            echo 'a3bafe959f99707b25a99a3b31664e8fd18e4cc0d00bd115dc0484647ff44278  game/assets/art/items/r001_pixel_back_candidate.png' | sha256sum -c -
+            LIBGL_ALWAYS_SOFTWARE=1 timeout 45s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/window/r001_pixel_art_window.gd -- "$GITHUB_WORKSPACE/evidence" 2>&1 | tee evidence/r001-pixel-window.log
+            grep -E 'GATE2_R001_PIXEL_WINDOW: [0-9]+ checks, 0 failures' evidence/r001-pixel-window.log
+            if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:|ObjectDB instances were leaked|Leaked instance:|resources still in use at exit' evidence/r001-pixel-window.log; then exit 1; fi
+          fi
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 90s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/window/native_v23_window.gd -- "$GITHUB_WORKSPACE/evidence" 2>&1 | tee evidence/native-v23-window.log
+          grep -E 'GATE2_NATIVE_V23_WINDOW: [0-9]+ checks, 0 failures' evidence/native-v23-window.log
+          if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:|ObjectDB instances were leaked|Leaked instance:|resources still in use at exit' evidence/native-v23-window.log; then exit 1; fi
+          if [ "$CI_SCOPE" = full ]; then
+            # Same bounded first-day candidate pointer route at native 1080p, not a new campaign.
+            mkdir -p evidence/native-1920
+            LIBGL_ALWAYS_SOFTWARE=1 timeout 150s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/window/native_v23_window.gd -- "$GITHUB_WORKSPACE/evidence/native-1920" 1920x1080 2>&1 | tee evidence/native-1920/window.log
+            grep -E 'GATE2_NATIVE_V23_WINDOW: [0-9]+ checks, 0 failures' evidence/native-1920/window.log
+            if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:|ObjectDB instances were leaked|Leaked instance:|resources still in use at exit' evidence/native-1920/window.log; then exit 1; fi
+            # Independent finite alternative, not an extra full campaign.
+            mkdir -p evidence/native-wholesale
+            LIBGL_ALWAYS_SOFTWARE=1 timeout 100s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/window/native_v23_window.gd -- "$GITHUB_WORKSPACE/evidence/native-wholesale" wholesale 2>&1 | tee evidence/native-wholesale/window.log
+            grep -E 'GATE2_NATIVE_V23_WINDOW: [0-9]+ checks, 0 failures' evidence/native-wholesale/window.log
+            if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:|ObjectDB instances were leaked|Leaked instance:|resources still in use at exit' evidence/native-wholesale/window.log; then exit 1; fi
+          fi
+          component_status=0
+          (
+            set -euo pipefail
+            LIBGL_ALWAYS_SOFTWARE=1 timeout 45s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/window/composition_inventory_window.gd 2>&1 | tee evidence/composition-window.log || exit $?
+            grep -E 'GATE2_COMPOSITION_WINDOW: [0-9]+ checks, 0 failures' evidence/composition-window.log || exit $?
+            if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:|ObjectDB instances were leaked|Leaked instance:|resources still in use at exit' evidence/composition-window.log; then exit 1; fi
+          ) || component_status=$?
+          printf 'Focused component probe exit: %s\n' "$component_status"
+          civilian_status=0
+          (
+            set -euo pipefail
+            LIBGL_ALWAYS_SOFTWARE=1 timeout 100s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/window/civilian_candidate_window.gd -- "$GITHUB_WORKSPACE/evidence" 2>&1 | tee evidence/civilian-host-window.log || exit $?
+            grep -E 'GATE2_CIVILIAN_HOST_WINDOW: [0-9]+ checks, 0 failures' evidence/civilian-host-window.log || exit $?
+            if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:|ObjectDB instances were leaked|Leaked instance:|resources still in use at exit' evidence/civilian-host-window.log; then exit 1; fi
+          ) || civilian_status=$?
+          printf 'Civilian host probe exit: %s\n' "$civilian_status"
+          if [ "$CI_SCOPE" = full ]; then
+            LIBGL_ALWAYS_SOFTWARE=1 timeout 100s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/window/gate1_window.gd -- "$GITHUB_WORKSPACE/evidence" 2>&1 | tee evidence/window.log
+            grep -E 'GATE1_4_WINDOW: [0-9]+ checks, 0 failures' evidence/window.log
+            if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:|ObjectDB instances were leaked|Leaked instance:|resources still in use at exit' evidence/window.log; then exit 1; fi
+            LIBGL_ALWAYS_SOFTWARE=1 timeout 60s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/window/demo7_window.gd -- "$GITHUB_WORKSPACE/evidence" 2>&1 | tee evidence/demo-window.log
+            grep -E 'GATE2_DEMO_WINDOW: [0-9]+ checks, 0 failures' evidence/demo-window.log
+            if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:|ObjectDB instances were leaked|Leaked instance:|resources still in use at exit' evidence/demo-window.log; then exit 1; fi
+            LIBGL_ALWAYS_SOFTWARE=1 timeout 300s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/window/spatial_demo7_window.gd -- "$GITHUB_WORKSPACE/evidence" 2>&1 | tee evidence/spatial-window.log
+            grep -E 'GATE2_SPATIAL_WINDOW: [0-9]+ checks, 0 failures' evidence/spatial-window.log
+            if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:|ObjectDB instances were leaked|Leaked instance:|resources still in use at exit' evidence/spatial-window.log; then exit 1; fi
+          fi
+          if [ "$component_status" -ne 0 ]; then exit "$component_status"; fi
+          exit "$civilian_status"
+      - name: Preserve screenshots and logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: gate1-window-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 3

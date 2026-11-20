@@ -1,0 +1,224 @@
+{
+  "version": 1,
+  "descriptions": {
+    "catalog.radio.r18.name": "catalog.radio.r18.description",
+    "catalog.radio.r18s.name": "catalog.radio.r18s.description",
+    "material.polymer": "material.polymer.description",
+    "material.alloy": "material.alloy.description",
+    "material.steel": "material.steel.description",
+    "batch.early": "batch.early.description",
+    "batch.late": "batch.late.description",
+    "batch.rebuilt": "batch.rebuilt.description",
+    "catalog.radio.wear.light": "catalog.radio.wear.light.description",
+    "catalog.radio.wear.visible": "catalog.radio.wear.visible.description",
+    "catalog.radio.wear.heavy": "catalog.radio.wear.heavy.description",
+    "review.basic.working": "review.basic.working.description",
+    "review.basic.not_working": "review.basic.not_working.description",
+    "p2.watch.running": "p2.watch.running.description",
+    "p2.watch.stopped": "p2.watch.stopped.description",
+    "p2.watch.meridian12": "p2.watch.meridian12.description",
+    "p2.watch.meridian12a": "p2.watch.meridian12a.description",
+    "p2.watch.standard_case": "p2.watch.standard_case.description",
+    "p2.watch.decorative_case": "p2.watch.decorative_case.description",
+    "p2.watch.ordinary_mark": "p2.watch.ordinary_mark.description",
+    "p2.watch.commemorative_mark": "p2.watch.commemorative_mark.description"
+  },
+  "comparisons": {
+    "portable_radio/model_id": {
+      "id": "book_radio_model_comparison",
+      "kind": "radio",
+      "caption_key": "book.radio.reference",
+      "samples": {
+        "selvar_r18": "selvar_r18",
+        "selvar_r18s": "selvar_r18s"
+      }
+    },
+    "portable_radio/material_id": {
+      "id": "book_material_comparison",
+      "kind": "texture",
+      "caption_key": "book.texture.reference",
+      "samples": {
+        "molded_polymer": "pits",
+        "light_alloy": "parallel",
+        "coated_steel": "cross"
+      }
+    },
+    "portable_radio/batch_id": {
+      "id": "book_batch_comparison",
+      "kind": "stamp",
+      "caption_key": "book.mark.reference",
+      "samples": {
+        "series_early": "K-2",
+        "series_late": "K-7",
+        "series_rebuilt": "R-…"
+      }
+    },
+    "fictional_watch_p2/model_id": {
+      "id": "book_watch_model_comparison",
+      "kind": "stamp",
+      "caption_key": "book.mark.reference",
+      "samples": {
+        "meridian_12": "M12",
+        "meridian_12a": "M12A"
+      }
+    },
+    "portable_radio/appearance_id": {
+      "id": "book_radio_wear_comparison",
+      "kind": "wear",
+      "caption_key": "book.wear.reference",
+      "samples": {
+        "light_wear": "light",
+        "visible_wear": "visible",
+        "heavy_wear": "heavy"
+      }
+    },
+    "fictional_watch_p2/appearance_id": {
+      "id": "book_watch_wear_comparison",
+      "kind": "wear",
+      "caption_key": "book.wear.reference",
+      "samples": {
+        "light_wear": "light",
+        "visible_wear": "visible",
+        "heavy_wear": "heavy"
+      }
+    },
+    "fictional_watch_p2/material_id": {
+      "id": "book_watch_case_comparison",
+      "kind": "text",
+      "caption_key": "book.compare.case.caption",
+      "samples": {
+        "standard_case": "book.compare.sample.standard",
+        "decorative_case": "book.compare.sample.decorative"
+      }
+    },
+    "fictional_watch_p2/function_id": {
+      "id": "book_watch_function_comparison",
+      "kind": "text",
+      "caption_key": "book.compare.function.caption",
+      "samples": {
+        "serviceable": "book.compare.sample.working",
+        "inoperable": "book.compare.sample.stopped"
+      }
+    },
+    "fictional_watch_p2/mark_id": {
+      "id": "book_watch_mark_comparison",
+      "kind": "text",
+      "caption_key": "book.compare.mark.caption",
+      "samples": {
+        "ordinary_mark": "book.compare.sample.ordinary",
+        "commemorative_mark": "book.compare.sample.commemorative"
+      }
+    },
+    "battery/function_id": {
+      "id": "book_battery_function_comparison",
+      "kind": "text",
+      "caption_key": "book.compare.function.caption",
+      "samples": {
+        "working": "book.compare.sample.working",
+        "not_working": "book.compare.sample.stopped"
+      }
+    },
+    "demo_tool/function_id": {
+      "id": "book_tool_function_comparison",
+      "kind": "text",
+      "caption_key": "book.compare.function.caption",
+      "samples": {
+        "working": "book.compare.sample.working",
+        "not_working": "book.compare.sample.stopped"
+      }
+    },
+    "demo_electronics/function_id": {
+      "id": "book_electronics_function_comparison",
+      "kind": "text",
+      "caption_key": "book.compare.function.caption",
+      "samples": {
+        "working": "book.compare.sample.working",
+        "not_working": "book.compare.sample.stopped"
+      }
+    }
+  },
+  "native_capabilities": {
+    "portable_radio": {
+      "catalog_version": 1,
+      "counter_role": "inspection",
+      "tools": {
+        "wear_detail": {
+          "evidence": "R001.wear",
+          "title": "ui.tool.wear_detail"
+        },
+        "casing_detail": {
+          "evidence": "R001.casing_detail",
+          "title": "ui.tool.casing_detail"
+        },
+        "material_detail": {
+          "evidence": "R001.material",
+          "title": "ui.tool.material_detail"
+        },
+        "batch_detail": {
+          "evidence": "R001.batch",
+          "title": "ui.tool.batch_detail"
+        },
+        "function_detail": {
+          "evidence": "R001.function",
+          "title": "ui.tool.function_detail"
+        },
+        "display_damage_detail": {
+          "evidence": "R001.display_damage",
+          "title": "ui.tool.display_damage_detail"
+        }
+      }
+    },
+    "fictional_watch_p2": {
+      "catalog_version": 1,
+      "counter_role": "counter",
+      "tools": {
+        "wear_detail": {
+          "evidence": "dial_wear",
+          "title": "ui.tool.wear_detail"
+        },
+        "batch_detail": {
+          "evidence": "back_mark",
+          "title": "ui.copy.back_mark_reader_3f7e5eab"
+        },
+        "material_detail": {
+          "evidence": "case_texture",
+          "title": "ui.tool.material_detail"
+        },
+        "function_detail": {
+          "evidence": "function_status",
+          "title": "ui.tool.function_detail"
+        }
+      }
+    },
+    "battery": {
+      "catalog_version": 2,
+      "counter_role": "counter",
+      "tools": {
+        "basic_function_v1": {
+          "evidence": "function_status",
+          "title": "review.basic.function"
+        }
+      }
+    },
+    "demo_tool": {
+      "catalog_version": 2,
+      "counter_role": "counter",
+      "tools": {
+        "basic_function_v1": {
+          "evidence": "function_status",
+          "title": "review.basic.function"
+        }
+      }
+    },
+    "demo_electronics": {
+      "catalog_version": 2,
+      "counter_role": "counter",
+      "tools": {
+        "basic_function_v1": {
+          "evidence": "function_status",
+          "title": "review.basic.function"
+        }
+      }
+    }
+  }
+}

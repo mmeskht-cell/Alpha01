@@ -1,0 +1,3175 @@
+msgid ""
+msgstr ""
+"Language: en\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "app.ready"
+msgstr "Ready"
+
+msgid "item.fixture_parcel"
+msgstr "Test parcel"
+
+msgid "wallet.balance"
+msgstr "Balance: {amount} {currency}"
+
+msgid "error.save"
+msgstr "Could not save."
+
+#. Item label
+msgid "item.portable_radio"
+msgstr "Portable radio"
+
+#. Abstract game object
+msgid "item.fictional_gear"
+msgstr "Fictional equipment"
+
+#. Abstract game object
+msgid "item.abstract_module_a"
+msgstr "Abstract module A"
+
+#. Abstract game object
+msgid "item.abstract_module_b"
+msgstr "Abstract module B"
+
+#. Item label
+msgid "item.battery"
+msgstr "Battery"
+
+#. Item label
+msgid "item.canned_food"
+msgstr "Canned food"
+
+#. Item label
+msgid "item.watch"
+msgstr "Watch"
+
+#. Fictional medication
+msgid "item.rad1"
+msgstr "RAD-1"
+
+#. Marcus, businesslike; tentative dialogue
+msgid "day1.marcus.offer"
+msgstr "I've secured one dose. Have 300 VKC ready by 6 PM on Day 4. Delivery is at 6 PM on Day 5."
+
+#. G01, brief and transactional
+msgid "day1.g01.offer"
+msgstr "Got a radio here. Yours for 125."
+
+#. Counteroffer
+msgid "day1.g01.counter"
+msgstr "How about {amount} VKC?"
+
+#. Accepted, not yet committed
+msgid "day1.g01.accept"
+msgstr "Fine. We have a deal."
+
+#. Rejected offer
+msgid "day1.g01.reject"
+msgstr "I can't let it go for that."
+
+#. Inquiry only, not a sale guarantee
+msgid "day1.g02.inquiry"
+msgstr "Looking for a portable radio. I'll check its condition before buying."
+
+#. Observed evidence
+msgid "day1.radio.wear"
+msgstr "Visible wear on the casing."
+
+#. Do not imply good condition
+msgid "day1.radio.unknown"
+msgstr "Function unverified"
+
+#. Screen label
+msgid "ui.counter"
+msgstr "Counter"
+
+#. Free view navigation, independent of paid investigation
+msgid "ui.inspect"
+msgstr "Enlarge view"
+
+#. Action
+msgid "ui.catalog"
+msgstr "Catalog"
+
+#. Not an actual price
+msgid "ui.reference_partial"
+msgstr "Partial estimate: {amount} {currency}"
+
+#. Action
+msgid "ui.offer"
+msgstr "Make offer"
+
+#. Action
+msgid "ui.submit_evidence"
+msgstr "Present evidence"
+
+#. Atomic purchase
+msgid "ui.accept_trade"
+msgstr "Confirm purchase"
+
+#. Action
+msgid "ui.decline"
+msgstr "Decline"
+
+#. No payment now
+msgid "ui.contract_accept"
+msgstr "Accept contract"
+
+#. Amount due
+msgid "ui.contract_pending"
+msgstr "Medication contract: {amount} {currency}"
+
+#. Fictional status
+msgid "ui.rad1_remaining"
+msgstr "Effect remaining: {hours} hours"
+
+#. Fictional status
+msgid "ui.rad1_doses"
+msgstr "Doses held: {count}"
+
+#. Only show when persisted
+msgid "ui.trade_saved"
+msgstr "Trade saved."
+
+#. Memory commit vs persistence
+msgid "ui.trade_unsaved"
+msgstr "Trade applied, but not saved."
+
+#. No state mutation
+msgid "ui.trade_failed"
+msgstr "Trade requirements not met."
+
+#. Error
+msgid "ui.insufficient_funds"
+msgstr "Insufficient funds."
+
+#. Error
+msgid "ui.no_space"
+msgstr "Not enough inventory space."
+
+#. Draft, not committed
+msgid "ui.offer_pending"
+msgstr "Offer pending"
+
+#. Only after actual reservation
+msgid "ui.contract_reserved"
+msgstr "Supply reserved"
+
+#. Development milestone, not campaign ending
+msgid "ui.day1_slice_end"
+msgstr "First purchase slice complete"
+
+#. Derived from absolute clock; not a separate budget
+msgid "ui.business_remaining"
+msgstr "Closing in {minutes} min"
+
+#. Show before applying a specific evidence acquisition tool, not before free visual review
+msgid "ui.inspection_duration"
+msgstr "Inspection: {minutes} min"
+
+#. Free sequential admission
+msgid "ui.next_customer"
+msgstr "Next customer"
+
+#. Pending visits only; excludes current and protected delivery
+msgid "ui.customers_remaining"
+msgstr "Visitors left: {count}"
+
+#. Inspection rejected without mutation
+msgid "ui.inspection_time_short"
+msgstr "Not enough business time."
+
+#. No new inspections or visitors
+msgid "ui.closing_final_decision"
+msgstr "Closing time. Finish the current transaction."
+
+#. Free reference view
+msgid "ui.compare_reference"
+msgstr "Compare with catalog"
+
+#. Manual player-selected hypothesis
+msgid "ui.record_attribute"
+msgstr "Record appraisal attribute"
+
+#. Player hypothesis, not verified truth
+msgid "ui.player_estimate"
+msgstr "My appraisal"
+
+#. Evidence from an authorized observation
+msgid "ui.observed_fact"
+msgstr "Observation"
+
+#. Unknown attribute
+msgid "ui.unconfirmed"
+msgstr "Unconfirmed"
+
+#. Deferred separate service visit
+msgid "day1.g02.service_inquiry"
+msgstr "I have a separate item for servicing."
+
+#. Fictional public model
+msgid "catalog.radio.r18.name"
+msgstr "Selvar R-18"
+
+#. Public reference, not an identification result
+msgid "catalog.radio.r18.description"
+msgstr "Rectangular speaker grille, a single accent line along the side, matte grey casing. Badge position varies by production run."
+
+#. Fictional public model
+msgid "catalog.radio.r18s.name"
+msgstr "Selvar R-18S"
+
+#. Public alternative hypothesis
+msgid "catalog.radio.r18s.description"
+msgstr "Similar grille and casing to the R-18. Some runs have a double accent line and a separate badge; wear or repairs can obscure the distinction."
+
+#. Player-selected reference modifier
+msgid "catalog.radio.wear.light"
+msgstr "Light cosmetic wear"
+
+#. Player-selected reference modifier
+msgid "catalog.radio.wear.visible"
+msgstr "Visible cosmetic wear"
+
+#. Player-selected reference modifier
+msgid "catalog.radio.wear.heavy"
+msgstr "Heavy cosmetic wear"
+
+#. Fictional reference source, not actual transaction guarantee
+msgid "catalog.radio.reference_source"
+msgstr "Old Town secondhand reference · 28 Oct 2032"
+
+#. Free visible description; not a model identification
+msgid "day1.radio.visible_shape"
+msgstr "A grey casing and rectangular speaker grille are visible."
+
+#. Second authorized observation, not an automatic modifier or model match
+msgid "day1.radio.casing_detail"
+msgstr "Part of the side marking is worn away. The accent line cannot be identified with certainty."
+
+#. No automatic selection
+msgid "ui.reference_unselected"
+msgstr "Select a model and appraisal attribute yourself."
+
+#. Partial estimate separate from trade offer
+msgid "ui.reference_not_offer"
+msgstr "The catalog reference is not your offer price."
+
+#. Free evidence review
+msgid "ui.observation_review"
+msgstr "Recorded · free"
+
+#. Response to valid wear evidence only; not a function guarantee
+msgid "day1.g01.wear_response"
+msgstr "I'll grant you the wear. That doesn't tell you whether it works, though."
+
+msgid "ui.clock"
+msgstr "Day {day} · {time}"
+
+msgid "ui.door"
+msgstr "Door · Next customer"
+
+msgid "ui.contract_document"
+msgstr "Marcus's contract"
+
+msgid "ui.appraisal_document"
+msgstr "Appraisal slip"
+
+msgid "ui.wear_tool"
+msgstr "Damage meter"
+
+msgid "ui.casing_tool"
+msgstr "Side light"
+
+msgid "ui.wear_target"
+msgstr "Surface"
+
+msgid "ui.casing_target"
+msgstr "Side"
+
+msgid "ui.close_document"
+msgstr "Close"
+
+msgid "ui.offer_amount"
+msgstr "Offer (VKC)"
+
+msgid "ui.no_evidence"
+msgstr "No evidence"
+
+msgid "ui.offers_left"
+msgstr "Offers left: {count}"
+
+msgid "ui.action_failed"
+msgstr "This action is unavailable under current conditions."
+
+msgid "ui.action_saved"
+msgstr "Record saved"
+
+msgid "ui.load_save_failed"
+msgstr "Could not load the save. Existing files are preserved."
+
+msgid "ui.retry_save"
+msgstr "Retry save"
+
+msgid "ui.language"
+msgstr "한국어"
+
+msgid "ui.counter_empty"
+msgstr "The counter is empty."
+
+msgid "ui.visit_declined"
+msgstr "The transaction was declined."
+
+msgid "ui.offer_duplicate"
+msgstr "Offer already recorded. Review the previous response."
+
+msgid "ui.tool_selected"
+msgstr "Select a target area for the chosen tool."
+
+msgid "ui.price_history"
+msgstr "{amount} VKC · {response}"
+
+msgid "ui.record_selection"
+msgstr "Record hypothesis"
+
+msgid "ui.purchase_placement"
+msgstr "Store in the first stock cell"
+
+msgid "ui.dev_counter"
+msgstr "Development counter · Placeholder art"
+
+msgid "ui.inspection_bench"
+msgstr "Appraisal counter"
+
+msgid "ui.tool_tray"
+msgstr "Tools"
+
+msgid "ui.view_front"
+msgstr "Front"
+
+msgid "ui.view_right"
+msgstr "Right"
+
+msgid "ui.view_back"
+msgstr "Back"
+
+msgid "ui.view_left"
+msgstr "Left"
+
+msgid "ui.scan_hint"
+msgstr "Place a tool on the item to inspect it. Drag the item to turn it."
+
+msgid "ui.scan_incomplete"
+msgstr "Place the tool on the item."
+
+msgid "ui.scan_unavailable"
+msgstr "Already observed or unavailable."
+
+msgid "ui.tool_ready"
+msgstr "Release to inspect"
+
+msgid "ui.keyboard_scan_hint"
+msgstr "Keyboard: Q/E turn, 1–6 tools (6 display), arrows move, Enter apply"
+
+msgid "ui.zoom_in"
+msgstr "Zoom +"
+
+msgid "ui.zoom_out"
+msgstr "Zoom -"
+
+msgid "ui.preview_session"
+msgstr "Separate appraisal preview · existing save preserved"
+
+msgid "ui.model_cards"
+msgstr "Model estimate"
+
+msgid "ui.condition_cards"
+msgstr "Condition estimate"
+
+msgid "ui.material_tool"
+msgstr "Material lens"
+
+
+msgid "ui.batch_tool"
+msgstr "Batch reader"
+
+
+msgid "ui.compare_pattern"
+msgstr "Compare swatches"
+
+
+msgid "ui.material_cards"
+msgstr "Shell material"
+
+
+msgid "ui.batch_cards"
+msgstr "Production batch"
+
+
+msgid "ui.damage_guide"
+msgstr "Surface damage index: 0–25 light / 26–65 visible / 66–100 heavy. Function is separate."
+
+
+msgid "ui.material_adjustment"
+msgstr "Shell adjustment: {amount} VKC (before condition modifier)"
+
+
+msgid "material.polymer"
+msgstr "Molded polymer"
+
+
+msgid "material.polymer.description"
+msgstr "Small pitted dots. Standard shell."
+
+
+msgid "material.alloy"
+msgstr "Light alloy"
+
+
+msgid "material.alloy.description"
+msgstr "Even directional grain. Above standard shell reference."
+
+
+msgid "material.steel"
+msgstr "Coated steel"
+
+
+msgid "material.steel.description"
+msgstr "Crossing surface grain. Heavy replacement shell."
+
+
+msgid "batch.early"
+msgstr "Early run"
+
+
+msgid "batch.early.description"
+msgstr "2024–2026 production; K-2 family stamp."
+
+
+msgid "batch.late"
+msgstr "Late run"
+
+
+msgid "batch.late.description"
+msgstr "2027–2030 production; K-7 family stamp."
+
+
+msgid "batch.rebuilt"
+msgstr "Rebuilt run"
+
+
+msgid "batch.rebuilt.description"
+msgstr "R-series marking. Original manufacture year uncertain."
+
+
+msgid "day1.radio.material_sample"
+msgstr "The shell sample shows evenly aligned grain."
+
+
+msgid "day1.radio.batch_sample"
+msgstr "K-7 is legible on part of the batch stamp."
+
+
+msgid "component.title"
+msgstr "Component appraisal workbench · Preview"
+
+
+msgid "component.evening"
+msgstr "Evening · Clock frozen"
+
+
+msgid "component.instructions"
+msgstr "Place a tool on a part. Drag attached parts to the tray; drag detached parts onto a shell to attach."
+
+
+msgid "component.shell"
+msgstr "Radio shell"
+
+
+msgid "component.board"
+msgstr "Circuit module"
+
+
+msgid "component.speaker"
+msgstr "Speaker"
+
+
+msgid "component.antenna"
+msgstr "Antenna"
+
+
+msgid "component.attached"
+msgstr "Attached to:"
+
+
+msgid "component.whole_catalog"
+msgstr "Whole-unit catalog reference"
+
+
+msgid "component.detach_tray"
+msgstr "Detach tray"
+
+
+msgid "component.function_tool"
+msgstr "Function tester"
+
+
+msgid "component.pattern_pore"
+msgstr "Pitted dots"
+
+
+msgid "component.pattern_parallel"
+msgstr "Parallel grain"
+
+
+msgid "component.pattern_cross"
+msgstr "Crossed grain"
+
+
+msgid "component.working"
+msgstr "Serviceable reading"
+
+
+msgid "component.faulty"
+msgstr "Inoperable reading"
+
+
+msgid "component.stale"
+msgstr "Historical · Recheck required"
+
+
+msgid "component.detach_first"
+msgstr "Detach before a new part inspection. Recorded observations remain."
+
+
+msgid "component.repair"
+msgstr "Abstract restoration (5 VKC)"
+
+
+msgid "component.attach"
+msgstr "Attach to"
+
+
+msgid "component.component_reference"
+msgstr "Component base reference"
+
+
+msgid "component.series_guide"
+msgstr "Fictional batch guide: endings 2/4 early, 7 late, RB- prefix indicates rebuilt. No batch price adjustment."
+
+
+msgid "component.recovery"
+msgstr "D001 original four-part recovery subtotal"
+
+
+msgid "component.unknown_count"
+msgstr "{count} unknown"
+
+
+msgid "component.exclusive"
+msgstr "Separate from whole-unit value · No double count"
+
+
+msgid "component.region_shell"
+msgstr "Shell"
+
+
+msgid "component.region_panel"
+msgstr "Display"
+
+
+msgid "component.region_controls"
+msgstr "Controls"
+
+
+msgid "component.region_primary"
+msgstr "Body"
+
+
+msgid "component.region_speaker"
+msgstr "Exposed surface"
+
+
+msgid "component.region_antenna"
+msgstr "External surface"
+
+
+msgid "component.visible_only"
+msgstr "Only permitted tools can inspect exposed areas while attached. Internal and individual function checks require detachment."
+
+
+msgid "component.tool_not_applicable"
+msgstr "This tool is not applicable to this region."
+
+
+msgid "day1.radio.function_sample"
+msgstr "Whole-device abstract diagnosis recorded. Individual internal components remain unverified."
+
+
+msgid "day1.radio.function_serviceable"
+msgstr "Whole-device function: serviceable in test"
+
+
+msgid "day1.radio.function_inoperable"
+msgstr "Whole-device function: inoperable in test"
+
+
+msgid "day1.radio.display_damage"
+msgstr "Display damage index: 12/100, separate from shell wear."
+
+
+msgid "consent.title"
+msgstr "Customer appraisal · Temporary interior access"
+
+
+msgid "consent.elapsed"
+msgstr "{minutes} min elapsed"
+
+
+msgid "consent.price"
+msgstr "Asking price {amount} VKC"
+
+
+msgid "consent.policy_cooperative"
+msgstr "Cooperative customer (fixture)"
+
+
+msgid "consent.policy_reserved"
+msgstr "Inspection-reluctant customer (fixture)"
+
+
+msgid "consent.status_waiting"
+msgstr "Serving customer"
+
+
+msgid "consent.status_open"
+msgstr "Consent granted · Interior access"
+
+
+msgid "consent.status_closed"
+msgstr "Temporary inspection closed"
+
+
+msgid "consent.status_refused"
+msgstr "Customer declined opening. Defects remain unknown."
+
+
+msgid "consent.status_bought"
+msgstr "Purchased · Disassembly available in evening"
+
+
+msgid "consent.status_declined"
+msgstr "Trade declined · Item and access returned"
+
+
+msgid "consent.status_closing"
+msgstr "Closing · No further inspections"
+
+
+msgid "consent.status_expired"
+msgstr "Visit expired · Access revoked"
+
+
+msgid "consent.request"
+msgstr "Request limited opening (+5 min)"
+
+
+msgid "consent.close"
+msgstr "Close temporary inspection"
+
+
+msgid "consent.buy"
+msgstr "Buy at asking price"
+
+
+msgid "consent.decline"
+msgstr "Decline trade"
+
+
+msgid "consent.wait"
+msgstr "Wait up to 240 min (closing test)"
+
+
+msgid "consent.evening"
+msgstr "Go to evening workbench"
+
+
+msgid "consent.scope"
+msgstr "Consent permits only the internal module's material, damage and mark readings. No physical detachment or individual function test."
+
+
+msgid "consent.instructions"
+msgstr "Place tools on permitted regions. New readings cost 5 min; reviewing facts and selecting hypotheses are free. Opening is optional."
+
+
+msgid "consent.read_time"
+msgstr "New reading +5 min"
+
+
+msgid "component.partial"
+msgstr "Partially functional reading"
+
+
+msgid "consent.retained_notes"
+msgstr "Retained appraisal slip · Read only (no new inspection)"
+
+
+msgid "component.save_usage"
+msgstr "Save size, worst-case slot name: {used} / {limit} bytes"
+
+
+msgid "component.save_warning"
+msgstr "Save capacity at least 80% used. Previous records are not automatically deleted."
+
+
+msgid "ui.acquired_appraisal"
+msgstr "Acquired item appraisal slip · Read only"
+
+msgid "dayone.begin"
+msgstr "Continue today's visits"
+
+
+msgid "dayone.management"
+msgstr "Inventory · trade · workbench"
+
+
+msgid "dayone.phase_shop"
+msgstr "Day 1 · Business"
+
+
+msgid "dayone.phase_evening"
+msgstr "18:00 evening workbench · Clock frozen"
+
+
+msgid "dayone.phase_morning"
+msgstr "Day 2 opening · Scheduled handover"
+
+
+msgid "dayone.stock"
+msgstr "Stock 10×6"
+
+
+msgid "dayone.display"
+msgstr "Display 6×3"
+
+
+msgid "dayone.grid_hint"
+msgstr "Drag an item, or select it and click a cell."
+
+
+msgid "dayone.rotate"
+msgstr "Toggle selected item orientation"
+
+
+msgid "dayone.rotate_on"
+msgstr "Rotated"
+
+
+msgid "dayone.rotate_off"
+msgstr "Unrotated"
+
+
+msgid "dayone.stock_line"
+msgstr "{item} · Basis {basis} VKC"
+
+
+msgid "dayone.retail_terms"
+msgstr "G02 retail inquiry {price} VKC · Display and visit required"
+
+
+msgid "dayone.retail"
+msgstr "Confirm retail sale for {price} VKC"
+
+
+msgid "dayone.wholesale"
+msgstr "One-time wholesale sale for {price} VKC"
+
+
+msgid "dayone.retail_active"
+msgstr "G02: Interested in the radio; I accept any untested functions."
+
+
+msgid "dayone.service_offer"
+msgstr "G02: A separate cosmetic service; I'll collect it tomorrow."
+
+
+msgid "dayone.accept_service"
+msgstr "Accept customer-owned service item"
+
+
+msgid "dayone.decline"
+msgstr "Decline this visit"
+
+
+msgid "dayone.closing_warning"
+msgstr "Overhead {cost} VKC · {remaining} uncalled visits expire at closing."
+
+
+msgid "dayone.close"
+msgstr "Confirm 18:00 closing"
+
+
+msgid "dayone.service_offered"
+msgstr "Service offered · Customer-held"
+
+
+msgid "dayone.service_accepted"
+msgstr "Accepted · Dedicated custody"
+
+
+msgid "dayone.service_complete"
+msgstr "Completed · Awaiting next-day handover"
+
+
+msgid "dayone.service_delivered"
+msgstr "Returned · Fee settled"
+
+
+msgid "dayone.service_declined"
+msgstr "Declined · Item stays with customer"
+
+
+msgid "dayone.service_cancelled"
+msgstr "Returned unfinished · No fee"
+
+
+msgid "dayone.service_terms"
+msgstr "W001 abstract surface work · Cost {cost} VKC · Fee {fee} VKC on return"
+
+
+msgid "dayone.surface_tool"
+msgstr "Surface tool"
+
+
+msgid "dayone.surface_hint"
+msgstr "Select the tool and drag across three marks. No cost or state change before confirmation."
+
+
+msgid "dayone.commit_work"
+msgstr "Confirm abstract work · {cost} VKC"
+
+
+msgid "dayone.prepare_accessible"
+msgstr "Accessibility: prepare work"
+
+
+msgid "dayone.cancel_service"
+msgstr "Return unfinished item · No fee"
+
+
+msgid "dayone.morning"
+msgstr "Advance to tomorrow 08:00 (14 hours)"
+
+
+msgid "dayone.deliver"
+msgstr "Hand over completed item and collect fee"
+
+
+msgid "dayone.recovery"
+msgstr "One-time Day 2 held-radio sale · {price} VKC"
+
+
+msgid "dayone.pay_overhead"
+msgstr "Settle overhead debt"
+
+
+msgid "dayone.slice_end"
+msgstr "First-day slice · Further business is a later development stage."
+
+
+msgid "dayone.overhead_record"
+msgstr "Overhead paid {paid} VKC · Debt {debt} VKC"
+
+
+msgid "dayone.ledger"
+msgstr "Transaction and expense ledger"
+
+
+msgid "dayone.ledger_sale"
+msgstr "Sale {item} · Receipts {amount} VKC"
+
+
+msgid "dayone.ledger_purchase"
+msgstr "Purchase {item} · Paid {amount} VKC"
+
+
+msgid "dayone.margin"
+msgstr "Realized margin {margin} VKC"
+
+
+msgid "dayone.settlement_service_cost"
+msgstr "Service cost −{amount} VKC"
+
+
+msgid "dayone.settlement_overhead"
+msgstr "Closing overhead −{amount} VKC"
+
+
+msgid "dayone.settlement_service_fee"
+msgstr "Handover fee +{amount} VKC"
+
+
+msgid "dayone.settlement_overhead_debt"
+msgstr "Overhead debt paid −{amount} VKC"
+
+
+msgid "dayone.news_source"
+msgstr "Sora · Market note (D2 08:00)"
+
+
+msgid "dayone.news_opening"
+msgstr "Stock may be hard to find today. Some traders are quoting in foreign currency."
+
+
+msgid "component.market_prepare"
+msgstr "Finish workbench · Verify resale"
+
+
+msgid "component.market_terms"
+msgstr "One-time offer: D001 for 200 VKC · Current serviceable diagnosis required"
+
+
+msgid "component.market_title"
+msgstr "Restored-item resale verification"
+
+
+msgid "component.market_sell"
+msgstr "Settle sale for 200 VKC"
+
+
+msgid "component.market_done"
+msgstr "Sale complete · Same root and part IDs transferred"
+
+
+msgid "component.market_margin"
+msgstr "Realized margin {margin} VKC"
+
+
+msgid "dayone.rotate_commit"
+msgstr "Apply rotation in current cell"
+
+msgid "lineage.open"
+msgstr "Item transaction history"
+
+msgid "lineage.empty"
+msgstr "No confirmed shop transactions."
+
+msgid "lineage.purchase"
+msgstr "Purchase"
+
+msgid "lineage.sale"
+msgstr "Sale"
+
+msgid "lineage.group_price"
+msgstr "Individual price unknown"
+
+msgid "lineage.row"
+msgstr "Day {day} {time} · {direction} · {price}"
+
+msgid "lineage.older"
+msgstr "See ledger for {count} earlier records."
+
+msgid "lineage.unknown"
+msgstr "History outside the shop records is not confirmed."
+
+msgid "ui.document_scale"
+msgstr "Text size {percent}%"
+
+msgid "ui.tool_guide"
+msgstr "Tool guide"
+
+msgid "ui.tool_cost"
+msgstr "New observation +{minutes} min"
+
+msgid "ui.feedback_settings"
+msgstr "Feedback"
+
+msgid "ui.feedback_settings_hint"
+msgstr "Preferences persist between sessions. Sound and motion do not change game results."
+
+msgid "ui.preferences_save_failed"
+msgstr "Could not save preferences. Changes apply now but may not be restored next session."
+
+msgid "ui.sound_on"
+msgstr "Sound on · mute"
+
+msgid "ui.sound_off"
+msgstr "Sound muted · enable"
+
+msgid "ui.motion_on"
+msgstr "Motion on · reduce"
+
+msgid "ui.motion_off"
+msgstr "Motion reduced · enable"
+
+msgid "pilot.title"
+msgstr "Composite electronics integration pilot · noncanonical"
+
+msgid "pilot.offer"
+msgstr "Admit pilot customer"
+
+msgid "pilot.inspect"
+msgstr "{part} · {region} · {tool}"
+
+msgid "pilot.detach"
+msgstr "{part} · Separate on bench"
+
+msgid "pilot.attach"
+msgstr "{part} · Return to assembly"
+
+msgid "pilot.restore"
+msgstr "{part} · Abstract restoration ({cost} VKC)"
+
+msgid "dayone.tab_counter"
+msgstr "Counter"
+
+msgid "dayone.tab_stock"
+msgstr "Stockroom"
+
+msgid "dayone.tab_workshop"
+msgstr "Workshop"
+
+msgid "dayone.tab_ledger"
+msgstr "Ledger"
+
+msgid "dayone.stock_evening_hint"
+msgstr "Service work is available at the workshop in the evening."
+
+msgid "dayone.select_stock"
+msgstr "Select an item"
+
+msgid "dayone.stock_detail"
+msgstr "{item} · {location} · Cost {basis} VKC"
+
+msgid "dayone.quick_display"
+msgstr "Quick move to display"
+
+msgid "dayone.quick_stock"
+msgstr "Quick move to stockroom"
+
+msgid "dayone.clear_selection"
+msgstr "Clear selection"
+
+msgid "ui.audio_level"
+msgstr "{channel} volume {percent}%"
+
+msgid "ui.audio_ambience"
+msgstr "Ambience"
+
+msgid "ui.audio_sfx"
+msgstr "Effects"
+
+msgid "ui.audio_ui"
+msgstr "UI sounds"
+
+msgid "ui.audio_music"
+msgstr "Music"
+
+msgid "ui.page_previous"
+msgstr "Previous"
+
+msgid "ui.page_next"
+msgstr "Next"
+
+msgid "ui.page_range"
+msgstr "{first}–{last} / {total} records"
+
+msgid "appraisal.drop_hint"
+msgstr "Drop the matching assessment card here."
+
+msgid "appraisal.card_model_id"
+msgstr "Alexei: It looks closer to {value}."
+
+msgid "appraisal.card_appearance_id"
+msgstr "Alexei: I would describe the exterior as {value}."
+
+msgid "appraisal.card_material_id"
+msgstr "Alexei: My estimate for the material is {value}."
+
+msgid "appraisal.card_batch_id"
+msgstr "Alexei: The production mark might be {value}."
+
+msgid "appraisal.card_clear"
+msgstr "Alexei: Hard to say yet. I'll leave it {value}."
+
+msgid "appraisal.customer_model_id"
+msgstr "Customer: I don't know the model number."
+
+msgid "appraisal.customer_appearance_id"
+msgstr "Customer: It has been used for a while."
+
+msgid "appraisal.customer_material_id"
+msgstr "Customer: I couldn't tell you the material."
+
+msgid "appraisal.customer_batch_id"
+msgstr "Customer: I don't know when it was made."
+
+msgid "appraisal.customer_clear"
+msgstr "Customer: Take a look, then."
+
+msgid "appraisal.links_heading"
+msgstr "Link observations to assessments — references, not proof of correctness"
+
+msgid "appraisal.argument_heading"
+msgstr "Prepare an assessment argument (conjecture)"
+
+msgid "appraisal.argument_prepare"
+msgstr "Prepare card: {value} · {count} observations"
+
+msgid "appraisal.argument_prepared"
+msgstr "Argument card: {value} (conjecture)"
+
+msgid "appraisal.look_up"
+msgstr "SPACE · Look up"
+
+msgid "appraisal.look_down"
+msgstr "SPACE · Look down"
+
+msgid "appraisal.deck_present"
+msgstr "Present: {value}"
+
+msgid "appraisal.deck_remove"
+msgstr "Remove from deck"
+
+msgid "appraisal.deck_spoken"
+msgstr "Presented: {value}"
+
+msgid "appraisal.deck_basis"
+msgstr "Presented arguments"
+
+msgid "appraisal.deck_ready"
+msgstr "Ready: {value}"
+
+msgid "appraisal.deck_target"
+msgstr "Present card to customer"
+
+msgid "appraisal.deck_history"
+msgstr "Presented arguments and customer statements"
+
+msgid "appraisal.deck_statement"
+msgstr "Alexei: My assessment is {value}."
+
+msgid "appraisal.deck_reply_model_id"
+msgstr "Customer: I am not sure about the model either."
+
+msgid "appraisal.deck_reply_appearance_id"
+msgstr "Customer: It does have some signs of use."
+
+msgid "appraisal.deck_reply_material_id"
+msgstr "Customer: I have not verified the material."
+
+msgid "appraisal.deck_reply_batch_id"
+msgstr "Customer: I do not know the production date."
+
+msgid "appraisal.deck_customer_claim"
+msgstr "Customer claim: It is still usable."
+
+msgid "appraisal.counter_basis"
+msgstr "Arguments presented: {count}"
+
+msgid "appraisal.counter_propose"
+msgstr "Propose price"
+
+msgid "appraisal.counter_confirm"
+msgstr "Confirm at {amount} VKC"
+
+msgid "appraisal.customer_unconfirmed"
+msgstr "Customer claim · unverified"
+
+msgid "p2.watch.source"
+msgstr "Fictional watch reference (test)"
+
+msgid "p2.watch.meridian12"
+msgstr "Meridian 12"
+
+msgid "p2.watch.meridian12a"
+msgstr "Meridian 12A"
+
+msgid "p2.watch.standard_case"
+msgstr "Standard case"
+
+msgid "p2.watch.decorative_case"
+msgstr "Decorative case"
+
+msgid "p2.watch.running"
+msgstr "Apparently running"
+
+msgid "p2.watch.stopped"
+msgstr "Apparently inoperable"
+
+msgid "p2.watch.ordinary_mark"
+msgstr "Ordinary mark"
+
+msgid "p2.watch.commemorative_mark"
+msgstr "Commemorative mark"
+
+msgid "p2.watch.obs_wear"
+msgstr "Dial surface observation"
+
+msgid "p2.watch.obs_mark"
+msgstr "Back marking observation"
+
+msgid "p2.watch.obs_texture"
+msgstr "Case surface texture"
+
+msgid "p2.watch.obs_function"
+msgstr "Function observation"
+
+msgid "review.fact.surface"
+msgstr "Surface wear index"
+
+msgid "review.fact.mark"
+msgstr "Mark reading"
+
+msgid "review.fact.texture"
+msgstr "Surface texture"
+
+msgid "review.fact.batch"
+msgstr "Batch marking"
+
+msgid "review.fact.function"
+msgstr "Function test"
+
+msgid "review.fact.display"
+msgstr "Display damage index"
+
+msgid "review.fact.unknown"
+msgstr "Other observation"
+
+msgid "review.value.parallel"
+msgstr "Parallel grain"
+
+msgid "review.value.cross"
+msgstr "Cross grain"
+
+msgid "review.value.serviceable"
+msgstr "Working in test"
+
+msgid "review.value.inoperable"
+msgstr "Inoperable in test"
+
+msgid "review.value.unreadable"
+msgstr "Reading uncertain"
+
+msgid "review.value.yes"
+msgstr "Yes"
+
+msgid "review.value.no"
+msgstr "No"
+
+msgid "review.value.unknown"
+msgstr "Unknown"
+
+msgid "review.price.previous"
+msgstr "Previous price offer"
+
+msgid "review.price.accepted"
+msgstr "Accepted"
+
+msgid "review.price.rejected"
+msgstr "Rejected"
+
+msgid "review.price.basis"
+msgstr "Public basis at offer"
+
+msgid "review.plan.title"
+msgstr "Alternative disposition plans"
+
+msgid "review.plan.sell"
+msgstr "Current sale offer"
+
+msgid "review.plan.no_offer"
+msgstr "No confirmed available offer"
+
+msgid "review.plan.hold"
+msgstr "Hold · no cash inflow"
+
+msgid "review.plan.recover"
+msgstr "Recover · detachable physical materials"
+
+msgid "review.plan.recover_empty"
+msgstr "No currently available removal"
+
+msgid "review.plan.restore"
+msgstr "Restore · additional direct expense"
+
+msgid "review.plan.no_restore"
+msgstr "Current executable expense unknown"
+
+msgid "review.plan.restore_unavailable"
+msgstr "Currently unavailable or insufficient cash"
+
+msgid "review.plan.restore_available"
+msgstr "Expense affordable · outcome not confirmed"
+
+msgid "review.plan.basis"
+msgstr "Current family basis"
+
+msgid "review.plan.recovered_basis"
+msgstr "Allocated basis of recovered material"
+
+msgid "review.plan.unknown_demand"
+msgstr "Buyer demand after recovery or restoration unknown"
+
+msgid "review.plan.opportunity"
+msgstr "Current offer forgone"
+
+msgid "review.plan.not_revenue"
+msgstr "Allocated basis is not revenue or realized profit."
+
+msgid "review.plan.quote_only"
+msgstr "An offer is not a sale; settlement requires confirmation."
+
+msgid "review.basic.open"
+msgstr "Basic appraisal / offer"
+
+msgid "review.basic.function"
+msgstr "Function test"
+
+msgid "review.basic.source"
+msgstr "Basic function assessment · no independent estimate"
+
+msgid "review.basic.working"
+msgstr "Likely functional"
+
+msgid "review.basic.not_working"
+msgstr "Likely inoperable"
+
+msgid "item.civil_receiver"
+msgstr "Civilian portable receiver"
+
+msgid "item.civil_module_a"
+msgstr "Abstract module A"
+
+msgid "item.civil_module_b"
+msgstr "Abstract module B"
+
+msgid "item.civil_module_c"
+msgstr "Abstract module C"
+
+msgid "item.demo_tool"
+msgstr "Hand tool"
+
+msgid "item.demo_hygiene"
+msgstr "Sealed hygiene supplies"
+
+msgid "item.demo_electronics"
+msgstr "Civilian electronics"
+
+msgid "settings.pack.title"
+msgstr "Language pack"
+
+msgid "settings.pack.instructions"
+msgstr "Enter the filename of a JSON language pack in user://localization. Unmigrated text uses the base language."
+
+msgid "settings.pack.apply"
+msgstr "Apply"
+
+msgid "settings.pack.clear"
+msgstr "Restore base language"
+
+msgid "settings.pack.cancel"
+msgstr "Close"
+
+msgid "settings.pack.invalid"
+msgstr "Could not apply language pack. Check filename and format."
+
+msgid "settings.pack.applied"
+msgstr "Language pack applied."
+
+msgid "settings.pack.current"
+msgstr "Current translation locale: {locale}"
+
+msgid "ui.copy.preferences_could_not_be_saved_c2ce093d"
+msgstr "Preferences could not be saved"
+
+msgid "ui.copy.could_not_open_slot_f5e11150"
+msgstr "Could not open slot"
+
+msgid "ui.copy.new_session_c88df2bc"
+msgstr "New session"
+
+msgid "ui.copy.saved_session_resumed_cf6fd88a"
+msgstr "Saved session resumed"
+
+msgid "ui.copy.stock_bf0ad62f"
+msgstr "Stock"
+
+msgid "ui.copy.customer_custody_78fdebe1"
+msgstr "Customer custody"
+
+msgid "ui.copy.owned_cff2f00c"
+msgstr "Owned"
+
+msgid "ui.copy.custody_a1f910"
+msgstr "Custody"
+
+msgid "ui.copy.completed_12ead41e"
+msgstr "Completed"
+
+msgid "ui.copy.unavailable_e8505c55"
+msgstr "Unavailable: "
+
+msgid "ui.copy.save_failed_retry_before_continuing_21aa1c01"
+msgstr "Save failed. Retry before continuing."
+
+msgid "ui.copy.composite_candidate_5191b827"
+msgstr "Composite candidate · "
+
+msgid "ui.copy.day_b165382f"
+msgstr "Day "
+
+msgid "ui.copy.recovered_from_the_previous_valid_save_1e032a02"
+msgstr "Recovered from the previous valid save."
+
+msgid "ui.copy.save_load_error_f5af17cd"
+msgstr "Save/load error: "
+
+msgid "ui.copy.retry_save_d398bfc9"
+msgstr "Retry save"
+
+msgid "ui.copy.1_november_2032_alexei_barin_38_reopens_his_2c15303e"
+msgstr "1 November 2032. Alexei Barin, 38, reopens his second-hand shop in sealed Kravensk. His evacuation was cancelled. He needs to secure his next supply of medicine."
+
+msgid "ui.copy.open_the_shutters_8ede7ece"
+msgstr "Open the shutters"
+
+msgid "ui.copy.skip_prologue_3df4eed3"
+msgstr "Skip prologue"
+
+msgid "ui.copy.first_week_complete_the_story_continues_1cec1dd2"
+msgstr "First week complete. The story continues."
+
+msgid "ui.copy.final_cash_d06a92e9"
+msgstr "Final cash: "
+
+msgid "ui.copy.this_is_the_demo_boundary_not_a_campaign_en_5fa73f01"
+msgstr "This is the demo boundary, not a campaign ending."
+
+msgid "ui.copy.pending_pickup_11905ce0"
+msgstr "Pending pickup: "
+
+msgid "ui.copy.kravensk_shop_in_the_sealed_city_6919897b"
+msgstr "Kravensk · Shop in the sealed city"
+
+msgid "ui.copy.sora_are_you_open_i_sent_someone_your_way_fbc8270b"
+msgstr "Sora: Are you open? I sent someone your way."
+
+msgid "ui.copy.ian_you_ll_be_all_right_for_a_few_days_but__6be4d982"
+msgstr "Ian: You'll be all right for a few days, but you need to secure the next supply."
+
+msgid "ui.copy.sora_more_people_are_looking_for_winter_sup_86c1ac8d"
+msgstr "Sora: More people are looking for winter supplies. I am glad you are open."
+
+msgid "ui.copy.marcus_payment_reserves_the_supply_you_do_n_403b17a0"
+msgstr "Marcus: Payment reserves the supply. You do not have it in your hands yet."
+
+msgid "ui.copy.remaining_visits_a65bf86a"
+msgstr "Remaining visits: "
+
+msgid "ui.copy.overdue_overhead_37570c25"
+msgstr "Overdue overhead: "
+
+msgid "ui.copy.pay_overhead_23660013"
+msgstr "Pay overhead"
+
+msgid "ui.copy.next_customer_fd07c070"
+msgstr "Next customer"
+
+msgid "ui.copy.no_confirmed_offer_8858b07c"
+msgstr "No confirmed offer"
+
+msgid "ui.copy.g01_do_you_buy_things_here_682d8d4f"
+msgstr "G01: Do you buy things here?"
+
+msgid "ui.copy.g02_i_bought_this_radio_here_before_it_is_n_512d34fd"
+msgstr "G02: I bought this radio here before. It is not in the same condition now."
+
+msgid "ui.copy.buy_d5fd742c"
+msgstr "Buy"
+
+msgid "ui.copy.sell_cece1123"
+msgstr "Sell"
+
+msgid "ui.copy.service_c8fa625f"
+msgstr "Service · "
+
+msgid "ui.copy.accept_service_ad106ab3"
+msgstr "Accept service"
+
+msgid "ui.copy.return_and_collect_fee_9378214b"
+msgstr "Return and collect fee"
+
+msgid "ui.copy.return_unpaid_460b2b55"
+msgstr "Return unpaid"
+
+msgid "ui.copy.decline_visit_1b22e3e3"
+msgstr "Decline visit"
+
+msgid "ui.copy.close_shop_59b1e7c1"
+msgstr "Close shop"
+
+msgid "ui.copy.closing_settlement_overhead_15_vkc_first_du_4c4e9312"
+msgstr "Closing settlement · overhead 15 VKC first. Due contracts: "
+
+msgid "ui.copy.available_after_overhead_aeaaaa7e"
+msgstr "Available after overhead: "
+
+msgid "ui.copy.pay_due_contracts_close_cdf3db4"
+msgstr "Pay due contracts & close"
+
+msgid "ui.copy.confirm_default_release_reservation_3e38b308"
+msgstr "Confirm default & release reservation"
+
+msgid "ui.copy.evening_workshop_89b959a5"
+msgstr "Evening workshop"
+
+msgid "ui.copy.restore_b51f11f2"
+msgstr "Restore "
+
+msgid "ui.copy.next_morning_296e989c"
+msgstr "Next morning"
+
+msgid "ui.copy.due_d_a10934de"
+msgstr "Due D"
+
+msgid "ui.copy.delivery_d_51fb0b93"
+msgstr "Delivery D"
+
+msgid "ui.copy.accept_marcus_s_offer_db96d1c3"
+msgstr "Accept Marcus's offer"
+
+msgid "ui.copy.decline_ed1fb32f"
+msgstr "Decline"
+
+msgid "ui.copy.pay_contract_e37ce3dd"
+msgstr "Pay contract"
+
+msgid "ui.copy.extend_7853d8ec"
+msgstr "Extend"
+
+msgid "ui.copy.news_d_1010b526"
+msgstr "News · D"
+
+msgid "ui.copy.ian_thank_you_for_helping_a5e77da9"
+msgstr "Ian: Thank you for helping."
+
+msgid "ui.copy.additional_clinic_supplies_have_not_been_co_4d04311"
+msgstr "Additional clinic supplies have not been confirmed."
+
+msgid "ui.copy.marcus_your_medicine_has_arrived_b406e251"
+msgstr "Marcus: Your medicine has arrived."
+
+msgid "ui.copy.marcus_this_delivery_did_not_go_through_1d0dcbc8"
+msgstr "Marcus: This delivery did not go through."
+
+msgid "ui.copy.tan_people_do_get_out_who_and_when_that_s_a_35e3682"
+msgstr "Tan: People do get out. Who and when—that's another matter."
+
+msgid "ui.copy.stock_and_custody_89da3ff3"
+msgstr "Stock and custody"
+
+msgid "ui.copy.shop_office_bf373655"
+msgstr "Shop office"
+
+msgid "ui.copy.cash_483e7412"
+msgstr "Cash · "
+
+msgid "ui.copy.closed_work_lamp_c39ab77b"
+msgstr "Closed · Work lamp"
+
+msgid "ui.copy.open_fc52508"
+msgstr "Open"
+
+msgid "ui.copy.ledger_a9dad261"
+msgstr "Ledger"
+
+msgid "ui.copy.contracts_8d973b95"
+msgstr "Contracts"
+
+msgid "ui.copy.terminal_230d7be0"
+msgstr "Terminal"
+
+msgid "ui.copy.transaction_ledger_261b8677"
+msgstr "Transaction ledger"
+
+msgid "ui.copy.local_terminal_896458a8"
+msgstr "Local terminal"
+
+msgid "ui.copy.no_known_contracts_2bc9a316"
+msgstr "No known contracts"
+
+msgid "ui.copy.local_terminal_known_news_c72fbad6"
+msgstr "Local terminal · known news"
+
+msgid "ui.copy.no_confirmed_news_3a511909"
+msgstr "No confirmed news"
+
+msgid "ui.copy.messages_ee1edf9b"
+msgstr "Messages"
+
+msgid "ui.copy.close_office_1f6d1b1f"
+msgstr "Close office"
+
+msgid "ui.copy.office_b376d3f2"
+msgstr "Office"
+
+msgid "ui.copy.back_mark_reader_3f7e5eab"
+msgstr "Back mark reader"
+
+msgid "ui.copy.choose_the_appropriate_region_for_the_selec_b6c2d1e5"
+msgstr "Choose the appropriate region for the selected tool."
+
+msgid "ui.copy.will_you_buy_this_item_dedc031b"
+msgstr "Will you buy this item?"
+
+msgid "ui.copy.i_d_like_to_buy_this_item_91619a57"
+msgstr "I'd like to buy this item."
+
+msgid "ui.copy.purchase_slip_3a9c7ac5"
+msgstr "Purchase slip"
+
+msgid "ui.copy.sale_slip_eca790c8"
+msgstr "Sale slip"
+
+msgid "ui.copy.no_available_placement_e13e4384"
+msgstr "No available placement"
+
+msgid "ui.copy.insufficient_cash_e996d3a2"
+msgstr "Insufficient cash"
+
+msgid "ui.copy.customer_cannot_pay_this_offer_917ad803"
+msgstr "Customer cannot pay this offer"
+
+msgid "ui.copy.inspect_owned_item_1ce27160"
+msgstr "Inspect owned item"
+
+msgid "ui.copy.confirm_purchase_4f429f57"
+msgstr "Confirm purchase"
+
+msgid "ui.copy.confirm_sale_4f728d10"
+msgstr "Confirm sale"
+
+msgid "ui.copy.decline_19995241"
+msgstr "Decline"
+
+msgid "ui.copy.i_d_like_this_serviced_7edcb5a2"
+msgstr "I'd like this serviced."
+
+msgid "ui.copy.i_m_here_to_collect_my_item_582aa83c"
+msgstr "I'm here to collect my item."
+
+msgid "ui.copy.customer_owned_service_item_f25dc339"
+msgstr "Customer owned / service item"
+
+msgid "ui.copy.service_slip_fee_392df2d0"
+msgstr "Service slip · Fee "
+
+msgid "ui.copy.new_request_b95fd718"
+msgstr "New request"
+
+msgid "ui.copy.completed_return_after_check_fbd996e0"
+msgstr "Completed · return after check"
+
+msgid "ui.copy.work_incomplete_125702a0"
+msgstr "Work incomplete"
+
+msgid "ui.copy.return_and_collect_fee_68cab1a0"
+msgstr "Return and collect fee"
+
+msgid "ui.copy.known_e7b32f47"
+msgstr "Known"
+
+msgid "ui.copy.inspect_a_detail_not_shown_in_the_represent_cf021d06"
+msgstr "Inspect a detail not shown in the representative image; existing tool and time rules apply."
+
+msgid "ui.copy.inspection_tools_546ff394"
+msgstr "Inspection tools"
+
+msgid "ui.copy.returning_item_747d92af"
+msgstr "Returning item"
+
+msgid "ui.copy.min_a419b7d"
+msgstr " min"
+
+msgid "ui.copy.select_the_region_on_the_item_688ed27a"
+msgstr "Select the region on the item."
+
+msgid "ui.copy.select_the_detail_target_above_the_item_4719621e"
+msgstr "Select the detail target above the item."
+
+msgid "ui.copy.inspect_1b481735"
+msgstr "Inspect"
+
+msgid "ui.copy.front_18a87342"
+msgstr "Front"
+
+msgid "ui.copy.back_479b23d1"
+msgstr "Back"
+
+msgid "ui.copy.book_assessment_4558d616"
+msgstr "Book & assessment"
+
+msgid "ui.copy.drag_a_tool_onto_the_item_b8fb2c5b"
+msgstr "Drag a tool onto the item."
+
+msgid "ui.copy.last_observation_50e88897"
+msgstr "Last observation: "
+
+msgid "ui.copy.do_you_buy_watches_d713ae5"
+msgstr "Do you buy watches?"
+
+msgid "ui.copy.do_you_buy_things_here_badbda7b"
+msgstr "Do you buy things here?"
+
+msgid "ui.copy.i_bought_this_radio_here_before_it_is_not_i_f90fb14b"
+msgstr "I bought this radio here before. It is not in the same condition now."
+
+msgid "ui.copy.alexei_i_withdraw_this_judgment_6447d2a2"
+msgstr "Alexei: I withdraw this judgment. "
+
+msgid "ui.copy.alexei_this_is_what_i_observed_8ecbca0"
+msgstr "Alexei: This is what I observed. "
+
+msgid "ui.copy.alexei_a19a8468"
+msgstr "Alexei: "
+
+msgid "ui.copy.correction_290b194e"
+msgstr "Correction. "
+
+msgid "ui.copy.hypothesis_a46bd249"
+msgstr " (hypothesis)"
+
+msgid "ui.copy.customer_claim_20504483"
+msgstr " (customer claim)"
+
+msgid "ui.copy.present_a_card_to_customer_ce34e8f"
+msgstr "Present a card to customer"
+
+msgid "ui.copy.no_assessment_cards_inspect_and_choose_a_ju_54b904ca"
+msgstr "No assessment cards · inspect and choose a judgment"
+
+msgid "ui.copy.correction_fe5aa275"
+msgstr "Correction: "
+
+msgid "ui.copy.hypothesis_links_2ea00e9e"
+msgstr "Hypothesis · links "
+
+msgid "ui.copy.asking_5b3abf58"
+msgstr "Asking "
+
+msgid "ui.copy.estimate_6c11b6a7"
+msgstr "Estimate "
+
+msgid "ui.copy.offer_with_basis_28e673c"
+msgstr "Offer with basis"
+
+msgid "ui.copy.make_offer_debd0b52"
+msgstr "Make offer"
+
+msgid "ui.copy.price_only_4dd8fd0f"
+msgstr "Price only"
+
+msgid "ui.copy.condition_8d30e730"
+msgstr "Condition: "
+
+msgid "ui.copy.working_8ec30d03"
+msgstr "Working"
+
+msgid "ui.copy.inoperable_2e345410"
+msgstr "Inoperable"
+
+msgid "ui.copy.placement_confirm_288df946"
+msgstr "Placement & confirm"
+
+msgid "ui.copy.sheet_facts_522abb77"
+msgstr "Sheet & facts"
+
+msgid "ui.copy.rebut_1ebcc6f6"
+msgstr "Rebut"
+
+msgid "ui.copy.close_9033cd56"
+msgstr "Close"
+
+msgid "ui.copy.after_hours_workspace_6bed36b7"
+msgstr "After-hours workspace"
+
+msgid "ui.copy.business_stockroom_78d9de60"
+msgstr "Business stockroom"
+
+msgid "ui.copy.18_00_clock_paused_work_lamp_2937810e"
+msgstr "18:00 · Clock paused / work lamp"
+
+msgid "ui.copy.lighting_follows_business_clock_6cfe15a9"
+msgstr "Lighting follows business clock"
+
+msgid "ui.copy.inventory_evening_work_enabled_c70bc29e"
+msgstr "Inventory · evening work enabled"
+
+msgid "ui.copy.inventory_stock_management_b833915b"
+msgstr "Inventory · stock management"
+
+msgid "ui.copy.stock_select_drag_cb25bbc5"
+msgstr "Stock · select / drag"
+
+msgid "ui.copy.owned_8db45f16"
+msgstr "Owned "
+
+msgid "ui.copy.custody_8dedb8de"
+msgstr "Custody "
+
+msgid "ui.copy.item_details_714a9da7"
+msgstr "Item details"
+
+msgid "ui.copy.select_drop_item_here_574430c9"
+msgstr "Select / drop item here"
+
+msgid "ui.copy.owned_stock_ce8e11c5"
+msgstr "Owned stock"
+
+msgid "ui.copy.customer_custody_not_movable_5b46d3f"
+msgstr "Customer custody · not movable"
+
+msgid "ui.copy.empty_cell_48b5c4e3"
+msgstr "Empty cell"
+
+msgid "ui.copy.return_to_counter_cebd9414"
+msgstr "Return to counter"
+
+msgid "ui.copy.rotate_f4b9db24"
+msgstr "Rotate"
+
+msgid "ui.copy.place_7dd2830a"
+msgstr "Place"
+
+msgid "ui.copy.cancel_d94f1bb5"
+msgstr "Cancel"
+
+msgid "ui.copy.placement_available_2b4c9c70"
+msgstr "Placement available"
+
+msgid "ui.copy.unavailable_collision_bounds_or_same_placem_cb2ee070"
+msgstr "Unavailable · collision, bounds or same placement"
+
+msgid "ui.copy.select_an_item_review_is_free_4169758e"
+msgstr "Select an item. Review is free."
+
+msgid "ui.copy.work_slip_e2c533c4"
+msgstr "Work slip"
+
+msgid "ui.copy.restoration_cost_8d85a068"
+msgstr "Restoration cost: "
+
+msgid "ui.copy.service_complete_awaiting_customer_pickup_89f3cde7"
+msgstr "Service complete · awaiting customer pickup"
+
+msgid "ui.copy.player_owned_stock_632e1d7a"
+msgstr "Player owned stock"
+
+msgid "ui.copy.customer_owned_authorized_service_only_77420968"
+msgstr "Customer owned · authorized service only"
+
+msgid "ui.copy.footprint_a7d5b186"
+msgstr "Footprint: "
+
+msgid "ui.copy.root_allocated_basis_f50b9a44"
+msgstr "Root allocated basis: "
+
+msgid "ui.copy.individual_basis_806c519c"
+msgstr "Individual basis: "
+
+msgid "ui.copy.review_discard_3c8f4db7"
+msgstr "Review discard"
+
+msgid "ui.copy.discard_abf4183b"
+msgstr "Discard: "
+
+msgid "ui.copy.items_no_proceeds_lost_basis_ab2e8a51"
+msgstr " items · no proceeds · lost basis "
+
+msgid "ui.copy.discard_is_irreversible_included_ids_e0955b48"
+msgstr "Discard is irreversible. Included IDs: "
+
+msgid "ui.copy.discard_4f578617"
+msgstr "Discard"
+
+msgid "ui.copy.keep_item_181a689b"
+msgstr "Keep item"
+
+msgid "ui.copy.exterior_care_recorded_no_price_function_ch_d0113030"
+msgstr "Exterior care recorded · no price/function change"
+
+msgid "ui.copy.no_exterior_care_recorded_94fe8880"
+msgstr "No exterior care recorded"
+
+msgid "ui.copy.wipe_exterior_86cb1372"
+msgstr "Wipe exterior"
+
+msgid "ui.copy.restoration_and_composition_changes_availab_24359ec5"
+msgstr "Restoration and composition changes available after closing"
+
+msgid "ui.copy.no_available_restoration_77a6ed7c"
+msgstr "No available restoration"
+
+msgid "ui.copy.close_history_d14c1606"
+msgstr "Close history"
+
+msgid "ui.copy.transaction_and_work_history_a0515557"
+msgstr "Transaction and work history"
+
+msgid "ui.copy.restore_f7ee4ed5"
+msgstr "Restore"
+
+msgid "ui.copy.restore_b3664298"
+msgstr "Restore · "
+
+msgid "ui.copy.abstract_component_slots_cc4c2618"
+msgstr "Abstract component slots"
+
+msgid "ui.copy.current_family_basis_d7579729"
+msgstr "Current family basis: "
+
+msgid "ui.copy.additional_restoration_expense_28e000ca"
+msgstr "Additional restoration expense: "
+
+msgid "ui.copy.owned_materials_are_not_free_revenue_is_unk_1f4312df"
+msgstr "Owned materials are not free. Revenue is unknown without an actual buyer offer."
+
+msgid "ui.copy.incoming_material_basis_2844658d"
+msgstr "Incoming material basis: "
+
+msgid "ui.copy.recovered_material_basis_a9d26739"
+msgstr "Recovered material basis: "
+
+msgid "ui.copy.projected_family_basis_d107bee3"
+msgstr "Projected family basis: "
+
+msgid "ui.copy.composition_itself_costs_no_cash_restoratio_c195f4d7"
+msgstr "Composition itself costs no cash · restoration and sale are separate decisions"
+
+msgid "ui.copy.slot_6b7a60"
+msgstr "Slot "
+
+msgid "ui.copy.empty_e5d310ea"
+msgstr "Empty"
+
+msgid "ui.copy.assess_ae77322c"
+msgstr "Assess"
+
+msgid "ui.copy.remove_995fb47b"
+msgstr "Remove"
+
+msgid "ui.copy.exchange_fbc905ee"
+msgstr "Exchange: "
+
+msgid "ui.copy.attach_1adbb93f"
+msgstr "Attach: "
+
+msgid "ui.copy.attach_e13a33af"
+msgstr "Attach"
+
+msgid "ui.copy.exchange_66cb631a"
+msgstr "Exchange"
+
+msgid "ui.copy.pending_85fe9c9f"
+msgstr "Pending: "
+
+msgid "ui.copy.outgoing_26d261a5"
+msgstr "Outgoing "
+
+msgid "ui.copy.stock_f4513ad2"
+msgstr "Stock "
+
+msgid "ui.copy.apply_parts_69f89d86"
+msgstr "Apply parts"
+
+msgid "ui.copy.cancel_parts_ab9e9c5a"
+msgstr "Cancel parts"
+
+msgid "ui.copy.known_assessment_b83529c4"
+msgstr "Known assessment · "
+
+msgid "ui.copy.current_family_basis_fa3fef24"
+msgstr "Current family basis: "
+
+msgid "ui.copy.assessed_item_basis_359cb4c3"
+msgstr "Assessed item basis: "
+
+msgid "ui.copy.unknown_a150fe4"
+msgstr "Unknown"
+
+msgid "ui.copy.refurbished_9d11a831"
+msgstr "Refurbished"
+
+msgid "ui.copy.serviceable_f3da9c82"
+msgstr "Serviceable"
+
+msgid "ui.copy.assessment_46221f2e"
+msgstr "Assessment: "
+
+msgid "ui.copy.return_to_root_assessment_5e3e949"
+msgstr "Return to root assessment"
+
+msgid "ui.copy.function_db9959e9"
+msgstr "Function"
+
+msgid "ui.copy.completeness_62959d0b"
+msgstr "Completeness"
+
+msgid "ui.copy.restoration_status_3bcca6d2"
+msgstr "Restoration status"
+
+msgid "ui.copy.known_a7456c9f"
+msgstr "Known: "
+
+msgid "ui.copy.historical_retest_required_36d87653"
+msgstr "Historical · retest required: "
+
+msgid "ui.copy.yes_c5a2dae0"
+msgstr "Yes"
+
+msgid "ui.copy.no_3885b742"
+msgstr "No"
+
+msgid "ui.copy.free_review_f3820f59"
+msgstr "Free review"
+
+msgid "ui.copy.inspect_ddb0fd77"
+msgstr "Inspect · "
+
+msgid "ui.copy.observed_fact_a49cf725"
+msgstr "Observed fact: "
+
+msgid "ui.copy.no_active_appraisal_e67124a0"
+msgstr "No active appraisal"
+
+msgid "ui.copy.appraisal_sheet_public_assessments_9d1a1781"
+msgstr "Appraisal sheet · public assessments"
+
+msgid "ui.copy.you_may_disclose_acquired_observations_sepa_4423d9f0"
+msgstr "You may disclose acquired observations separately."
+
+msgid "ui.copy.withdrawn_1db3c465"
+msgstr "Withdrawn: "
+
+msgid "ui.copy.earlier_hypothesis_af584293"
+msgstr "Earlier hypothesis: "
+
+msgid "ui.copy.current_hypothesis_6b5dc0fc"
+msgstr "Current hypothesis: "
+
+msgid "ui.copy.current_disclosure_439956a0"
+msgstr "Current disclosure: "
+
+msgid "ui.copy.earlier_disclosure_3a8a0acb"
+msgstr "Earlier disclosure: "
+
+msgid "ui.copy.withdraw_this_judgment_d34bfe1b"
+msgstr "Withdraw this judgment"
+
+msgid "ui.copy.inspect_item_70038369"
+msgstr "Inspect item · "
+
+msgid "ui.copy.negotiate_aaca716"
+msgstr "Negotiate · "
+
+msgid "ui.copy.generic_appraisal_pilot_776dd0b4"
+msgstr "Generic appraisal pilot · "
+
+msgid "ui.copy.present_an_assessment_card_or_offer_a_price_ee29b6ac"
+msgstr "Present an assessment card, or offer a price. SPACE returns to inspection."
+
+msgid "ui.copy.alexei_i_withdraw_this_18ff8bf6"
+msgstr "Alexei: I withdraw this. "
+
+msgid "ui.copy.alexei_my_assessment_is_817169e8"
+msgstr "Alexei: My assessment is "
+
+msgid "ui.copy.inspection_tools_6050cc0a"
+msgstr "Inspection tools"
+
+msgid "ui.copy.observations_7f06a163"
+msgstr "Observations"
+
+msgid "ui.copy.stale_92e2fc99"
+msgstr " (stale)"
+
+msgid "ui.copy.claim_eff9e604"
+msgstr " (claim)"
+
+msgid "ui.copy.hypothesis_6acf1919"
+msgstr "Hypothesis · "
+
+msgid "ui.copy.clear_selection_e6cd7119"
+msgstr "Clear selection"
+
+msgid "ui.copy.unlink_66ae24e2"
+msgstr "Unlink: "
+
+msgid "ui.copy.link_related_observation_c5c87266"
+msgstr "Link related observation: "
+
+msgid "ui.copy.link_evidence_f73569d9"
+msgstr "Link evidence: "
+
+msgid "ui.copy.reference_estimate_f7dbb0ad"
+msgstr "Reference estimate: "
+
+msgid "ui.copy.available_hypotheses_bb25869f"
+msgstr "Available hypotheses"
+
+msgid "ui.copy.prepare_fc6314c2"
+msgstr "Prepare: "
+
+msgid "ui.copy.private_assessment_cards_8be73713"
+msgstr "Private assessment cards"
+
+msgid "ui.copy.prepared_cards_75964db5"
+msgstr "Prepared cards"
+
+msgid "ui.copy.drop_a_card_to_address_customer_fe4dc946"
+msgstr "Drop a card to address customer"
+
+msgid "ui.copy.correction_df85060b"
+msgstr "Correction: "
+
+msgid "ui.copy.stale_d90d0a15"
+msgstr " (stale)"
+
+msgid "ui.copy.drag_65ae8ec5"
+msgstr "Drag: "
+
+msgid "ui.copy.present_fc2a476"
+msgstr "Present"
+
+msgid "ui.copy.rebut_c998d426"
+msgstr "Rebut: "
+
+msgid "ui.copy.remove_9f25f42f"
+msgstr "Remove"
+
+msgid "ui.copy.disclosed_assessments_and_observations_59fe26d2"
+msgstr "Disclosed assessments and observations"
+
+msgid "ui.copy.evidence_links_d13b010c"
+msgstr " evidence links"
+
+msgid "ui.copy.customer_statements_unverified_ff613f53"
+msgstr "Customer statements (unverified)"
+
+msgid "ui.copy.decline_visit_aac393e"
+msgstr "Decline visit"
+
+msgid "ui.copy.assessment_f3699db5"
+msgstr "Assessment: "
+
+msgid "ui.copy.agrees_cb6cdb85"
+msgstr "Agrees"
+
+msgid "ui.copy.disagrees_430f6fac"
+msgstr "Disagrees"
+
+msgid "ui.copy.customer_recollection_unverified_b603fb29"
+msgstr "Customer recollection (unverified): "
+
+msgid "ui.copy.rebuttal_hypothesis_unverified_70f1ad55"
+msgstr "Rebuttal hypothesis (unverified): "
+
+msgid "ui.copy.against_36877636"
+msgstr "Against: "
+
+msgid "ui.copy.new_evidence_links_b00e811b"
+msgstr " new evidence links"
+
+msgid "ui.copy.asking_price_ea7c175"
+msgstr "Asking price: "
+
+msgid "ui.copy.remaining_offers_eb43b87f"
+msgstr "Remaining offers: "
+
+msgid "ui.copy.accepted_b23c0c2b"
+msgstr "Accepted"
+
+msgid "ui.copy.rejected_a87ae7cd"
+msgstr "Rejected"
+
+msgid "ui.copy.public_statements_8093fd8"
+msgstr " public statements"
+
+msgid "ui.copy.offer_with_public_statements_a1f16ddc"
+msgstr "Offer with public statements"
+
+msgid "ui.copy.offer_price_only_8752ad1"
+msgstr "Offer price only"
+
+msgid "ui.copy.trade_condition_4177e64c"
+msgstr "Trade condition: "
+
+msgid "ui.copy.inoperable_b9430e79"
+msgstr "Inoperable"
+
+msgid "ui.copy.choose_stock_location_a32e0265"
+msgstr "Choose stock location"
+
+msgid "ui.copy.agreed_trade_condition_ee639037"
+msgstr "Agreed trade condition: "
+
+msgid "ui.copy.at_transaction_only_c7402a31"
+msgstr " · at transaction only"
+
+msgid "ui.copy.accepted_available_797c28c3"
+msgstr "Accepted / available: "
+
+msgid "ui.copy.footprint_f393fcec"
+msgstr "Footprint: "
+
+msgid "ui.copy.drag_item_to_stock_a562ce7d"
+msgstr "Drag item to stock"
+
+msgid "ui.copy.rotated_809425c0"
+msgstr "Rotated"
+
+msgid "ui.copy.no_available_placement_ed72b32b"
+msgstr "No available placement"
+
+msgid "ui.copy.insufficient_funds_e40e5f71"
+msgstr "Insufficient funds"
+
+msgid "ui.copy.known_transaction_and_work_history_2d7614b9"
+msgstr "Known transaction and work history"
+
+msgid "ui.copy.no_completed_transactions_or_work_d389140d"
+msgstr "No completed transactions or work"
+
+msgid "ui.copy.purchase_974ce25d"
+msgstr "Purchase"
+
+msgid "ui.copy.sale_1b445528"
+msgstr "Sale"
+
+msgid "ui.copy.group_price_individual_price_unknown_a66a6e3b"
+msgstr "Group price; individual price unknown"
+
+msgid "ui.copy.accepted_offer_76df8d19"
+msgstr "Accepted offer: "
+
+msgid "ui.copy.transaction_appraisal_sheet_public_assessme_7cf0b256"
+msgstr "Transaction appraisal sheet · public assessments"
+
+msgid "ui.copy.no_disclosed_assessments_f225e2f2"
+msgstr "No disclosed assessments"
+
+msgid "ui.copy.agreed_quality_condition_4c8da3e4"
+msgstr "Agreed quality condition: "
+
+msgid "ui.copy.no_separate_quality_commitment_6843d1f"
+msgstr "No separate quality commitment"
+
+msgid "ui.copy.historical_hypothesis_e6e5938a"
+msgstr "Historical hypothesis: "
+
+msgid "ui.copy.withdrawal_a0a18d3f"
+msgstr "Withdrawal: "
+
+msgid "ui.copy.superseded_hypothesis_897d2a20"
+msgstr "Superseded hypothesis: "
+
+msgid "ui.copy.corrected_hypothesis_10da6774"
+msgstr "Corrected hypothesis: "
+
+msgid "ui.copy.superseded_observation_d1db4d1c"
+msgstr "Superseded observation: "
+
+msgid "ui.copy.historical_disclosure_4e27737a"
+msgstr "Historical disclosure: "
+
+msgid "ui.copy.accepted_price_basis_410208f"
+msgstr " · accepted price basis"
+
+msgid "ui.copy.customer_claim_unverified_408b2a1f"
+msgstr "Customer claim (unverified): "
+
+msgid "ui.copy.rebuttal_hypothesis_b96af849"
+msgstr "Rebuttal hypothesis: "
+
+msgid "ui.copy.historical_observation_48ff76a2"
+msgstr "Historical observation: "
+
+msgid "ui.copy.older_work_3362b54c"
+msgstr "Older work: "
+
+msgid "ui.copy.older_transactions_f45d7962"
+msgstr "Older transactions: "
+
+msgid "ui.copy.older_items_418a4c01"
+msgstr "Older items: "
+
+msgid "ui.copy.unrecorded_external_history_and_current_con_5b18354a"
+msgstr "Unrecorded external history and current condition are unknown."
+
+msgid "ui.copy.assembly_d235871e"
+msgstr "Assembly"
+
+msgid "ui.copy.disassembly_95945c61"
+msgstr "Disassembly"
+
+msgid "ui.copy.root_49448c67"
+msgstr "Root"
+
+msgid "ui.copy.component_411f045"
+msgstr "Component"
+
+msgid "ui.copy.component_exchange_9b7fcc96"
+msgstr "Component exchange"
+
+msgid "ui.copy.exterior_care_no_function_or_value_bonus_2aeb08c4"
+msgstr "Exterior care · no function or value bonus"
+
+msgid "ui.copy.maintenance_expense_f9f86d33"
+msgstr "Maintenance expense: "
+
+msgid "ui.copy.disposal_loss_d70e5fb1"
+msgstr "Disposal loss: "
+
+msgid "ui.copy.group_disposal_individual_loss_unknown_3fefe596"
+msgstr "Group disposal; individual loss unknown"
+
+msgid "ui.copy.work_record_70cf0ec4"
+msgstr "Work record #"
+
+msgid "review.sale.working"
+msgstr "Sell with tested-working condition"
+
+msgid "review.sale.inoperable"
+msgstr "Sell with tested-inoperable condition"
+
+msgid "settings.panel.title"
+msgstr "Settings"
+
+msgid "settings.audio.music"
+msgstr "Music"
+
+msgid "settings.audio.ambience"
+msgstr "Ambience"
+
+msgid "settings.audio.sfx"
+msgstr "Effects"
+
+msgid "settings.audio.ui"
+msgstr "Interface audio"
+
+msgid "settings.motion"
+msgstr "Screen motion"
+
+msgid "settings.audio.title"
+msgstr "Audio and motion"
+
+msgid "ui.workspace.customer"
+msgstr "Face customer · SPACE"
+
+msgid "ui.workspace.item"
+msgstr "Inspect item · SPACE"
+
+msgid "ui.service.expected_cost"
+msgstr "Direct cost if restoration is needed"
+
+msgid "ui.service.fee_on_delivery"
+msgstr "Fee on successful return"
+
+msgid "ui.service.no_upfront_fee"
+msgstr "Acceptance alone does not pay the fee."
+
+msgid "ui.service.unknown_cost"
+msgstr "Direct cost unknown"
+
+msgid "ui.contract.status.offered"
+msgstr "Offered"
+
+msgid "ui.contract.status.reserved"
+msgstr "Reserved"
+
+msgid "ui.contract.status.paid"
+msgstr "Paid"
+
+msgid "ui.contract.status.delivered"
+msgstr "Delivered"
+
+msgid "ui.contract.status.defaulted"
+msgstr "Defaulted"
+
+msgid "ui.contract.status.declined"
+msgstr "Declined"
+
+msgid "ui.contract.status.missed"
+msgstr "Missed"
+
+msgid "ui.location.counter"
+msgstr "Counter"
+
+msgid "ui.location.inspection"
+msgstr "Inspection"
+
+msgid "ui.location.inventory"
+msgstr "Inventory"
+
+msgid "ui.location.workshop"
+msgstr "Evening work"
+
+msgid "ui.location.office"
+msgstr "Office"
+
+msgid "ui.location.history"
+msgstr "History"
+
+msgid "ui.location.shop"
+msgstr "Shop"
+
+msgid "ui.tool.wear_detail"
+msgstr "Surface magnifier"
+
+msgid "ui.tool.casing_detail"
+msgstr "Mark reader"
+
+msgid "ui.tool.material_detail"
+msgstr "Material viewer"
+
+msgid "ui.tool.batch_detail"
+msgstr "Batch reader"
+
+msgid "ui.tool.function_detail"
+msgstr "Function tester"
+
+msgid "ui.tool.display_damage_detail"
+msgstr "Display magnifier"
+
+msgid "ui.tool.unknown"
+msgstr "Inspection tool"
+
+msgid "ui.condition.unavailable"
+msgstr "This item cannot be traded now"
+
+msgid "ui.condition.verify_complete"
+msgstr "Verify completeness before sale"
+
+msgid "ui.condition.incomplete"
+msgstr "Incomplete assembly · sale unavailable"
+
+msgid "ui.condition.inoperable"
+msgstr "Confirmed inoperable · discounted offer"
+
+msgid "ui.condition.unverified"
+msgstr "Function unverified · risk discount"
+
+msgid "ui.condition.functional"
+msgstr "Function verified · restoration unknown"
+
+msgid "ui.condition.refurbished"
+msgstr "Verified refurbished · refurbished offer"
+
+msgid "ui.condition.serviceable"
+msgstr "Verified serviceable · serviceable offer"
+
+msgid "menu.title"
+msgstr "Main menu"
+
+msgid "menu.new"
+msgstr "New game"
+
+msgid "menu.continue"
+msgstr "Continue"
+
+msgid "menu.load"
+msgstr "Load game"
+
+msgid "menu.settings"
+msgstr "Settings"
+
+msgid "menu.quit"
+msgstr "Quit"
+
+msgid "menu.back"
+msgstr "Back"
+
+msgid "menu.slot"
+msgstr "Save slot"
+
+msgid "menu.empty"
+msgstr "Empty"
+
+msgid "menu.occupied"
+msgstr "Save data present"
+
+msgid "menu.full"
+msgstr "No empty slot. Existing saves will not be overwritten."
+
+msgid "menu.no_save"
+msgstr "No save to load."
+
+msgid "menu.blocked"
+msgstr "Save could not be opened. Existing files are protected."
+
+msgid "menu.in_session"
+msgstr "Current session"
+
+msgid "menu.version"
+msgstr "Development build"
+
+msgid "settings.general.language"
+msgstr "Language · 한국어 / EN"
+
+msgid "settings.general.font"
+msgstr "Text size · A / A+ / A++"
+
+msgid "settings.general.sound"
+msgstr "All sound"
+
+msgid "counter.card.fact"
+msgstr "Observed fact"
+
+msgid "counter.card.judgment"
+msgstr "Assessment · hypothesis"
+
+msgid "counter.card.customer"
+msgstr "Customer's last claim"
+
+msgid "counter.card.unverified"
+msgstr "Unverified claim"
+
+msgid "counter.card.correction"
+msgstr "Correction"
+
+msgid "counter.card.withdrawn"
+msgstr "Withdrawn"
+
+msgid "counter.card.sources"
+msgstr "Sources"
+
+msgid "counter.card.public"
+msgstr "Presented card"
+
+msgid "counter.table.hint"
+msgstr "Place a card here"
+
+msgid "counter.sheet.title"
+msgstr "Appraisal slip · public record"
+
+msgid "counter.sheet.empty"
+msgstr "No statement disclosed yet"
+
+msgid "counter.card.agrees"
+msgstr "Agrees"
+
+msgid "counter.card.disagrees"
+msgstr "Disagrees"
+
+msgid "counter.price.proposal"
+msgstr "Your proposed amount"
+
+
+msgid "book.category.identification"
+msgstr "Identification"
+
+
+msgid "book.category.appearance"
+msgstr "Appearance"
+
+
+msgid "book.category.material"
+msgstr "Material"
+
+
+msgid "book.category.function"
+msgstr "Function"
+
+
+msgid "book.category.special"
+msgstr "Special attributes"
+
+
+msgid "book.category.history"
+msgstr "History"
+
+
+msgid "book.category.composition"
+msgstr "Composition"
+
+
+msgid "book.tab.judgment"
+msgstr "Judgment"
+
+
+msgid "book.tab.reference"
+msgstr "Reference"
+
+
+msgid "book.tab.evidence"
+msgstr "Observations"
+
+
+msgid "book.reference.no_detail"
+msgstr "No detailed reference available"
+
+
+msgid "book.evidence.empty"
+msgstr "No observations acquired yet."
+
+msgid "catalog.radio.wear.light.description"
+msgstr "Minor surface marks or edge wear. Appearance alone does not establish internal function."
+
+msgid "catalog.radio.wear.visible.description"
+msgstr "Distinct wear, discoloration or use marks across several areas. Markings may be obscured."
+
+msgid "catalog.radio.wear.heavy.description"
+msgstr "Extensive wear or substantial cosmetic damage. Function and repair history require separate evidence."
+
+msgid "review.basic.working.description"
+msgstr "Operation during the current test does not guarantee reliability or remaining life."
+
+msgid "review.basic.not_working.description"
+msgstr "Failure to operate during the current test does not establish its cause or restoration potential."
+
+msgid "p2.watch.running.description"
+msgstr "Judge operation at the time of observation. Accuracy and long-term running are not established by this alone."
+
+msgid "p2.watch.stopped.description"
+msgstr "No operation confirmed at observation time. Internal cause and repair needs are separate questions."
+
+msgid "book.texture.reference"
+msgstr "Reference schematics · not specimen photos"
+
+msgid "book.texture.observation"
+msgstr "Acquired texture schematic · not a magnified photo"
+
+msgid "inspection.review_record"
+msgstr "Review acquired observation"
+
+msgid "inspection.visible_crop"
+msgstr "Visible item artwork enlarged · not a new reading"
+
+msgid "inspection.not_observed"
+msgstr "Not inspected yet · apply the tool to the target"
+
+msgid "book.radio.reference"
+msgstr "Model detail examples · vary by production run"
+
+msgid "inspection.readout_caption"
+msgstr "Recorded reading · not a specimen photograph"
+
+msgid "inventory.page.overview"
+msgstr "Overview"
+
+msgid "inventory.page.appraisal"
+msgstr "Inspect"
+
+msgid "inventory.page.components"
+msgstr "Parts"
+
+msgid "inventory.page.plan"
+msgstr "Plan"
+
+msgid "inventory.page.history"
+msgstr "History"
+
+msgid "inventory.page.no_components"
+msgstr "No component information available."
+
+msgid "inventory.page.no_assessment"
+msgstr "No assessment information available."
+
+msgid "inventory.component.preview"
+msgstr "Review composition change"
+
+msgid "history.summary.select"
+msgstr "Select an item to view its records"
+
+msgid "history.summary.previous"
+msgstr "Previous page"
+
+msgid "history.summary.next"
+msgstr "Next page"
+
+msgid "history.summary.trades"
+msgstr "Trades "
+
+msgid "history.summary.work"
+msgstr "Work "
+
+msgid "history.summary.recorded_only"
+msgstr "Recorded entries only · counts are not revenue"
+
+msgid "settings.category.general"
+msgstr "General"
+
+msgid "inventory.legend.list"
+msgstr "List"
+
+msgid "inventory.legend.grid"
+msgstr "Grid"
+
+msgid "inventory.legend.empty"
+msgstr "This storage area is empty."
+
+msgid "review.plan.offer_pending"
+msgstr "Offer · not settled"
+
+msgid "review.plan.recover_short"
+msgstr "Recover · detachable parts"
+
+msgid "review.plan.recover_count"
+msgstr "Available candidates"
+
+msgid "review.plan.restore_short"
+msgstr "Restore · direct expense"
+
+msgid "review.plan.restore_ready"
+msgstr "Affordable · outcome not confirmed"
+
+msgid "review.plan.restore_blocked"
+msgstr "Currently unavailable"
+
+msgid "review.plan.more"
+msgstr "View basis and conditions"
+
+msgid "review.plan.less"
+msgstr "Hide details"
+
+msgid "history.receipt.open"
+msgstr "View public appraisal and terms"
+
+msgid "history.receipt.close"
+msgstr "Hide appraisal and terms"
+
+msgid "p2.watch.meridian12.description"
+msgstr "Example mark: M12. Case replacement or wear is a separate question."
+
+msgid "p2.watch.meridian12a.description"
+msgstr "Example variant mark: M12A. A mark alone is not proof of authenticity."
+
+msgid "p2.watch.standard_case.description"
+msgstr "Standard case candidate. Texture alone cannot exclude a decorative case."
+
+msgid "p2.watch.decorative_case.description"
+msgstr "Decorative case candidate. Case and function are separate judgments."
+
+msgid "p2.watch.ordinary_mark.description"
+msgstr "Ordinary marking candidate. Model marks are not commemorative evidence."
+
+msgid "p2.watch.commemorative_mark.description"
+msgstr "Hypothesis requiring a distinct inscription or record. A model name is insufficient."
+
+msgid "book.mark.reference"
+msgstr "Example marks · not identification"
+
+msgid "inspection.mark_transcription"
+msgstr "Acquired mark transcription · not a photo"
+
+msgid "inspection.compare.crop"
+msgstr "Visible crop"
+
+msgid "inspection.compare.texture"
+msgstr "Schematic, not photo"
+
+msgid "inspection.compare.mark"
+msgstr "Transcript, not photo"
+
+msgid "inspection.compare.readout"
+msgstr "Acquired readout"
+
+msgid "book.reference.base"
+msgstr "Reference base"
+
+msgid "book.reference.factor"
+msgstr "Appearance factor"
+
+msgid "book.reference.adjustment"
+msgstr "Reference adjustment"
+
+msgid "book.reference.browse"
+msgstr "Open reference example"
+
+msgid "book.wear.reference"
+msgstr "Example cosmetic wear · not item condition"
+
+msgid "review.work.review_required"
+msgstr "Review current function"
+
+msgid "review.work.incomplete"
+msgstr "Components missing"
+
+msgid "review.work.known_bad_component"
+msgstr "Replace known defective component"
+
+msgid "review.work.serviceable"
+msgstr "Function verified · restoration not needed"
+
+msgid "inventory.format.money_pair"
+msgstr "{vkc} VKC / {usd} USD"
+
+msgid "inventory.format.stock_counts"
+msgstr "Owned {owned}  /  Custody {custody}"
+
+msgid "inventory.format.item_heading"
+msgstr "{item} · {name}"
+
+msgid "inventory.format.restoration_cost"
+msgstr "Restoration cost: {cost}"
+
+msgid "inventory.format.footprint"
+msgstr "Footprint: {width} × {height}"
+
+msgid "inventory.format.root_basis"
+msgstr "Root allocated basis: {basis}"
+
+msgid "inventory.format.individual_basis"
+msgstr "Individual basis: {basis}"
+
+msgid "inventory.format.discard_summary"
+msgstr "Discard: {count} items · no proceeds · lost basis {basis}"
+
+msgid "inventory.format.discard_ids"
+msgstr "Discard is irreversible. Included IDs: {ids}"
+
+msgid "inventory.format.restore_vkc"
+msgstr "Restore · {vkc} VKC"
+
+msgid "inventory.format.restore_both"
+msgstr "Restore · {vkc} VKC/{usd} USD"
+
+msgid "inventory.format.offer_amount"
+msgstr "{amount} {currency}"
+
+msgid "inventory.format.recovered_basis"
+msgstr "{item} · Allocated basis of recovered material: {basis}"
+
+msgid "inventory.format.plan_basis"
+msgstr "Current family basis: {basis}"
+
+msgid "inventory.format.plan_sale"
+msgstr "Current sale offer: {offer}"
+
+msgid "inventory.format.plan_restore"
+msgstr "Restore · additional direct expense: {cost}"
+
+msgid "inventory.format.plan_opportunity"
+msgstr "Current offer forgone: {offer}"
+
+msgid "inventory.format.plan_count"
+msgstr "Available candidates: {count}"
+
+msgid "inventory.format.plan_restore_short"
+msgstr "Restore · direct expense: {cost}"
+
+msgid "inventory.format.plan_cost_status"
+msgstr "{cost} · {status}"
+
+msgid "inventory.format.slot_page"
+msgstr "Slot {page} / {total}"
+
+msgid "inventory.format.candidate_page"
+msgstr "{page} / {total}"
+
+msgid "inventory.format.family_basis"
+msgstr "Current family basis: {basis}"
+
+msgid "inventory.format.additional_expense"
+msgstr "Additional restoration expense: {basis}"
+
+msgid "inventory.format.incoming_basis"
+msgstr "Incoming material basis: {basis}"
+
+msgid "inventory.format.outgoing_basis"
+msgstr "Recovered material basis: {basis}"
+
+msgid "inventory.format.projected_basis"
+msgstr "Projected family basis: {basis}"
+
+msgid "inventory.format.slot_number"
+msgstr "Slot {number}"
+
+msgid "inventory.format.slot_named"
+msgstr "Slot {number} · {name}"
+
+msgid "inventory.format.slot_contents"
+msgstr "{slot} · {item}"
+
+msgid "inventory.format.exchange_item"
+msgstr "Exchange: {item}"
+
+msgid "inventory.format.attach_item"
+msgstr "Attach: {item}"
+
+msgid "inventory.format.pending_attach"
+msgstr "Pending: {kind} · {item}"
+
+msgid "inventory.format.pending_detach"
+msgstr "Pending: {kind} · {item} · Stock {x},{y}"
+
+msgid "inventory.format.pending_replace"
+msgstr "Pending: {kind} · {item} · Outgoing {outgoing} · Stock {x},{y}"
+
+msgid "inventory.format.assessed_item"
+msgstr "Known assessment · {item}"
+
+msgid "inventory.format.assessment_family_basis"
+msgstr "Current family basis: {basis}"
+
+msgid "inventory.format.assessment_item_basis"
+msgstr "Assessed item basis: {basis}"
+
+msgid "inventory.format.assessment_quality"
+msgstr "Assessment: {quality}"
+
+msgid "inventory.format.fact_current"
+msgstr "Known: {value}"
+
+msgid "inventory.format.fact_historical"
+msgstr "Historical · retest required: {value}"
+
+msgid "inventory.format.fact_row"
+msgstr "{name} · {description}"
+
+msgid "inventory.format.inspect_minutes"
+msgstr "Inspect · {minutes} min"
+
+msgid "inventory.format.inspect_tooltip"
+msgstr "{name} · {minutes} min"
+
+msgid "ui.format.service_fee"
+msgstr "Fee on successful return: {cost}"
+
+msgid "ui.format.service_cost"
+msgstr "Direct cost if restoration is needed: {cost}"
+
+msgid "ui.format.last_observation"
+msgstr "Last observation: {reading}"
+
+msgid "ui.format.source_count"
+msgstr "Sources: {count}"
+
+msgid "ui.format.statement_page"
+msgstr "Appraisal slip · public record  {page}/{total}"
+
+msgid "ui.format.withdraw_dialogue"
+msgstr "Alexei: I withdraw this judgment. {judgment}"
+
+msgid "ui.format.observation_dialogue"
+msgstr "Alexei: This is what I observed. {reading}"
+
+msgid "ui.format.asking"
+msgstr "Asking {price}"
+
+msgid "ui.format.estimate"
+msgstr "Estimate {price}"
+
+msgid "ui.format.offer_basis"
+msgstr "Public basis at offer: {count}"
+
+msgid "ui.format.offer_status"
+msgstr "{price} · {status}"
+
+msgid "ui.format.counter_condition"
+msgstr "Condition: {condition}"
+
+msgid "ui.format.observed_fact"
+msgstr "Observed fact: {reading}"
+
+msgid "ui.format.withdrawn"
+msgstr "Withdrawn: {judgment}"
+
+msgid "ui.format.hypothesis_category"
+msgstr "Hypothesis · {category}"
+
+msgid "ui.format.reference_estimate"
+msgstr "Reference estimate: {price}"
+
+msgid "ui.format.prepare_claim"
+msgstr "Prepare: {claim}"
+
+msgid "ui.format.drag_claim"
+msgstr "Drag: {claim}"
+
+msgid "ui.format.rebut_claim"
+msgstr "Rebut: {claim}"
+
+msgid "ui.format.reference_base"
+msgstr " · Reference base {price}"
+
+msgid "ui.format.reference_factor"
+msgstr " · Appearance factor {factor}%"
+
+msgid "ui.format.reference_adjustment"
+msgstr " · Reference adjustment {amount} {currency}"
+
+msgid "ui.format.assessment_selection"
+msgstr "Assessment: {judgment}"
+
+msgid "ui.format.asking_price"
+msgstr "Asking price: {price}"
+
+msgid "ui.format.remaining_offers"
+msgstr "Remaining offers: {count}"
+
+msgid "ui.format.offer_history_row"
+msgstr "{price} · {status} · {count} public statements"
+
+msgid "ui.format.trade_condition"
+msgstr "Trade condition: {condition}"
+
+msgid "ui.format.checkout_balance"
+msgstr "Accepted / available: {amount} / {balance} {currency}"
+
+msgid "ui.format.checkout_footprint"
+msgstr "Footprint: {width} × {height}"
+
+msgid "ui.format.receipt_headline"
+msgstr "{direction} · Day {day} {time} · {price}"
+
+msgid "ui.format.accepted_offer"
+msgstr "Accepted offer: {price}"
+
+msgid "ui.format.receipt_condition"
+msgstr "Agreed quality condition: {condition} · at transaction only"
+
+msgid "ui.format.receipt_customer_claim"
+msgstr "Customer claim (unverified): {claim}"
+
+msgid "ui.format.receipt_rebuttal"
+msgstr "Rebuttal hypothesis: {claim}"
+
+msgid "ui.format.receipt_observation"
+msgstr "Historical observation: {reading}"
+
+msgid "ui.format.older_work"
+msgstr "Older work: {count}"
+
+msgid "ui.format.older_transactions"
+msgstr "Older transactions: {count}"
+
+msgid "ui.format.older_items"
+msgstr "Older items: {count}"
+
+msgid "ui.format.history_exchange"
+msgstr "Component exchange · {root} · {outgoing} → {incoming}"
+
+msgid "ui.format.maintenance_expense"
+msgstr "Maintenance expense: {cost}"
+
+msgid "ui.format.disposal_loss"
+msgstr "Disposal loss: {loss}"
+
+msgid "ui.format.work_record"
+msgstr "Work record #{revision} · {description}"
+
+msgid "ui.format.history_summary"
+msgstr "{item}  ·  Trades {trades}  /  Work {work}"
+
+msgid "ui.format.office_cash"
+msgstr "Cash · {cash}"
+
+msgid "ui.format.contract_status"
+msgstr "Due D{due} · Delivery D{delivery} · {status}"
+
+msgid "ui.format.contract_price"
+msgstr "RAD-1 · {price}"
+
+msgid "ui.format.slot_number"
+msgstr "Save slot {number}"
+
+msgid "ui.format.settings_language"
+msgstr "Language · 한국어 / EN · {language}"
+
+msgid "ui.format.settings_font"
+msgstr "Text size · A / A+ / A++ · {percent}%"
+
+msgid "ui.format.legacy_hud"
+msgstr "EXIT NOT INCLUDED  ·  {candidate}Day {day}  {time}  |  {vkc} VKC  /  {usd} USD"
+
+msgid "ui.format.final_cash"
+msgstr "Final cash: {cash}"
+
+msgid "ui.format.remaining_visits"
+msgstr "Remaining visits: {count}"
+
+msgid "ui.format.overdue_overhead"
+msgstr "Overdue overhead: {amount}"
+
+msgid "ui.format.service_summary"
+msgstr "Service · {item} · Fee on successful return: {fee}"
+
+msgid "ui.format.closing_settlement"
+msgstr "Closing settlement · overhead 15 VKC first. Due contracts: {due}"
+
+msgid "ui.format.cash_after_overhead"
+msgstr "Available after overhead: {cash}"
+
+msgid "ui.format.contract_summary"
+msgstr "RAD-1 · {price} · {status}"
+
+msgid "ui.format.native_hud"
+msgstr "Day {day}  {time}  ·  {vkc} VKC  /  {usd} USD"
+
+msgid "book.compare.case.caption"
+msgstr "Grain alone cannot distinguish these cases"
+
+msgid "book.compare.mark.caption"
+msgstr "Distinguish model marks from commemorative evidence"
+
+msgid "book.compare.function.caption"
+msgstr "Current test outcomes · cause and lifespan separate"
+
+msgid "book.compare.sample.standard"
+msgstr "Standard still possible"
+
+msgid "book.compare.sample.decorative"
+msgstr "Decorative still possible"
+
+msgid "book.compare.sample.ordinary"
+msgstr "Ordinary model mark"
+
+msgid "book.compare.sample.commemorative"
+msgstr "Separate inscription or record"
+
+msgid "book.compare.sample.working"
+msgstr "Operated in test"
+
+msgid "book.compare.sample.stopped"
+msgstr "Did not operate in test"
+
+msgid "book.compare.related_chapter"
+msgstr "• {chapter}"
+
+msgid "book.compare.related_hint"
+msgstr "Related to selected tool · not a judgment or verified evidence"
+
+msgid "inspection.compare.topic_reading"
+msgstr "{topic} · {reading}"
+
+msgid "inventory.assessment.limit_function"
+msgstr "Function at inspection. Does not establish cause, remaining life or restoration success."
+
+msgid "inventory.assessment.limit_completeness"
+msgstr "Required abstract components present or not. Completeness does not guarantee function."
+
+msgid "inventory.assessment.limit_restoration"
+msgstr "Recorded restoration status. Current function and sale terms require separate checks."
+
+msgid "counter.claim.page"
+msgstr "Claim {page}/{total}"
+
+msgid "counter.claim.rebuttal_recorded"
+msgstr "Rebuttal recorded · unverified"
+
+msgid "counter.claim.rebuttal_hypothesis"
+msgstr "Rebuttal hypothesis"
+
+msgid "counter.claim.rebuttal_target"
+msgstr "Rebuttal to {claim} · {count} new sources"
+
+msgid "counter.price.no_basis"
+msgstr "Price only · no public basis"
+
+msgid "counter.price.current_basis"
+msgstr "Public statements for this offer"
+
+msgid "counter.price.previous_basis"
+msgstr "Public statements at previous offer"

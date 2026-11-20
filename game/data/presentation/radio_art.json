@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "default_key": "radio_face_probe_a",
+  "assets": {
+    "radio_face_probe_a": {
+      "texture": "res://assets/art/items/radio_face_probe_a.svg",
+      "body": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "dimensions": [
+        192,
+        100
+      ]
+    },
+    "radio_face_probe_b": {
+      "texture": "res://assets/art/items/radio_face_probe_b.svg",
+      "body": [
+        0.1,
+        0.1875,
+        0.8,
+        0.625
+      ],
+      "dimensions": [
+        240,
+        160
+      ]
+    }
+  }
+}

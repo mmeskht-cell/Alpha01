@@ -1,0 +1,116 @@
+[gd_resource type="Resource" load_steps=20 format=3]
+
+[ext_resource type="Script" path="res://src/presentation/item_visual_catalog.gd" id="1"]
+[ext_resource type="Script" path="res://src/presentation/item_visual_profile.gd" id="2"]
+[ext_resource type="Resource" path="res://assets/art/profiles/radio_inspection_placeholder.tres" id="3"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/radio_counter.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/art/items/radio_r003_native_pilot.svg" id="5"]
+[ext_resource type="Texture2D" path="res://assets/art/items/watch_wat02_native_pilot.svg" id="6"]
+[ext_resource type="Texture2D" path="res://assets/art/items/battery_counter_pilot.svg" id="7"]
+[ext_resource type="Texture2D" path="res://assets/art/items/tool_counter_pilot.svg" id="8"]
+[ext_resource type="Texture2D" path="res://assets/art/items/electronics_counter_pilot.svg" id="9"]
+[ext_resource type="Texture2D" path="res://assets/art/items/hygiene_counter_pilot.svg" id="10"]
+[ext_resource type="Texture2D" path="res://assets/art/items/fictional_gear_pilot.svg" id="11"]
+
+[sub_resource type="Resource" id="radio_counter"]
+script = ExtResource("2")
+texture = ExtResource("4")
+regions = {}
+provisional = true
+
+[sub_resource type="Resource" id="radio_other"]
+script = ExtResource("2")
+texture = ExtResource("5")
+regions = {
+"wear_detail": Rect2(0.06, 0.74, 0.63, 0.15),
+"material_detail": Rect2(0.06, 0.27, 0.20, 0.44),
+"display_damage_detail": Rect2(0.73, 0.25, 0.22, 0.22),
+"function_detail": Rect2(0.72, 0.50, 0.23, 0.34)
+}
+provisional = true
+
+[sub_resource type="Resource" id="watch"]
+script = ExtResource("2")
+texture = ExtResource("6")
+regions = {
+"wear_detail": Rect2(0.34, 0.22, 0.27, 0.47),
+"material_detail": Rect2(0.23, 0.22, 0.1, 0.47),
+"function_detail": Rect2(0.62, 0.35, 0.11, 0.26)
+}
+provisional = true
+
+[sub_resource type="Resource" id="battery"]
+script = ExtResource("2")
+texture = ExtResource("7")
+regions = {
+"basic_function_v1": Rect2(0.18, 0.18, 0.64, 0.64)
+}
+provisional = true
+
+[sub_resource type="Resource" id="tool"]
+script = ExtResource("2")
+texture = ExtResource("8")
+regions = {
+"basic_function_v1": Rect2(0.18, 0.18, 0.64, 0.64)
+}
+provisional = true
+
+[sub_resource type="Resource" id="electronics"]
+script = ExtResource("2")
+texture = ExtResource("9")
+regions = {
+"basic_function_v1": Rect2(0.18, 0.18, 0.64, 0.64)
+}
+provisional = true
+
+[sub_resource type="Resource" id="hygiene"]
+script = ExtResource("2")
+texture = ExtResource("10")
+regions = {}
+provisional = true
+
+[sub_resource type="Resource" id="gear"]
+script = ExtResource("2")
+texture = ExtResource("11")
+regions = {}
+provisional = true
+
+[resource]
+script = ExtResource("1")
+profiles = {
+"radio": ExtResource("3"),
+"radio_counter": SubResource("radio_counter"),
+"radio_other": SubResource("radio_other"),
+"watch": SubResource("watch"),
+"battery": SubResource("battery"),
+"tool": SubResource("tool"),
+"electronics": SubResource("electronics"),
+"hygiene": SubResource("hygiene"),
+"gear": SubResource("gear")
+}
+item_keys = {
+"R001": "radio",
+"R003": "radio_other",
+"WAT02": "watch",
+"W001": "gear",
+"GE03": "gear",
+"BAT02": "battery",
+"TL04": "tool",
+"HY05": "hygiene",
+"CR06": "electronics",
+"CM06C": "electronics",
+"CR06_A": "electronics",
+"CR06_B": "electronics",
+"CR06_C": "electronics",
+"EL06": "electronics"
+}
+counter_keys = {
+"R001": "radio_counter",
+"R003": "radio_other"
+}
+inspection_keys = {
+"R001": "radio",
+"R003": "radio_other"
+}
+counter_fallback = "electronics"
+inspection_fallback = "electronics"

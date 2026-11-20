@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "policies": {
+    "cooperative": {
+      "trust": 70,
+      "urgency": 20,
+      "allow_partial": true
+    },
+    "reserved": {
+      "trust": 25,
+      "urgency": 60,
+      "allow_partial": true
+    }
+  },
+  "grants_by_definition": {
+    "bench_radio_board": [
+      "component_texture",
+      "component_damage",
+      "component_mark"
+    ]
+  }
+}

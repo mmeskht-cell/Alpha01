@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "note": "Fictional electronics appraisal reference. Only public interpretation guide; no specimen answers. Material deltas are relative to the standard shell included in the base model amount, not scrap proceeds. Batch does not change value in this slice.",
+  "condition_scale": [
+    {
+      "id": "light_wear",
+      "min": 0,
+      "max": 25
+    },
+    {
+      "id": "visible_wear",
+      "min": 26,
+      "max": 65
+    },
+    {
+      "id": "heavy_wear",
+      "min": 66,
+      "max": 100
+    }
+  ],
+  "materials": [
+    {
+      "id": "molded_polymer",
+      "label_key": "material.polymer",
+      "description_key": "material.polymer.description",
+      "pattern": "pore",
+      "delta": 0
+    },
+    {
+      "id": "light_alloy",
+      "label_key": "material.alloy",
+      "description_key": "material.alloy.description",
+      "pattern": "parallel",
+      "delta": 15
+    },
+    {
+      "id": "coated_steel",
+      "label_key": "material.steel",
+      "description_key": "material.steel.description",
+      "pattern": "cross",
+      "delta": -10
+    }
+  ],
+  "batches": [
+    {
+      "id": "series_early",
+      "label_key": "batch.early",
+      "description_key": "batch.early.description",
+      "pattern": "K-2",
+      "year_range": "2024–2026"
+    },
+    {
+      "id": "series_late",
+      "label_key": "batch.late",
+      "description_key": "batch.late.description",
+      "pattern": "K-7",
+      "year_range": "2027–2030"
+    },
+    {
+      "id": "series_rebuilt",
+      "label_key": "batch.rebuilt",
+      "description_key": "batch.rebuilt.description",
+      "pattern": "R-#",
+      "year_range": null
+    }
+  ]
+}

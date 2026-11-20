@@ -1,0 +1,317 @@
+{
+  "prep_version": 5,
+  "scope": "gate_1_1",
+  "design_sha": "4b73887e0832a6a4d1992c1227e6684e21273d37",
+  "source": "FIRST_WEEK_PLAY_SPEC.md v0.4; DESIGN_BASELINE v2.7 §21; GATE_0_C_SPEC.md",
+  "initial_state": {
+    "revision": 0,
+    "game_minutes": 0,
+    "wallets": {
+      "player": {
+        "VKC": 180,
+        "USD": 0
+      },
+      "G01": {
+        "VKC": 0,
+        "USD": 0
+      },
+      "G02": {
+        "VKC": 200,
+        "USD": 0
+      }
+    },
+    "inventories": {
+      "player_stock": {
+        "owner_id": "player",
+        "width": 10,
+        "height": 6
+      },
+      "player_display": {
+        "owner_id": "player",
+        "width": 6,
+        "height": 3
+      },
+      "g01_grid": {
+        "owner_id": "G01",
+        "width": 4,
+        "height": 3
+      },
+      "g02_grid": {
+        "owner_id": "G02",
+        "width": 4,
+        "height": 3
+      }
+    },
+    "items": {
+      "R001": {
+        "def_id": "portable_radio",
+        "owner_id": "G01",
+        "custodian_id": "G01",
+        "status": "stock",
+        "inventory": "g01_grid",
+        "x": 0,
+        "y": 0,
+        "rotated": false,
+        "version": 0
+      }
+    },
+    "ledger": [],
+    "receipts": {},
+    "receipt_archive": {}
+  },
+  "campaign_initial": {
+    "day": 1,
+    "personal_rad1_doses": 1,
+    "rad1_effect_until_minute": 2880,
+    "contract": {
+      "id": "rad1_first",
+      "supplier": "marcus",
+      "currency": "VKC",
+      "amount": 300,
+      "quantity": 1,
+      "due_minute": 4920,
+      "delivery_minute": 6360,
+      "external_supply": 1,
+      "initial_status": "offered",
+      "prepayment_on_acceptance": 0
+    },
+    "phase": "business",
+    "customer_queue": {
+      "ordered_visit_ids": [
+        "visit_g01",
+        "visit_g02_buy",
+        "visit_g02_service"
+      ],
+      "cursor": 0,
+      "active_visit_id": null
+    }
+  },
+  "visits": [
+    {
+      "id": "intro_marcus",
+      "actor": "marcus",
+      "kind": "contract_offer",
+      "dialogue_key": "day1.marcus.offer",
+      "access": "protected_contact"
+    },
+    {
+      "id": "visit_g01",
+      "actor": "G01",
+      "kind": "sell_offer",
+      "item_id": "R001",
+      "ask": 125,
+      "currency": "VKC",
+      "dialogue_key": "day1.g01.offer",
+      "sequence": 0
+    },
+    {
+      "id": "visit_g02_buy",
+      "actor": "G02",
+      "kind": "future_buy_inquiry",
+      "execution_gate": "1-2",
+      "amount": 170,
+      "dialogue_key": "day1.g02.inquiry",
+      "sequence": 1,
+      "access": "deferred_gate_1_2",
+      "item_id": "R001"
+    },
+    {
+      "id": "visit_g02_service",
+      "actor": "G02",
+      "kind": "future_service_inquiry",
+      "execution_gate": "1-3",
+      "item_id": "W001",
+      "fee": 30,
+      "direct_cost": 10,
+      "sequence": 2,
+      "access": "deferred_gate_1_3",
+      "dialogue_key": "day1.g02.service_inquiry"
+    }
+  ],
+  "appraisal": {
+    "item_id": "R001",
+    "base_reference": 200,
+    "wear": {
+      "evidence_id": "R001.wear",
+      "evidence_key": "day1.radio.wear",
+      "observed_factor_percent": 80
+    },
+    "function_status": "unknown",
+    "reference_after_wear": 160,
+    "reference_is_partial": true,
+    "actions": [
+      {
+        "id": "observe",
+        "minutes": 5,
+        "target": "visible_wear_detail",
+        "mode": "tool_application",
+        "evidence_id": "R001.wear",
+        "evidence_key": "day1.radio.wear"
+      },
+      {
+        "id": "additional_inspection",
+        "minutes": 10,
+        "target": "additional_casing_evidence",
+        "mode": "tool_application",
+        "evidence_id": "R001.casing_detail",
+        "evidence_key": "day1.radio.casing_detail"
+      },
+      {
+        "id": "material_sample",
+        "minutes": 5,
+        "target": "shell_material_sample",
+        "mode": "tool_application",
+        "evidence_id": "R001.material",
+        "evidence_key": "day1.radio.material_sample",
+        "optional": true
+      },
+      {
+        "id": "batch_sample",
+        "minutes": 5,
+        "target": "batch_stamp_sample",
+        "mode": "tool_application",
+        "evidence_id": "R001.batch",
+        "evidence_key": "day1.radio.batch_sample",
+        "optional": true
+      },
+      {
+        "id": "whole_function_test",
+        "minutes": 5,
+        "target": "whole_function_sample",
+        "mode": "tool_application",
+        "evidence_id": "R001.function",
+        "evidence_key": "day1.radio.function_sample",
+        "optional": true
+      },
+      {
+        "id": "display_damage_test",
+        "minutes": 5,
+        "target": "display_damage_sample",
+        "mode": "tool_application",
+        "evidence_id": "R001.display_damage",
+        "evidence_key": "day1.radio.display_damage",
+        "optional": true
+      },
+      {
+        "id": "compare_catalog",
+        "minutes": 0
+      },
+      {
+        "id": "negotiate_and_confirm",
+        "minutes": 0
+      }
+    ],
+    "interaction_contract": {
+      "automatic_appraisal": false,
+      "mandatory_inspection": false,
+      "free_visual_review": true,
+      "free_catalog_comparison": true,
+      "manual_attribute_selection": true,
+      "reference_calculation": "selected_hypothesis_only",
+      "show_hidden_truth": false,
+      "normal_fixture_requires_selected_wear_attribute": true,
+      "no_default_model_or_modifier": true,
+      "manual_hypothesis_fields": [
+        "model_id",
+        "appearance_id"
+      ],
+      "known_function_does_not_follow_appearance": true,
+      "partial_reference_example": {
+        "model_id": "selvar_r18",
+        "appearance_id": "visible_wear",
+        "estimate": 160
+      },
+      "example_is_not_truth_or_required_player_selection": true,
+      "optional_attribute_fields": [
+        "material_id",
+        "batch_id"
+      ],
+      "material_delta_applied_before_condition": true,
+      "batch_value_modifier": 0,
+      "normal_fixture_uses_original_two_tools": true,
+      "optional_function_test": true,
+      "display_damage_is_independent": true,
+      "function_informational_only": true
+    },
+    "public_reference_path": "data/campaign/gate1_1/appraisal_reference.json",
+    "free_observation_key": "day1.radio.visible_shape",
+    "material_reference_path": "data/campaign/gate1_1/material_reference.json"
+  },
+  "negotiation": {
+    "ask": 125,
+    "fixture_accept_amount": 100,
+    "provisional_min_without_evidence": 110,
+    "provisional_min_with_evidence": 100,
+    "evidence_limit": 1,
+    "max_material_counteroffers": 3,
+    "repeat_same_offer": "same_response",
+    "may_reject": true,
+    "evidence_response_key": "day1.g01.wear_response"
+  },
+  "expected": {
+    "normal_purchase": {
+      "minute": 15,
+      "player_VKC": 80,
+      "player_USD": 0,
+      "owner_id": "player",
+      "item_id": "R001",
+      "cost_basis_VKC": 100,
+      "phase": "business",
+      "completed_visit_id": "visit_g01"
+    },
+    "reject": {
+      "player_VKC": 180,
+      "owner_id": "G01",
+      "trade_ledger_count": 0
+    }
+  },
+  "deferred": {
+    "immediate_wholesale": 135,
+    "retail": 170,
+    "service_fee": 30,
+    "service_cost": 10,
+    "closing_cost": 15,
+    "gate": "1-2/1-3",
+    "not_executable_in_this_slice": true,
+    "service_delivery_day": 2,
+    "normal_day1_end_cash": 225,
+    "wholesale_day1_end_cash": 190,
+    "hold_day1_end_cash": 55,
+    "service_independent_visit": true,
+    "service_item_not_created_in_gate_1_1": true
+  },
+  "timing": {
+    "business_open_minute_of_day": 0,
+    "business_close_minute_of_day": 600,
+    "evening_clock_frozen": true,
+    "evening_time_limit": null,
+    "next_day_elapsed_minutes": 840,
+    "paid_time_actions": [
+      "observe",
+      "additional_inspection",
+      "material_sample",
+      "batch_sample",
+      "whole_function_test",
+      "display_damage_test"
+    ],
+    "free_actions": [
+      "compare_catalog",
+      "negotiate_and_confirm",
+      "dialogue",
+      "trade",
+      "review_evidence",
+      "next_visit",
+      "decline_visit",
+      "visual_review",
+      "select_view",
+      "select_catalog_attribute",
+      "revise_hypothesis"
+    ],
+    "closing_and_next_day_gate": "1-3",
+    "customer_arrival_mode": "fixed_daily_queue",
+    "oversize_inspection": "reject_unchanged",
+    "at_closing": "current_visit_final_decision_only"
+  },
+  "prerequisite": "gate_0_c_verified",
+  "item_model_note": "R001 is a sealed atomic electronics fixture; composite example W001 is deferred. Initial_state remains v2-shaped migration input, not new executable schema."
+}

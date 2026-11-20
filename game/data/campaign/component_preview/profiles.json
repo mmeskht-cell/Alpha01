@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "parts": [
+    {
+      "id": "D001",
+      "def_id": "bench_radio_shell",
+      "provenance": "bench_D001",
+      "reference": 30,
+      "readings": {
+        "texture": "pore",
+        "damage": 43,
+        "mark": "R-4",
+        "regions": {
+          "component_panel_texture": "pore",
+          "component_panel_damage": 12,
+          "component_controls_damage": 68
+        }
+      }
+    },
+    {
+      "id": "D001_A",
+      "def_id": "bench_radio_board",
+      "provenance": "bench_D001_A",
+      "reference": 95,
+      "readings": {
+        "texture": "cross",
+        "damage": 18,
+        "mark": "B-7"
+      }
+    },
+    {
+      "id": "D001_B",
+      "def_id": "bench_radio_speaker",
+      "provenance": "bench_D001_B",
+      "reference": 45,
+      "readings": {
+        "texture": "parallel",
+        "damage": 35,
+        "mark": "S-2"
+      }
+    },
+    {
+      "id": "D001_C",
+      "def_id": "bench_radio_antenna",
+      "provenance": "bench_D001_C",
+      "reference": 20,
+      "readings": {
+        "texture": "parallel",
+        "damage": 72,
+        "mark": "A-4"
+      }
+    },
+    {
+      "id": "D002",
+      "def_id": "bench_radio_shell",
+      "provenance": "bench_D002",
+      "reference": 30,
+      "readings": {
+        "texture": "cross",
+        "damage": 21,
+        "mark": "R-7",
+        "regions": {
+          "component_panel_texture": "pore",
+          "component_panel_damage": 36,
+          "component_controls_damage": 23
+        }
+      }
+    }
+  ],
+  "materials": [
+    {
+      "id": "molded_polymer",
+      "pattern": "pore",
+      "delta": 0
+    },
+    {
+      "id": "light_alloy",
+      "pattern": "parallel",
+      "delta": 5
+    },
+    {
+      "id": "coated_steel",
+      "pattern": "cross",
+      "delta": -5
+    }
+  ],
+  "conditions": [
+    {
+      "id": "light_wear",
+      "min": 0,
+      "max": 25,
+      "factor": 100
+    },
+    {
+      "id": "visible_wear",
+      "min": 26,
+      "max": 65,
+      "factor": 80
+    },
+    {
+      "id": "heavy_wear",
+      "min": 66,
+      "max": 100,
+      "factor": 60
+    }
+  ],
+  "whole_reference": 200,
+  "regions_by_definition": {
+    "bench_radio_shell": [
+      {
+        "id": "primary",
+        "label_key": "component.region_shell",
+        "tools": {
+          "component_texture": "component_texture",
+          "component_damage": "component_damage",
+          "component_mark": "component_mark",
+          "component_function": "component_function"
+        },
+        "attached_tools": []
+      },
+      {
+        "id": "panel",
+        "label_key": "component.region_panel",
+        "tools": {
+          "component_texture": "component_panel_texture",
+          "component_damage": "component_panel_damage"
+        },
+        "attached_tools": []
+      },
+      {
+        "id": "controls",
+        "label_key": "component.region_controls",
+        "tools": {
+          "component_damage": "component_controls_damage"
+        },
+        "attached_tools": []
+      }
+    ],
+    "bench_radio_board": [
+      {
+        "id": "primary",
+        "label_key": "component.region_primary",
+        "tools": {
+          "component_texture": "component_texture",
+          "component_damage": "component_damage",
+          "component_mark": "component_mark",
+          "component_function": "component_function"
+        },
+        "attached_tools": []
+      }
+    ],
+    "bench_radio_speaker": [
+      {
+        "id": "primary",
+        "label_key": "component.region_speaker",
+        "tools": {
+          "component_texture": "component_texture",
+          "component_damage": "component_damage",
+          "component_mark": "component_mark",
+          "component_function": "component_function"
+        },
+        "attached_tools": [
+          "component_damage"
+        ]
+      }
+    ],
+    "bench_radio_antenna": [
+      {
+        "id": "primary",
+        "label_key": "component.region_antenna",
+        "tools": {
+          "component_texture": "component_texture",
+          "component_damage": "component_damage",
+          "component_mark": "component_mark",
+          "component_function": "component_function"
+        },
+        "attached_tools": [
+          "component_texture",
+          "component_damage",
+          "component_mark"
+        ]
+      }
+    ]
+  },
+  "function_rules": {
+    "bench_radio_shell": {
+      "passive_root": true,
+      "essential_tags": [
+        "board"
+      ],
+      "secondary_tags": [
+        "speaker",
+        "antenna"
+      ]
+    }
+  }
+}

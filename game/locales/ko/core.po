@@ -1,0 +1,3307 @@
+msgid ""
+msgstr ""
+"Language: ko\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+#. Boot status; plain text, no markup.
+msgid "app.ready"
+msgstr "준비 완료"
+
+#. Synthetic test item, not campaign content.
+msgid "item.fixture_parcel"
+msgstr "시험용 소포"
+
+#. Wallet label; amount is display text, currency is an unchanged currency ID.
+msgid "wallet.balance"
+msgstr "잔액: {amount} {currency}"
+
+#. Save failure; must not imply that state was persisted.
+msgid "error.save"
+msgstr "저장하지 못했습니다."
+
+#. Item label
+msgid "item.portable_radio"
+msgstr "휴대 라디오"
+
+#. Abstract game object
+msgid "item.fictional_gear"
+msgstr "가상 장비"
+
+#. Abstract game object
+msgid "item.abstract_module_a"
+msgstr "가상 모듈 A"
+
+#. Abstract game object
+msgid "item.abstract_module_b"
+msgstr "가상 모듈 B"
+
+#. Item label
+msgid "item.battery"
+msgstr "배터리"
+
+#. Item label
+msgid "item.canned_food"
+msgstr "통조림"
+
+#. Item label
+msgid "item.watch"
+msgstr "시계"
+
+#. Fictional medication
+msgid "item.rad1"
+msgstr "RAD-1"
+
+#. Marcus, businesslike; tentative dialogue
+msgid "day1.marcus.offer"
+msgstr "한 회분은 확보해 뒀습니다. 4일차 오후 6시까지 300 VKC를 준비하세요. 인도는 5일차 오후 6시입니다."
+
+#. G01, brief and transactional
+msgid "day1.g01.offer"
+msgstr "라디오 하나 있습니다. 125면 넘기죠."
+
+#. Counteroffer
+msgid "day1.g01.counter"
+msgstr "{amount} VKC는 어떻습니까?"
+
+#. Accepted, not yet committed
+msgid "day1.g01.accept"
+msgstr "좋습니다. 그 가격으로 하죠."
+
+#. Rejected offer
+msgid "day1.g01.reject"
+msgstr "그 가격에는 못 넘깁니다."
+
+#. Inquiry only, not a sale guarantee
+msgid "day1.g02.inquiry"
+msgstr "휴대 라디오를 찾습니다. 상태를 확인하고 거래하겠습니다."
+
+#. Observed evidence
+msgid "day1.radio.wear"
+msgstr "외관에 마모 흔적이 있습니다."
+
+#. Do not imply good condition
+msgid "day1.radio.unknown"
+msgstr "기능 상태 미확인"
+
+#. Screen label
+msgid "ui.counter"
+msgstr "카운터"
+
+#. Free view navigation, independent of paid investigation
+msgid "ui.inspect"
+msgstr "확대 보기"
+
+#. Action
+msgid "ui.catalog"
+msgstr "도감"
+
+#. Not an actual price
+msgid "ui.reference_partial"
+msgstr "부분 참고가: {amount} {currency}"
+
+#. Action
+msgid "ui.offer"
+msgstr "제안"
+
+#. Action
+msgid "ui.submit_evidence"
+msgstr "근거 제출"
+
+#. Atomic purchase
+msgid "ui.accept_trade"
+msgstr "매입 확정"
+
+#. Action
+msgid "ui.decline"
+msgstr "거절"
+
+#. No payment now
+msgid "ui.contract_accept"
+msgstr "계약 수락"
+
+#. Amount due
+msgid "ui.contract_pending"
+msgstr "약 계약: {amount} {currency}"
+
+#. Fictional status
+msgid "ui.rad1_remaining"
+msgstr "잔여효과: {hours}시간"
+
+#. Fictional status
+msgid "ui.rad1_doses"
+msgstr "보유 약품: {count}회분"
+
+#. Only show when persisted
+msgid "ui.trade_saved"
+msgstr "거래가 저장되었습니다."
+
+#. Memory commit vs persistence
+msgid "ui.trade_unsaved"
+msgstr "거래는 반영되었지만 저장하지 못했습니다."
+
+#. No state mutation
+msgid "ui.trade_failed"
+msgstr "거래 조건을 충족하지 못했습니다."
+
+#. Error
+msgid "ui.insufficient_funds"
+msgstr "현금이 부족합니다."
+
+#. Error
+msgid "ui.no_space"
+msgstr "보관 공간이 부족합니다."
+
+#. Draft, not committed
+msgid "ui.offer_pending"
+msgstr "제안 검토 중"
+
+#. Only after actual reservation
+msgid "ui.contract_reserved"
+msgstr "공급 예약 완료"
+
+#. Development milestone, not campaign ending
+msgid "ui.day1_slice_end"
+msgstr "첫 매입 단계 완료"
+
+#. Derived from absolute clock; not a separate budget
+msgid "ui.business_remaining"
+msgstr "영업 종료까지 {minutes}분"
+
+#. Show before applying a specific evidence acquisition tool, not before free visual review
+msgid "ui.inspection_duration"
+msgstr "감정 소요: {minutes}분"
+
+#. Free sequential admission
+msgid "ui.next_customer"
+msgstr "다음 손님"
+
+#. Pending visits only; excludes current and protected delivery
+msgid "ui.customers_remaining"
+msgstr "남은 손님: {count}명"
+
+#. Inspection rejected without mutation
+msgid "ui.inspection_time_short"
+msgstr "영업시간이 부족합니다."
+
+#. No new inspections or visitors
+msgid "ui.closing_final_decision"
+msgstr "영업 종료입니다. 현재 거래를 마무리하세요."
+
+#. Free reference view
+msgid "ui.compare_reference"
+msgstr "도감과 대조"
+
+#. Manual player-selected hypothesis
+msgid "ui.record_attribute"
+msgstr "평가 항목 기록"
+
+#. Player hypothesis, not verified truth
+msgid "ui.player_estimate"
+msgstr "내 평가"
+
+#. Evidence from an authorized observation
+msgid "ui.observed_fact"
+msgstr "관찰 사실"
+
+#. Unknown attribute
+msgid "ui.unconfirmed"
+msgstr "미확인"
+
+#. Deferred separate service visit
+msgid "day1.g02.service_inquiry"
+msgstr "따로 맡길 정비품이 있어요."
+
+#. Fictional public model
+msgid "catalog.radio.r18.name"
+msgstr "셀바 R-18"
+
+#. Public reference, not an identification result
+msgid "catalog.radio.r18.description"
+msgstr "직사각형 스피커 그릴, 옆면의 단일 장식선, 무광 회색 외장. 생산 시기에 따라 명판의 위치가 다르다."
+
+#. Fictional public model
+msgid "catalog.radio.r18s.name"
+msgstr "셀바 R-18S"
+
+#. Public alternative hypothesis
+msgid "catalog.radio.r18s.description"
+msgstr "R-18과 비슷한 스피커 그릴과 외장. 일부 생산분의 이중 장식선과 별도 명판이 특징이나 마모나 수리로 구분이 어려울 수 있다."
+
+#. Player-selected reference modifier
+msgid "catalog.radio.wear.light"
+msgstr "경미한 외관 사용 흔적"
+
+#. Player-selected reference modifier
+msgid "catalog.radio.wear.visible"
+msgstr "뚜렷한 외관 마모"
+
+#. Player-selected reference modifier
+msgid "catalog.radio.wear.heavy"
+msgstr "심한 외관 마모"
+
+#. Fictional reference source, not actual transaction guarantee
+msgid "catalog.radio.reference_source"
+msgstr "구시가지 중고품 참고표 · 2032년 10월 28일"
+
+#. Free visible description; not a model identification
+msgid "day1.radio.visible_shape"
+msgstr "회색 외장과 직사각형 스피커 그릴이 보인다."
+
+#. Second authorized observation, not an automatic modifier or model match
+msgid "day1.radio.casing_detail"
+msgstr "옆면 표식의 일부가 닳아 있다. 장식선의 형태를 확정하기 어렵다."
+
+#. No automatic selection
+msgid "ui.reference_unselected"
+msgstr "모델과 평가 항목을 직접 선택하세요."
+
+#. Partial estimate separate from trade offer
+msgid "ui.reference_not_offer"
+msgstr "도감 참고가는 거래 제안가와 다릅니다."
+
+#. Free evidence review
+msgid "ui.observation_review"
+msgstr "기록됨 · 무료"
+
+#. Response to valid wear evidence only; not a function guarantee
+msgid "day1.g01.wear_response"
+msgstr "사용 흔적은 인정하죠. 그래도 기능까지 나쁘다는 건 아니잖습니까."
+
+msgid "ui.clock"
+msgstr "{day}일차 · {time}"
+
+msgid "ui.door"
+msgstr "출입문 · 다음 손님"
+
+msgid "ui.contract_document"
+msgstr "마르쿠스의 계약서"
+
+msgid "ui.appraisal_document"
+msgstr "감정 전표"
+
+msgid "ui.wear_tool"
+msgstr "손상 계기"
+
+msgid "ui.casing_tool"
+msgstr "측면 조명"
+
+msgid "ui.wear_target"
+msgstr "외관"
+
+msgid "ui.casing_target"
+msgstr "측면"
+
+msgid "ui.close_document"
+msgstr "닫기"
+
+msgid "ui.offer_amount"
+msgstr "제안가 (VKC)"
+
+msgid "ui.no_evidence"
+msgstr "근거 없음"
+
+msgid "ui.offers_left"
+msgstr "남은 제안: {count}회"
+
+msgid "ui.action_failed"
+msgstr "현재 조건에서는 실행할 수 없습니다."
+
+msgid "ui.action_saved"
+msgstr "기록 저장 완료"
+
+msgid "ui.load_save_failed"
+msgstr "저장 기록을 불러오지 못했습니다. 기존 파일은 보존됩니다."
+
+msgid "ui.retry_save"
+msgstr "저장 재시도"
+
+msgid "ui.language"
+msgstr "English"
+
+msgid "ui.counter_empty"
+msgstr "카운터가 비어 있습니다."
+
+msgid "ui.visit_declined"
+msgstr "거래를 거절했습니다."
+
+msgid "ui.offer_duplicate"
+msgstr "이미 기록된 제안입니다. 이전 응답을 확인하세요."
+
+msgid "ui.tool_selected"
+msgstr "도구를 사용할 조사 부위를 선택하세요."
+
+msgid "ui.price_history"
+msgstr "{amount} VKC · {response}"
+
+msgid "ui.record_selection"
+msgstr "가설 기록"
+
+msgid "ui.purchase_placement"
+msgstr "창고 첫 칸에 보관"
+
+msgid "ui.dev_counter"
+msgstr "개발용 카운터 · 임시 그래픽"
+
+msgid "ui.inspection_bench"
+msgstr "감정대"
+
+msgid "ui.tool_tray"
+msgstr "감정 도구"
+
+msgid "ui.view_front"
+msgstr "정면"
+
+msgid "ui.view_right"
+msgstr "우측면"
+
+msgid "ui.view_back"
+msgstr "뒷면"
+
+msgid "ui.view_left"
+msgstr "좌측면"
+
+msgid "ui.scan_hint"
+msgstr "도구를 물품 위에 올려 판독하세요. 물품을 끌어 회전할 수 있습니다."
+
+msgid "ui.scan_incomplete"
+msgstr "도구를 물품 위에 놓아주세요."
+
+msgid "ui.scan_unavailable"
+msgstr "이미 확인했거나 현재 사용할 수 없는 도구입니다."
+
+msgid "ui.tool_ready"
+msgstr "놓아서 판독"
+
+msgid "ui.keyboard_scan_hint"
+msgstr "키보드: Q/E 회전, 1–6 도구 (6 표시창), 방향키 이동, Enter 적용"
+
+msgid "ui.zoom_in"
+msgstr "확대 +"
+
+msgid "ui.zoom_out"
+msgstr "축소 -"
+
+msgid "ui.preview_session"
+msgstr "독립 감정 체험 · 기존 저장 유지"
+
+msgid "ui.model_cards"
+msgstr "모델 추정"
+
+msgid "ui.condition_cards"
+msgstr "상태 추정"
+
+msgid "ui.material_tool"
+msgstr "재질 확대경"
+
+
+msgid "ui.batch_tool"
+msgstr "배치 판독기"
+
+
+msgid "ui.compare_pattern"
+msgstr "도감 표본과 대조"
+
+
+msgid "ui.material_cards"
+msgstr "외장 재질"
+
+
+msgid "ui.batch_cards"
+msgstr "생산 배치"
+
+
+msgid "ui.damage_guide"
+msgstr "외관 손상 지수 기준: 0–25 경미 / 26–65 마모 / 66–100 심함. 기능 검사는 별개입니다."
+
+
+msgid "ui.material_adjustment"
+msgstr "표준 외장 대비 참고가 조정: {amount} VKC (상태 보정 전)"
+
+
+msgid "material.polymer"
+msgstr "성형 수지"
+
+
+msgid "material.polymer.description"
+msgstr "미세한 점상 기공. 표준 외장 재질."
+
+
+msgid "material.alloy"
+msgstr "경량 합금"
+
+
+msgid "material.alloy.description"
+msgstr "고른 방향성 결. 표준 외장보다 참고가가 높습니다."
+
+
+msgid "material.steel"
+msgstr "코팅 강판"
+
+
+msgid "material.steel.description"
+msgstr "교차하는 표면 결. 무거운 대체 외장."
+
+
+msgid "batch.early"
+msgstr "초기 생산"
+
+
+msgid "batch.early.description"
+msgstr "2024–2026 생산분. K-2 계열 각인."
+
+
+msgid "batch.late"
+msgstr "후기 생산"
+
+
+msgid "batch.late.description"
+msgstr "2027–2030 생산분. K-7 계열 각인."
+
+
+msgid "batch.rebuilt"
+msgstr "재조립 배치"
+
+
+msgid "batch.rebuilt.description"
+msgstr "R- 계열 표기. 최초 제조 연도는 확정할 수 없습니다."
+
+
+msgid "day1.radio.material_sample"
+msgstr "외장 확대 표본에 일정 방향의 결이 관찰됩니다."
+
+
+msgid "day1.radio.batch_sample"
+msgstr "생산 표기 일부에서 K-7이 판독됩니다."
+
+
+msgid "component.title"
+msgstr "부품 감정 작업대 · 개발용"
+
+
+msgid "component.evening"
+msgstr "저녁 · 시간 정지"
+
+
+msgid "component.instructions"
+msgstr "도구를 부품에 올리거나 집어서 적용. 부품은 분리 작업대로 끌고, 분리된 부품은 외장에 끌어 장착합니다."
+
+
+msgid "component.shell"
+msgstr "라디오 외장"
+
+
+msgid "component.board"
+msgstr "회로 모듈"
+
+
+msgid "component.speaker"
+msgstr "스피커"
+
+
+msgid "component.antenna"
+msgstr "안테나"
+
+
+msgid "component.attached"
+msgstr "장착 위치:"
+
+
+msgid "component.whole_catalog"
+msgstr "완제품 도감가"
+
+
+msgid "component.detach_tray"
+msgstr "분리 작업대"
+
+
+msgid "component.function_tool"
+msgstr "기능 진단기"
+
+
+msgid "component.pattern_pore"
+msgstr "점상 기공"
+
+
+msgid "component.pattern_parallel"
+msgstr "방향성 표면 결"
+
+
+msgid "component.pattern_cross"
+msgstr "교차 표면 결"
+
+
+msgid "component.working"
+msgstr "작동 관찰"
+
+
+msgid "component.faulty"
+msgstr "작동 불능 관찰"
+
+
+msgid "component.stale"
+msgstr "변경 전 관찰 · 재검사 필요"
+
+
+msgid "component.detach_first"
+msgstr "새로운 부품 검사는 분리 후 가능. 기존 관찰은 유지됩니다."
+
+
+msgid "component.repair"
+msgstr "추상 복원 (5 VKC)"
+
+
+msgid "component.attach"
+msgstr "장착"
+
+
+msgid "component.component_reference"
+msgstr "부품 기준가"
+
+
+msgid "component.series_guide"
+msgstr "가상 배치표: 끝자리 2/4 초기, 7 후기, RB- 접두어는 재조립 표기. 배치 가격 가감 없음."
+
+
+msgid "component.recovery"
+msgstr "D001 원래 4개 부품 회수 참고 소계"
+
+
+msgid "component.unknown_count"
+msgstr "미확인 {count}개"
+
+
+msgid "component.exclusive"
+msgstr "완제품 가격과 별도 · 중복 합산 금지"
+
+
+msgid "component.region_shell"
+msgstr "외장"
+
+
+msgid "component.region_panel"
+msgstr "표시창"
+
+
+msgid "component.region_controls"
+msgstr "조작부"
+
+
+msgid "component.region_primary"
+msgstr "본체"
+
+
+msgid "component.region_speaker"
+msgstr "노출 표면"
+
+
+msgid "component.region_antenna"
+msgstr "외부 표면"
+
+
+msgid "component.visible_only"
+msgstr "장착 중에는 노출된 부위의 허용 도구만 사용할 수 있습니다. 내부·개별 기능 검사는 분리 후 가능합니다."
+
+
+msgid "component.tool_not_applicable"
+msgstr "이 부위에는 해당 도구를 적용할 수 없습니다."
+
+
+msgid "day1.radio.function_sample"
+msgstr "완제품의 추상 기능 진단을 확인했습니다. 내부 부품의 개별 상태는 미확인입니다."
+
+
+msgid "day1.radio.function_serviceable"
+msgstr "완제품 기능: 시험에서 작동 확인"
+
+
+msgid "day1.radio.function_inoperable"
+msgstr "완제품 기능: 시험에서 작동 불능"
+
+
+msgid "day1.radio.display_damage"
+msgstr "표시창 손상 지수: 12/100. 외장 손상과 별개입니다."
+
+
+msgid "consent.title"
+msgstr "고객 감정 · 임시 내부 확인"
+
+
+msgid "consent.elapsed"
+msgstr "영업 경과 {minutes}분"
+
+
+msgid "consent.price"
+msgstr "판매 희망가 {amount} VKC"
+
+
+msgid "consent.policy_cooperative"
+msgstr "협조적 고객 (검증용)"
+
+
+msgid "consent.policy_reserved"
+msgstr "검사를 꺼리는 고객 (검증용)"
+
+
+msgid "consent.status_waiting"
+msgstr "고객 응대 중"
+
+
+msgid "consent.status_open"
+msgstr "동의 · 내부 열람 가능"
+
+
+msgid "consent.status_closed"
+msgstr "임시 검사 종료"
+
+
+msgid "consent.status_refused"
+msgstr "고객이 개방을 거절했습니다. 결함 여부는 미확인입니다."
+
+
+msgid "consent.status_bought"
+msgstr "매입 완료 · 저녁 작업대에서 분해 가능"
+
+
+msgid "consent.status_declined"
+msgstr "거래 포기 · 물품과 권한 반환"
+
+
+msgid "consent.status_closing"
+msgstr "영업 종료 · 추가 검사 불가"
+
+
+msgid "consent.status_expired"
+msgstr "방문 종료 · 권한 회수"
+
+
+msgid "consent.request"
+msgstr "부분 개방 요청 (+5분)"
+
+
+msgid "consent.close"
+msgstr "임시 검사 종료"
+
+
+msgid "consent.buy"
+msgstr "제시가에 매입"
+
+
+msgid "consent.decline"
+msgstr "거래 포기"
+
+
+msgid "consent.wait"
+msgstr "최대 240분 대기 (종료 검증)"
+
+
+msgid "consent.evening"
+msgstr "저녁 작업대로 이동"
+
+
+msgid "consent.scope"
+msgstr "동의 시 내부 회로 모듈의 재질·손상·각인만 확인할 수 있습니다. 실제 탈착과 개별 기능 검사는 불가합니다."
+
+
+msgid "consent.instructions"
+msgstr "검사 도구를 허용 부위에 놓으세요. 새 관찰은 5분, 기존 기록 재열람과 가설 선택은 무료. 분해 요청은 선택 사항입니다."
+
+
+msgid "consent.read_time"
+msgstr "새 검사 +5분"
+
+
+msgid "component.partial"
+msgstr "부분 작동 관찰"
+
+
+msgid "consent.retained_notes"
+msgstr "기존 감정 전표 · 열람 전용 (신규 검사 불가)"
+
+
+msgid "component.save_usage"
+msgstr "최대 슬롯명 기준 저장 용량 {used} / {limit} 바이트"
+
+
+msgid "component.save_warning"
+msgstr "저장 용량 80% 도달. 기존 기록은 자동 삭제되지 않습니다."
+
+
+msgid "ui.acquired_appraisal"
+msgstr "매입품 감정 전표 · 열람 전용"
+
+msgid "dayone.begin"
+msgstr "다른 방문 이어가기"
+
+
+msgid "dayone.management"
+msgstr "재고·거래·작업대"
+
+
+msgid "dayone.phase_shop"
+msgstr "첫날 영업"
+
+
+msgid "dayone.phase_evening"
+msgstr "18:00 저녁 작업대 · 시간 정지"
+
+
+msgid "dayone.phase_morning"
+msgstr "다음날 개점 · 예약 인도"
+
+
+msgid "dayone.stock"
+msgstr "창고 10×6"
+
+
+msgid "dayone.display"
+msgstr "진열 6×3"
+
+
+msgid "dayone.grid_hint"
+msgstr "물품을 드래그하거나 선택 후 빈 칸을 누르세요."
+
+
+msgid "dayone.rotate"
+msgstr "선택 물품의 배치 방향 전환"
+
+
+msgid "dayone.rotate_on"
+msgstr "회전 배치"
+
+
+msgid "dayone.rotate_off"
+msgstr "기본 배치"
+
+
+msgid "dayone.stock_line"
+msgstr "{item} · 원가 {basis} VKC"
+
+
+msgid "dayone.retail_terms"
+msgstr "G02 소매 문의 {price} VKC · 진열 및 방문 필요"
+
+
+msgid "dayone.retail"
+msgstr "소매 판매 확정 {price} VKC"
+
+
+msgid "dayone.wholesale"
+msgstr "한정 즉시 도매 {price} VKC"
+
+
+msgid "dayone.retail_active"
+msgstr "G02: 라디오 구매 문의입니다. 미확인 기능도 감수합니다."
+
+
+msgid "dayone.service_offer"
+msgstr "G02: 별도 외관 정비 의뢰입니다. 다음날 찾겠습니다."
+
+
+msgid "dayone.accept_service"
+msgstr "고객 소유 위탁품 인수"
+
+
+msgid "dayone.decline"
+msgstr "현재 방문 거절"
+
+
+msgid "dayone.closing_warning"
+msgstr "고정비 {cost} VKC · 미호출 방문 {remaining}건은 마감 시 종료."
+
+
+msgid "dayone.close"
+msgstr "18시 마감 확정"
+
+
+msgid "dayone.service_offered"
+msgstr "의뢰 제안 · 고객 보관 중"
+
+
+msgid "dayone.service_accepted"
+msgstr "수락 · 전용 공간에 위탁품 보관"
+
+
+msgid "dayone.service_complete"
+msgstr "완료 · 다음 영업일 인도 대기"
+
+
+msgid "dayone.service_delivered"
+msgstr "반환 및 공임 정산 완료"
+
+
+msgid "dayone.service_declined"
+msgstr "거절 · 고객 물품 유지"
+
+
+msgid "dayone.service_cancelled"
+msgstr "미완료 반환 · 공임 없음"
+
+
+msgid "dayone.service_terms"
+msgstr "W001 가상 외관 작업 · 직접비 {cost} VKC · 반환 시 공임 {fee} VKC"
+
+
+msgid "dayone.surface_tool"
+msgstr "표면 도구"
+
+
+msgid "dayone.surface_hint"
+msgstr "도구를 선택하고 세 표시 영역을 드래그하세요. 확정 전 비용과 상태는 그대로입니다."
+
+
+msgid "dayone.commit_work"
+msgstr "가상 외관 작업 확정 · {cost} VKC"
+
+
+msgid "dayone.prepare_accessible"
+msgstr "접근성 보조: 작업 준비"
+
+
+msgid "dayone.cancel_service"
+msgstr "미완료 의뢰품 반환 · 공임 없음"
+
+
+msgid "dayone.morning"
+msgstr "다음날 08시로 이동 (14시간)"
+
+
+msgid "dayone.deliver"
+msgstr "완료품 실제 인도 및 공임 정산"
+
+
+msgid "dayone.recovery"
+msgstr "보유 라디오 D2 한정 매각 · {price} VKC"
+
+
+msgid "dayone.pay_overhead"
+msgstr "미지급 고정비 정산"
+
+
+msgid "dayone.slice_end"
+msgstr "첫날 통합 검증 구간 · 이후 일반 영업은 다음 개발 단계입니다."
+
+
+msgid "dayone.overhead_record"
+msgstr "고정비 납부 {paid} VKC · 미지급 {debt} VKC"
+
+
+msgid "dayone.ledger"
+msgstr "실제 거래 및 비용 장부"
+
+
+msgid "dayone.ledger_sale"
+msgstr "판매 {item} · 수입 {amount} VKC"
+
+
+msgid "dayone.ledger_purchase"
+msgstr "매입 {item} · 지급 {amount} VKC"
+
+
+msgid "dayone.margin"
+msgstr "실현 매매차익 {margin} VKC"
+
+
+msgid "dayone.settlement_service_cost"
+msgstr "정비 직접비 −{amount} VKC"
+
+
+msgid "dayone.settlement_overhead"
+msgstr "마감비 −{amount} VKC"
+
+
+msgid "dayone.settlement_service_fee"
+msgstr "실제 인도 공임 +{amount} VKC"
+
+
+msgid "dayone.settlement_overhead_debt"
+msgstr "미지급 고정비 정산 −{amount} VKC"
+
+
+msgid "dayone.news_source"
+msgstr "소라 · 시장 소식 (D2 08:00)"
+
+
+msgid "dayone.news_opening"
+msgstr "오늘도 물품 확보가 쉽지 않겠어요. 외화로 값을 묻는 상인들도 있더군요."
+
+
+msgid "component.market_prepare"
+msgstr "작업대 종료 · 후속 판매 검증"
+
+
+msgid "component.market_terms"
+msgstr "한정 구매 제안: D001 200 VKC · 최신 정상 작동 검사 필요"
+
+
+msgid "component.market_title"
+msgstr "재생품 후속 판매 검증"
+
+
+msgid "component.market_sell"
+msgstr "실제 판매 200 VKC"
+
+
+msgid "component.market_done"
+msgstr "거래 완료 · 부품과 본체의 동일 ID 이전"
+
+
+msgid "component.market_margin"
+msgstr "실현 차익 {margin} VKC"
+
+
+msgid "dayone.rotate_commit"
+msgstr "현재 위치에 회전 배치 확정"
+
+msgid "lineage.open"
+msgstr "물품 거래 이력"
+
+msgid "lineage.empty"
+msgstr "확인된 상점 거래 이력이 없습니다."
+
+msgid "lineage.purchase"
+msgstr "매입"
+
+msgid "lineage.sale"
+msgstr "판매"
+
+msgid "lineage.group_price"
+msgstr "개별 거래가 미확인"
+
+msgid "lineage.row"
+msgstr "{day}일차 {time} · {direction} · {price}"
+
+msgid "lineage.older"
+msgstr "이전 {count}건은 장부에서 확인할 수 있습니다."
+
+msgid "lineage.unknown"
+msgstr "상점 기록 밖의 행적은 확인되지 않았습니다."
+
+msgid "ui.document_scale"
+msgstr "글자 크기 {percent}%"
+
+msgid "ui.tool_guide"
+msgstr "도구 안내"
+
+msgid "ui.tool_cost"
+msgstr "새 관찰 +{minutes}분"
+
+msgid "ui.feedback_settings"
+msgstr "효과 설정"
+
+msgid "ui.feedback_settings_hint"
+msgstr "설정은 다음 실행에도 유지됩니다. 소리와 동작을 꺼도 결과와 거래에는 차이가 없습니다."
+
+msgid "ui.preferences_save_failed"
+msgstr "설정을 저장하지 못했습니다. 현재 실행에는 적용되지만 다음 실행에서 복원되지 않을 수 있습니다."
+
+msgid "ui.sound_on"
+msgstr "효과음 켜짐 · 끄기"
+
+msgid "ui.sound_off"
+msgstr "효과음 꺼짐 · 켜기"
+
+msgid "ui.motion_on"
+msgstr "동작 효과 켜짐 · 끄기"
+
+msgid "ui.motion_off"
+msgstr "동작 효과 꺼짐 · 켜기"
+
+msgid "pilot.title"
+msgstr "복합 전자기기 통합 시험 · 정본 외"
+
+msgid "pilot.offer"
+msgstr "시험 고객 호출"
+
+msgid "pilot.inspect"
+msgstr "{part} · {region} · {tool}"
+
+msgid "pilot.detach"
+msgstr "{part} · 작업대 분리"
+
+msgid "pilot.attach"
+msgstr "{part} · 되돌려 넣기"
+
+msgid "pilot.restore"
+msgstr "{part} · 추상 복원 ({cost} VKC)"
+
+msgid "dayone.tab_counter"
+msgstr "카운터"
+
+msgid "dayone.tab_stock"
+msgstr "창고"
+
+msgid "dayone.tab_workshop"
+msgstr "작업대"
+
+msgid "dayone.tab_ledger"
+msgstr "장부"
+
+msgid "dayone.stock_evening_hint"
+msgstr "저녁에는 작업대에서 정비 의뢰를 처리할 수 있습니다."
+
+msgid "dayone.select_stock"
+msgstr "물품 선택"
+
+msgid "dayone.stock_detail"
+msgstr "{item} · {location} · 원가 {basis} VKC"
+
+msgid "dayone.quick_display"
+msgstr "진열대로 빠른 이동"
+
+msgid "dayone.quick_stock"
+msgstr "창고로 빠른 이동"
+
+msgid "dayone.clear_selection"
+msgstr "선택 해제"
+
+msgid "ui.audio_level"
+msgstr "{channel} 음량 {percent}%"
+
+msgid "ui.audio_ambience"
+msgstr "환경음"
+
+msgid "ui.audio_sfx"
+msgstr "효과음"
+
+msgid "ui.audio_ui"
+msgstr "조작음"
+
+msgid "ui.audio_music"
+msgstr "음악"
+
+msgid "ui.page_previous"
+msgstr "이전"
+
+msgid "ui.page_next"
+msgstr "다음"
+
+msgid "ui.page_range"
+msgstr "{first}–{last} / {total}건"
+
+msgid "appraisal.drop_hint"
+msgstr "이 슬롯에 해당 감정 카드를 놓으세요."
+
+msgid "appraisal.card_model_id"
+msgstr "알렉세이: {value}에 가까워 보이는군요."
+
+msgid "appraisal.card_appearance_id"
+msgstr "알렉세이: 외관은 {value} 정도로 보겠습니다."
+
+msgid "appraisal.card_material_id"
+msgstr "알렉세이: 재질은 {value}로 추정됩니다."
+
+msgid "appraisal.card_batch_id"
+msgstr "알렉세이: 생산 표식은 {value}일 수도 있겠군요."
+
+msgid "appraisal.card_clear"
+msgstr "알렉세이: 아직 판단하기 어렵군요. {value}로 두겠습니다."
+
+msgid "appraisal.customer_model_id"
+msgstr "고객: 모델명은 잘 모릅니다."
+
+msgid "appraisal.customer_appearance_id"
+msgstr "고객: 오래 쓴 물건이긴 합니다."
+
+msgid "appraisal.customer_material_id"
+msgstr "고객: 재질까지는 모르겠네요."
+
+msgid "appraisal.customer_batch_id"
+msgstr "고객: 생산 시기는 잘 모르겠습니다."
+
+msgid "appraisal.customer_clear"
+msgstr "고객: 천천히 보시죠."
+
+msgid "appraisal.links_heading"
+msgstr "판정과 관찰 근거 연결 — 정답 판정이 아닌 참고 자료"
+
+msgid "appraisal.argument_heading"
+msgstr "협상에 제시할 감정 주장 준비 (추정)"
+
+msgid "appraisal.argument_prepare"
+msgstr "카드 준비: {value} · 근거 {count}개"
+
+msgid "appraisal.argument_prepared"
+msgstr "협상 카드: {value} (추정)"
+
+msgid "appraisal.look_up"
+msgstr "SPACE · 고개 들기"
+
+msgid "appraisal.look_down"
+msgstr "SPACE · 고개 숙이기"
+
+msgid "appraisal.deck_present"
+msgstr "제시: {value}"
+
+msgid "appraisal.deck_remove"
+msgstr "덱에서 빼기"
+
+msgid "appraisal.deck_spoken"
+msgstr "제시함: {value}"
+
+msgid "appraisal.deck_basis"
+msgstr "제시한 협상 카드"
+
+msgid "appraisal.deck_ready"
+msgstr "준비됨: {value}"
+
+msgid "appraisal.deck_target"
+msgstr "고객에게 카드 제시"
+
+msgid "appraisal.deck_history"
+msgstr "제시 기록 · 고객 발언"
+
+msgid "appraisal.deck_statement"
+msgstr "알렉세이: {value}(으)로 판단합니다."
+
+msgid "appraisal.deck_reply_model_id"
+msgstr "고객: 모델은 저도 잘 모르겠습니다."
+
+msgid "appraisal.deck_reply_appearance_id"
+msgstr "고객: 사용 흔적이 좀 있는 건 맞습니다."
+
+msgid "appraisal.deck_reply_material_id"
+msgstr "고객: 재질까지는 확인하지 못했습니다."
+
+msgid "appraisal.deck_reply_batch_id"
+msgstr "고객: 생산 시기까지는 모르겠습니다."
+
+msgid "appraisal.deck_customer_claim"
+msgstr "고객 주장: 그래도 아직 쓸 만한 물건입니다."
+
+msgid "appraisal.counter_basis"
+msgstr "제시한 협상 카드 {count}장"
+
+msgid "appraisal.counter_propose"
+msgstr "가격 제안"
+
+msgid "appraisal.counter_confirm"
+msgstr "{amount} VKC에 거래 확정"
+
+msgid "appraisal.customer_unconfirmed"
+msgstr "고객의 주장 · 미확인"
+
+msgid "p2.watch.source"
+msgstr "가상 시계 공개 도감 (시험용)"
+
+msgid "p2.watch.meridian12"
+msgstr "메리디언 12"
+
+msgid "p2.watch.meridian12a"
+msgstr "메리디언 12A"
+
+msgid "p2.watch.standard_case"
+msgstr "일반 케이스"
+
+msgid "p2.watch.decorative_case"
+msgstr "장식 케이스"
+
+msgid "p2.watch.running"
+msgstr "작동 추정"
+
+msgid "p2.watch.stopped"
+msgstr "작동 불능 추정"
+
+msgid "p2.watch.ordinary_mark"
+msgstr "일반 표식"
+
+msgid "p2.watch.commemorative_mark"
+msgstr "기념 표식"
+
+msgid "p2.watch.obs_wear"
+msgstr "다이얼 표면 관찰"
+
+msgid "p2.watch.obs_mark"
+msgstr "뒷면 표식 관찰"
+
+msgid "p2.watch.obs_texture"
+msgstr "케이스 표면 질감"
+
+msgid "p2.watch.obs_function"
+msgstr "작동 상태 관찰"
+
+msgid "review.fact.surface"
+msgstr "외관 마모 지수"
+
+msgid "review.fact.mark"
+msgstr "표식 판독"
+
+msgid "review.fact.texture"
+msgstr "재질 표면 무늬"
+
+msgid "review.fact.batch"
+msgstr "생산 표식"
+
+msgid "review.fact.function"
+msgstr "기능 시험"
+
+msgid "review.fact.display"
+msgstr "표시창 손상 지수"
+
+msgid "review.fact.unknown"
+msgstr "기타 관찰"
+
+msgid "review.value.parallel"
+msgstr "평행 무늬"
+
+msgid "review.value.cross"
+msgstr "교차 무늬"
+
+msgid "review.value.serviceable"
+msgstr "시험에서 작동 확인"
+
+msgid "review.value.inoperable"
+msgstr "시험에서 작동 불가"
+
+msgid "review.value.unreadable"
+msgstr "판독 불확실"
+
+msgid "review.value.yes"
+msgstr "예"
+
+msgid "review.value.no"
+msgstr "아니오"
+
+msgid "review.value.unknown"
+msgstr "미확인"
+
+msgid "review.price.previous"
+msgstr "직전 가격 제안"
+
+msgid "review.price.accepted"
+msgstr "수락됨"
+
+msgid "review.price.rejected"
+msgstr "거절됨"
+
+msgid "review.price.basis"
+msgstr "당시 공개 근거 수"
+
+msgid "review.plan.title"
+msgstr "상호 배타적인 처분 계획"
+
+msgid "review.plan.sell"
+msgstr "현재 매각 문의"
+
+msgid "review.plan.no_offer"
+msgstr "확인된 실행 가능 문의 없음"
+
+msgid "review.plan.hold"
+msgstr "보유 · 현금 유입 없음"
+
+msgid "review.plan.recover"
+msgstr "회수 · 분리 가능한 현물"
+
+msgid "review.plan.recover_empty"
+msgstr "현재 분리 가능 후보 없음"
+
+msgid "review.plan.restore"
+msgstr "재생 · 별도 직접 지출"
+
+msgid "review.plan.no_restore"
+msgstr "현재 실행 비용 미확인"
+
+msgid "review.plan.restore_unavailable"
+msgstr "현재 실행 불가 또는 현금 부족"
+
+msgid "review.plan.restore_available"
+msgstr "비용 지불 가능 · 실제 결과 미확정"
+
+msgid "review.plan.basis"
+msgstr "현재 구성 원가"
+
+msgid "review.plan.recovered_basis"
+msgstr "회수 현물의 배분 원가"
+
+msgid "review.plan.unknown_demand"
+msgstr "회수·재생 후 매수 수요 미확인"
+
+msgid "review.plan.opportunity"
+msgstr "포기할 현재 매각 제안"
+
+msgid "review.plan.not_revenue"
+msgstr "원가는 매출이나 실현 손익이 아닙니다."
+
+msgid "review.plan.quote_only"
+msgstr "문의는 체결이 아닙니다. 실제 판매 확정 필요."
+
+msgid "review.basic.open"
+msgstr "기본 감정 · 협상"
+
+msgid "review.basic.function"
+msgstr "기능 시험"
+
+msgid "review.basic.source"
+msgstr "기본 기능 판단 · 독립 참고가 없음"
+
+msgid "review.basic.working"
+msgstr "작동 가능 추정"
+
+msgid "review.basic.not_working"
+msgstr "작동 불가 추정"
+
+msgid "item.civil_receiver"
+msgstr "휴대용 민수 수신기"
+
+msgid "item.civil_module_a"
+msgstr "가상 모듈 A"
+
+msgid "item.civil_module_b"
+msgstr "가상 모듈 B"
+
+msgid "item.civil_module_c"
+msgstr "가상 모듈 C"
+
+msgid "item.demo_tool"
+msgstr "일반 공구"
+
+msgid "item.demo_hygiene"
+msgstr "밀봉 위생용품"
+
+msgid "item.demo_electronics"
+msgstr "민간 전자품"
+
+msgid "settings.pack.title"
+msgstr "언어팩"
+
+msgid "settings.pack.instructions"
+msgstr "user://localization 폴더에 넣은 JSON 언어팩의 파일명을 입력하세요. 기존 미번역 문구는 기본 언어로 표시됩니다."
+
+msgid "settings.pack.apply"
+msgstr "적용"
+
+msgid "settings.pack.clear"
+msgstr "기본 언어로"
+
+msgid "settings.pack.cancel"
+msgstr "닫기"
+
+msgid "settings.pack.invalid"
+msgstr "언어팩을 적용하지 못했습니다. 파일명과 형식을 확인하세요."
+
+msgid "settings.pack.applied"
+msgstr "언어팩을 적용했습니다."
+
+msgid "settings.pack.current"
+msgstr "현재 번역 언어: {locale}"
+
+msgid "ui.copy.preferences_could_not_be_saved_c2ce093d"
+msgstr "설정 저장 실패"
+
+msgid "ui.copy.could_not_open_slot_f5e11150"
+msgstr "슬롯 열기 실패"
+
+msgid "ui.copy.new_session_c88df2bc"
+msgstr "새 영업 시작"
+
+msgid "ui.copy.saved_session_resumed_cf6fd88a"
+msgstr "저장된 영업 재개"
+
+msgid "ui.copy.stock_bf0ad62f"
+msgstr "상품 창고"
+
+msgid "ui.copy.customer_custody_78fdebe1"
+msgstr "고객 의뢰품"
+
+msgid "ui.copy.owned_cff2f00c"
+msgstr "소유"
+
+msgid "ui.copy.custody_a1f910"
+msgstr "의뢰품"
+
+msgid "ui.copy.completed_12ead41e"
+msgstr "처리 완료"
+
+msgid "ui.copy.unavailable_e8505c55"
+msgstr "처리 불가: "
+
+msgid "ui.copy.save_failed_retry_before_continuing_21aa1c01"
+msgstr "저장 실패. 재시도 전 진행이 잠겼습니다."
+
+msgid "ui.copy.composite_candidate_5191b827"
+msgstr "복합 물품 후보 · "
+
+msgid "ui.copy.day_b165382f"
+msgstr "영업일 "
+
+msgid "ui.copy.recovered_from_the_previous_valid_save_1e032a02"
+msgstr "이전 정상 저장본에서 복구했습니다."
+
+msgid "ui.copy.save_load_error_f5af17cd"
+msgstr "저장 또는 복원 오류: "
+
+msgid "ui.copy.retry_save_d398bfc9"
+msgstr "저장 재시도"
+
+msgid "ui.copy.1_november_2032_alexei_barin_38_reopens_his_2c15303e"
+msgstr "2032년 11월 1일. 알렉세이 바린, 38세. 봉쇄된 크라벤스크에서 중고상점을 다시 엽니다. 취소된 이송과 회색병. 그다음 약을 확보해야 합니다."
+
+msgid "ui.copy.open_the_shutters_8ede7ece"
+msgstr "셔터 올리기"
+
+msgid "ui.copy.skip_prologue_3df4eed3"
+msgstr "프롤로그 건너뛰기"
+
+msgid "ui.copy.first_week_complete_the_story_continues_1cec1dd2"
+msgstr "첫 주 영업 종료. 이후 이야기는 계속됩니다."
+
+msgid "ui.copy.final_cash_d06a92e9"
+msgstr "최종 현금: "
+
+msgid "ui.copy.this_is_the_demo_boundary_not_a_campaign_en_5fa73f01"
+msgstr "본편 엔딩이 아닌 데모 종료입니다."
+
+msgid "ui.copy.pending_pickup_11905ce0"
+msgstr "미인도 의뢰품: "
+
+msgid "ui.copy.kravensk_shop_in_the_sealed_city_6919897b"
+msgstr "크라벤스크 · 봉쇄된 도시의 상점"
+
+msgid "ui.copy.sora_are_you_open_i_sent_someone_your_way_fbc8270b"
+msgstr "소라: 문 열었어요? 물건 팔겠다는 사람을 그쪽으로 보냈어요."
+
+msgid "ui.copy.ian_you_ll_be_all_right_for_a_few_days_but__6be4d982"
+msgstr "이안: 며칠은 괜찮겠지만, 그다음 약은 확보해야 합니다."
+
+msgid "ui.copy.sora_more_people_are_looking_for_winter_sup_86c1ac8d"
+msgstr "소라: 겨울 물자를 찾는 사람이 늘었어요. 오늘도 문을 열어줘서 다행이에요."
+
+msgid "ui.copy.marcus_payment_reserves_the_supply_you_do_n_403b17a0"
+msgstr "마르쿠스: 납부는 예약입니다. 약을 손에 쥔 건 아직 아니죠."
+
+msgid "ui.copy.remaining_visits_a65bf86a"
+msgstr "남은 방문: "
+
+msgid "ui.copy.overdue_overhead_37570c25"
+msgstr "미납 운영비: "
+
+msgid "ui.copy.pay_overhead_23660013"
+msgstr "운영비 납부"
+
+msgid "ui.copy.next_customer_fd07c070"
+msgstr "다음 손님"
+
+msgid "ui.copy.no_confirmed_offer_8858b07c"
+msgstr "가격 미확정"
+
+msgid "ui.copy.g01_do_you_buy_things_here_682d8d4f"
+msgstr "G01: 여기, 물건 삽니까?"
+
+msgid "ui.copy.g02_i_bought_this_radio_here_before_it_is_n_512d34fd"
+msgstr "G02: 예전에 여기서 샀던 라디오입니다. 이제 상태가 예전 같지 않아요."
+
+msgid "ui.copy.buy_d5fd742c"
+msgstr "매입 확정"
+
+msgid "ui.copy.sell_cece1123"
+msgstr "판매 확정"
+
+msgid "ui.copy.service_c8fa625f"
+msgstr "정비 의뢰 · "
+
+msgid "ui.copy.accept_service_ad106ab3"
+msgstr "의뢰 수락"
+
+msgid "ui.copy.return_and_collect_fee_9378214b"
+msgstr "검수·인도"
+
+msgid "ui.copy.return_unpaid_460b2b55"
+msgstr "공임 없이 반환"
+
+msgid "ui.copy.decline_visit_1b22e3e3"
+msgstr "이번 방문 거절"
+
+msgid "ui.copy.close_shop_59b1e7c1"
+msgstr "오늘 영업 마감"
+
+msgid "ui.copy.closing_settlement_overhead_15_vkc_first_du_4c4e9312"
+msgstr "마감 정산 · 운영비 15 VKC 우선. 납부 기한 계약: "
+
+msgid "ui.copy.available_after_overhead_aeaaaa7e"
+msgstr "운영비 이후 가용 현금: "
+
+msgid "ui.copy.pay_due_contracts_close_cdf3db4"
+msgstr "계약 납부 후 마감"
+
+msgid "ui.copy.confirm_default_release_reservation_3e38b308"
+msgstr "미납 확정 · 예약 해제 후 마감"
+
+msgid "ui.copy.evening_workshop_89b959a5"
+msgstr "저녁 작업대"
+
+msgid "ui.copy.restore_b51f11f2"
+msgstr "정비 "
+
+msgid "ui.copy.next_morning_296e989c"
+msgstr "다음 영업일"
+
+msgid "ui.copy.due_d_a10934de"
+msgstr "납부 D"
+
+msgid "ui.copy.delivery_d_51fb0b93"
+msgstr "인도 D"
+
+msgid "ui.copy.accept_marcus_s_offer_db96d1c3"
+msgstr "마르쿠스 제안 수락"
+
+msgid "ui.copy.decline_ed1fb32f"
+msgstr "거절"
+
+msgid "ui.copy.pay_contract_e37ce3dd"
+msgstr "계약 납부"
+
+msgid "ui.copy.extend_7853d8ec"
+msgstr "기한 연장"
+
+msgid "ui.copy.news_d_1010b526"
+msgstr "뉴스 · D"
+
+msgid "ui.copy.ian_thank_you_for_helping_a5e77da9"
+msgstr "이안: 협력해 주셔서 감사합니다."
+
+msgid "ui.copy.additional_clinic_supplies_have_not_been_co_4d04311"
+msgstr "진료소의 추가 공급은 확인되지 않았습니다."
+
+msgid "ui.copy.marcus_your_medicine_has_arrived_b406e251"
+msgstr "마르쿠스: 약이 도착했습니다."
+
+msgid "ui.copy.marcus_this_delivery_did_not_go_through_1d0dcbc8"
+msgstr "마르쿠스: 이번 공급은 성립하지 않았습니다."
+
+msgid "ui.copy.tan_people_do_get_out_who_and_when_that_s_a_35e3682"
+msgstr "탄: 나가는 사람은 있어. 다만 누구인지, 언제인지는 다른 문제야."
+
+msgid "ui.copy.stock_and_custody_89da3ff3"
+msgstr "보관 물품"
+
+msgid "ui.copy.shop_office_bf373655"
+msgstr "상점 사무 공간"
+
+msgid "ui.copy.cash_483e7412"
+msgstr "현금 · "
+
+msgid "ui.copy.closed_work_lamp_c39ab77b"
+msgstr "마감 · 작업등"
+
+msgid "ui.copy.open_fc52508"
+msgstr "영업 중"
+
+msgid "ui.copy.ledger_a9dad261"
+msgstr "장부"
+
+msgid "ui.copy.contracts_8d973b95"
+msgstr "계약서"
+
+msgid "ui.copy.terminal_230d7be0"
+msgstr "통신 단말"
+
+msgid "ui.copy.transaction_ledger_261b8677"
+msgstr "거래 장부"
+
+msgid "ui.copy.local_terminal_896458a8"
+msgstr "지역 통신"
+
+msgid "ui.copy.no_known_contracts_2bc9a316"
+msgstr "확인된 계약 없음"
+
+msgid "ui.copy.local_terminal_known_news_c72fbad6"
+msgstr "지역 통신 · 확인된 소식"
+
+msgid "ui.copy.no_confirmed_news_3a511909"
+msgstr "새로 확인된 뉴스 없음"
+
+msgid "ui.copy.messages_ee1edf9b"
+msgstr "연락 기록"
+
+msgid "ui.copy.close_office_1f6d1b1f"
+msgstr "사무 공간 닫기"
+
+msgid "ui.copy.office_b376d3f2"
+msgstr "사무 공간"
+
+msgid "ui.copy.back_mark_reader_3f7e5eab"
+msgstr "후면 표식 관찰기"
+
+msgid "ui.copy.choose_the_appropriate_region_for_the_selec_b6c2d1e5"
+msgstr "선택한 도구에 맞는 조사 부위를 확인하세요."
+
+msgid "ui.copy.will_you_buy_this_item_dedc031b"
+msgstr "이 물건을 매입하시겠습니까?"
+
+msgid "ui.copy.i_d_like_to_buy_this_item_91619a57"
+msgstr "이 물건을 구매하고 싶습니다."
+
+msgid "ui.copy.purchase_slip_3a9c7ac5"
+msgstr "매입 전표"
+
+msgid "ui.copy.sale_slip_eca790c8"
+msgstr "판매 전표"
+
+msgid "ui.copy.no_available_placement_e13e4384"
+msgstr "입고 공간 없음"
+
+msgid "ui.copy.insufficient_cash_e996d3a2"
+msgstr "현금 부족"
+
+msgid "ui.copy.customer_cannot_pay_this_offer_917ad803"
+msgstr "고객 결제 불가"
+
+msgid "ui.copy.inspect_owned_item_1ce27160"
+msgstr "물품 감정 열기"
+
+msgid "ui.copy.confirm_purchase_4f429f57"
+msgstr "매입 확정"
+
+msgid "ui.copy.confirm_sale_4f728d10"
+msgstr "판매 확정"
+
+msgid "ui.copy.decline_19995241"
+msgstr "거래 거절"
+
+msgid "ui.copy.i_d_like_this_serviced_7edcb5a2"
+msgstr "정비를 맡기고 싶습니다."
+
+msgid "ui.copy.i_m_here_to_collect_my_item_582aa83c"
+msgstr "맡긴 물품을 찾으러 왔습니다."
+
+msgid "ui.copy.customer_owned_service_item_f25dc339"
+msgstr "고객 소유 / 의뢰품"
+
+msgid "ui.copy.service_slip_fee_392df2d0"
+msgstr "정비 전표 · 공임 "
+
+msgid "ui.copy.new_request_b95fd718"
+msgstr "신규 의뢰"
+
+msgid "ui.copy.completed_return_after_check_fbd996e0"
+msgstr "작업 완료 · 검수 후 인도"
+
+msgid "ui.copy.work_incomplete_125702a0"
+msgstr "작업 미완료"
+
+msgid "ui.copy.return_and_collect_fee_68cab1a0"
+msgstr "검수 · 인도 및 수금"
+
+msgid "ui.copy.known_e7b32f47"
+msgstr "확인됨"
+
+msgid "ui.copy.inspect_a_detail_not_shown_in_the_represent_cf021d06"
+msgstr "대표 이미지에 표시되지 않는 부분의 조사. 실제 결과는 기존 도구와 시간 규칙을 따릅니다."
+
+msgid "ui.copy.inspection_tools_546ff394"
+msgstr "조사 도구"
+
+msgid "ui.copy.returning_item_747d92af"
+msgstr "재방문 물품"
+
+msgid "ui.copy.min_a419b7d"
+msgstr "분"
+
+msgid "ui.copy.select_the_region_on_the_item_688ed27a"
+msgstr "물품 위 조사 부위를 선택하세요."
+
+msgid "ui.copy.select_the_detail_target_above_the_item_4719621e"
+msgstr "상단 세부 조사 대상을 선택하세요."
+
+msgid "ui.copy.inspect_1b481735"
+msgstr "조사"
+
+msgid "ui.copy.front_18a87342"
+msgstr "앞면 보기"
+
+msgid "ui.copy.back_479b23d1"
+msgstr "뒷면 보기"
+
+msgid "ui.copy.book_assessment_4558d616"
+msgstr "도감 · 감정 전표"
+
+msgid "ui.copy.drag_a_tool_onto_the_item_b8fb2c5b"
+msgstr "도구를 집어 물품에 적용하세요."
+
+msgid "ui.copy.last_observation_50e88897"
+msgstr "최근 관찰: "
+
+msgid "ui.copy.do_you_buy_watches_d713ae5"
+msgstr "이 시계도 매입하나요?"
+
+msgid "ui.copy.do_you_buy_things_here_badbda7b"
+msgstr "여기, 물건 삽니까?"
+
+msgid "ui.copy.i_bought_this_radio_here_before_it_is_not_i_f90fb14b"
+msgstr "전에 여기서 산 라디오입니다. 상태가 예전 같지 않아요."
+
+msgid "ui.copy.alexei_i_withdraw_this_judgment_6447d2a2"
+msgstr "알렉세이: 이 판단을 철회합니다. "
+
+msgid "ui.copy.alexei_this_is_what_i_observed_8ecbca0"
+msgstr "알렉세이: 직접 확인한 내용입니다. "
+
+msgid "ui.copy.alexei_a19a8468"
+msgstr "알렉세이: "
+
+msgid "ui.copy.correction_290b194e"
+msgstr "정정합니다. "
+
+msgid "ui.copy.hypothesis_a46bd249"
+msgstr " (가설)"
+
+msgid "ui.copy.customer_claim_20504483"
+msgstr " (고객 주장)"
+
+msgid "ui.copy.present_a_card_to_customer_ce34e8f"
+msgstr "고객에게 카드 제시"
+
+msgid "ui.copy.no_assessment_cards_inspect_and_choose_a_ju_54b904ca"
+msgstr "개인 판단 카드 없음 · 물품 보기에서 판단"
+
+msgid "ui.copy.correction_fe5aa275"
+msgstr "정정: "
+
+msgid "ui.copy.hypothesis_links_2ea00e9e"
+msgstr "가설 · 근거 "
+
+msgid "ui.copy.asking_5b3abf58"
+msgstr "요구가 "
+
+msgid "ui.copy.estimate_6c11b6a7"
+msgstr "참고가 "
+
+msgid "ui.copy.offer_with_basis_28e673c"
+msgstr "공개 근거와 제안"
+
+msgid "ui.copy.make_offer_debd0b52"
+msgstr "가격 제안"
+
+msgid "ui.copy.price_only_4dd8fd0f"
+msgstr "가격만 제안"
+
+msgid "ui.copy.condition_8d30e730"
+msgstr "조건: "
+
+msgid "ui.copy.working_8ec30d03"
+msgstr "작동 확인"
+
+msgid "ui.copy.inoperable_2e345410"
+msgstr "작동 불가"
+
+msgid "ui.copy.placement_confirm_288df946"
+msgstr "입고 · 거래 확정"
+
+msgid "ui.copy.sheet_facts_522abb77"
+msgstr "감정서 · 사실"
+
+msgid "ui.copy.rebut_1ebcc6f6"
+msgstr "반박"
+
+msgid "ui.copy.close_9033cd56"
+msgstr "닫기"
+
+msgid "ui.copy.after_hours_workspace_6bed36b7"
+msgstr "마감 후 작업 공간"
+
+msgid "ui.copy.business_stockroom_78d9de60"
+msgstr "영업 중 창고"
+
+msgid "ui.copy.18_00_clock_paused_work_lamp_2937810e"
+msgstr "18:00 · 시계 정지 / 작업등"
+
+msgid "ui.copy.lighting_follows_business_clock_6cfe15a9"
+msgstr "영업 시계와 동일한 조명"
+
+msgid "ui.copy.inventory_evening_work_enabled_c70bc29e"
+msgstr "통합 인벤토리 · 저녁 정비 가능"
+
+msgid "ui.copy.inventory_stock_management_b833915b"
+msgstr "통합 인벤토리 · 상품 관리"
+
+msgid "ui.copy.stock_select_drag_cb25bbc5"
+msgstr "창고 · 물품 선택 / 드래그"
+
+msgid "ui.copy.owned_8db45f16"
+msgstr "소유 "
+
+msgid "ui.copy.custody_8dedb8de"
+msgstr "의뢰품 "
+
+msgid "ui.copy.item_details_714a9da7"
+msgstr "물품 상세"
+
+msgid "ui.copy.select_drop_item_here_574430c9"
+msgstr "물품 선택 / 여기에 놓기"
+
+msgid "ui.copy.owned_stock_ce8e11c5"
+msgstr "소유 상품"
+
+msgid "ui.copy.customer_custody_not_movable_5b46d3f"
+msgstr "고객 의뢰품 · 이동 불가"
+
+msgid "ui.copy.empty_cell_48b5c4e3"
+msgstr "빈 격자"
+
+msgid "ui.copy.return_to_counter_cebd9414"
+msgstr "카운터로 돌아가기"
+
+msgid "ui.copy.rotate_f4b9db24"
+msgstr "회전"
+
+msgid "ui.copy.place_7dd2830a"
+msgstr "배치 확정"
+
+msgid "ui.copy.cancel_d94f1bb5"
+msgstr "취소"
+
+msgid "ui.copy.placement_available_2b4c9c70"
+msgstr "배치 가능"
+
+msgid "ui.copy.unavailable_collision_bounds_or_same_placem_cb2ee070"
+msgstr "배치 불가 · 충돌/범위/같은 위치"
+
+msgid "ui.copy.select_an_item_review_is_free_4169758e"
+msgstr "물품을 선택하세요. 확인은 무료입니다."
+
+msgid "ui.copy.work_slip_e2c533c4"
+msgstr "작업 전표"
+
+msgid "ui.copy.restoration_cost_8d85a068"
+msgstr "정비 비용: "
+
+msgid "ui.copy.service_complete_awaiting_customer_pickup_89f3cde7"
+msgstr "정비 완료 · 고객 인도 대기"
+
+msgid "ui.copy.player_owned_stock_632e1d7a"
+msgstr "플레이어 소유 상품"
+
+msgid "ui.copy.customer_owned_authorized_service_only_77420968"
+msgstr "고객 소유 · 허가된 정비만"
+
+msgid "ui.copy.footprint_a7d5b186"
+msgstr "점유: "
+
+msgid "ui.copy.root_allocated_basis_f50b9a44"
+msgstr "본체 배분 원가: "
+
+msgid "ui.copy.individual_basis_806c519c"
+msgstr "개별 원가: "
+
+msgid "ui.copy.review_discard_3c8f4db7"
+msgstr "폐기 검토"
+
+msgid "ui.copy.discard_abf4183b"
+msgstr "폐기: "
+
+msgid "ui.copy.items_no_proceeds_lost_basis_ab2e8a51"
+msgstr "개 · 회수금 0 · 손실 원가 "
+
+msgid "ui.copy.discard_is_irreversible_included_ids_e0955b48"
+msgstr "폐기는 되돌릴 수 없습니다. 포함 개체: "
+
+msgid "ui.copy.discard_4f578617"
+msgstr "폐기 확정"
+
+msgid "ui.copy.keep_item_181a689b"
+msgstr "폐기 취소"
+
+msgid "ui.copy.exterior_care_recorded_no_price_function_ch_d0113030"
+msgstr "외관 관리 완료 · 가격/기능 변화 없음"
+
+msgid "ui.copy.no_exterior_care_recorded_94fe8880"
+msgstr "외관 관리 기록 없음"
+
+msgid "ui.copy.wipe_exterior_86cb1372"
+msgstr "외관 닦기"
+
+msgid "ui.copy.restoration_and_composition_changes_availab_24359ec5"
+msgstr "정비 및 구성 변경은 영업 종료 후 가능"
+
+msgid "ui.copy.no_available_restoration_77a6ed7c"
+msgstr "현재 실행 가능한 정비 없음"
+
+msgid "ui.copy.close_history_d14c1606"
+msgstr "거래·작업 이력 닫기"
+
+msgid "ui.copy.transaction_and_work_history_a0515557"
+msgstr "거래·작업 이력"
+
+msgid "ui.copy.restore_f7ee4ed5"
+msgstr "정비 실행"
+
+msgid "ui.copy.restore_b3664298"
+msgstr "정비 · "
+
+msgid "ui.copy.abstract_component_slots_cc4c2618"
+msgstr "가상 구성품 슬롯"
+
+msgid "ui.copy.current_family_basis_d7579729"
+msgstr "현재 구성 원가: "
+
+msgid "ui.copy.additional_restoration_expense_28e000ca"
+msgstr "재생 실행 시 별도 직접비: "
+
+msgid "ui.copy.owned_materials_are_not_free_revenue_is_unk_1f4312df"
+msgstr "보유 재료는 무료가 아닙니다. 실제 매수 문의가 없으면 예상 매출은 미확인입니다."
+
+msgid "ui.copy.incoming_material_basis_2844658d"
+msgstr "사용할 보유 재료 원가: "
+
+msgid "ui.copy.recovered_material_basis_a9d26739"
+msgstr "회수될 재료 원가: "
+
+msgid "ui.copy.projected_family_basis_d107bee3"
+msgstr "변경 후 구성 원가 (예정): "
+
+msgid "ui.copy.composition_itself_costs_no_cash_restoratio_c195f4d7"
+msgstr "구성 변경 자체의 현금 지출 0 · 재생 및 판매는 별도 결정"
+
+msgid "ui.copy.slot_6b7a60"
+msgstr "슬롯 "
+
+msgid "ui.copy.empty_e5d310ea"
+msgstr "비어 있음"
+
+msgid "ui.copy.assess_ae77322c"
+msgstr "감정"
+
+msgid "ui.copy.remove_995fb47b"
+msgstr "분리"
+
+msgid "ui.copy.exchange_fbc905ee"
+msgstr "교체: "
+
+msgid "ui.copy.attach_1adbb93f"
+msgstr "결합: "
+
+msgid "ui.copy.attach_e13a33af"
+msgstr "결합"
+
+msgid "ui.copy.exchange_66cb631a"
+msgstr "교체"
+
+msgid "ui.copy.pending_85fe9c9f"
+msgstr "예정 작업: "
+
+msgid "ui.copy.outgoing_26d261a5"
+msgstr "기존 "
+
+msgid "ui.copy.stock_f4513ad2"
+msgstr "창고 "
+
+msgid "ui.copy.apply_parts_69f89d86"
+msgstr "구성 확정"
+
+msgid "ui.copy.cancel_parts_ab9e9c5a"
+msgstr "구성 취소"
+
+msgid "ui.copy.known_assessment_b83529c4"
+msgstr "확인된 감정 · "
+
+msgid "ui.copy.current_family_basis_fa3fef24"
+msgstr "현재 구성 총원가: "
+
+msgid "ui.copy.assessed_item_basis_359cb4c3"
+msgstr "감정 대상 원가: "
+
+msgid "ui.copy.unknown_a150fe4"
+msgstr "미확인"
+
+msgid "ui.copy.refurbished_9d11a831"
+msgstr "정비품"
+
+msgid "ui.copy.serviceable_f3da9c82"
+msgstr "사용 가능"
+
+msgid "ui.copy.assessment_46221f2e"
+msgstr "감정 등급: "
+
+msgid "ui.copy.return_to_root_assessment_5e3e949"
+msgstr "본체 감정으로"
+
+msgid "ui.copy.function_db9959e9"
+msgstr "기능 상태"
+
+msgid "ui.copy.completeness_62959d0b"
+msgstr "구성 완전성"
+
+msgid "ui.copy.restoration_status_3bcca6d2"
+msgstr "정비 이력 상태"
+
+msgid "ui.copy.known_a7456c9f"
+msgstr "확인: "
+
+msgid "ui.copy.historical_retest_required_36d87653"
+msgstr "과거 기록 · 재확인 필요: "
+
+msgid "ui.copy.yes_c5a2dae0"
+msgstr "예"
+
+msgid "ui.copy.no_3885b742"
+msgstr "아니오"
+
+msgid "ui.copy.free_review_f3820f59"
+msgstr "무료 검사"
+
+msgid "ui.copy.inspect_ddb0fd77"
+msgstr "검사 · "
+
+msgid "ui.copy.observed_fact_a49cf725"
+msgstr "관찰 사실: "
+
+msgid "ui.copy.no_active_appraisal_e67124a0"
+msgstr "감정할 물품 없음"
+
+msgid "ui.copy.appraisal_sheet_public_assessments_9d1a1781"
+msgstr "감정서 · 공개 판단"
+
+msgid "ui.copy.you_may_disclose_acquired_observations_sepa_4423d9f0"
+msgstr "확인한 사실만 별도로 제시할 수 있습니다."
+
+msgid "ui.copy.withdrawn_1db3c465"
+msgstr "철회: "
+
+msgid "ui.copy.earlier_hypothesis_af584293"
+msgstr "이전 가설: "
+
+msgid "ui.copy.current_hypothesis_6b5dc0fc"
+msgstr "현재 가설: "
+
+msgid "ui.copy.current_disclosure_439956a0"
+msgstr "현재 공개: "
+
+msgid "ui.copy.earlier_disclosure_3a8a0acb"
+msgstr "이전 공개: "
+
+msgid "ui.copy.withdraw_this_judgment_d34bfe1b"
+msgstr "이 판단 철회"
+
+msgid "ui.copy.inspect_item_70038369"
+msgstr "물품 감정 · "
+
+msgid "ui.copy.negotiate_aaca716"
+msgstr "고객과 협상 · "
+
+msgid "ui.copy.generic_appraisal_pilot_776dd0b4"
+msgstr "공통 감정 시험 · "
+
+msgid "ui.copy.present_an_assessment_card_or_offer_a_price_ee29b6ac"
+msgstr "개인 판단 카드를 제시하거나 가격만 제안하세요. 추가 조사는 SPACE로 돌아갑니다."
+
+msgid "ui.copy.alexei_i_withdraw_this_18ff8bf6"
+msgstr "알렉세이: 철회합니다. "
+
+msgid "ui.copy.alexei_my_assessment_is_817169e8"
+msgstr "알렉세이: 제 판단은 "
+
+msgid "ui.copy.inspection_tools_6050cc0a"
+msgstr "도구"
+
+msgid "ui.copy.observations_7f06a163"
+msgstr "관찰 기록"
+
+msgid "ui.copy.stale_92e2fc99"
+msgstr " (이전 기록)"
+
+msgid "ui.copy.claim_eff9e604"
+msgstr " (주장)"
+
+msgid "ui.copy.hypothesis_6acf1919"
+msgstr "판단 · "
+
+msgid "ui.copy.clear_selection_e6cd7119"
+msgstr "선택 지우기"
+
+msgid "ui.copy.unlink_66ae24e2"
+msgstr "연결 해제: "
+
+msgid "ui.copy.link_related_observation_c5c87266"
+msgstr "관련 관찰 연결: "
+
+msgid "ui.copy.link_evidence_f73569d9"
+msgstr "증거 연결: "
+
+msgid "ui.copy.reference_estimate_f7dbb0ad"
+msgstr "참고 추정가: "
+
+msgid "ui.copy.available_hypotheses_bb25869f"
+msgstr "준비 가능한 가설"
+
+msgid "ui.copy.prepare_fc6314c2"
+msgstr "준비: "
+
+msgid "ui.copy.private_assessment_cards_8be73713"
+msgstr "개인 판단 카드 · 제시 전 비공개"
+
+msgid "ui.copy.prepared_cards_75964db5"
+msgstr "준비한 카드"
+
+msgid "ui.copy.drop_a_card_to_address_customer_fe4dc946"
+msgstr "고객에게 카드 놓기"
+
+msgid "ui.copy.correction_df85060b"
+msgstr "정정 후보: "
+
+msgid "ui.copy.stale_d90d0a15"
+msgstr " (갱신 필요)"
+
+msgid "ui.copy.drag_65ae8ec5"
+msgstr "끌기: "
+
+msgid "ui.copy.present_fc2a476"
+msgstr "제시"
+
+msgid "ui.copy.rebut_c998d426"
+msgstr "반박: "
+
+msgid "ui.copy.remove_9f25f42f"
+msgstr "제거"
+
+msgid "ui.copy.disclosed_assessments_and_observations_59fe26d2"
+msgstr "실제 공개한 판단 및 관찰"
+
+msgid "ui.copy.evidence_links_d13b010c"
+msgstr "개 증거"
+
+msgid "ui.copy.customer_statements_unverified_ff613f53"
+msgstr "고객 진술 기록 (미확인)"
+
+msgid "ui.copy.decline_visit_aac393e"
+msgstr "거래 거절"
+
+msgid "ui.copy.assessment_f3699db5"
+msgstr "전표: "
+
+msgid "ui.copy.agrees_cb6cdb85"
+msgstr "동의"
+
+msgid "ui.copy.disagrees_430f6fac"
+msgstr "이견"
+
+msgid "ui.copy.customer_recollection_unverified_b603fb29"
+msgstr "고객 기억에 따른 주장 (미확인): "
+
+msgid "ui.copy.rebuttal_hypothesis_unverified_70f1ad55"
+msgstr "재반박 가설 (미확인): "
+
+msgid "ui.copy.against_36877636"
+msgstr "대상 주장: "
+
+msgid "ui.copy.new_evidence_links_b00e811b"
+msgstr "개 새 근거"
+
+msgid "ui.copy.asking_price_ea7c175"
+msgstr "고객 제시 가격: "
+
+msgid "ui.copy.remaining_offers_eb43b87f"
+msgstr "남은 가격 제안: "
+
+msgid "ui.copy.accepted_b23c0c2b"
+msgstr "수락"
+
+msgid "ui.copy.rejected_a87ae7cd"
+msgstr "거절"
+
+msgid "ui.copy.public_statements_8093fd8"
+msgstr "개 공개 주장"
+
+msgid "ui.copy.offer_with_public_statements_a1f16ddc"
+msgstr "공개 주장과 함께 제안"
+
+msgid "ui.copy.offer_price_only_8752ad1"
+msgstr "가격만 제안"
+
+msgid "ui.copy.trade_condition_4177e64c"
+msgstr "거래 조건: "
+
+msgid "ui.copy.inoperable_b9430e79"
+msgstr "작동 불가 확인"
+
+msgid "ui.copy.choose_stock_location_a32e0265"
+msgstr "입고 위치 선택"
+
+msgid "ui.copy.agreed_trade_condition_ee639037"
+msgstr "합의한 거래 조건: "
+
+msgid "ui.copy.at_transaction_only_c7402a31"
+msgstr " · 거래 당시만"
+
+msgid "ui.copy.accepted_available_797c28c3"
+msgstr "수락 가격 / 보유 현금: "
+
+msgid "ui.copy.footprint_f393fcec"
+msgstr "물품 크기: "
+
+msgid "ui.copy.drag_item_to_stock_a562ce7d"
+msgstr "입고할 물품을 끌어 놓기"
+
+msgid "ui.copy.rotated_809425c0"
+msgstr "회전"
+
+msgid "ui.copy.no_available_placement_ed72b32b"
+msgstr "입고 가능한 공간 없음"
+
+msgid "ui.copy.insufficient_funds_e40e5f71"
+msgstr "보유 현금 부족"
+
+msgid "ui.copy.known_transaction_and_work_history_2d7614b9"
+msgstr "확인된 거래·작업 기록"
+
+msgid "ui.copy.no_completed_transactions_or_work_d389140d"
+msgstr "확정한 거래·작업 없음"
+
+msgid "ui.copy.purchase_974ce25d"
+msgstr "매입"
+
+msgid "ui.copy.sale_1b445528"
+msgstr "판매"
+
+msgid "ui.copy.group_price_individual_price_unknown_a66a6e3b"
+msgstr "묶음 가격 · 개별가 미확인"
+
+msgid "ui.copy.accepted_offer_76df8d19"
+msgstr "수락 제안: "
+
+msgid "ui.copy.transaction_appraisal_sheet_public_assessme_7cf0b256"
+msgstr "거래 당시 감정서 · 공개 판단"
+
+msgid "ui.copy.no_disclosed_assessments_f225e2f2"
+msgstr "공개 판단 없음"
+
+msgid "ui.copy.agreed_quality_condition_4c8da3e4"
+msgstr "합의한 품질 조건: "
+
+msgid "ui.copy.no_separate_quality_commitment_6843d1f"
+msgstr "별도 품질 확약 없음"
+
+msgid "ui.copy.historical_hypothesis_e6e5938a"
+msgstr "당시 가설: "
+
+msgid "ui.copy.withdrawal_a0a18d3f"
+msgstr "철회 기록: "
+
+msgid "ui.copy.superseded_hypothesis_897d2a20"
+msgstr "변경된 이전 가설: "
+
+msgid "ui.copy.corrected_hypothesis_10da6774"
+msgstr "정정 가설: "
+
+msgid "ui.copy.superseded_observation_d1db4d1c"
+msgstr "변경된 이전 관찰: "
+
+msgid "ui.copy.historical_disclosure_4e27737a"
+msgstr "당시 공개 관찰: "
+
+msgid "ui.copy.accepted_price_basis_410208f"
+msgstr " · 수락 가격 근거"
+
+msgid "ui.copy.customer_claim_unverified_408b2a1f"
+msgstr "고객 주장 (미확인): "
+
+msgid "ui.copy.rebuttal_hypothesis_b96af849"
+msgstr "재반박 가설: "
+
+msgid "ui.copy.historical_observation_48ff76a2"
+msgstr "당시 관찰: "
+
+msgid "ui.copy.older_work_3362b54c"
+msgstr "이전 작업: "
+
+msgid "ui.copy.older_transactions_f45d7962"
+msgstr "이전 거래: "
+
+msgid "ui.copy.older_items_418a4c01"
+msgstr "이전 물품: "
+
+msgid "ui.copy.unrecorded_external_history_and_current_con_5b18354a"
+msgstr "기록되지 않은 외부 행적과 현재 상태는 확인할 수 없습니다."
+
+msgid "ui.copy.assembly_d235871e"
+msgstr "결합"
+
+msgid "ui.copy.disassembly_95945c61"
+msgstr "분리"
+
+msgid "ui.copy.root_49448c67"
+msgstr "본체"
+
+msgid "ui.copy.component_411f045"
+msgstr "구성품"
+
+msgid "ui.copy.component_exchange_9b7fcc96"
+msgstr "구성품 교체"
+
+msgid "ui.copy.exterior_care_no_function_or_value_bonus_2aeb08c4"
+msgstr "외관 관리 · 기능 및 가치 보너스 없음"
+
+msgid "ui.copy.maintenance_expense_f9f86d33"
+msgstr "정비 지출: "
+
+msgid "ui.copy.disposal_loss_d70e5fb1"
+msgstr "폐기 손실: "
+
+msgid "ui.copy.group_disposal_individual_loss_unknown_3fefe596"
+msgstr "묶음 폐기 · 개별 손실 미확인"
+
+msgid "ui.copy.work_record_70cf0ec4"
+msgstr "작업 기록 #"
+
+msgid "review.sale.working"
+msgstr "작동 확인 조건으로 판매"
+
+msgid "review.sale.inoperable"
+msgstr "작동 불가 확인 조건으로 판매"
+
+msgid "settings.panel.title"
+msgstr "환경설정"
+
+msgid "settings.audio.music"
+msgstr "음악"
+
+msgid "settings.audio.ambience"
+msgstr "환경음"
+
+msgid "settings.audio.sfx"
+msgstr "효과음"
+
+msgid "settings.audio.ui"
+msgstr "인터페이스음"
+
+msgid "settings.motion"
+msgstr "화면 모션"
+
+msgid "settings.audio.title"
+msgstr "음량 · 모션"
+
+msgid "ui.workspace.customer"
+msgstr "고객 보기 · SPACE"
+
+msgid "ui.workspace.item"
+msgstr "물품 보기 · SPACE"
+
+msgid "ui.service.expected_cost"
+msgstr "재생 필요 시 직접 비용"
+
+msgid "ui.service.fee_on_delivery"
+msgstr "정상 인도 시 공임"
+
+msgid "ui.service.no_upfront_fee"
+msgstr "수락만으로 공임이 지급되지 않습니다."
+
+msgid "ui.service.unknown_cost"
+msgstr "직접 비용 미확인"
+
+msgid "ui.contract.status.offered"
+msgstr "제안"
+
+msgid "ui.contract.status.reserved"
+msgstr "예약"
+
+msgid "ui.contract.status.paid"
+msgstr "납부 완료"
+
+msgid "ui.contract.status.delivered"
+msgstr "인도 완료"
+
+msgid "ui.contract.status.defaulted"
+msgstr "미납"
+
+msgid "ui.contract.status.declined"
+msgstr "거절"
+
+msgid "ui.contract.status.missed"
+msgstr "기회 종료"
+
+msgid "ui.location.counter"
+msgstr "카운터"
+
+msgid "ui.location.inspection"
+msgstr "감정 매트"
+
+msgid "ui.location.inventory"
+msgstr "창고"
+
+msgid "ui.location.workshop"
+msgstr "저녁 정비"
+
+msgid "ui.location.office"
+msgstr "사무 공간"
+
+msgid "ui.location.history"
+msgstr "거래 기록"
+
+msgid "ui.location.shop"
+msgstr "상점"
+
+msgid "ui.tool.wear_detail"
+msgstr "외관 확대경"
+
+msgid "ui.tool.casing_detail"
+msgstr "표식 관찰기"
+
+msgid "ui.tool.material_detail"
+msgstr "재질 관찰기"
+
+msgid "ui.tool.batch_detail"
+msgstr "생산 표식 관찰기"
+
+msgid "ui.tool.function_detail"
+msgstr "기능 시험기"
+
+msgid "ui.tool.display_damage_detail"
+msgstr "표시창 확대경"
+
+msgid "ui.tool.unknown"
+msgstr "조사 도구"
+
+msgid "ui.condition.unavailable"
+msgstr "현재 이 물품은 거래할 수 없습니다"
+
+msgid "ui.condition.verify_complete"
+msgstr "구성 완전성 확인 후 판매 가능"
+
+msgid "ui.condition.incomplete"
+msgstr "불완전 구성 · 판매 불가"
+
+msgid "ui.condition.inoperable"
+msgstr "작동 불가 확인 · 할인 매입"
+
+msgid "ui.condition.unverified"
+msgstr "기능 미확인 · 위험 할인"
+
+msgid "ui.condition.functional"
+msgstr "작동 확인 · 정비 상태 미확인"
+
+msgid "ui.condition.refurbished"
+msgstr "정비품 확인 · 정비품 가격"
+
+msgid "ui.condition.serviceable"
+msgstr "사용 가능 확인 · 정상 가격"
+
+msgid "menu.title"
+msgstr "메인 메뉴"
+
+msgid "menu.new"
+msgstr "새 게임"
+
+msgid "menu.continue"
+msgstr "이어하기"
+
+msgid "menu.load"
+msgstr "불러오기"
+
+msgid "menu.settings"
+msgstr "설정"
+
+msgid "menu.quit"
+msgstr "종료"
+
+msgid "menu.back"
+msgstr "돌아가기"
+
+msgid "menu.slot"
+msgstr "저장 슬롯"
+
+msgid "menu.empty"
+msgstr "비어 있음"
+
+msgid "menu.occupied"
+msgstr "저장 데이터 있음"
+
+msgid "menu.full"
+msgstr "빈 슬롯이 없습니다. 기존 저장은 덮어쓰지 않습니다."
+
+msgid "menu.no_save"
+msgstr "불러올 저장이 없습니다."
+
+msgid "menu.blocked"
+msgstr "저장 데이터를 확인할 수 없습니다. 기존 저장은 보호됩니다."
+
+msgid "menu.in_session"
+msgstr "현재 진행 중"
+
+msgid "menu.version"
+msgstr "개발 빌드"
+
+msgid "settings.general.language"
+msgstr "언어 전환 · 한국어 / EN"
+
+msgid "settings.general.font"
+msgstr "글자 크기 · A / A+ / A++"
+
+msgid "settings.general.sound"
+msgstr "전체 소리"
+
+msgid "counter.card.fact"
+msgstr "관찰 사실"
+
+msgid "counter.card.judgment"
+msgstr "개인 판단 · 추정"
+
+msgid "counter.card.customer"
+msgstr "고객의 마지막 주장"
+
+msgid "counter.card.unverified"
+msgstr "미확인 진술"
+
+msgid "counter.card.correction"
+msgstr "정정"
+
+msgid "counter.card.withdrawn"
+msgstr "철회"
+
+msgid "counter.card.sources"
+msgstr "출처"
+
+msgid "counter.card.public"
+msgstr "공개한 카드"
+
+msgid "counter.table.hint"
+msgstr "이곳에 카드를 내려놓기"
+
+msgid "counter.sheet.title"
+msgstr "감정 전표 · 공개 기록"
+
+msgid "counter.sheet.empty"
+msgstr "아직 공개한 판단이나 관찰 없음"
+
+msgid "counter.card.agrees"
+msgstr "동의"
+
+msgid "counter.card.disagrees"
+msgstr "반론"
+
+msgid "counter.price.proposal"
+msgstr "직접 제안할 금액"
+
+
+msgid "book.category.identification"
+msgstr "식별"
+
+
+msgid "book.category.appearance"
+msgstr "외관"
+
+
+msgid "book.category.material"
+msgstr "재질"
+
+
+msgid "book.category.function"
+msgstr "기능"
+
+
+msgid "book.category.special"
+msgstr "특수 속성"
+
+
+msgid "book.category.history"
+msgstr "이력"
+
+
+msgid "book.category.composition"
+msgstr "구성"
+
+
+msgid "book.tab.judgment"
+msgstr "판단"
+
+
+msgid "book.tab.reference"
+msgstr "도감"
+
+
+msgid "book.tab.evidence"
+msgstr "관찰 기록"
+
+
+msgid "book.reference.no_detail"
+msgstr "세부 참고 자료 없음"
+
+
+msgid "book.evidence.empty"
+msgstr "아직 확보한 관찰 기록이 없습니다."
+
+msgid "catalog.radio.wear.light.description"
+msgstr "작은 표면 흠집이나 모서리 사용 흔적. 외관만으로 내부 작동을 확인할 수 없다."
+
+msgid "catalog.radio.wear.visible.description"
+msgstr "여러 부위에 뚜렷한 마모, 변색 또는 사용 흔적이 보이는 경우. 표식이 가려질 수 있다."
+
+msgid "catalog.radio.wear.heavy.description"
+msgstr "광범위한 마모 또는 큰 외관 손상. 실제 기능과 수리 이력은 별도로 확인해야 한다."
+
+msgid "review.basic.working.description"
+msgstr "현재 시험에서 작동했다는 관찰은 장기 신뢰성이나 남은 수명을 보증하지 않는다."
+
+msgid "review.basic.not_working.description"
+msgstr "현재 시험에서 작동하지 않는 경우. 원인이나 재생 가능성은 그 결과 하나로 확정할 수 없다."
+
+msgid "p2.watch.running.description"
+msgstr "관찰 당시 작동 여부를 판단한다. 정확도와 장기 작동은 이 관찰만으로 확인되지 않는다."
+
+msgid "p2.watch.stopped.description"
+msgstr "관찰 당시 작동이 확인되지 않는 경우. 내부 원인과 수리 필요성은 별개다."
+
+msgid "book.texture.reference"
+msgstr "도식 참고 표본 · 실제 물품 사진 아님"
+
+msgid "book.texture.observation"
+msgstr "확보한 관찰 결의 도식 · 실제 확대 사진 아님"
+
+msgid "inspection.review_record"
+msgstr "확보한 관찰 다시 보기"
+
+msgid "inspection.visible_crop"
+msgstr "현재 물품 그림 확대 · 추가 관찰 아님"
+
+msgid "inspection.not_observed"
+msgstr "아직 검사하지 않음 · 도구를 대상에 적용"
+
+msgid "book.radio.reference"
+msgstr "모델별 특징 예시 · 생산분에 따라 다름"
+
+msgid "inspection.readout_caption"
+msgstr "검사 결과 표시 · 실제 각인 사진 아님"
+
+msgid "inventory.page.overview"
+msgstr "개요"
+
+msgid "inventory.page.appraisal"
+msgstr "감정"
+
+msgid "inventory.page.components"
+msgstr "구성"
+
+msgid "inventory.page.plan"
+msgstr "처분"
+
+msgid "inventory.page.history"
+msgstr "이력"
+
+msgid "inventory.page.no_components"
+msgstr "조회할 구성품 정보가 없습니다."
+
+msgid "inventory.page.no_assessment"
+msgstr "조회할 감정 정보가 없습니다."
+
+msgid "inventory.component.preview"
+msgstr "구성 변경 확인"
+
+msgid "history.summary.select"
+msgstr "물품을 선택해 기록 열람"
+
+msgid "history.summary.previous"
+msgstr "이전 목록"
+
+msgid "history.summary.next"
+msgstr "다음 목록"
+
+msgid "history.summary.trades"
+msgstr "거래 "
+
+msgid "history.summary.work"
+msgstr "작업 "
+
+msgid "history.summary.recorded_only"
+msgstr "기록된 항목만 표시 · 거래 수는 매출 합계가 아님"
+
+msgid "settings.category.general"
+msgstr "일반"
+
+msgid "inventory.legend.list"
+msgstr "목록"
+
+msgid "inventory.legend.grid"
+msgstr "격자"
+
+msgid "inventory.legend.empty"
+msgstr "이 보관 영역은 비어 있습니다."
+
+msgid "review.plan.offer_pending"
+msgstr "문의 · 미체결"
+
+msgid "review.plan.recover_short"
+msgstr "회수 · 분리 현물"
+
+msgid "review.plan.recover_count"
+msgstr "분리 가능 후보"
+
+msgid "review.plan.restore_short"
+msgstr "재생 · 직접 비용"
+
+msgid "review.plan.restore_ready"
+msgstr "지불 가능 · 결과 미확정"
+
+msgid "review.plan.restore_blocked"
+msgstr "현재 실행 불가"
+
+msgid "review.plan.more"
+msgstr "상세 원가·조건 보기"
+
+msgid "review.plan.less"
+msgstr "상세 접기"
+
+msgid "history.receipt.open"
+msgstr "공개 감정서·조건 보기"
+
+msgid "history.receipt.close"
+msgstr "감정서·조건 접기"
+
+msgid "p2.watch.meridian12.description"
+msgstr "기본형 표식 예시는 M12. 케이스 교체와 마모는 별도 판단 대상이다."
+
+msgid "p2.watch.meridian12a.description"
+msgstr "변형 모델의 표식 예시는 M12A. 표식 하나만으로 진위를 확정하지 않는다."
+
+msgid "p2.watch.standard_case.description"
+msgstr "표준 외장 후보. 표면 무늬만으로 장식형과 구분할 수 없다."
+
+msgid "p2.watch.decorative_case.description"
+msgstr "장식 외장 후보. 외장과 무브먼트 상태는 별개의 판단이다."
+
+msgid "p2.watch.ordinary_mark.description"
+msgstr "일반 제품 표식 후보. 모델 표식은 기념판 증거와 다르다."
+
+msgid "p2.watch.commemorative_mark.description"
+msgstr "별도 기념 문구나 기록이 필요한 가설. 모델명만으로 확정할 수 없다."
+
+msgid "book.mark.reference"
+msgstr "표식 예시 · 실제 개체 판정 아님"
+
+msgid "inspection.mark_transcription"
+msgstr "획득 기록의 문자 전사 · 사진 아님"
+
+msgid "inspection.compare.crop"
+msgstr "실물 확대"
+
+msgid "inspection.compare.texture"
+msgstr "재질 도식 · 사진 아님"
+
+msgid "inspection.compare.mark"
+msgstr "문자 전사 · 사진 아님"
+
+msgid "inspection.compare.readout"
+msgstr "획득한 시험 결과"
+
+msgid "book.reference.base"
+msgstr "참고 기준가"
+
+msgid "book.reference.factor"
+msgstr "외관 조정"
+
+msgid "book.reference.adjustment"
+msgstr "참고 가감"
+
+msgid "book.reference.browse"
+msgstr "참고 항목 펼치기"
+
+msgid "book.wear.reference"
+msgstr "외관 마모 예시 · 실제 개체 판정 아님"
+
+#. Public restoration preview, without hidden condition.
+msgid "review.work.review_required"
+msgstr "현재 기능 확인 필요"
+
+#. Public restoration preview, without hidden condition.
+msgid "review.work.incomplete"
+msgstr "구성품이 부족합니다"
+
+#. Public restoration preview, without hidden condition.
+msgid "review.work.known_bad_component"
+msgstr "확인된 불량 구성품 교환 필요"
+
+#. Public restoration preview, without hidden condition.
+msgid "review.work.serviceable"
+msgstr "작동 확인 · 재생 불필요"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.money_pair"
+msgstr "{vkc} VKC / {usd} USD"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.stock_counts"
+msgstr "소유 {owned}  /  의뢰품 {custody}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.item_heading"
+msgstr "{item} · {name}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.restoration_cost"
+msgstr "정비 비용: {cost}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.footprint"
+msgstr "점유: {width} × {height}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.root_basis"
+msgstr "본체 배분 원가: {basis}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.individual_basis"
+msgstr "개별 원가: {basis}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.discard_summary"
+msgstr "폐기: {count}개 · 회수금 0 · 손실 원가 {basis}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.discard_ids"
+msgstr "폐기는 되돌릴 수 없습니다. 포함 개체: {ids}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.restore_vkc"
+msgstr "정비 · {vkc} VKC"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.restore_both"
+msgstr "정비 · {vkc} VKC/{usd} USD"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.offer_amount"
+msgstr "{amount} {currency}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.recovered_basis"
+msgstr "{item} · 회수 현물의 배분 원가: {basis}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.plan_basis"
+msgstr "현재 구성 원가: {basis}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.plan_sale"
+msgstr "현재 매각 문의: {offer}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.plan_restore"
+msgstr "재생 · 별도 직접 지출: {cost}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.plan_opportunity"
+msgstr "포기할 현재 매각 제안: {offer}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.plan_count"
+msgstr "분리 가능 후보: {count}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.plan_restore_short"
+msgstr "재생 · 직접 비용: {cost}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.plan_cost_status"
+msgstr "{cost} · {status}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.slot_page"
+msgstr "슬롯 {page} / {total}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.candidate_page"
+msgstr "{page} / {total}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.family_basis"
+msgstr "현재 구성 원가: {basis}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.additional_expense"
+msgstr "재생 실행 시 별도 직접비: {basis}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.incoming_basis"
+msgstr "사용할 보유 재료 원가: {basis}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.outgoing_basis"
+msgstr "회수될 재료 원가: {basis}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.projected_basis"
+msgstr "변경 후 구성 원가 (예정): {basis}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.slot_number"
+msgstr "슬롯 {number}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.slot_named"
+msgstr "슬롯 {number} · {name}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.slot_contents"
+msgstr "{slot} · {item}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.exchange_item"
+msgstr "교체: {item}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.attach_item"
+msgstr "결합: {item}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.pending_attach"
+msgstr "예정 작업: {kind} · {item}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.pending_detach"
+msgstr "예정 작업: {kind} · {item} · 창고 {x},{y}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.pending_replace"
+msgstr "예정 작업: {kind} · {item} · 기존 {outgoing} · 창고 {x},{y}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.assessed_item"
+msgstr "확인된 감정 · {item}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.assessment_family_basis"
+msgstr "현재 구성 총원가: {basis}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.assessment_item_basis"
+msgstr "감정 대상 원가: {basis}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.assessment_quality"
+msgstr "감정 등급: {quality}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.fact_current"
+msgstr "확인: {value}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.fact_historical"
+msgstr "과거 기록 · 재확인 필요: {value}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.fact_row"
+msgstr "{name} · {description}"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.inspect_minutes"
+msgstr "검사 · {minutes}분"
+
+#. Inventory/workshop display; named arguments may be reordered.
+msgid "inventory.format.inspect_tooltip"
+msgstr "{name} · {minutes}분"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.service_fee"
+msgstr "정상 인도 시 공임: {cost}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.service_cost"
+msgstr "재생 필요 시 직접 비용: {cost}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.last_observation"
+msgstr "최근 관찰: {reading}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.source_count"
+msgstr "출처: {count}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.statement_page"
+msgstr "감정 전표 · 공개 기록  {page}/{total}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.withdraw_dialogue"
+msgstr "알렉세이: 이 판단을 철회합니다. {judgment}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.observation_dialogue"
+msgstr "알렉세이: 직접 확인한 내용입니다. {reading}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.asking"
+msgstr "요구가 {price}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.estimate"
+msgstr "참고가 {price}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.offer_basis"
+msgstr "당시 공개 근거 수: {count}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.offer_status"
+msgstr "{price} · {status}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.counter_condition"
+msgstr "조건: {condition}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.observed_fact"
+msgstr "관찰 사실: {reading}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.withdrawn"
+msgstr "철회: {judgment}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.hypothesis_category"
+msgstr "판단 · {category}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.reference_estimate"
+msgstr "참고 추정가: {price}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.prepare_claim"
+msgstr "준비: {claim}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.drag_claim"
+msgstr "끌기: {claim}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.rebut_claim"
+msgstr "반박: {claim}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.reference_base"
+msgstr " · 참고 기준가 {price}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.reference_factor"
+msgstr " · 외관 조정 {factor}%"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.reference_adjustment"
+msgstr " · 참고 가감 {amount} {currency}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.assessment_selection"
+msgstr "전표: {judgment}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.asking_price"
+msgstr "고객 제시 가격: {price}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.remaining_offers"
+msgstr "남은 가격 제안: {count}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.offer_history_row"
+msgstr "{price} · {status} · {count}개 공개 주장"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.trade_condition"
+msgstr "거래 조건: {condition}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.checkout_balance"
+msgstr "수락 가격 / 보유 현금: {amount} / {balance} {currency}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.checkout_footprint"
+msgstr "물품 크기: {width} × {height}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.receipt_headline"
+msgstr "{direction} · 영업일 {day} {time} · {price}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.accepted_offer"
+msgstr "수락 제안: {price}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.receipt_condition"
+msgstr "합의한 품질 조건: {condition} · 거래 당시만"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.receipt_customer_claim"
+msgstr "고객 주장 (미확인): {claim}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.receipt_rebuttal"
+msgstr "재반박 가설: {claim}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.receipt_observation"
+msgstr "당시 관찰: {reading}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.older_work"
+msgstr "이전 작업: {count}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.older_transactions"
+msgstr "이전 거래: {count}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.older_items"
+msgstr "이전 물품: {count}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.history_exchange"
+msgstr "구성품 교체 · {root} · {outgoing} → {incoming}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.maintenance_expense"
+msgstr "정비 지출: {cost}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.disposal_loss"
+msgstr "폐기 손실: {loss}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.work_record"
+msgstr "작업 기록 #{revision} · {description}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.history_summary"
+msgstr "{item}  ·  거래 {trades}  /  작업 {work}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.office_cash"
+msgstr "현금 · {cash}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.contract_status"
+msgstr "납부 D{due} · 인도 D{delivery} · {status}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.contract_price"
+msgstr "RAD-1 · {price}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.slot_number"
+msgstr "저장 슬롯 {number}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.settings_language"
+msgstr "언어 전환 · 한국어 / EN · {language}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.settings_font"
+msgstr "글자 크기 · A / A+ / A++ · {percent}%"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.legacy_hud"
+msgstr "EXIT NOT INCLUDED  ·  {candidate}영업일 {day}  {time}  |  {vkc} VKC  /  {usd} USD"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.final_cash"
+msgstr "최종 현금: {cash}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.remaining_visits"
+msgstr "남은 방문: {count}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.overdue_overhead"
+msgstr "미납 운영비: {amount}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.service_summary"
+msgstr "정비 의뢰 · {item} · 정상 인도 시 공임: {fee}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.closing_settlement"
+msgstr "마감 정산 · 운영비 15 VKC 우선. 납부 기한 계약: {due}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.cash_after_overhead"
+msgstr "운영비 이후 가용 현금: {cash}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.contract_summary"
+msgstr "RAD-1 · {price} · {status}"
+
+#. Public display; named arguments may be reordered.
+msgid "ui.format.native_hud"
+msgstr "영업일 {day}  {time}  ·  {vkc} VKC  /  {usd} USD"
+
+#. Public comparisons, not specimen truth.
+msgid "book.compare.case.caption"
+msgstr "표면 결만으로 두 외장을 구분할 수 없음"
+
+#. Public comparisons, not specimen truth.
+msgid "book.compare.mark.caption"
+msgstr "모델 표식과 별도 기념 근거를 구분"
+
+#. Public comparisons, not specimen truth.
+msgid "book.compare.function.caption"
+msgstr "현재 시험의 두 결과 · 원인·수명은 별도"
+
+#. Public comparisons, not specimen truth.
+msgid "book.compare.sample.standard"
+msgstr "표준형도 가능"
+
+#. Public comparisons, not specimen truth.
+msgid "book.compare.sample.decorative"
+msgstr "장식형도 가능"
+
+#. Public comparisons, not specimen truth.
+msgid "book.compare.sample.ordinary"
+msgstr "일반 모델 표식"
+
+#. Public comparisons, not specimen truth.
+msgid "book.compare.sample.commemorative"
+msgstr "별도 기념 문구·기록"
+
+#. Public comparisons, not specimen truth.
+msgid "book.compare.sample.working"
+msgstr "시험 중 작동"
+
+#. Public comparisons, not specimen truth.
+msgid "book.compare.sample.stopped"
+msgstr "시험 중 작동 안 됨"
+
+#. Public comparison guidance, not authority.
+msgid "book.compare.related_chapter"
+msgstr "• {chapter}"
+
+#. Public comparison guidance, not authority.
+msgid "book.compare.related_hint"
+msgstr "선택한 도구의 관련 장 · 판단이나 근거 확정 아님"
+
+#. Public comparison guidance, not authority.
+msgid "inspection.compare.topic_reading"
+msgstr "{topic} · {reading}"
+
+#. Public comparison guidance, not authority.
+msgid "inventory.assessment.limit_function"
+msgstr "검사 시점의 기능 상태입니다. 원인, 남은 수명이나 재생 성공을 보증하지 않습니다."
+
+#. Public comparison guidance, not authority.
+msgid "inventory.assessment.limit_completeness"
+msgstr "필요한 가상 구성품의 충족 여부입니다. 완전한 구성도 작동을 보증하지 않습니다."
+
+#. Public comparison guidance, not authority.
+msgid "inventory.assessment.limit_restoration"
+msgstr "확인된 재생 상태입니다. 현재 기능과 판매 조건은 별도로 확인해야 합니다."
+
+#. Public negotiation context, not adjudication.
+msgid "counter.claim.page"
+msgstr "고객 주장 {page}/{total}"
+
+#. Public negotiation context, not adjudication.
+msgid "counter.claim.rebuttal_recorded"
+msgstr "반론 기록 · 미검증"
+
+#. Public negotiation context, not adjudication.
+msgid "counter.claim.rebuttal_hypothesis"
+msgstr "반론 가설"
+
+#. Public negotiation context, not adjudication.
+msgid "counter.claim.rebuttal_target"
+msgstr "{claim}에 대한 반론 · 추가 출처 {count}개"
+
+#. Public negotiation context, not adjudication.
+msgid "counter.price.no_basis"
+msgstr "공개 근거 없이 가격만 제안"
+
+#. Public negotiation context, not adjudication.
+msgid "counter.price.current_basis"
+msgstr "이번 제안에 포함될 공개 주장"
+
+#. Public negotiation context, not adjudication.
+msgid "counter.price.previous_basis"
+msgstr "이전 제안 당시의 공개 주장"

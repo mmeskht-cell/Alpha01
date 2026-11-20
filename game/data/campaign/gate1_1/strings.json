@@ -1,0 +1,392 @@
+{
+  "item.portable_radio": {
+    "ko": "휴대 라디오",
+    "en": "Portable radio",
+    "args": [],
+    "context": "Item label"
+  },
+  "item.fictional_gear": {
+    "ko": "가상 장비",
+    "en": "Fictional equipment",
+    "args": [],
+    "context": "Abstract game object"
+  },
+  "item.abstract_module_a": {
+    "ko": "가상 모듈 A",
+    "en": "Abstract module A",
+    "args": [],
+    "context": "Abstract game object"
+  },
+  "item.abstract_module_b": {
+    "ko": "가상 모듈 B",
+    "en": "Abstract module B",
+    "args": [],
+    "context": "Abstract game object"
+  },
+  "item.battery": {
+    "ko": "배터리",
+    "en": "Battery",
+    "args": [],
+    "context": "Item label"
+  },
+  "item.canned_food": {
+    "ko": "통조림",
+    "en": "Canned food",
+    "args": [],
+    "context": "Item label"
+  },
+  "item.watch": {
+    "ko": "시계",
+    "en": "Watch",
+    "args": [],
+    "context": "Item label"
+  },
+  "item.rad1": {
+    "ko": "RAD-1",
+    "en": "RAD-1",
+    "args": [],
+    "context": "Fictional medication"
+  },
+  "day1.marcus.offer": {
+    "ko": "한 회분은 확보해 뒀습니다. 4일차 오후 6시까지 300 VKC를 준비하세요. 인도는 5일차 오후 6시입니다.",
+    "en": "I've secured one dose. Have 300 VKC ready by 6 PM on Day 4. Delivery is at 6 PM on Day 5.",
+    "args": [],
+    "context": "Marcus, businesslike; tentative dialogue"
+  },
+  "day1.g01.offer": {
+    "ko": "라디오 하나 있습니다. 125면 넘기죠.",
+    "en": "Got a radio here. Yours for 125.",
+    "args": [],
+    "context": "G01, brief and transactional"
+  },
+  "day1.g01.counter": {
+    "ko": "{amount} VKC는 어떻습니까?",
+    "en": "How about {amount} VKC?",
+    "args": [
+      "amount"
+    ],
+    "context": "Counteroffer"
+  },
+  "day1.g01.accept": {
+    "ko": "좋습니다. 그 가격으로 하죠.",
+    "en": "Fine. We have a deal.",
+    "args": [],
+    "context": "Accepted, not yet committed"
+  },
+  "day1.g01.reject": {
+    "ko": "그 가격에는 못 넘깁니다.",
+    "en": "I can't let it go for that.",
+    "args": [],
+    "context": "Rejected offer"
+  },
+  "day1.g02.inquiry": {
+    "ko": "휴대 라디오를 찾습니다. 상태를 확인하고 거래하겠습니다.",
+    "en": "Looking for a portable radio. I'll check its condition before buying.",
+    "args": [],
+    "context": "Inquiry only, not a sale guarantee"
+  },
+  "day1.radio.wear": {
+    "ko": "외관에 마모 흔적이 있습니다.",
+    "en": "Visible wear on the casing.",
+    "args": [],
+    "context": "Observed evidence"
+  },
+  "day1.radio.unknown": {
+    "ko": "기능 상태 미확인",
+    "en": "Function unverified",
+    "args": [],
+    "context": "Do not imply good condition"
+  },
+  "ui.counter": {
+    "ko": "카운터",
+    "en": "Counter",
+    "args": [],
+    "context": "Screen label"
+  },
+  "ui.inspect": {
+    "ko": "확대 보기",
+    "en": "Enlarge view",
+    "args": [],
+    "context": "Free view navigation, independent of paid investigation"
+  },
+  "ui.catalog": {
+    "ko": "도감",
+    "en": "Catalog",
+    "args": [],
+    "context": "Action"
+  },
+  "ui.reference_partial": {
+    "ko": "부분 참고가: {amount} {currency}",
+    "en": "Partial estimate: {amount} {currency}",
+    "args": [
+      "amount",
+      "currency"
+    ],
+    "context": "Not an actual price"
+  },
+  "ui.offer": {
+    "ko": "제안",
+    "en": "Make offer",
+    "args": [],
+    "context": "Action"
+  },
+  "ui.submit_evidence": {
+    "ko": "근거 제출",
+    "en": "Present evidence",
+    "args": [],
+    "context": "Action"
+  },
+  "ui.accept_trade": {
+    "ko": "매입 확정",
+    "en": "Confirm purchase",
+    "args": [],
+    "context": "Atomic purchase"
+  },
+  "ui.decline": {
+    "ko": "거절",
+    "en": "Decline",
+    "args": [],
+    "context": "Action"
+  },
+  "ui.contract_accept": {
+    "ko": "계약 수락",
+    "en": "Accept contract",
+    "args": [],
+    "context": "No payment now"
+  },
+  "ui.contract_pending": {
+    "ko": "약 계약: {amount} {currency}",
+    "en": "Medication contract: {amount} {currency}",
+    "args": [
+      "amount",
+      "currency"
+    ],
+    "context": "Amount due"
+  },
+  "ui.rad1_remaining": {
+    "ko": "잔여효과: {hours}시간",
+    "en": "Effect remaining: {hours} hours",
+    "args": [
+      "hours"
+    ],
+    "context": "Fictional status"
+  },
+  "ui.rad1_doses": {
+    "ko": "보유 약품: {count}회분",
+    "en": "Doses held: {count}",
+    "args": [
+      "count"
+    ],
+    "context": "Fictional status"
+  },
+  "ui.trade_saved": {
+    "ko": "거래가 저장되었습니다.",
+    "en": "Trade saved.",
+    "args": [],
+    "context": "Only show when persisted"
+  },
+  "ui.trade_unsaved": {
+    "ko": "거래는 반영되었지만 저장하지 못했습니다.",
+    "en": "Trade applied, but not saved.",
+    "args": [],
+    "context": "Memory commit vs persistence"
+  },
+  "ui.trade_failed": {
+    "ko": "거래 조건을 충족하지 못했습니다.",
+    "en": "Trade requirements not met.",
+    "args": [],
+    "context": "No state mutation"
+  },
+  "ui.insufficient_funds": {
+    "ko": "현금이 부족합니다.",
+    "en": "Insufficient funds.",
+    "args": [],
+    "context": "Error"
+  },
+  "ui.no_space": {
+    "ko": "보관 공간이 부족합니다.",
+    "en": "Not enough inventory space.",
+    "args": [],
+    "context": "Error"
+  },
+  "ui.offer_pending": {
+    "ko": "제안 검토 중",
+    "en": "Offer pending",
+    "args": [],
+    "context": "Draft, not committed"
+  },
+  "ui.contract_reserved": {
+    "ko": "공급 예약 완료",
+    "en": "Supply reserved",
+    "args": [],
+    "context": "Only after actual reservation"
+  },
+  "ui.day1_slice_end": {
+    "ko": "첫 매입 단계 완료",
+    "en": "First purchase slice complete",
+    "args": [],
+    "context": "Development milestone, not campaign ending"
+  },
+  "ui.business_remaining": {
+    "ko": "영업 종료까지 {minutes}분",
+    "en": "Closing in {minutes} min",
+    "args": [
+      "minutes"
+    ],
+    "context": "Derived from absolute clock; not a separate budget"
+  },
+  "ui.inspection_duration": {
+    "ko": "감정 소요: {minutes}분",
+    "en": "Inspection: {minutes} min",
+    "args": [
+      "minutes"
+    ],
+    "context": "Show before applying a specific evidence acquisition tool, not before free visual review"
+  },
+  "ui.next_customer": {
+    "ko": "다음 손님",
+    "en": "Next customer",
+    "args": [],
+    "context": "Free sequential admission"
+  },
+  "ui.customers_remaining": {
+    "ko": "남은 손님: {count}명",
+    "en": "Visitors left: {count}",
+    "args": [
+      "count"
+    ],
+    "context": "Pending visits only; excludes current and protected delivery"
+  },
+  "ui.inspection_time_short": {
+    "ko": "영업시간이 부족합니다.",
+    "en": "Not enough business time.",
+    "args": [],
+    "context": "Inspection rejected without mutation"
+  },
+  "ui.closing_final_decision": {
+    "ko": "영업 종료입니다. 현재 거래를 마무리하세요.",
+    "en": "Closing time. Finish the current transaction.",
+    "args": [],
+    "context": "No new inspections or visitors"
+  },
+  "ui.compare_reference": {
+    "ko": "도감과 대조",
+    "en": "Compare with catalog",
+    "args": [],
+    "context": "Free reference view"
+  },
+  "ui.record_attribute": {
+    "ko": "평가 항목 기록",
+    "en": "Record appraisal attribute",
+    "args": [],
+    "context": "Manual player-selected hypothesis"
+  },
+  "ui.player_estimate": {
+    "ko": "내 평가",
+    "en": "My appraisal",
+    "args": [],
+    "context": "Player hypothesis, not verified truth"
+  },
+  "ui.observed_fact": {
+    "ko": "관찰 사실",
+    "en": "Observation",
+    "args": [],
+    "context": "Evidence from an authorized observation"
+  },
+  "ui.unconfirmed": {
+    "ko": "미확인",
+    "en": "Unconfirmed",
+    "args": [],
+    "context": "Unknown attribute"
+  },
+  "day1.g02.service_inquiry": {
+    "ko": "따로 맡길 정비품이 있어요.",
+    "en": "I have a separate item for servicing.",
+    "args": [],
+    "context": "Deferred separate service visit"
+  },
+  "catalog.radio.r18.name": {
+    "ko": "셀바 R-18",
+    "en": "Selvar R-18",
+    "args": [],
+    "context": "Fictional public model"
+  },
+  "catalog.radio.r18.description": {
+    "ko": "직사각형 스피커 그릴, 옆면의 단일 장식선, 무광 회색 외장. 생산 시기에 따라 명판의 위치가 다르다.",
+    "en": "Rectangular speaker grille, a single accent line along the side, matte grey casing. Badge position varies by production run.",
+    "args": [],
+    "context": "Public reference, not an identification result"
+  },
+  "catalog.radio.r18s.name": {
+    "ko": "셀바 R-18S",
+    "en": "Selvar R-18S",
+    "args": [],
+    "context": "Fictional public model"
+  },
+  "catalog.radio.r18s.description": {
+    "ko": "R-18과 비슷한 스피커 그릴과 외장. 일부 생산분의 이중 장식선과 별도 명판이 특징이나 마모나 수리로 구분이 어려울 수 있다.",
+    "en": "Similar grille and casing to the R-18. Some runs have a double accent line and a separate badge; wear or repairs can obscure the distinction.",
+    "args": [],
+    "context": "Public alternative hypothesis"
+  },
+  "catalog.radio.wear.light": {
+    "ko": "경미한 외관 사용 흔적",
+    "en": "Light cosmetic wear",
+    "args": [],
+    "context": "Player-selected reference modifier"
+  },
+  "catalog.radio.wear.visible": {
+    "ko": "뚜렷한 외관 마모",
+    "en": "Visible cosmetic wear",
+    "args": [],
+    "context": "Player-selected reference modifier"
+  },
+  "catalog.radio.wear.heavy": {
+    "ko": "심한 외관 마모",
+    "en": "Heavy cosmetic wear",
+    "args": [],
+    "context": "Player-selected reference modifier"
+  },
+  "catalog.radio.reference_source": {
+    "ko": "구시가지 중고품 참고표 · 2032년 10월 28일",
+    "en": "Old Town secondhand reference · 28 Oct 2032",
+    "args": [],
+    "context": "Fictional reference source, not actual transaction guarantee"
+  },
+  "day1.radio.visible_shape": {
+    "ko": "회색 외장과 직사각형 스피커 그릴이 보인다.",
+    "en": "A grey casing and rectangular speaker grille are visible.",
+    "args": [],
+    "context": "Free visible description; not a model identification"
+  },
+  "day1.radio.casing_detail": {
+    "ko": "옆면 표식의 일부가 닳아 있다. 장식선의 형태를 확정하기 어렵다.",
+    "en": "Part of the side marking is worn away. The accent line cannot be identified with certainty.",
+    "args": [],
+    "context": "Second authorized observation, not an automatic modifier or model match"
+  },
+  "ui.reference_unselected": {
+    "ko": "모델과 평가 항목을 직접 선택하세요.",
+    "en": "Select a model and appraisal attribute yourself.",
+    "args": [],
+    "context": "No automatic selection"
+  },
+  "ui.reference_not_offer": {
+    "ko": "도감 참고가는 거래 제안가와 다릅니다.",
+    "en": "The catalog reference is not your offer price.",
+    "args": [],
+    "context": "Partial estimate separate from trade offer"
+  },
+  "ui.observation_review": {
+    "ko": "이미 기록된 관찰 사항",
+    "en": "Previously recorded observation",
+    "args": [],
+    "context": "Free evidence review"
+  },
+  "day1.g01.wear_response": {
+    "ko": "사용 흔적은 인정하죠. 그래도 기능까지 나쁘다는 건 아니잖습니까.",
+    "en": "I'll grant you the wear. That doesn't tell you whether it works, though.",
+    "args": [],
+    "context": "Response to valid wear evidence only; not a function guarantee"
+  }
+}

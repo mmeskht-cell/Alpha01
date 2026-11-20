@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "profiles": {
+    "fictional_watch_p2": {
+      "tools": [
+        {
+          "id": "wear_detail",
+          "target": "dial_face",
+          "minutes": 5,
+          "evidence_id": "dial_wear",
+          "text_key": "p2.watch.obs_wear",
+          "reading_kind": "damage_index"
+        },
+        {
+          "id": "batch_detail",
+          "target": "back_mark",
+          "minutes": 5,
+          "evidence_id": "back_mark",
+          "text_key": "p2.watch.obs_mark",
+          "reading_kind": "mark"
+        },
+        {
+          "id": "material_detail",
+          "target": "case_surface",
+          "minutes": 5,
+          "evidence_id": "case_texture",
+          "text_key": "p2.watch.obs_texture",
+          "reading_kind": "texture"
+        },
+        {
+          "id": "function_detail",
+          "target": "whole_function",
+          "minutes": 5,
+          "evidence_id": "function_status",
+          "text_key": "p2.watch.obs_function",
+          "reading_kind": "function_status"
+        }
+      ]
+    }
+  },
+  "specimens": {
+    "W001": {
+      "def_id": "fictional_watch_p2",
+      "provenance": "p2_watch_a",
+      "readings": {
+        "wear_detail": 43,
+        "batch_detail": "M12",
+        "material_detail": "parallel",
+        "function_detail": "serviceable"
+      }
+    },
+    "W002": {
+      "def_id": "fictional_watch_p2",
+      "provenance": "p2_watch_b",
+      "readings": {
+        "wear_detail": 12,
+        "batch_detail": "M12A",
+        "material_detail": "cross",
+        "function_detail": "inoperable"
+      }
+    }
+  }
+}

@@ -1,0 +1,1395 @@
+{
+  "app.ready": [],
+  "item.fixture_parcel": [],
+  "wallet.balance": [
+    "amount",
+    "currency"
+  ],
+  "error.save": [],
+  "item.portable_radio": [],
+  "item.fictional_gear": [],
+  "item.abstract_module_a": [],
+  "item.abstract_module_b": [],
+  "item.battery": [],
+  "item.canned_food": [],
+  "item.watch": [],
+  "item.rad1": [],
+  "day1.marcus.offer": [],
+  "day1.g01.offer": [],
+  "day1.g01.counter": [
+    "amount"
+  ],
+  "day1.g01.accept": [],
+  "day1.g01.reject": [],
+  "day1.g02.inquiry": [],
+  "day1.radio.wear": [],
+  "day1.radio.unknown": [],
+  "ui.counter": [],
+  "ui.inspect": [],
+  "ui.catalog": [],
+  "ui.reference_partial": [
+    "amount",
+    "currency"
+  ],
+  "ui.offer": [],
+  "ui.submit_evidence": [],
+  "ui.accept_trade": [],
+  "ui.decline": [],
+  "ui.contract_accept": [],
+  "ui.contract_pending": [
+    "amount",
+    "currency"
+  ],
+  "ui.rad1_remaining": [
+    "hours"
+  ],
+  "ui.rad1_doses": [
+    "count"
+  ],
+  "ui.trade_saved": [],
+  "ui.trade_unsaved": [],
+  "ui.trade_failed": [],
+  "ui.insufficient_funds": [],
+  "ui.no_space": [],
+  "ui.offer_pending": [],
+  "ui.contract_reserved": [],
+  "ui.day1_slice_end": [],
+  "ui.business_remaining": [
+    "minutes"
+  ],
+  "ui.inspection_duration": [
+    "minutes"
+  ],
+  "ui.next_customer": [],
+  "ui.customers_remaining": [
+    "count"
+  ],
+  "ui.inspection_time_short": [],
+  "ui.closing_final_decision": [],
+  "ui.compare_reference": [],
+  "ui.record_attribute": [],
+  "ui.player_estimate": [],
+  "ui.observed_fact": [],
+  "ui.unconfirmed": [],
+  "day1.g02.service_inquiry": [],
+  "catalog.radio.r18.name": [],
+  "catalog.radio.r18.description": [],
+  "catalog.radio.r18s.name": [],
+  "catalog.radio.r18s.description": [],
+  "catalog.radio.wear.light": [],
+  "catalog.radio.wear.visible": [],
+  "catalog.radio.wear.heavy": [],
+  "catalog.radio.reference_source": [],
+  "day1.radio.visible_shape": [],
+  "day1.radio.casing_detail": [],
+  "ui.reference_unselected": [],
+  "ui.reference_not_offer": [],
+  "ui.observation_review": [],
+  "day1.g01.wear_response": [],
+  "ui.clock": [
+    "day",
+    "time"
+  ],
+  "ui.door": [],
+  "ui.contract_document": [],
+  "ui.appraisal_document": [],
+  "ui.wear_tool": [],
+  "ui.casing_tool": [],
+  "ui.wear_target": [],
+  "ui.casing_target": [],
+  "ui.close_document": [],
+  "ui.offer_amount": [],
+  "ui.no_evidence": [],
+  "ui.offers_left": [
+    "count"
+  ],
+  "ui.action_failed": [],
+  "ui.action_saved": [],
+  "ui.load_save_failed": [],
+  "ui.retry_save": [],
+  "ui.language": [],
+  "ui.counter_empty": [],
+  "ui.visit_declined": [],
+  "ui.offer_duplicate": [],
+  "ui.tool_selected": [],
+  "ui.price_history": [
+    "amount",
+    "response"
+  ],
+  "ui.record_selection": [],
+  "ui.purchase_placement": [],
+  "ui.dev_counter": [],
+  "ui.inspection_bench": [],
+  "ui.tool_tray": [],
+  "ui.view_front": [],
+  "ui.view_right": [],
+  "ui.view_back": [],
+  "ui.view_left": [],
+  "ui.scan_hint": [],
+  "ui.scan_incomplete": [],
+  "ui.scan_unavailable": [],
+  "ui.tool_ready": [],
+  "ui.keyboard_scan_hint": [],
+  "ui.zoom_in": [],
+  "ui.zoom_out": [],
+  "ui.preview_session": [],
+  "ui.model_cards": [],
+  "ui.condition_cards": [],
+  "ui.material_tool": [],
+  "ui.batch_tool": [],
+  "ui.compare_pattern": [],
+  "ui.material_cards": [],
+  "ui.batch_cards": [],
+  "ui.damage_guide": [],
+  "ui.material_adjustment": [
+    "amount"
+  ],
+  "material.polymer": [],
+  "material.polymer.description": [],
+  "material.alloy": [],
+  "material.alloy.description": [],
+  "material.steel": [],
+  "material.steel.description": [],
+  "batch.early": [],
+  "batch.early.description": [],
+  "batch.late": [],
+  "batch.late.description": [],
+  "batch.rebuilt": [],
+  "batch.rebuilt.description": [],
+  "day1.radio.material_sample": [],
+  "day1.radio.batch_sample": [],
+  "component.title": [],
+  "component.evening": [],
+  "component.instructions": [],
+  "component.shell": [],
+  "component.board": [],
+  "component.speaker": [],
+  "component.antenna": [],
+  "component.attached": [],
+  "component.whole_catalog": [],
+  "component.detach_tray": [],
+  "component.function_tool": [],
+  "component.pattern_pore": [],
+  "component.pattern_parallel": [],
+  "component.pattern_cross": [],
+  "component.working": [],
+  "component.faulty": [],
+  "component.stale": [],
+  "component.detach_first": [],
+  "component.repair": [],
+  "component.attach": [],
+  "component.component_reference": [],
+  "component.series_guide": [],
+  "component.recovery": [],
+  "component.unknown_count": [
+    "count"
+  ],
+  "component.exclusive": [],
+  "component.region_shell": [],
+  "component.region_panel": [],
+  "component.region_controls": [],
+  "component.region_primary": [],
+  "component.region_speaker": [],
+  "component.region_antenna": [],
+  "component.visible_only": [],
+  "component.tool_not_applicable": [],
+  "day1.radio.function_sample": [],
+  "day1.radio.function_serviceable": [],
+  "day1.radio.function_inoperable": [],
+  "day1.radio.display_damage": [],
+  "consent.title": [],
+  "consent.elapsed": [
+    "minutes"
+  ],
+  "consent.price": [
+    "amount"
+  ],
+  "consent.policy_cooperative": [],
+  "consent.policy_reserved": [],
+  "consent.status_waiting": [],
+  "consent.status_open": [],
+  "consent.status_closed": [],
+  "consent.status_refused": [],
+  "consent.status_bought": [],
+  "consent.status_declined": [],
+  "consent.status_closing": [],
+  "consent.status_expired": [],
+  "consent.request": [],
+  "consent.close": [],
+  "consent.buy": [],
+  "consent.decline": [],
+  "consent.wait": [],
+  "consent.evening": [],
+  "consent.scope": [],
+  "consent.instructions": [],
+  "consent.read_time": [],
+  "component.partial": [],
+  "consent.retained_notes": [],
+  "component.save_usage": [
+    "used",
+    "limit"
+  ],
+  "component.save_warning": [],
+  "ui.acquired_appraisal": [],
+  "dayone.begin": [],
+  "dayone.management": [],
+  "dayone.phase_shop": [],
+  "dayone.phase_evening": [],
+  "dayone.phase_morning": [],
+  "dayone.stock": [],
+  "dayone.display": [],
+  "dayone.grid_hint": [],
+  "dayone.rotate": [],
+  "dayone.rotate_on": [],
+  "dayone.rotate_off": [],
+  "dayone.stock_line": [
+    "basis",
+    "item"
+  ],
+  "dayone.retail_terms": [
+    "price"
+  ],
+  "dayone.retail": [
+    "price"
+  ],
+  "dayone.wholesale": [
+    "price"
+  ],
+  "dayone.retail_active": [],
+  "dayone.service_offer": [],
+  "dayone.accept_service": [],
+  "dayone.decline": [],
+  "dayone.closing_warning": [
+    "cost",
+    "remaining"
+  ],
+  "dayone.close": [],
+  "dayone.service_offered": [],
+  "dayone.service_accepted": [],
+  "dayone.service_complete": [],
+  "dayone.service_delivered": [],
+  "dayone.service_declined": [],
+  "dayone.service_cancelled": [],
+  "dayone.service_terms": [
+    "cost",
+    "fee"
+  ],
+  "dayone.surface_tool": [],
+  "dayone.surface_hint": [],
+  "dayone.commit_work": [
+    "cost"
+  ],
+  "dayone.prepare_accessible": [],
+  "dayone.cancel_service": [],
+  "dayone.morning": [],
+  "dayone.deliver": [],
+  "dayone.recovery": [
+    "price"
+  ],
+  "dayone.pay_overhead": [],
+  "dayone.slice_end": [],
+  "dayone.overhead_record": [
+    "debt",
+    "paid"
+  ],
+  "dayone.ledger": [],
+  "dayone.ledger_sale": [
+    "amount",
+    "item"
+  ],
+  "dayone.ledger_purchase": [
+    "amount",
+    "item"
+  ],
+  "dayone.margin": [
+    "margin"
+  ],
+  "dayone.settlement_service_cost": [
+    "amount"
+  ],
+  "dayone.settlement_overhead": [
+    "amount"
+  ],
+  "dayone.settlement_service_fee": [
+    "amount"
+  ],
+  "dayone.settlement_overhead_debt": [
+    "amount"
+  ],
+  "dayone.news_source": [],
+  "dayone.news_opening": [],
+  "component.market_prepare": [],
+  "component.market_terms": [],
+  "component.market_title": [],
+  "component.market_sell": [],
+  "component.market_done": [],
+  "component.market_margin": [
+    "margin"
+  ],
+  "dayone.rotate_commit": [],
+  "lineage.open": [],
+  "lineage.empty": [],
+  "lineage.purchase": [],
+  "lineage.sale": [],
+  "lineage.group_price": [],
+  "lineage.row": [
+    "day",
+    "time",
+    "direction",
+    "price"
+  ],
+  "lineage.older": [
+    "count"
+  ],
+  "lineage.unknown": [],
+  "ui.document_scale": [
+    "percent"
+  ],
+  "ui.tool_guide": [],
+  "ui.tool_cost": [
+    "minutes"
+  ],
+  "ui.feedback_settings": [],
+  "ui.feedback_settings_hint": [],
+  "ui.sound_on": [],
+  "ui.sound_off": [],
+  "ui.motion_on": [],
+  "ui.motion_off": [],
+  "pilot.title": [],
+  "pilot.offer": [],
+  "pilot.inspect": [
+    "part",
+    "region",
+    "tool"
+  ],
+  "pilot.detach": [
+    "part"
+  ],
+  "pilot.attach": [
+    "part"
+  ],
+  "pilot.restore": [
+    "part",
+    "cost"
+  ],
+  "dayone.tab_counter": [],
+  "dayone.tab_stock": [],
+  "dayone.tab_workshop": [],
+  "dayone.tab_ledger": [],
+  "dayone.stock_evening_hint": [],
+  "dayone.select_stock": [],
+  "dayone.stock_detail": [
+    "item",
+    "basis",
+    "location"
+  ],
+  "dayone.quick_display": [],
+  "dayone.quick_stock": [],
+  "dayone.clear_selection": [],
+  "ui.audio_level": [
+    "channel",
+    "percent"
+  ],
+  "ui.audio_ambience": [],
+  "ui.audio_sfx": [],
+  "ui.audio_ui": [],
+  "ui.audio_music": [],
+  "ui.preferences_save_failed": [],
+  "ui.page_previous": [],
+  "ui.page_next": [],
+  "ui.page_range": [
+    "first",
+    "last",
+    "total"
+  ],
+  "appraisal.drop_hint": [],
+  "appraisal.card_model_id": [
+    "value"
+  ],
+  "appraisal.card_appearance_id": [
+    "value"
+  ],
+  "appraisal.card_material_id": [
+    "value"
+  ],
+  "appraisal.card_batch_id": [
+    "value"
+  ],
+  "appraisal.card_clear": [
+    "value"
+  ],
+  "appraisal.customer_model_id": [],
+  "appraisal.customer_appearance_id": [],
+  "appraisal.customer_material_id": [],
+  "appraisal.customer_batch_id": [],
+  "appraisal.customer_clear": [],
+  "appraisal.links_heading": [],
+  "appraisal.argument_heading": [],
+  "appraisal.argument_prepare": [
+    "value",
+    "count"
+  ],
+  "appraisal.argument_prepared": [
+    "value"
+  ],
+  "appraisal.look_up": [],
+  "appraisal.look_down": [],
+  "appraisal.deck_present": [
+    "value"
+  ],
+  "appraisal.deck_remove": [],
+  "appraisal.deck_spoken": [
+    "value"
+  ],
+  "appraisal.deck_basis": [],
+  "appraisal.deck_ready": [
+    "value"
+  ],
+  "appraisal.deck_target": [],
+  "appraisal.deck_history": [],
+  "appraisal.deck_statement": [
+    "value"
+  ],
+  "appraisal.deck_reply_model_id": [],
+  "appraisal.deck_reply_appearance_id": [],
+  "appraisal.deck_reply_material_id": [],
+  "appraisal.deck_reply_batch_id": [],
+  "appraisal.deck_customer_claim": [],
+  "appraisal.counter_basis": [
+    "count"
+  ],
+  "appraisal.counter_propose": [],
+  "appraisal.counter_confirm": [
+    "amount"
+  ],
+  "appraisal.customer_unconfirmed": [],
+  "p2.watch.source": [],
+  "p2.watch.meridian12": [],
+  "p2.watch.meridian12a": [],
+  "p2.watch.standard_case": [],
+  "p2.watch.decorative_case": [],
+  "p2.watch.running": [],
+  "p2.watch.stopped": [],
+  "p2.watch.ordinary_mark": [],
+  "p2.watch.commemorative_mark": [],
+  "p2.watch.obs_wear": [],
+  "p2.watch.obs_mark": [],
+  "p2.watch.obs_texture": [],
+  "p2.watch.obs_function": [],
+  "review.fact.surface": [],
+  "review.fact.mark": [],
+  "review.fact.texture": [],
+  "review.fact.batch": [],
+  "review.fact.function": [],
+  "review.fact.display": [],
+  "review.fact.unknown": [],
+  "review.value.parallel": [],
+  "review.value.cross": [],
+  "review.value.serviceable": [],
+  "review.value.inoperable": [],
+  "review.value.unreadable": [],
+  "review.value.yes": [],
+  "review.value.no": [],
+  "review.value.unknown": [],
+  "review.price.previous": [],
+  "review.price.accepted": [],
+  "review.price.rejected": [],
+  "review.price.basis": [],
+  "review.plan.title": [],
+  "review.plan.sell": [],
+  "review.plan.no_offer": [],
+  "review.plan.hold": [],
+  "review.plan.recover": [],
+  "review.plan.recover_empty": [],
+  "review.plan.restore": [],
+  "review.plan.no_restore": [],
+  "review.plan.restore_unavailable": [],
+  "review.plan.restore_available": [],
+  "review.plan.basis": [],
+  "review.plan.recovered_basis": [],
+  "review.plan.unknown_demand": [],
+  "review.plan.opportunity": [],
+  "review.plan.not_revenue": [],
+  "review.plan.quote_only": [],
+  "review.basic.open": [],
+  "review.basic.function": [],
+  "review.basic.source": [],
+  "review.basic.working": [],
+  "review.basic.not_working": [],
+  "item.civil_receiver": [],
+  "item.civil_module_a": [],
+  "item.civil_module_b": [],
+  "item.civil_module_c": [],
+  "item.demo_tool": [],
+  "item.demo_hygiene": [],
+  "item.demo_electronics": [],
+  "settings.pack.title": [],
+  "settings.pack.instructions": [],
+  "settings.pack.apply": [],
+  "settings.pack.clear": [],
+  "settings.pack.cancel": [],
+  "settings.pack.invalid": [],
+  "settings.pack.applied": [],
+  "settings.pack.current": [
+    "locale"
+  ],
+  "ui.copy.preferences_could_not_be_saved_c2ce093d": [],
+  "ui.copy.could_not_open_slot_f5e11150": [],
+  "ui.copy.new_session_c88df2bc": [],
+  "ui.copy.saved_session_resumed_cf6fd88a": [],
+  "ui.copy.stock_bf0ad62f": [],
+  "ui.copy.customer_custody_78fdebe1": [],
+  "ui.copy.owned_cff2f00c": [],
+  "ui.copy.custody_a1f910": [],
+  "ui.copy.completed_12ead41e": [],
+  "ui.copy.unavailable_e8505c55": [],
+  "ui.copy.save_failed_retry_before_continuing_21aa1c01": [],
+  "ui.copy.composite_candidate_5191b827": [],
+  "ui.copy.day_b165382f": [],
+  "ui.copy.recovered_from_the_previous_valid_save_1e032a02": [],
+  "ui.copy.save_load_error_f5af17cd": [],
+  "ui.copy.retry_save_d398bfc9": [],
+  "ui.copy.1_november_2032_alexei_barin_38_reopens_his_2c15303e": [],
+  "ui.copy.open_the_shutters_8ede7ece": [],
+  "ui.copy.skip_prologue_3df4eed3": [],
+  "ui.copy.first_week_complete_the_story_continues_1cec1dd2": [],
+  "ui.copy.final_cash_d06a92e9": [],
+  "ui.copy.this_is_the_demo_boundary_not_a_campaign_en_5fa73f01": [],
+  "ui.copy.pending_pickup_11905ce0": [],
+  "ui.copy.kravensk_shop_in_the_sealed_city_6919897b": [],
+  "ui.copy.sora_are_you_open_i_sent_someone_your_way_fbc8270b": [],
+  "ui.copy.ian_you_ll_be_all_right_for_a_few_days_but__6be4d982": [],
+  "ui.copy.sora_more_people_are_looking_for_winter_sup_86c1ac8d": [],
+  "ui.copy.marcus_payment_reserves_the_supply_you_do_n_403b17a0": [],
+  "ui.copy.remaining_visits_a65bf86a": [],
+  "ui.copy.overdue_overhead_37570c25": [],
+  "ui.copy.pay_overhead_23660013": [],
+  "ui.copy.next_customer_fd07c070": [],
+  "ui.copy.no_confirmed_offer_8858b07c": [],
+  "ui.copy.g01_do_you_buy_things_here_682d8d4f": [],
+  "ui.copy.g02_i_bought_this_radio_here_before_it_is_n_512d34fd": [],
+  "ui.copy.buy_d5fd742c": [],
+  "ui.copy.sell_cece1123": [],
+  "ui.copy.service_c8fa625f": [],
+  "ui.copy.accept_service_ad106ab3": [],
+  "ui.copy.return_and_collect_fee_9378214b": [],
+  "ui.copy.return_unpaid_460b2b55": [],
+  "ui.copy.decline_visit_1b22e3e3": [],
+  "ui.copy.close_shop_59b1e7c1": [],
+  "ui.copy.closing_settlement_overhead_15_vkc_first_du_4c4e9312": [],
+  "ui.copy.available_after_overhead_aeaaaa7e": [],
+  "ui.copy.pay_due_contracts_close_cdf3db4": [],
+  "ui.copy.confirm_default_release_reservation_3e38b308": [],
+  "ui.copy.evening_workshop_89b959a5": [],
+  "ui.copy.restore_b51f11f2": [],
+  "ui.copy.next_morning_296e989c": [],
+  "ui.copy.due_d_a10934de": [],
+  "ui.copy.delivery_d_51fb0b93": [],
+  "ui.copy.accept_marcus_s_offer_db96d1c3": [],
+  "ui.copy.decline_ed1fb32f": [],
+  "ui.copy.pay_contract_e37ce3dd": [],
+  "ui.copy.extend_7853d8ec": [],
+  "ui.copy.news_d_1010b526": [],
+  "ui.copy.ian_thank_you_for_helping_a5e77da9": [],
+  "ui.copy.additional_clinic_supplies_have_not_been_co_4d04311": [],
+  "ui.copy.marcus_your_medicine_has_arrived_b406e251": [],
+  "ui.copy.marcus_this_delivery_did_not_go_through_1d0dcbc8": [],
+  "ui.copy.tan_people_do_get_out_who_and_when_that_s_a_35e3682": [],
+  "ui.copy.stock_and_custody_89da3ff3": [],
+  "ui.copy.shop_office_bf373655": [],
+  "ui.copy.cash_483e7412": [],
+  "ui.copy.closed_work_lamp_c39ab77b": [],
+  "ui.copy.open_fc52508": [],
+  "ui.copy.ledger_a9dad261": [],
+  "ui.copy.contracts_8d973b95": [],
+  "ui.copy.terminal_230d7be0": [],
+  "ui.copy.transaction_ledger_261b8677": [],
+  "ui.copy.local_terminal_896458a8": [],
+  "ui.copy.no_known_contracts_2bc9a316": [],
+  "ui.copy.local_terminal_known_news_c72fbad6": [],
+  "ui.copy.no_confirmed_news_3a511909": [],
+  "ui.copy.messages_ee1edf9b": [],
+  "ui.copy.close_office_1f6d1b1f": [],
+  "ui.copy.office_b376d3f2": [],
+  "ui.copy.back_mark_reader_3f7e5eab": [],
+  "ui.copy.choose_the_appropriate_region_for_the_selec_b6c2d1e5": [],
+  "ui.copy.will_you_buy_this_item_dedc031b": [],
+  "ui.copy.i_d_like_to_buy_this_item_91619a57": [],
+  "ui.copy.purchase_slip_3a9c7ac5": [],
+  "ui.copy.sale_slip_eca790c8": [],
+  "ui.copy.no_available_placement_e13e4384": [],
+  "ui.copy.insufficient_cash_e996d3a2": [],
+  "ui.copy.customer_cannot_pay_this_offer_917ad803": [],
+  "ui.copy.inspect_owned_item_1ce27160": [],
+  "ui.copy.confirm_purchase_4f429f57": [],
+  "ui.copy.confirm_sale_4f728d10": [],
+  "ui.copy.decline_19995241": [],
+  "ui.copy.i_d_like_this_serviced_7edcb5a2": [],
+  "ui.copy.i_m_here_to_collect_my_item_582aa83c": [],
+  "ui.copy.customer_owned_service_item_f25dc339": [],
+  "ui.copy.service_slip_fee_392df2d0": [],
+  "ui.copy.new_request_b95fd718": [],
+  "ui.copy.completed_return_after_check_fbd996e0": [],
+  "ui.copy.work_incomplete_125702a0": [],
+  "ui.copy.return_and_collect_fee_68cab1a0": [],
+  "ui.copy.known_e7b32f47": [],
+  "ui.copy.inspect_a_detail_not_shown_in_the_represent_cf021d06": [],
+  "ui.copy.inspection_tools_546ff394": [],
+  "ui.copy.returning_item_747d92af": [],
+  "ui.copy.min_a419b7d": [],
+  "ui.copy.select_the_region_on_the_item_688ed27a": [],
+  "ui.copy.select_the_detail_target_above_the_item_4719621e": [],
+  "ui.copy.inspect_1b481735": [],
+  "ui.copy.front_18a87342": [],
+  "ui.copy.back_479b23d1": [],
+  "ui.copy.book_assessment_4558d616": [],
+  "ui.copy.drag_a_tool_onto_the_item_b8fb2c5b": [],
+  "ui.copy.last_observation_50e88897": [],
+  "ui.copy.do_you_buy_watches_d713ae5": [],
+  "ui.copy.do_you_buy_things_here_badbda7b": [],
+  "ui.copy.i_bought_this_radio_here_before_it_is_not_i_f90fb14b": [],
+  "ui.copy.alexei_i_withdraw_this_judgment_6447d2a2": [],
+  "ui.copy.alexei_this_is_what_i_observed_8ecbca0": [],
+  "ui.copy.alexei_a19a8468": [],
+  "ui.copy.correction_290b194e": [],
+  "ui.copy.hypothesis_a46bd249": [],
+  "ui.copy.customer_claim_20504483": [],
+  "ui.copy.present_a_card_to_customer_ce34e8f": [],
+  "ui.copy.no_assessment_cards_inspect_and_choose_a_ju_54b904ca": [],
+  "ui.copy.correction_fe5aa275": [],
+  "ui.copy.hypothesis_links_2ea00e9e": [],
+  "ui.copy.asking_5b3abf58": [],
+  "ui.copy.estimate_6c11b6a7": [],
+  "ui.copy.offer_with_basis_28e673c": [],
+  "ui.copy.make_offer_debd0b52": [],
+  "ui.copy.price_only_4dd8fd0f": [],
+  "ui.copy.condition_8d30e730": [],
+  "ui.copy.working_8ec30d03": [],
+  "ui.copy.inoperable_2e345410": [],
+  "ui.copy.placement_confirm_288df946": [],
+  "ui.copy.sheet_facts_522abb77": [],
+  "ui.copy.rebut_1ebcc6f6": [],
+  "ui.copy.close_9033cd56": [],
+  "ui.copy.after_hours_workspace_6bed36b7": [],
+  "ui.copy.business_stockroom_78d9de60": [],
+  "ui.copy.18_00_clock_paused_work_lamp_2937810e": [],
+  "ui.copy.lighting_follows_business_clock_6cfe15a9": [],
+  "ui.copy.inventory_evening_work_enabled_c70bc29e": [],
+  "ui.copy.inventory_stock_management_b833915b": [],
+  "ui.copy.stock_select_drag_cb25bbc5": [],
+  "ui.copy.owned_8db45f16": [],
+  "ui.copy.custody_8dedb8de": [],
+  "ui.copy.item_details_714a9da7": [],
+  "ui.copy.select_drop_item_here_574430c9": [],
+  "ui.copy.owned_stock_ce8e11c5": [],
+  "ui.copy.customer_custody_not_movable_5b46d3f": [],
+  "ui.copy.empty_cell_48b5c4e3": [],
+  "ui.copy.return_to_counter_cebd9414": [],
+  "ui.copy.rotate_f4b9db24": [],
+  "ui.copy.place_7dd2830a": [],
+  "ui.copy.cancel_d94f1bb5": [],
+  "ui.copy.placement_available_2b4c9c70": [],
+  "ui.copy.unavailable_collision_bounds_or_same_placem_cb2ee070": [],
+  "ui.copy.select_an_item_review_is_free_4169758e": [],
+  "ui.copy.work_slip_e2c533c4": [],
+  "ui.copy.restoration_cost_8d85a068": [],
+  "ui.copy.service_complete_awaiting_customer_pickup_89f3cde7": [],
+  "ui.copy.player_owned_stock_632e1d7a": [],
+  "ui.copy.customer_owned_authorized_service_only_77420968": [],
+  "ui.copy.footprint_a7d5b186": [],
+  "ui.copy.root_allocated_basis_f50b9a44": [],
+  "ui.copy.individual_basis_806c519c": [],
+  "ui.copy.review_discard_3c8f4db7": [],
+  "ui.copy.discard_abf4183b": [],
+  "ui.copy.items_no_proceeds_lost_basis_ab2e8a51": [],
+  "ui.copy.discard_is_irreversible_included_ids_e0955b48": [],
+  "ui.copy.discard_4f578617": [],
+  "ui.copy.keep_item_181a689b": [],
+  "ui.copy.exterior_care_recorded_no_price_function_ch_d0113030": [],
+  "ui.copy.no_exterior_care_recorded_94fe8880": [],
+  "ui.copy.wipe_exterior_86cb1372": [],
+  "ui.copy.restoration_and_composition_changes_availab_24359ec5": [],
+  "ui.copy.no_available_restoration_77a6ed7c": [],
+  "ui.copy.close_history_d14c1606": [],
+  "ui.copy.transaction_and_work_history_a0515557": [],
+  "ui.copy.restore_f7ee4ed5": [],
+  "ui.copy.restore_b3664298": [],
+  "ui.copy.abstract_component_slots_cc4c2618": [],
+  "ui.copy.current_family_basis_d7579729": [],
+  "ui.copy.additional_restoration_expense_28e000ca": [],
+  "ui.copy.owned_materials_are_not_free_revenue_is_unk_1f4312df": [],
+  "ui.copy.incoming_material_basis_2844658d": [],
+  "ui.copy.recovered_material_basis_a9d26739": [],
+  "ui.copy.projected_family_basis_d107bee3": [],
+  "ui.copy.composition_itself_costs_no_cash_restoratio_c195f4d7": [],
+  "ui.copy.slot_6b7a60": [],
+  "ui.copy.empty_e5d310ea": [],
+  "ui.copy.assess_ae77322c": [],
+  "ui.copy.remove_995fb47b": [],
+  "ui.copy.exchange_fbc905ee": [],
+  "ui.copy.attach_1adbb93f": [],
+  "ui.copy.attach_e13a33af": [],
+  "ui.copy.exchange_66cb631a": [],
+  "ui.copy.pending_85fe9c9f": [],
+  "ui.copy.outgoing_26d261a5": [],
+  "ui.copy.stock_f4513ad2": [],
+  "ui.copy.apply_parts_69f89d86": [],
+  "ui.copy.cancel_parts_ab9e9c5a": [],
+  "ui.copy.known_assessment_b83529c4": [],
+  "ui.copy.current_family_basis_fa3fef24": [],
+  "ui.copy.assessed_item_basis_359cb4c3": [],
+  "ui.copy.unknown_a150fe4": [],
+  "ui.copy.refurbished_9d11a831": [],
+  "ui.copy.serviceable_f3da9c82": [],
+  "ui.copy.assessment_46221f2e": [],
+  "ui.copy.return_to_root_assessment_5e3e949": [],
+  "ui.copy.function_db9959e9": [],
+  "ui.copy.completeness_62959d0b": [],
+  "ui.copy.restoration_status_3bcca6d2": [],
+  "ui.copy.known_a7456c9f": [],
+  "ui.copy.historical_retest_required_36d87653": [],
+  "ui.copy.yes_c5a2dae0": [],
+  "ui.copy.no_3885b742": [],
+  "ui.copy.free_review_f3820f59": [],
+  "ui.copy.inspect_ddb0fd77": [],
+  "ui.copy.observed_fact_a49cf725": [],
+  "ui.copy.no_active_appraisal_e67124a0": [],
+  "ui.copy.appraisal_sheet_public_assessments_9d1a1781": [],
+  "ui.copy.you_may_disclose_acquired_observations_sepa_4423d9f0": [],
+  "ui.copy.withdrawn_1db3c465": [],
+  "ui.copy.earlier_hypothesis_af584293": [],
+  "ui.copy.current_hypothesis_6b5dc0fc": [],
+  "ui.copy.current_disclosure_439956a0": [],
+  "ui.copy.earlier_disclosure_3a8a0acb": [],
+  "ui.copy.withdraw_this_judgment_d34bfe1b": [],
+  "ui.copy.inspect_item_70038369": [],
+  "ui.copy.negotiate_aaca716": [],
+  "ui.copy.generic_appraisal_pilot_776dd0b4": [],
+  "ui.copy.present_an_assessment_card_or_offer_a_price_ee29b6ac": [],
+  "ui.copy.alexei_i_withdraw_this_18ff8bf6": [],
+  "ui.copy.alexei_my_assessment_is_817169e8": [],
+  "ui.copy.inspection_tools_6050cc0a": [],
+  "ui.copy.observations_7f06a163": [],
+  "ui.copy.stale_92e2fc99": [],
+  "ui.copy.claim_eff9e604": [],
+  "ui.copy.hypothesis_6acf1919": [],
+  "ui.copy.clear_selection_e6cd7119": [],
+  "ui.copy.unlink_66ae24e2": [],
+  "ui.copy.link_related_observation_c5c87266": [],
+  "ui.copy.link_evidence_f73569d9": [],
+  "ui.copy.reference_estimate_f7dbb0ad": [],
+  "ui.copy.available_hypotheses_bb25869f": [],
+  "ui.copy.prepare_fc6314c2": [],
+  "ui.copy.private_assessment_cards_8be73713": [],
+  "ui.copy.prepared_cards_75964db5": [],
+  "ui.copy.drop_a_card_to_address_customer_fe4dc946": [],
+  "ui.copy.correction_df85060b": [],
+  "ui.copy.stale_d90d0a15": [],
+  "ui.copy.drag_65ae8ec5": [],
+  "ui.copy.present_fc2a476": [],
+  "ui.copy.rebut_c998d426": [],
+  "ui.copy.remove_9f25f42f": [],
+  "ui.copy.disclosed_assessments_and_observations_59fe26d2": [],
+  "ui.copy.evidence_links_d13b010c": [],
+  "ui.copy.customer_statements_unverified_ff613f53": [],
+  "ui.copy.decline_visit_aac393e": [],
+  "ui.copy.assessment_f3699db5": [],
+  "ui.copy.agrees_cb6cdb85": [],
+  "ui.copy.disagrees_430f6fac": [],
+  "ui.copy.customer_recollection_unverified_b603fb29": [],
+  "ui.copy.rebuttal_hypothesis_unverified_70f1ad55": [],
+  "ui.copy.against_36877636": [],
+  "ui.copy.new_evidence_links_b00e811b": [],
+  "ui.copy.asking_price_ea7c175": [],
+  "ui.copy.remaining_offers_eb43b87f": [],
+  "ui.copy.accepted_b23c0c2b": [],
+  "ui.copy.rejected_a87ae7cd": [],
+  "ui.copy.public_statements_8093fd8": [],
+  "ui.copy.offer_with_public_statements_a1f16ddc": [],
+  "ui.copy.offer_price_only_8752ad1": [],
+  "ui.copy.trade_condition_4177e64c": [],
+  "ui.copy.inoperable_b9430e79": [],
+  "ui.copy.choose_stock_location_a32e0265": [],
+  "ui.copy.agreed_trade_condition_ee639037": [],
+  "ui.copy.at_transaction_only_c7402a31": [],
+  "ui.copy.accepted_available_797c28c3": [],
+  "ui.copy.footprint_f393fcec": [],
+  "ui.copy.drag_item_to_stock_a562ce7d": [],
+  "ui.copy.rotated_809425c0": [],
+  "ui.copy.no_available_placement_ed72b32b": [],
+  "ui.copy.insufficient_funds_e40e5f71": [],
+  "ui.copy.known_transaction_and_work_history_2d7614b9": [],
+  "ui.copy.no_completed_transactions_or_work_d389140d": [],
+  "ui.copy.purchase_974ce25d": [],
+  "ui.copy.sale_1b445528": [],
+  "ui.copy.group_price_individual_price_unknown_a66a6e3b": [],
+  "ui.copy.accepted_offer_76df8d19": [],
+  "ui.copy.transaction_appraisal_sheet_public_assessme_7cf0b256": [],
+  "ui.copy.no_disclosed_assessments_f225e2f2": [],
+  "ui.copy.agreed_quality_condition_4c8da3e4": [],
+  "ui.copy.no_separate_quality_commitment_6843d1f": [],
+  "ui.copy.historical_hypothesis_e6e5938a": [],
+  "ui.copy.withdrawal_a0a18d3f": [],
+  "ui.copy.superseded_hypothesis_897d2a20": [],
+  "ui.copy.corrected_hypothesis_10da6774": [],
+  "ui.copy.superseded_observation_d1db4d1c": [],
+  "ui.copy.historical_disclosure_4e27737a": [],
+  "ui.copy.accepted_price_basis_410208f": [],
+  "ui.copy.customer_claim_unverified_408b2a1f": [],
+  "ui.copy.rebuttal_hypothesis_b96af849": [],
+  "ui.copy.historical_observation_48ff76a2": [],
+  "ui.copy.older_work_3362b54c": [],
+  "ui.copy.older_transactions_f45d7962": [],
+  "ui.copy.older_items_418a4c01": [],
+  "ui.copy.unrecorded_external_history_and_current_con_5b18354a": [],
+  "ui.copy.assembly_d235871e": [],
+  "ui.copy.disassembly_95945c61": [],
+  "ui.copy.root_49448c67": [],
+  "ui.copy.component_411f045": [],
+  "ui.copy.component_exchange_9b7fcc96": [],
+  "ui.copy.exterior_care_no_function_or_value_bonus_2aeb08c4": [],
+  "ui.copy.maintenance_expense_f9f86d33": [],
+  "ui.copy.disposal_loss_d70e5fb1": [],
+  "ui.copy.group_disposal_individual_loss_unknown_3fefe596": [],
+  "ui.copy.work_record_70cf0ec4": [],
+  "review.sale.working": [],
+  "review.sale.inoperable": [],
+  "settings.panel.title": [],
+  "settings.audio.music": [],
+  "settings.audio.ambience": [],
+  "settings.audio.sfx": [],
+  "settings.audio.ui": [],
+  "settings.motion": [],
+  "settings.audio.title": [],
+  "ui.workspace.customer": [],
+  "ui.workspace.item": [],
+  "ui.service.expected_cost": [],
+  "ui.service.fee_on_delivery": [],
+  "ui.service.no_upfront_fee": [],
+  "ui.service.unknown_cost": [],
+  "ui.contract.status.offered": [],
+  "ui.contract.status.reserved": [],
+  "ui.contract.status.paid": [],
+  "ui.contract.status.delivered": [],
+  "ui.contract.status.defaulted": [],
+  "ui.contract.status.declined": [],
+  "ui.contract.status.missed": [],
+  "ui.location.counter": [],
+  "ui.location.inspection": [],
+  "ui.location.inventory": [],
+  "ui.location.workshop": [],
+  "ui.location.office": [],
+  "ui.location.history": [],
+  "ui.location.shop": [],
+  "ui.tool.wear_detail": [],
+  "ui.tool.casing_detail": [],
+  "ui.tool.material_detail": [],
+  "ui.tool.batch_detail": [],
+  "ui.tool.function_detail": [],
+  "ui.tool.display_damage_detail": [],
+  "ui.tool.unknown": [],
+  "ui.condition.unavailable": [],
+  "ui.condition.verify_complete": [],
+  "ui.condition.incomplete": [],
+  "ui.condition.inoperable": [],
+  "ui.condition.unverified": [],
+  "ui.condition.functional": [],
+  "ui.condition.refurbished": [],
+  "ui.condition.serviceable": [],
+  "menu.title": [],
+  "menu.new": [],
+  "menu.continue": [],
+  "menu.load": [],
+  "menu.settings": [],
+  "menu.quit": [],
+  "menu.back": [],
+  "menu.slot": [],
+  "menu.empty": [],
+  "menu.occupied": [],
+  "menu.full": [],
+  "menu.no_save": [],
+  "menu.blocked": [],
+  "menu.in_session": [],
+  "menu.version": [],
+  "settings.general.language": [],
+  "settings.general.font": [],
+  "settings.general.sound": [],
+  "counter.card.fact": [],
+  "counter.card.judgment": [],
+  "counter.card.customer": [],
+  "counter.card.unverified": [],
+  "counter.card.correction": [],
+  "counter.card.withdrawn": [],
+  "counter.card.sources": [],
+  "counter.card.public": [],
+  "counter.table.hint": [],
+  "counter.sheet.title": [],
+  "counter.sheet.empty": [],
+  "counter.card.agrees": [],
+  "counter.card.disagrees": [],
+  "counter.price.proposal": [],
+  "book.category.identification": [],
+  "book.category.appearance": [],
+  "book.category.material": [],
+  "book.category.function": [],
+  "book.category.special": [],
+  "book.category.history": [],
+  "book.category.composition": [],
+  "book.tab.judgment": [],
+  "book.tab.reference": [],
+  "book.tab.evidence": [],
+  "book.reference.no_detail": [],
+  "book.evidence.empty": [],
+  "catalog.radio.wear.light.description": [],
+  "catalog.radio.wear.visible.description": [],
+  "catalog.radio.wear.heavy.description": [],
+  "review.basic.working.description": [],
+  "review.basic.not_working.description": [],
+  "p2.watch.running.description": [],
+  "p2.watch.stopped.description": [],
+  "book.texture.reference": [],
+  "book.texture.observation": [],
+  "inspection.review_record": [],
+  "inspection.visible_crop": [],
+  "inspection.not_observed": [],
+  "book.radio.reference": [],
+  "inspection.readout_caption": [],
+  "inventory.page.overview": [],
+  "inventory.page.appraisal": [],
+  "inventory.page.components": [],
+  "inventory.page.plan": [],
+  "inventory.page.history": [],
+  "inventory.page.no_components": [],
+  "inventory.page.no_assessment": [],
+  "inventory.component.preview": [],
+  "history.summary.select": [],
+  "history.summary.previous": [],
+  "history.summary.next": [],
+  "history.summary.trades": [],
+  "history.summary.work": [],
+  "history.summary.recorded_only": [],
+  "settings.category.general": [],
+  "inventory.legend.list": [],
+  "inventory.legend.grid": [],
+  "inventory.legend.empty": [],
+  "review.plan.offer_pending": [],
+  "review.plan.recover_short": [],
+  "review.plan.recover_count": [],
+  "review.plan.restore_short": [],
+  "review.plan.restore_ready": [],
+  "review.plan.restore_blocked": [],
+  "review.plan.more": [],
+  "review.plan.less": [],
+  "history.receipt.open": [],
+  "history.receipt.close": [],
+  "p2.watch.meridian12.description": [],
+  "p2.watch.meridian12a.description": [],
+  "p2.watch.standard_case.description": [],
+  "p2.watch.decorative_case.description": [],
+  "p2.watch.ordinary_mark.description": [],
+  "p2.watch.commemorative_mark.description": [],
+  "book.mark.reference": [],
+  "inspection.mark_transcription": [],
+  "inspection.compare.crop": [],
+  "inspection.compare.texture": [],
+  "inspection.compare.mark": [],
+  "inspection.compare.readout": [],
+  "book.reference.base": [],
+  "book.reference.factor": [],
+  "book.reference.adjustment": [],
+  "book.reference.browse": [],
+  "book.wear.reference": [],
+  "review.work.review_required": [],
+  "review.work.incomplete": [],
+  "review.work.known_bad_component": [],
+  "review.work.serviceable": [],
+  "inventory.format.money_pair": [
+    "vkc",
+    "usd"
+  ],
+  "inventory.format.stock_counts": [
+    "owned",
+    "custody"
+  ],
+  "inventory.format.item_heading": [
+    "item",
+    "name"
+  ],
+  "inventory.format.restoration_cost": [
+    "cost"
+  ],
+  "inventory.format.footprint": [
+    "width",
+    "height"
+  ],
+  "inventory.format.root_basis": [
+    "basis"
+  ],
+  "inventory.format.individual_basis": [
+    "basis"
+  ],
+  "inventory.format.discard_summary": [
+    "count",
+    "basis"
+  ],
+  "inventory.format.discard_ids": [
+    "ids"
+  ],
+  "inventory.format.restore_vkc": [
+    "vkc"
+  ],
+  "inventory.format.restore_both": [
+    "vkc",
+    "usd"
+  ],
+  "inventory.format.offer_amount": [
+    "amount",
+    "currency"
+  ],
+  "inventory.format.recovered_basis": [
+    "item",
+    "basis"
+  ],
+  "inventory.format.plan_basis": [
+    "basis"
+  ],
+  "inventory.format.plan_sale": [
+    "offer"
+  ],
+  "inventory.format.plan_restore": [
+    "cost"
+  ],
+  "inventory.format.plan_opportunity": [
+    "offer"
+  ],
+  "inventory.format.plan_count": [
+    "count"
+  ],
+  "inventory.format.plan_restore_short": [
+    "cost"
+  ],
+  "inventory.format.plan_cost_status": [
+    "cost",
+    "status"
+  ],
+  "inventory.format.slot_page": [
+    "page",
+    "total"
+  ],
+  "inventory.format.candidate_page": [
+    "page",
+    "total"
+  ],
+  "inventory.format.family_basis": [
+    "basis"
+  ],
+  "inventory.format.additional_expense": [
+    "basis"
+  ],
+  "inventory.format.incoming_basis": [
+    "basis"
+  ],
+  "inventory.format.outgoing_basis": [
+    "basis"
+  ],
+  "inventory.format.projected_basis": [
+    "basis"
+  ],
+  "inventory.format.slot_number": [
+    "number"
+  ],
+  "inventory.format.slot_named": [
+    "number",
+    "name"
+  ],
+  "inventory.format.slot_contents": [
+    "slot",
+    "item"
+  ],
+  "inventory.format.exchange_item": [
+    "item"
+  ],
+  "inventory.format.attach_item": [
+    "item"
+  ],
+  "inventory.format.pending_attach": [
+    "kind",
+    "item"
+  ],
+  "inventory.format.pending_detach": [
+    "kind",
+    "item",
+    "x",
+    "y"
+  ],
+  "inventory.format.pending_replace": [
+    "kind",
+    "item",
+    "outgoing",
+    "x",
+    "y"
+  ],
+  "inventory.format.assessed_item": [
+    "item"
+  ],
+  "inventory.format.assessment_family_basis": [
+    "basis"
+  ],
+  "inventory.format.assessment_item_basis": [
+    "basis"
+  ],
+  "inventory.format.assessment_quality": [
+    "quality"
+  ],
+  "inventory.format.fact_current": [
+    "value"
+  ],
+  "inventory.format.fact_historical": [
+    "value"
+  ],
+  "inventory.format.fact_row": [
+    "name",
+    "description"
+  ],
+  "inventory.format.inspect_minutes": [
+    "minutes"
+  ],
+  "inventory.format.inspect_tooltip": [
+    "name",
+    "minutes"
+  ],
+  "ui.format.service_fee": [
+    "cost"
+  ],
+  "ui.format.service_cost": [
+    "cost"
+  ],
+  "ui.format.last_observation": [
+    "reading"
+  ],
+  "ui.format.source_count": [
+    "count"
+  ],
+  "ui.format.statement_page": [
+    "page",
+    "total"
+  ],
+  "ui.format.withdraw_dialogue": [
+    "judgment"
+  ],
+  "ui.format.observation_dialogue": [
+    "reading"
+  ],
+  "ui.format.asking": [
+    "price"
+  ],
+  "ui.format.estimate": [
+    "price"
+  ],
+  "ui.format.offer_basis": [
+    "count"
+  ],
+  "ui.format.offer_status": [
+    "price",
+    "status"
+  ],
+  "ui.format.counter_condition": [
+    "condition"
+  ],
+  "ui.format.observed_fact": [
+    "reading"
+  ],
+  "ui.format.withdrawn": [
+    "judgment"
+  ],
+  "ui.format.hypothesis_category": [
+    "category"
+  ],
+  "ui.format.reference_estimate": [
+    "price"
+  ],
+  "ui.format.prepare_claim": [
+    "claim"
+  ],
+  "ui.format.drag_claim": [
+    "claim"
+  ],
+  "ui.format.rebut_claim": [
+    "claim"
+  ],
+  "ui.format.reference_base": [
+    "price"
+  ],
+  "ui.format.reference_factor": [
+    "factor"
+  ],
+  "ui.format.reference_adjustment": [
+    "amount",
+    "currency"
+  ],
+  "ui.format.assessment_selection": [
+    "judgment"
+  ],
+  "ui.format.asking_price": [
+    "price"
+  ],
+  "ui.format.remaining_offers": [
+    "count"
+  ],
+  "ui.format.offer_history_row": [
+    "price",
+    "status",
+    "count"
+  ],
+  "ui.format.trade_condition": [
+    "condition"
+  ],
+  "ui.format.checkout_balance": [
+    "amount",
+    "balance",
+    "currency"
+  ],
+  "ui.format.checkout_footprint": [
+    "width",
+    "height"
+  ],
+  "ui.format.receipt_headline": [
+    "direction",
+    "day",
+    "time",
+    "price"
+  ],
+  "ui.format.accepted_offer": [
+    "price"
+  ],
+  "ui.format.receipt_condition": [
+    "condition"
+  ],
+  "ui.format.receipt_customer_claim": [
+    "claim"
+  ],
+  "ui.format.receipt_rebuttal": [
+    "claim"
+  ],
+  "ui.format.receipt_observation": [
+    "reading"
+  ],
+  "ui.format.older_work": [
+    "count"
+  ],
+  "ui.format.older_transactions": [
+    "count"
+  ],
+  "ui.format.older_items": [
+    "count"
+  ],
+  "ui.format.history_exchange": [
+    "root",
+    "outgoing",
+    "incoming"
+  ],
+  "ui.format.maintenance_expense": [
+    "cost"
+  ],
+  "ui.format.disposal_loss": [
+    "loss"
+  ],
+  "ui.format.work_record": [
+    "revision",
+    "description"
+  ],
+  "ui.format.history_summary": [
+    "item",
+    "trades",
+    "work"
+  ],
+  "ui.format.office_cash": [
+    "cash"
+  ],
+  "ui.format.contract_status": [
+    "due",
+    "delivery",
+    "status"
+  ],
+  "ui.format.contract_price": [
+    "price"
+  ],
+  "ui.format.slot_number": [
+    "number"
+  ],
+  "ui.format.settings_language": [
+    "language"
+  ],
+  "ui.format.settings_font": [
+    "percent"
+  ],
+  "ui.format.legacy_hud": [
+    "candidate",
+    "day",
+    "time",
+    "vkc",
+    "usd"
+  ],
+  "ui.format.final_cash": [
+    "cash"
+  ],
+  "ui.format.remaining_visits": [
+    "count"
+  ],
+  "ui.format.overdue_overhead": [
+    "amount"
+  ],
+  "ui.format.service_summary": [
+    "item",
+    "fee"
+  ],
+  "ui.format.closing_settlement": [
+    "due"
+  ],
+  "ui.format.cash_after_overhead": [
+    "cash"
+  ],
+  "ui.format.contract_summary": [
+    "price",
+    "status"
+  ],
+  "ui.format.native_hud": [
+    "day",
+    "time",
+    "vkc",
+    "usd"
+  ],
+  "book.compare.case.caption": [],
+  "book.compare.mark.caption": [],
+  "book.compare.function.caption": [],
+  "book.compare.sample.standard": [],
+  "book.compare.sample.decorative": [],
+  "book.compare.sample.ordinary": [],
+  "book.compare.sample.commemorative": [],
+  "book.compare.sample.working": [],
+  "book.compare.sample.stopped": [],
+  "book.compare.related_chapter": [
+    "chapter"
+  ],
+  "book.compare.related_hint": [],
+  "inspection.compare.topic_reading": [
+    "topic",
+    "reading"
+  ],
+  "inventory.assessment.limit_function": [],
+  "inventory.assessment.limit_completeness": [],
+  "inventory.assessment.limit_restoration": [],
+  "counter.claim.page": [
+    "page",
+    "total"
+  ],
+  "counter.claim.rebuttal_recorded": [],
+  "counter.claim.rebuttal_hypothesis": [],
+  "counter.claim.rebuttal_target": [
+    "claim",
+    "count"
+  ],
+  "counter.price.no_basis": [],
+  "counter.price.current_basis": [],
+  "counter.price.previous_basis": []
+}

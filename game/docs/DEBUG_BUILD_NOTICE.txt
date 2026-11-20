@@ -1,0 +1,4 @@
+ZONE TRADER — Gate 1-4 development test only
+Build is unsigned Windows debug EXE/PCK and disposable-key Android debug APK (arm64). Not a release. Keep EXE and PCK together. Android may require uninstalling a differently signed prior development APK; do not erase any user data without backup/approval. No real device or Windows launch accepted by CI. Game runs the first-day prototype with provisional art. The test app uses a separate user-data namespace. Font license and attribution accompany build. No Internet permission requested. Source and exact GitHub Actions evidence in PROJECT_STATE.json.
+
+This candidate includes the provisional Cadence v3.6 OST, persistent UI preferences, paginated public lists, and responsive inventory. Actual audible playback, device touch and performance remain unaccepted. If replacing an older debug APK, preserve saves and preferences first: the disposable key changes between builds. No release distribution.

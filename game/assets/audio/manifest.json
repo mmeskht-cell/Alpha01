@@ -1,0 +1,134 @@
+{
+  "version": 4,
+  "source": "res://src/presentation/commit_feedback.gd",
+  "creator": "ZONE TRADER development",
+  "license": "project-internal original synthesis prototype; distribution license unassigned",
+  "runtime_format": "PCM mono signed 16-bit 24000 Hz, generated in memory",
+  "gain_db": -12,
+  "voice_limit": 7,
+  "loop": true,
+  "cues": [
+    {
+      "cue_id": "door",
+      "bus": "ZT SFX",
+      "status": "provisional",
+      "version": "2.0"
+    },
+    {
+      "cue_id": "paper",
+      "bus": "ZT SFX",
+      "status": "provisional",
+      "version": "2.0"
+    },
+    {
+      "cue_id": "observation",
+      "bus": "ZT SFX",
+      "status": "provisional",
+      "version": "2.0"
+    },
+    {
+      "cue_id": "placement",
+      "bus": "ZT SFX",
+      "status": "provisional",
+      "version": "2.0"
+    },
+    {
+      "cue_id": "settlement",
+      "bus": "ZT SFX",
+      "status": "provisional",
+      "version": "2.0"
+    },
+    {
+      "cue_id": "service",
+      "bus": "ZT SFX",
+      "status": "provisional",
+      "version": "2.0"
+    },
+    {
+      "cue_id": "closing",
+      "bus": "ZT SFX",
+      "status": "provisional",
+      "version": "2.0"
+    },
+    {
+      "cue_id": "departure",
+      "bus": "ZT SFX",
+      "status": "provisional",
+      "version": "2.0"
+    },
+    {
+      "cue_id": "component",
+      "bus": "ZT SFX",
+      "status": "provisional",
+      "version": "2.0"
+    },
+    {
+      "cue_id": "cancel",
+      "bus": "ZT SFX",
+      "status": "provisional",
+      "version": "2.0"
+    },
+    {
+      "cue_id": "news",
+      "bus": "ZT SFX",
+      "status": "reserved_not_routed",
+      "version": "2.0"
+    },
+    {
+      "cue_id": "page",
+      "bus": "ZT UI",
+      "status": "provisional",
+      "version": "2.0"
+    },
+    {
+      "cue_id": "select",
+      "bus": "ZT UI",
+      "status": "reserved_not_routed",
+      "version": "2.0"
+    }
+  ],
+  "buses": [
+    "ZT Music",
+    "ZT Ambience",
+    "ZT SFX",
+    "ZT UI"
+  ],
+  "ambience": [
+    {
+      "cue_id": "room",
+      "loop_seconds": 8,
+      "format": "stereo PCM 24000 Hz 16-bit",
+      "bus": "ZT Ambience",
+      "status": "provisional"
+    },
+    {
+      "cue_id": "exterior",
+      "loop_seconds": 8,
+      "format": "stereo PCM 24000 Hz 16-bit",
+      "bus": "ZT Ambience",
+      "status": "provisional"
+    }
+  ],
+  "notes": "Original provisional effects and ambience; user-selected stereo score is stored unchanged. Prior v0.1 generator retained as history, not executed.",
+  "score": {
+    "title": "Before the Shutters / 문을 닫을 시간",
+    "version": "3.6 Cadence",
+    "status": "user provisionally adopted 2026-11-17; device playback pending",
+    "source": "development/audio/score_cadence_v36.py",
+    "path": "res://assets/audio/Before_the_Shutters_Cadence_v36.ogg",
+    "sha256": "d220b6ddfa9e9270d9abc17f8cc880b6a6217e678302704c01e0ac41c1eb11e2",
+    "bpm": 64,
+    "meter": "4/4",
+    "key": "A minor",
+    "channels": 2,
+    "rate": 44100,
+    "duration_seconds": 136.25,
+    "loop_offset_seconds": 0,
+    "ending_silence_seconds": 1.25,
+    "phase_mix": "whole master gain only, no restart",
+    "remaining": [
+      "actual listening and device audio lifecycle",
+      "optional contextual mix if approved"
+    ]
+  }
+}

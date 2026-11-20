@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "assets": {
+    "fictional_gear": {
+      "texture": "res://assets/art/items/fictional_gear_pilot.svg",
+      "dimensions": [
+        192,
+        128
+      ]
+    },
+    "bench_radio_shell": {
+      "texture": "res://assets/art/items/bench_radio_shell_pilot.svg",
+      "dimensions": [
+        192,
+        128
+      ]
+    },
+    "bench_radio_board": {
+      "texture": "res://assets/art/items/bench_radio_board_pilot.svg",
+      "dimensions": [
+        128,
+        64
+      ]
+    },
+    "bench_radio_speaker": {
+      "texture": "res://assets/art/items/bench_radio_speaker_pilot.svg",
+      "dimensions": [
+        64,
+        64
+      ]
+    },
+    "bench_radio_antenna": {
+      "texture": "res://assets/art/items/bench_radio_antenna_pilot.svg",
+      "dimensions": [
+        64,
+        64
+      ]
+    }
+  }
+}

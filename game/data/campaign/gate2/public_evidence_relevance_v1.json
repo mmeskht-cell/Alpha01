@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "definitions": {
+    "portable_radio": {
+      "model_id": [
+        "R001.casing_detail",
+        "R001.batch"
+      ],
+      "appearance_id": [
+        "R001.wear",
+        "R001.casing_detail",
+        "R001.display_damage"
+      ],
+      "material_id": [
+        "R001.material"
+      ],
+      "batch_id": [
+        "R001.batch",
+        "R001.casing_detail"
+      ]
+    },
+    "fictional_watch_p2": {
+      "model_id": [
+        "back_mark"
+      ],
+      "appearance_id": [
+        "dial_wear"
+      ],
+      "material_id": [
+        "case_texture"
+      ],
+      "function_id": [
+        "function_status"
+      ],
+      "mark_id": [
+        "back_mark"
+      ]
+    }
+  },
+  "nonprice": {
+    "function_id": [
+      "function_status"
+    ]
+  }
+}

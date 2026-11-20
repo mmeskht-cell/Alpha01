@@ -1,0 +1,110 @@
+{
+  "content_version": "0.1.0",
+  "definitions": [
+    {
+      "def_id": "bench_radio_shell",
+      "category": "fixture",
+      "localization_key": "item.portable_radio",
+      "render_key": "placeholder_none",
+      "width": 3,
+      "height": 2,
+      "kind": "composite",
+      "weight": 2,
+      "tag": "radio_shell",
+      "required_tags": [
+        "board",
+        "speaker",
+        "antenna"
+      ],
+      "footprints": {
+        "0": [
+          2,
+          1
+        ],
+        "1": [
+          2,
+          2
+        ],
+        "2": [
+          3,
+          2
+        ],
+        "3": [
+          3,
+          2
+        ]
+      },
+      "inside": {},
+      "recombine": true,
+      "restorable": false,
+      "observation_minutes": 0,
+      "restore_cost": {
+        "VKC": 0,
+        "USD": 0
+      }
+    },
+    {
+      "def_id": "bench_radio_board",
+      "category": "fixture",
+      "localization_key": "item.portable_radio",
+      "render_key": "placeholder_none",
+      "width": 2,
+      "height": 1,
+      "kind": "atomic",
+      "weight": 5,
+      "tag": "board",
+      "required_tags": [],
+      "footprints": {},
+      "inside": {},
+      "recombine": false,
+      "restorable": true,
+      "observation_minutes": 0,
+      "restore_cost": {
+        "VKC": 5,
+        "USD": 0
+      }
+    },
+    {
+      "def_id": "bench_radio_speaker",
+      "category": "fixture",
+      "localization_key": "item.portable_radio",
+      "render_key": "placeholder_none",
+      "width": 1,
+      "height": 1,
+      "kind": "atomic",
+      "weight": 2,
+      "tag": "speaker",
+      "required_tags": [],
+      "footprints": {},
+      "inside": {},
+      "recombine": false,
+      "restorable": true,
+      "observation_minutes": 0,
+      "restore_cost": {
+        "VKC": 5,
+        "USD": 0
+      }
+    },
+    {
+      "def_id": "bench_radio_antenna",
+      "category": "fixture",
+      "localization_key": "item.portable_radio",
+      "render_key": "placeholder_none",
+      "width": 1,
+      "height": 1,
+      "kind": "atomic",
+      "weight": 1,
+      "tag": "antenna",
+      "required_tags": [],
+      "footprints": {},
+      "inside": {},
+      "recombine": false,
+      "restorable": true,
+      "observation_minutes": 0,
+      "restore_cost": {
+        "VKC": 5,
+        "USD": 0
+      }
+    }
+  ]
+}

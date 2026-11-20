@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "asset_id": "radio_face_probe_a",
+      "render_key": "radio_face_probe_a",
+      "source": "original authored SVG technical fixture",
+      "creator": "ZONE TRADER development",
+      "license": "project-internal original prototype; distribution license unassigned",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/items/radio_face_probe_a.svg",
+      "dimensions": [
+        192,
+        100
+      ],
+      "import_settings": {
+        "filter": "nearest",
+        "body_uv": [
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      "definition_id": "R001 visual fixture only",
+      "status": "placeholder"
+    },
+    {
+      "asset_id": "radio_face_probe_b",
+      "render_key": "radio_face_probe_b",
+      "source": "original authored SVG technical fixture",
+      "creator": "ZONE TRADER development",
+      "license": "project-internal original prototype; distribution license unassigned",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/items/radio_face_probe_b.svg",
+      "dimensions": [
+        240,
+        160
+      ],
+      "import_settings": {
+        "filter": "nearest",
+        "body_uv": [
+          0.1,
+          0.1875,
+          0.8,
+          0.625
+        ]
+      },
+      "definition_id": "R001 visual fixture only",
+      "status": "placeholder"
+    },
+    {
+      "asset_id": "scene_counter_bg",
+      "render_key": "scene_counter_bg",
+      "source": "original editable SVG, pixel-grid style pilot",
+      "creator": "ZONE TRADER development",
+      "license": "project-internal original prototype; distribution license unassigned",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/scenes/counter_pilot_bg.svg",
+      "dimensions": [
+        640,
+        360
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "scene_counter_bg",
+      "status": "style_pilot_not_final"
+    },
+    {
+      "asset_id": "scene_counter_fg",
+      "render_key": "scene_counter_fg",
+      "source": "original editable SVG, pixel-grid style pilot",
+      "creator": "ZONE TRADER development",
+      "license": "project-internal original prototype; distribution license unassigned",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/scenes/counter_pilot_fg.svg",
+      "dimensions": [
+        640,
+        360
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "scene_counter_fg",
+      "status": "style_pilot_not_final"
+    },
+    {
+      "asset_id": "npc_g01_base",
+      "render_key": "npc_g01_base",
+      "source": "original editable SVG, pixel-grid style pilot",
+      "creator": "ZONE TRADER development",
+      "license": "project-internal original prototype; distribution license unassigned",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/characters/g01_pilot.svg",
+      "dimensions": [
+        120,
+        132
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "npc_g01_base",
+      "status": "style_pilot_not_final"
+    },
+    {
+      "asset_id": "fictional_gear_pilot",
+      "render_key": "fictional_gear",
+      "source": "Original editable SVG, restrained pixel-grid representative pilot",
+      "creator": "ZONE TRADER development",
+      "license": "project-internal original prototype; distribution license unassigned",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/items/fictional_gear_pilot.svg",
+      "dimensions": [
+        192,
+        128
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "fictional_gear",
+      "status": "style_pilot_not_final"
+    },
+    {
+      "asset_id": "bench_radio_shell_pilot",
+      "render_key": "bench_radio_shell",
+      "source": "Original editable SVG, restrained pixel-grid representative pilot",
+      "creator": "ZONE TRADER development",
+      "license": "project-internal original prototype; distribution license unassigned",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/items/bench_radio_shell_pilot.svg",
+      "dimensions": [
+        192,
+        128
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "bench_radio_shell",
+      "status": "style_pilot_not_final"
+    },
+    {
+      "asset_id": "bench_radio_board_pilot",
+      "render_key": "bench_radio_board",
+      "source": "Original editable SVG, restrained pixel-grid representative pilot",
+      "creator": "ZONE TRADER development",
+      "license": "project-internal original prototype; distribution license unassigned",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/items/bench_radio_board_pilot.svg",
+      "dimensions": [
+        128,
+        64
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "bench_radio_board",
+      "status": "style_pilot_not_final"
+    },
+    {
+      "asset_id": "bench_radio_speaker_pilot",
+      "render_key": "bench_radio_speaker",
+      "source": "Original editable SVG, restrained pixel-grid representative pilot",
+      "creator": "ZONE TRADER development",
+      "license": "project-internal original prototype; distribution license unassigned",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/items/bench_radio_speaker_pilot.svg",
+      "dimensions": [
+        64,
+        64
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "bench_radio_speaker",
+      "status": "style_pilot_not_final"
+    },
+    {
+      "asset_id": "bench_radio_antenna_pilot",
+      "render_key": "bench_radio_antenna",
+      "source": "Original editable SVG, restrained pixel-grid representative pilot",
+      "creator": "ZONE TRADER development",
+      "license": "project-internal original prototype; distribution license unassigned",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/items/bench_radio_antenna_pilot.svg",
+      "dimensions": [
+        64,
+        64
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "bench_radio_antenna",
+      "status": "style_pilot_not_final"
+    }
+  ]
+}

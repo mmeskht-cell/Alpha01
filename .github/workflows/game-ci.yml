@@ -1,0 +1,73 @@
+name: Game fixed checks
+on:
+  workflow_dispatch:
+  push:
+    branches: [development]
+    paths:
+      - 'game/**'
+      - '.github/workflows/game-ci.yml'
+      - '.github/workflows/gate1-window.yml'
+      - 'development/FULL_CI_CHECKPOINT.md'
+permissions:
+  contents: read
+concurrency:
+  group: zt-game-checks
+  # Preserve evidence from the active fixed check; newer pushes queue.
+  cancel-in-progress: false
+jobs:
+  fixed-checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          # One atomic push has its parent available without retaining credentials.
+          fetch-depth: 2
+      - name: Select bounded verification scope
+        id: scope
+        shell: bash
+        env:
+          BEFORE: ${{ github.event.before }}
+          FORCED: ${{ github.event.forced }}
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          python3 game/tools/select_ci_scope.py --self-test
+          scope="$(python3 game/tools/select_ci_scope.py --before "$BEFORE" --head "$GITHUB_SHA" --event "$GITHUB_EVENT_NAME" --forced "$FORCED")"
+          case "$scope" in
+            focused) fixed=gate1 ;;
+            full) fixed=all ;;
+            *) exit 1 ;;
+          esac
+          printf 'scope=%s\nfixed=%s\n' "$scope" "$fixed" | tee evidence/ci-scope.txt
+          printf 'mode=%s\nfixed=%s\n' "$scope" "$fixed" >> "$GITHUB_OUTPUT"
+      - name: Record selected tree and install engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence "$RUNNER_TEMP/zt-review"
+          printf 'commit=%s\nrun=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > evidence/identity.txt
+          git rev-parse HEAD:game | tee evidence/game-tree.txt
+          curl -fL --retry 2 --max-time 120 -o "$RUNNER_TEMP/zt-review/engine.zip" 'https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip'
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/zt-review/engine.zip" | sha256sum -c -
+          unzip -q "$RUNNER_TEMP/zt-review/engine.zip" -d "$RUNNER_TEMP/zt-review"
+          chmod +x "$RUNNER_TEMP/zt-review/Godot_v4.7.2-stable_linux.x86_64"
+          "$RUNNER_TEMP/zt-review/Godot_v4.7.2-stable_linux.x86_64" --version
+      - name: Fixed regression, Gate0-C and Gate1 checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          export XDG_DATA_HOME="$RUNNER_TEMP/zt-game-data"
+          export XDG_CONFIG_HOME="$RUNNER_TEMP/zt-game-config"
+          engine="$RUNNER_TEMP/zt-review/Godot_v4.7.2-stable_linux.x86_64"
+          python3 game/tools/check_foundation.py --godot "$engine" --scope "${{ steps.scope.outputs.fixed }}" --report-dir "$GITHUB_WORKSPACE/evidence/checks" | tee evidence/runner.log
+      - name: Preserve evaluation evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: game-checks-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 3

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/presentation/item_visual_profile.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/radio_front.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+texture = ExtResource("2")
+regions = {
+"display_damage_detail": Rect2(0.6145833333, 0.3611111111, 0.2291666667, 0.1805555556),
+"function_detail": Rect2(0.625, 0.6111111111, 0.1875, 0.2083333333),
+"wear_detail": Rect2(0.09375, 0.7777777778, 0.4791666667, 0.1944444444)
+}
+crop_regions = {
+"material_detail": Rect2(0.125, 0.2708333333, 0.4583333333, 0.0763888889)
+}
+provisional = true

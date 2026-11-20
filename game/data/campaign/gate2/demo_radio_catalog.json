@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "def_id": "portable_radio",
+  "currency": "VKC",
+  "source_key": "catalog.radio.reference_source",
+  "slots": [
+    {
+      "id": "model_id",
+      "category": "identification",
+      "effect": "base",
+      "candidates": [
+        {
+          "id": "selvar_r18",
+          "label_key": "catalog.radio.r18.name",
+          "value": 200
+        },
+        {
+          "id": "selvar_r18s",
+          "label_key": "catalog.radio.r18s.name",
+          "value": 240
+        }
+      ]
+    },
+    {
+      "id": "appearance_id",
+      "category": "appearance",
+      "effect": "percent",
+      "candidates": [
+        {
+          "id": "light_wear",
+          "label_key": "catalog.radio.wear.light",
+          "value": 100
+        },
+        {
+          "id": "visible_wear",
+          "label_key": "catalog.radio.wear.visible",
+          "value": 80
+        },
+        {
+          "id": "heavy_wear",
+          "label_key": "catalog.radio.wear.heavy",
+          "value": 60
+        }
+      ]
+    },
+    {
+      "id": "material_id",
+      "category": "material",
+      "effect": "delta",
+      "candidates": [
+        {
+          "id": "molded_polymer",
+          "label_key": "material.polymer",
+          "value": 0
+        },
+        {
+          "id": "light_alloy",
+          "label_key": "material.alloy",
+          "value": 15
+        },
+        {
+          "id": "coated_steel",
+          "label_key": "material.steel",
+          "value": -10
+        }
+      ]
+    },
+    {
+      "id": "batch_id",
+      "category": "special",
+      "effect": "none",
+      "candidates": [
+        {
+          "id": "series_early",
+          "label_key": "batch.early",
+          "value": null
+        },
+        {
+          "id": "series_late",
+          "label_key": "batch.late",
+          "value": null
+        },
+        {
+          "id": "series_rebuilt",
+          "label_key": "batch.rebuilt",
+          "value": null
+        }
+      ]
+    }
+  ]
+}

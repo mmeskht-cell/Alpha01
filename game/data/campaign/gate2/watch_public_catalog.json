@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "def_id": "fictional_watch_p2",
+  "currency": "VKC",
+  "source_key": "p2.watch.source",
+  "slots": [
+    {
+      "id": "model_id",
+      "category": "identification",
+      "effect": "base",
+      "candidates": [
+        {
+          "id": "meridian_12",
+          "label_key": "p2.watch.meridian12",
+          "value": 120
+        },
+        {
+          "id": "meridian_12a",
+          "label_key": "p2.watch.meridian12a",
+          "value": 180
+        }
+      ]
+    },
+    {
+      "id": "appearance_id",
+      "category": "appearance",
+      "effect": "percent",
+      "candidates": [
+        {
+          "id": "light_wear",
+          "label_key": "catalog.radio.wear.light",
+          "value": 100
+        },
+        {
+          "id": "visible_wear",
+          "label_key": "catalog.radio.wear.visible",
+          "value": 80
+        },
+        {
+          "id": "heavy_wear",
+          "label_key": "catalog.radio.wear.heavy",
+          "value": 60
+        }
+      ]
+    },
+    {
+      "id": "material_id",
+      "category": "material",
+      "effect": "delta",
+      "candidates": [
+        {
+          "id": "standard_case",
+          "label_key": "p2.watch.standard_case",
+          "value": 0
+        },
+        {
+          "id": "decorative_case",
+          "label_key": "p2.watch.decorative_case",
+          "value": 20
+        }
+      ]
+    },
+    {
+      "id": "function_id",
+      "category": "function",
+      "effect": "none",
+      "candidates": [
+        {
+          "id": "serviceable",
+          "label_key": "p2.watch.running",
+          "value": null
+        },
+        {
+          "id": "inoperable",
+          "label_key": "p2.watch.stopped",
+          "value": null
+        }
+      ]
+    },
+    {
+      "id": "mark_id",
+      "category": "special",
+      "effect": "none",
+      "candidates": [
+        {
+          "id": "ordinary_mark",
+          "label_key": "p2.watch.ordinary_mark",
+          "value": null
+        },
+        {
+          "id": "commemorative_mark",
+          "label_key": "p2.watch.commemorative_mark",
+          "value": null
+        }
+      ]
+    }
+  ]
+}

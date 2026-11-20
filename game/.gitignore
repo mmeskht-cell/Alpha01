@@ -1,0 +1,18 @@
+.godot/
+builds/
+*.apk
+*.aab
+*.keystore
+*.jks
+export_credentials.cfg
+.android/
+local.properties
+.env*
+
+/assets/fonts/NotoSansCJKkr-Regular.otf
+/assets/fonts/NotoSansCJKkr-Regular.otf.import
+/assets/fonts/NotoSansCJKkr-Regular.otf.tmp
+
+# Deterministic authored score outputs (regenerated before import).
+assets/audio/generated/
+__pycache__/

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="384" height="200" viewBox="0 0 384 200" shape-rendering="crispEdges">
+<!-- Provisional WAT02 front silhouette. No model stamp, material proof, or running-status assertion. -->
+<path d="M29 74H355V126H29Z" fill="#1d2424"/><path d="M34 79H350V121H34Z" fill="#71624f"/>
+<path d="M42 83H342V117H42Z" fill="#8a7960"/><path d="M45 90H339V110H45Z" fill="#5a4e40"/>
+<path d="M53 83V89M64 83V89M76 83V89M88 83V89M100 83V89M280 111V117M292 111V117M304 111V117M316 111V117M328 111V117" stroke="#a89578" stroke-width="2"/>
+<path d="M126 43H242V157H126Z" fill="#3b4440"/><path d="M119 49H249V151H119Z" fill="#8e907d"/>
+<path d="M122 54H246V146H122Z" fill="#b6ac91"/><path d="M127 58H241V142H127Z" fill="#757d72"/>
+<circle cx="184" cy="100" r="55" fill="#4f5953"/><circle cx="184" cy="100" r="53" fill="#c1b79c"/><circle cx="184" cy="100" r="46" fill="#313e3b"/>
+<circle cx="184" cy="100" r="43" fill="#3c4943"/>
+<path d="M184 60V69M184 131V140M144 100H153M215 100H224M155 71L162 78M205 122L212 129M212 71L205 78M162 122L155 129" fill="none" stroke="#c4bba2" stroke-width="3"/>
+<path d="M184 100L169 81M184 100L208 92" stroke="#d0c4a6" stroke-width="3"/><circle cx="184" cy="100" r="4" fill="#c2b89d"/>
+<!-- Visible abrasions on glass and bezel; fixed illustration rather than measurement or hidden reading. -->
+<path d="M151 81H161V82H154V84H148V86H145M198 115H211V116H205V118H200V120H195M167 132H176V134H167" fill="none" stroke="#a0a797" stroke-width="1"/>
+<path d="M139 52H153V54H139ZM124 106H126V118H124ZM221 143H233V145H221Z" fill="#d0c2a6"/>
+<path d="M249 90H268V93H272V107H268V110H249Z" fill="#5b655b"/><path d="M252 93H267V96H252ZM252 103H267V106H252Z" fill="#a8aa92"/>
+<path d="M53 112H93V113H53ZM293 87H331V88H293Z" fill="#b3a083"/>
+</svg>

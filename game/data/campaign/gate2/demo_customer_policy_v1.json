@@ -1,0 +1,88 @@
+{
+  "version": "demo7-integrated-3",
+  "beats": {
+    "watch_a": {
+      "appearance_id": {
+        "id": "a_wear_claim",
+        "candidate_id": "light_wear",
+        "label_key": "catalog.radio.wear.light",
+        "basis": "seller_recollection"
+      },
+      "model_id": {
+        "id": "a_model_claim",
+        "candidate_id": "meridian_12a",
+        "label_key": "p2.watch.meridian12a",
+        "basis": "seller_recollection"
+      }
+    },
+    "watch_b": {
+      "appearance_id": {
+        "id": "b_wear_claim",
+        "candidate_id": "visible_wear",
+        "label_key": "catalog.radio.wear.visible",
+        "basis": "seller_recollection"
+      },
+      "model_id": {
+        "id": "b_model_claim",
+        "candidate_id": "meridian_12",
+        "label_key": "p2.watch.meridian12",
+        "basis": "seller_recollection"
+      }
+    }
+  },
+  "radio_beats": {
+    "visit_g01": {
+      "appearance_id": {
+        "id": "g01_wear",
+        "candidate_id": "light_wear",
+        "label_key": "catalog.radio.wear.light",
+        "basis": "seller_recollection"
+      },
+      "model_id": {
+        "id": "g01_model",
+        "candidate_id": "selvar_r18",
+        "label_key": "catalog.radio.r18.name",
+        "basis": "seller_recollection"
+      }
+    },
+    "radio3_buy": {
+      "appearance_id": {
+        "id": "g10_wear",
+        "candidate_id": "visible_wear",
+        "label_key": "catalog.radio.wear.visible",
+        "basis": "seller_recollection"
+      }
+    },
+    "radio_return": {
+      "appearance_id": {
+        "id": "g02_return_wear",
+        "candidate_id": "visible_wear",
+        "label_key": "catalog.radio.wear.visible",
+        "basis": "seller_recollection"
+      }
+    }
+  },
+  "terms": {
+    "visit_g01": {
+      "ask": 125,
+      "floor": 110,
+      "discount": 10
+    },
+    "watch_a": {
+      "ask": 95,
+      "floor": 80,
+      "discount": 5
+    },
+    "radio3_buy": {
+      "ask": 50,
+      "floor": 40,
+      "discount": 5
+    },
+    "radio_return": {
+      "ask": 110,
+      "floor": 95,
+      "discount": 5
+    }
+  },
+  "wear_policy": "public-index-v1"
+}

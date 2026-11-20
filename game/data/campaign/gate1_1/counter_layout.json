@@ -1,0 +1,141 @@
+{
+  "art_status": "placeholder",
+  "anchors": {
+    "door": [
+      0.025,
+      0.12,
+      0.16,
+      0.08
+    ],
+    "customer": [
+      0.38,
+      0.1,
+      0.28,
+      0.32
+    ],
+    "radio": [
+      0.39,
+      0.61,
+      0.25,
+      0.22
+    ],
+    "wear_tool": [
+      0.19,
+      0.77,
+      0.15,
+      0.1
+    ],
+    "casing_tool": [
+      0.68,
+      0.76,
+      0.15,
+      0.1
+    ],
+    "catalog": [
+      0.025,
+      0.21,
+      0.16,
+      0.08
+    ],
+    "slip": [
+      0.025,
+      0.295,
+      0.16,
+      0.065
+    ],
+    "contract": [
+      0.81,
+      0.12,
+      0.165,
+      0.08
+    ],
+    "offer": [
+      0.81,
+      0.21,
+      0.165,
+      0.08
+    ],
+    "dialogue": [
+      0.205,
+      0.09,
+      0.59,
+      0.1
+    ],
+    "status": [
+      0.025,
+      0.015,
+      0.78,
+      0.065
+    ],
+    "language": [
+      0.83,
+      0.015,
+      0.14,
+      0.065
+    ],
+    "feedback": [
+      0.025,
+      0.94,
+      0.95,
+      0.055
+    ],
+    "overlay": [
+      0.13,
+      0.13,
+      0.74,
+      0.75
+    ],
+    "workbench": [
+      0.02,
+      0.28,
+      0.96,
+      0.435
+    ],
+    "cards": [
+      0.025,
+      0.715,
+      0.95,
+      0.22
+    ],
+    "evidence_strip": [
+      0.205,
+      0.185,
+      0.59,
+      0.095
+    ],
+    "deck_target": [
+      0.36,
+      0.47,
+      0.28,
+      0.16
+    ],
+    "deck_history": [
+      0.68,
+      0.32,
+      0.295,
+      0.38
+    ],
+    "counter_offer": [
+      0.025,
+      0.385,
+      0.3,
+      0.315
+    ]
+  },
+  "palette": {
+    "wall": "#464941",
+    "window": "#737e76",
+    "wood": "#554238",
+    "mat": "#242c29",
+    "figure": "#5b5f54",
+    "radio": "#72796d",
+    "paper": "#b8aa88"
+  },
+  "render_keys": {
+    "background": "placeholder_counter_wall",
+    "customer": "placeholder_g01",
+    "radio": "placeholder_radio_r001",
+    "tools": "placeholder_tools",
+    "documents": "placeholder_paper"
+  }
+}

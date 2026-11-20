@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "kind": "gate2a_candidate",
+  "initial_effect_until": 2880,
+  "initial_doses": 1,
+  "duration": 4320,
+  "contracts": [
+    {
+      "id": "C1",
+      "offer_minute": 0,
+      "currency": "VKC",
+      "tranches": [
+        {
+          "id": "RAD01",
+          "amount": 300,
+          "due_minute": 4920,
+          "delivery_minute": 6360,
+          "use_minute": 7200
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "offer_minute": 8640,
+      "currency": "VKC",
+      "tranches": [
+        {
+          "id": "RAD02",
+          "amount": 330,
+          "due_minute": 10680,
+          "delivery_minute": 10680,
+          "use_minute": 11520
+        }
+      ]
+    },
+    {
+      "id": "C3",
+      "offer_minute": 11520,
+      "currency": "VKC",
+      "tranches": [
+        {
+          "id": "RAD03",
+          "amount": 360,
+          "due_minute": 15000,
+          "delivery_minute": 15000,
+          "use_minute": 15840
+        },
+        {
+          "id": "RAD04",
+          "amount": 360,
+          "due_minute": 19320,
+          "delivery_minute": 19320,
+          "use_minute": 20160
+        }
+      ]
+    },
+    {
+      "id": "C4",
+      "offer_minute": 20160,
+      "currency": "VKC",
+      "tranches": [
+        {
+          "id": "RAD05",
+          "amount": 420,
+          "due_minute": 23640,
+          "delivery_minute": 23640,
+          "use_minute": 24480
+        },
+        {
+          "id": "RAD06",
+          "amount": 420,
+          "due_minute": 27960,
+          "delivery_minute": 27960,
+          "use_minute": 28800
+        }
+      ]
+    },
+    {
+      "id": "C5",
+      "offer_minute": 30240,
+      "currency": "USD",
+      "tranches": [
+        {
+          "id": "RAD07",
+          "amount": 45,
+          "due_minute": 32280,
+          "delivery_minute": 32280,
+          "use_minute": 33120
+        },
+        {
+          "id": "RAD08",
+          "amount": 45,
+          "due_minute": 36600,
+          "delivery_minute": 36600,
+          "use_minute": 37440
+        }
+      ]
+    },
+    {
+      "id": "C6",
+      "offer_minute": 37440,
+      "currency": "USD",
+      "tranches": [
+        {
+          "id": "RAD09",
+          "amount": 50,
+          "due_minute": 40920,
+          "delivery_minute": 40920,
+          "use_minute": 41760
+        },
+        {
+          "id": "RAD10",
+          "amount": 50,
+          "due_minute": 45240,
+          "delivery_minute": 45240,
+          "use_minute": 46080
+        },
+        {
+          "id": "RAD11",
+          "amount": 50,
+          "due_minute": 49560,
+          "delivery_minute": 49560,
+          "use_minute": 50400
+        }
+      ]
+    },
+    {
+      "id": "C7",
+      "offer_minute": 50400,
+      "currency": "USD",
+      "tranches": [
+        {
+          "id": "RAD12",
+          "amount": 55,
+          "due_minute": 53880,
+          "delivery_minute": 53880,
+          "use_minute": 54720
+        },
+        {
+          "id": "RAD13",
+          "amount": 55,
+          "due_minute": 58200,
+          "delivery_minute": 58200,
+          "use_minute": 59040
+        }
+      ]
+    }
+  ]
+}

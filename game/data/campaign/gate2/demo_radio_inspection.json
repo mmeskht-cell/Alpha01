@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "profiles": {
+    "portable_radio": {
+      "tools": [
+        {
+          "id": "wear_detail",
+          "target": "visible_wear_detail",
+          "minutes": 5,
+          "evidence_id": "R001.wear",
+          "text_key": "day1.radio.wear",
+          "reading_kind": "damage_index"
+        },
+        {
+          "id": "casing_detail",
+          "target": "additional_casing_evidence",
+          "minutes": 10,
+          "evidence_id": "R001.casing_detail",
+          "text_key": "day1.radio.casing_detail",
+          "reading_kind": "side_mark"
+        },
+        {
+          "id": "material_detail",
+          "target": "shell_material_sample",
+          "minutes": 5,
+          "evidence_id": "R001.material",
+          "text_key": "day1.radio.material_sample",
+          "reading_kind": "texture"
+        },
+        {
+          "id": "batch_detail",
+          "target": "batch_stamp_sample",
+          "minutes": 5,
+          "evidence_id": "R001.batch",
+          "text_key": "day1.radio.batch_sample",
+          "reading_kind": "batch_code"
+        },
+        {
+          "id": "function_detail",
+          "target": "whole_function_sample",
+          "minutes": 5,
+          "evidence_id": "R001.function",
+          "text_key": "day1.radio.function_sample",
+          "reading_kind": "function_status"
+        },
+        {
+          "id": "display_damage_detail",
+          "target": "display_damage_sample",
+          "minutes": 5,
+          "evidence_id": "R001.display_damage",
+          "text_key": "day1.radio.display_damage",
+          "reading_kind": "damage_index"
+        }
+      ]
+    }
+  },
+  "specimens": {
+    "R001": {
+      "def_id": "portable_radio",
+      "provenance": "demo_R001",
+      "readings": {
+        "wear_detail": 43,
+        "casing_detail": "— ? —",
+        "material_detail": "parallel",
+        "batch_detail": "K-7",
+        "display_damage_detail": 12,
+        "function_detail": "serviceable"
+      }
+    },
+    "R003": {
+      "def_id": "portable_radio",
+      "provenance": "demo_R003",
+      "readings": {
+        "wear_detail": 70,
+        "casing_detail": "R-18",
+        "material_detail": "cross",
+        "batch_detail": "K-2",
+        "display_damage_detail": 34,
+        "function_detail": "serviceable"
+      }
+    }
+  }
+}

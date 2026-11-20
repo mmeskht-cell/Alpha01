@@ -1,0 +1,61 @@
+{
+  "prep_version": 1,
+  "scope": "gate_1_1_public_catalog_fixture",
+  "game_design_sha": "4b73887e0832a6a4d1992c1227e6684e21273d37",
+  "notes": [
+    "Public catalog candidates only. No matching truth, answer key, price floor, observed evidence or automatic selection.",
+    "Fictional brands/model features and provisional reference values. Not real-world price information.",
+    "Player may choose either model and any appearance modifier, or leave fields unknown."
+  ],
+  "currency": "VKC",
+  "model_candidates": [
+    {
+      "id": "selvar_r18",
+      "name_key": "catalog.radio.r18.name",
+      "description_key": "catalog.radio.r18.description",
+      "reference_amount": 200,
+      "render_key": "placeholder_radio_r18"
+    },
+    {
+      "id": "selvar_r18s",
+      "name_key": "catalog.radio.r18s.name",
+      "description_key": "catalog.radio.r18s.description",
+      "reference_amount": 240,
+      "render_key": "placeholder_radio_r18s"
+    }
+  ],
+  "appearance_candidates": [
+    {
+      "id": "light_wear",
+      "label_key": "catalog.radio.wear.light",
+      "factor_percent": 100
+    },
+    {
+      "id": "visible_wear",
+      "label_key": "catalog.radio.wear.visible",
+      "factor_percent": 80
+    },
+    {
+      "id": "heavy_wear",
+      "label_key": "catalog.radio.wear.heavy",
+      "factor_percent": 60
+    }
+  ],
+  "interpretation": {
+    "manual_model_selection": true,
+    "manual_appearance_selection": true,
+    "default_model": null,
+    "default_appearance": null,
+    "estimate_function": "reference_preview",
+    "always_partial": true,
+    "function_status": "unknown_until_observed",
+    "show_correctness": false,
+    "appearance_factor_applied_once": true
+  },
+  "source": {
+    "label_key": "catalog.radio.reference_source",
+    "as_of": "2032-10-28",
+    "source_kind": "fictional_local_reference",
+    "sample_count": null
+  }
+}

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="100" viewBox="0 0 192 100" shape-rendering="crispEdges">
+<!-- Provisional fictional R003 outward appearance. Unreadable detail, no actual identification or test result. -->
+<path d="M54 5H138V14H131V10H61V14H54Z" fill="#232c2b"/>
+<path d="M57 5H135V8H57Z" fill="#8c8f7f"/>
+<path d="M5 17H187V93H5Z" fill="#252c29"/>
+<path d="M1 22H5V87H1ZM187 22H191V87H187Z" fill="#40483f"/>
+<path d="M8 18H184V90H8Z" fill="#73796b"/>
+<path d="M9 19H183V23H9Z" fill="#a09f8b"/>
+<path d="M9 86H183V90H9Z" fill="#41493f"/>
+<path d="M12 27H49V71H12Z" fill="#818374"/>
+<path d="M13 28H48V31H13Z" fill="#929280"/>
+<path d="M51 26H132V73H51Z" fill="#252e2a"/>
+<path d="M54 29H129V70H54Z" fill="#4c564b"/>
+<path d="M57 32H126V34H57Z" fill="#262f2c"/><path d="M57 34H126V35H57Z" fill="#777f6d"/>
+<path d="M57 37H126V39H57Z" fill="#262f2c"/><path d="M57 39H126V40H57Z" fill="#777f6d"/>
+<path d="M57 42H126V44H57Z" fill="#262f2c"/><path d="M57 44H126V45H57Z" fill="#777f6d"/>
+<path d="M57 47H126V49H57Z" fill="#262f2c"/><path d="M57 49H126V50H57Z" fill="#777f6d"/>
+<path d="M57 52H126V54H57Z" fill="#262f2c"/><path d="M57 54H126V55H57Z" fill="#777f6d"/>
+<path d="M57 57H126V59H57Z" fill="#262f2c"/><path d="M57 59H126V60H57Z" fill="#777f6d"/>
+<path d="M57 62H126V64H57Z" fill="#262f2c"/><path d="M57 64H126V65H57Z" fill="#777f6d"/>
+<path d="M140 25H181V46H140Z" fill="#222c2a"/><path d="M143 28H178V43H143Z" fill="#847d64"/>
+<path d="M144 29H177V31H144Z" fill="#a79d7e"/>
+<path d="M147 34H151V38H147ZM155 34H159V38H155ZM166 34H171V38H166Z" fill="#50544a"/>
+<path d="M144 40L151 36H157L160 34M170 39L175 34" fill="none" stroke="#b6ac91" stroke-width="1"/>
+<path d="M139 50H181V83H139Z" fill="#424d45"/>
+<path d="M150 53H169V56H173V73H169V77H150V74H146V56H150Z" fill="#26312d"/>
+<path d="M151 56H168V59H171V70H168V74H151V71H148V59H151Z" fill="#53645b"/>
+<path d="M159 57H161V64H159Z" fill="#b5b49d"/>
+<path d="M13 76H131V84H13Z" fill="#677063"/>
+<!-- Irregular visible chips and abrasions, not a coded wear grade or legible mark. -->
+<path d="M12 77H20V79H17V82H13ZM25 81H37V83H27ZM43 77H58V79H48V81H43ZM64 84H80V86H64ZM85 77H89V80H99V82H86ZM105 80H121V82H105ZM122 85H131V87H122Z" fill="#b4afa0"/>
+<path d="M16 18H38V20H16ZM8 40H10V56H8ZM51 72H62V74H51ZM181 24H184V39H181ZM172 83H183V86H172Z" fill="#b0aa96"/>
+<path d="M19 34H27V35H19ZM33 42H41V43H33ZM16 54H24V56H16ZM38 62H46V64H38ZM29 67H36V68H29Z" fill="#aaa692"/>
+<path d="M3 92H189V95H3Z" fill="#1b2423"/>
+</svg>

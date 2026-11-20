@@ -1,0 +1,110 @@
+{
+  "content_version": "0.1.0",
+  "definitions": [
+    {
+      "def_id": "civil_receiver",
+      "category": "civilian_electronics",
+      "localization_key": "item.civil_receiver",
+      "render_key": "placeholder_none",
+      "width": 3,
+      "height": 2,
+      "kind": "composite",
+      "weight": 2,
+      "tag": "civil_receiver",
+      "required_tags": [
+        "civil_module_a",
+        "civil_module_b",
+        "civil_module_c"
+      ],
+      "footprints": {
+        "0": [
+          2,
+          1
+        ],
+        "1": [
+          2,
+          1
+        ],
+        "2": [
+          2,
+          2
+        ],
+        "3": [
+          3,
+          2
+        ]
+      },
+      "inside": {},
+      "recombine": true,
+      "restorable": true,
+      "observation_minutes": 1,
+      "restore_cost": {
+        "VKC": 5,
+        "USD": 0
+      }
+    },
+    {
+      "def_id": "civil_module_a",
+      "category": "civilian_electronics",
+      "localization_key": "item.civil_module_a",
+      "render_key": "placeholder_none",
+      "width": 1,
+      "height": 1,
+      "kind": "atomic",
+      "weight": 3,
+      "tag": "civil_module_a",
+      "required_tags": [],
+      "footprints": {},
+      "inside": {},
+      "recombine": false,
+      "restorable": false,
+      "observation_minutes": 1,
+      "restore_cost": {
+        "VKC": 0,
+        "USD": 0
+      }
+    },
+    {
+      "def_id": "civil_module_b",
+      "category": "civilian_electronics",
+      "localization_key": "item.civil_module_b",
+      "render_key": "placeholder_none",
+      "width": 1,
+      "height": 1,
+      "kind": "atomic",
+      "weight": 1,
+      "tag": "civil_module_b",
+      "required_tags": [],
+      "footprints": {},
+      "inside": {},
+      "recombine": false,
+      "restorable": false,
+      "observation_minutes": 1,
+      "restore_cost": {
+        "VKC": 0,
+        "USD": 0
+      }
+    },
+    {
+      "def_id": "civil_module_c",
+      "category": "civilian_electronics",
+      "localization_key": "item.civil_module_c",
+      "render_key": "placeholder_none",
+      "width": 1,
+      "height": 1,
+      "kind": "atomic",
+      "weight": 1,
+      "tag": "civil_module_c",
+      "required_tags": [],
+      "footprints": {},
+      "inside": {},
+      "recombine": false,
+      "restorable": false,
+      "observation_minutes": 1,
+      "restore_cost": {
+        "VKC": 0,
+        "USD": 0
+      }
+    }
+  ]
+}

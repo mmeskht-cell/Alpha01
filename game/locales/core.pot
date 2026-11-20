@@ -1,0 +1,3949 @@
+# Stable keys; use ko/core.po for meaning, comments and placeholders.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+
+#. Named arguments: none; plain text.
+msgid "app.ready"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "item.fixture_parcel"
+msgstr ""
+
+#. Named arguments: amount, currency; plain text.
+msgid "wallet.balance"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "error.save"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "item.portable_radio"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "item.fictional_gear"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "item.abstract_module_a"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "item.abstract_module_b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "item.battery"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "item.canned_food"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "item.watch"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "item.rad1"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "day1.marcus.offer"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "day1.g01.offer"
+msgstr ""
+
+#. Named arguments: amount; plain text.
+msgid "day1.g01.counter"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "day1.g01.accept"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "day1.g01.reject"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "day1.g02.inquiry"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "day1.radio.wear"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "day1.radio.unknown"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.counter"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.inspect"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.catalog"
+msgstr ""
+
+#. Named arguments: amount, currency; plain text.
+msgid "ui.reference_partial"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.offer"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.submit_evidence"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.accept_trade"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.decline"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.contract_accept"
+msgstr ""
+
+#. Named arguments: amount, currency; plain text.
+msgid "ui.contract_pending"
+msgstr ""
+
+#. Named arguments: hours; plain text.
+msgid "ui.rad1_remaining"
+msgstr ""
+
+#. Named arguments: count; plain text.
+msgid "ui.rad1_doses"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.trade_saved"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.trade_unsaved"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.trade_failed"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.insufficient_funds"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.no_space"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.offer_pending"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.contract_reserved"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.day1_slice_end"
+msgstr ""
+
+#. Named arguments: minutes; plain text.
+msgid "ui.business_remaining"
+msgstr ""
+
+#. Named arguments: minutes; plain text.
+msgid "ui.inspection_duration"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.next_customer"
+msgstr ""
+
+#. Named arguments: count; plain text.
+msgid "ui.customers_remaining"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.inspection_time_short"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.closing_final_decision"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.compare_reference"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.record_attribute"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.player_estimate"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.observed_fact"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.unconfirmed"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "day1.g02.service_inquiry"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "catalog.radio.r18.name"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "catalog.radio.r18.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "catalog.radio.r18s.name"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "catalog.radio.r18s.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "catalog.radio.wear.light"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "catalog.radio.wear.visible"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "catalog.radio.wear.heavy"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "catalog.radio.reference_source"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "day1.radio.visible_shape"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "day1.radio.casing_detail"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.reference_unselected"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.reference_not_offer"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.observation_review"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "day1.g01.wear_response"
+msgstr ""
+
+#. Named arguments: day, time; plain text.
+msgid "ui.clock"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.door"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.contract_document"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.appraisal_document"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.wear_tool"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.casing_tool"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.wear_target"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.casing_target"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.close_document"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.offer_amount"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.no_evidence"
+msgstr ""
+
+#. Named arguments: count; plain text.
+msgid "ui.offers_left"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.action_failed"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.action_saved"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.load_save_failed"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.retry_save"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.language"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.counter_empty"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.visit_declined"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.offer_duplicate"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.tool_selected"
+msgstr ""
+
+#. Named arguments: amount, response; plain text.
+msgid "ui.price_history"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.record_selection"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.purchase_placement"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.dev_counter"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.inspection_bench"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.tool_tray"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.view_front"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.view_right"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.view_back"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.view_left"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.scan_hint"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.scan_incomplete"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.scan_unavailable"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.tool_ready"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.keyboard_scan_hint"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.zoom_in"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.zoom_out"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.preview_session"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.model_cards"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.condition_cards"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.material_tool"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.batch_tool"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.compare_pattern"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.material_cards"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.batch_cards"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.damage_guide"
+msgstr ""
+
+#. Named arguments: amount; plain text.
+msgid "ui.material_adjustment"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "material.polymer"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "material.polymer.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "material.alloy"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "material.alloy.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "material.steel"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "material.steel.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "batch.early"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "batch.early.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "batch.late"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "batch.late.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "batch.rebuilt"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "batch.rebuilt.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "day1.radio.material_sample"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "day1.radio.batch_sample"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.title"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.evening"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.instructions"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.shell"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.board"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.speaker"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.antenna"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.attached"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.whole_catalog"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.detach_tray"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.function_tool"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.pattern_pore"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.pattern_parallel"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.pattern_cross"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.working"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.faulty"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.stale"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.detach_first"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.repair"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.attach"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.component_reference"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.series_guide"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.recovery"
+msgstr ""
+
+#. Named arguments: count; plain text.
+msgid "component.unknown_count"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.exclusive"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.region_shell"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.region_panel"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.region_controls"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.region_primary"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.region_speaker"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.region_antenna"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.visible_only"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.tool_not_applicable"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "day1.radio.function_sample"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "day1.radio.function_serviceable"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "day1.radio.function_inoperable"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "day1.radio.display_damage"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.title"
+msgstr ""
+
+#. Named arguments: minutes; plain text.
+msgid "consent.elapsed"
+msgstr ""
+
+#. Named arguments: amount; plain text.
+msgid "consent.price"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.policy_cooperative"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.policy_reserved"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.status_waiting"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.status_open"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.status_closed"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.status_refused"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.status_bought"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.status_declined"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.status_closing"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.status_expired"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.request"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.close"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.buy"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.decline"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.wait"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.evening"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.scope"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.instructions"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.read_time"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.partial"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "consent.retained_notes"
+msgstr ""
+
+#. Named arguments: used, limit; plain text.
+msgid "component.save_usage"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.save_warning"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.acquired_appraisal"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.begin"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.management"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.phase_shop"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.phase_evening"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.phase_morning"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.stock"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.display"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.grid_hint"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.rotate"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.rotate_on"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.rotate_off"
+msgstr ""
+
+#. Named arguments: basis, item; plain text.
+msgid "dayone.stock_line"
+msgstr ""
+
+#. Named arguments: price; plain text.
+msgid "dayone.retail_terms"
+msgstr ""
+
+#. Named arguments: price; plain text.
+msgid "dayone.retail"
+msgstr ""
+
+#. Named arguments: price; plain text.
+msgid "dayone.wholesale"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.retail_active"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.service_offer"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.accept_service"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.decline"
+msgstr ""
+
+#. Named arguments: cost, remaining; plain text.
+msgid "dayone.closing_warning"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.close"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.service_offered"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.service_accepted"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.service_complete"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.service_delivered"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.service_declined"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.service_cancelled"
+msgstr ""
+
+#. Named arguments: cost, fee; plain text.
+msgid "dayone.service_terms"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.surface_tool"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.surface_hint"
+msgstr ""
+
+#. Named arguments: cost; plain text.
+msgid "dayone.commit_work"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.prepare_accessible"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.cancel_service"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.morning"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.deliver"
+msgstr ""
+
+#. Named arguments: price; plain text.
+msgid "dayone.recovery"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.pay_overhead"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.slice_end"
+msgstr ""
+
+#. Named arguments: debt, paid; plain text.
+msgid "dayone.overhead_record"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.ledger"
+msgstr ""
+
+#. Named arguments: amount, item; plain text.
+msgid "dayone.ledger_sale"
+msgstr ""
+
+#. Named arguments: amount, item; plain text.
+msgid "dayone.ledger_purchase"
+msgstr ""
+
+#. Named arguments: margin; plain text.
+msgid "dayone.margin"
+msgstr ""
+
+#. Named arguments: amount; plain text.
+msgid "dayone.settlement_service_cost"
+msgstr ""
+
+#. Named arguments: amount; plain text.
+msgid "dayone.settlement_overhead"
+msgstr ""
+
+#. Named arguments: amount; plain text.
+msgid "dayone.settlement_service_fee"
+msgstr ""
+
+#. Named arguments: amount; plain text.
+msgid "dayone.settlement_overhead_debt"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.news_source"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.news_opening"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.market_prepare"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.market_terms"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.market_title"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.market_sell"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "component.market_done"
+msgstr ""
+
+#. Named arguments: margin; plain text.
+msgid "component.market_margin"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.rotate_commit"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "lineage.open"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "lineage.empty"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "lineage.purchase"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "lineage.sale"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "lineage.group_price"
+msgstr ""
+
+#. Named arguments: day, time, direction, price; plain text.
+msgid "lineage.row"
+msgstr ""
+
+#. Named arguments: count; plain text.
+msgid "lineage.older"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "lineage.unknown"
+msgstr ""
+
+#. Named arguments: percent; plain text.
+msgid "ui.document_scale"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.tool_guide"
+msgstr ""
+
+#. Named arguments: minutes; plain text.
+msgid "ui.tool_cost"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.feedback_settings"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.feedback_settings_hint"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.sound_on"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.sound_off"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.motion_on"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.motion_off"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "pilot.title"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "pilot.offer"
+msgstr ""
+
+#. Named arguments: part, region, tool; plain text.
+msgid "pilot.inspect"
+msgstr ""
+
+#. Named arguments: part; plain text.
+msgid "pilot.detach"
+msgstr ""
+
+#. Named arguments: part; plain text.
+msgid "pilot.attach"
+msgstr ""
+
+#. Named arguments: part, cost; plain text.
+msgid "pilot.restore"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.tab_counter"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.tab_stock"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.tab_workshop"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.tab_ledger"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.stock_evening_hint"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.select_stock"
+msgstr ""
+
+#. Named arguments: item, basis, location; plain text.
+msgid "dayone.stock_detail"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.quick_display"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.quick_stock"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "dayone.clear_selection"
+msgstr ""
+
+#. Named arguments: channel, percent; plain text.
+msgid "ui.audio_level"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.audio_ambience"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.audio_sfx"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.audio_ui"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.audio_music"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.preferences_save_failed"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.page_previous"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.page_next"
+msgstr ""
+
+#. Named arguments: first, last, total; plain text.
+msgid "ui.page_range"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.drop_hint"
+msgstr ""
+
+#. Named arguments: value; plain text.
+msgid "appraisal.card_model_id"
+msgstr ""
+
+#. Named arguments: value; plain text.
+msgid "appraisal.card_appearance_id"
+msgstr ""
+
+#. Named arguments: value; plain text.
+msgid "appraisal.card_material_id"
+msgstr ""
+
+#. Named arguments: value; plain text.
+msgid "appraisal.card_batch_id"
+msgstr ""
+
+#. Named arguments: value; plain text.
+msgid "appraisal.card_clear"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.customer_model_id"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.customer_appearance_id"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.customer_material_id"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.customer_batch_id"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.customer_clear"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.links_heading"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.argument_heading"
+msgstr ""
+
+#. Named arguments: value, count; plain text.
+msgid "appraisal.argument_prepare"
+msgstr ""
+
+#. Named arguments: value; plain text.
+msgid "appraisal.argument_prepared"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.look_up"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.look_down"
+msgstr ""
+
+#. Named arguments: value; plain text.
+msgid "appraisal.deck_present"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.deck_remove"
+msgstr ""
+
+#. Named arguments: value; plain text.
+msgid "appraisal.deck_spoken"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.deck_basis"
+msgstr ""
+
+#. Named arguments: value; plain text.
+msgid "appraisal.deck_ready"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.deck_target"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.deck_history"
+msgstr ""
+
+#. Named arguments: value; plain text.
+msgid "appraisal.deck_statement"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.deck_reply_model_id"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.deck_reply_appearance_id"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.deck_reply_material_id"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.deck_reply_batch_id"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.deck_customer_claim"
+msgstr ""
+
+#. Named arguments: count; plain text.
+msgid "appraisal.counter_basis"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.counter_propose"
+msgstr ""
+
+#. Named arguments: amount; plain text.
+msgid "appraisal.counter_confirm"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "appraisal.customer_unconfirmed"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.source"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.meridian12"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.meridian12a"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.standard_case"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.decorative_case"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.running"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.stopped"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.ordinary_mark"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.commemorative_mark"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.obs_wear"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.obs_mark"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.obs_texture"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.obs_function"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.fact.surface"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.fact.mark"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.fact.texture"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.fact.batch"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.fact.function"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.fact.display"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.fact.unknown"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.value.parallel"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.value.cross"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.value.serviceable"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.value.inoperable"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.value.unreadable"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.value.yes"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.value.no"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.value.unknown"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.price.previous"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.price.accepted"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.price.rejected"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.price.basis"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.title"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.sell"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.no_offer"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.hold"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.recover"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.recover_empty"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.restore"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.no_restore"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.restore_unavailable"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.restore_available"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.basis"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.recovered_basis"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.unknown_demand"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.opportunity"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.not_revenue"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.quote_only"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.basic.open"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.basic.function"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.basic.source"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.basic.working"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.basic.not_working"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "item.civil_receiver"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "item.civil_module_a"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "item.civil_module_b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "item.civil_module_c"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "item.demo_tool"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "item.demo_hygiene"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "item.demo_electronics"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "settings.pack.title"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "settings.pack.instructions"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "settings.pack.apply"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "settings.pack.clear"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "settings.pack.cancel"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "settings.pack.invalid"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "settings.pack.applied"
+msgstr ""
+
+#. Named arguments: locale; plain text.
+msgid "settings.pack.current"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.preferences_could_not_be_saved_c2ce093d"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.could_not_open_slot_f5e11150"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.new_session_c88df2bc"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.saved_session_resumed_cf6fd88a"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.stock_bf0ad62f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.customer_custody_78fdebe1"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.owned_cff2f00c"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.custody_a1f910"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.completed_12ead41e"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.unavailable_e8505c55"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.save_failed_retry_before_continuing_21aa1c01"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.composite_candidate_5191b827"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.day_b165382f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.recovered_from_the_previous_valid_save_1e032a02"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.save_load_error_f5af17cd"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.retry_save_d398bfc9"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.1_november_2032_alexei_barin_38_reopens_his_2c15303e"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.open_the_shutters_8ede7ece"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.skip_prologue_3df4eed3"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.first_week_complete_the_story_continues_1cec1dd2"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.final_cash_d06a92e9"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.this_is_the_demo_boundary_not_a_campaign_en_5fa73f01"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.pending_pickup_11905ce0"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.kravensk_shop_in_the_sealed_city_6919897b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.sora_are_you_open_i_sent_someone_your_way_fbc8270b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.ian_you_ll_be_all_right_for_a_few_days_but__6be4d982"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.sora_more_people_are_looking_for_winter_sup_86c1ac8d"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.marcus_payment_reserves_the_supply_you_do_n_403b17a0"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.remaining_visits_a65bf86a"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.overdue_overhead_37570c25"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.pay_overhead_23660013"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.next_customer_fd07c070"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.no_confirmed_offer_8858b07c"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.g01_do_you_buy_things_here_682d8d4f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.g02_i_bought_this_radio_here_before_it_is_n_512d34fd"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.buy_d5fd742c"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.sell_cece1123"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.service_c8fa625f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.accept_service_ad106ab3"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.return_and_collect_fee_9378214b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.return_unpaid_460b2b55"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.decline_visit_1b22e3e3"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.close_shop_59b1e7c1"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.closing_settlement_overhead_15_vkc_first_du_4c4e9312"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.available_after_overhead_aeaaaa7e"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.pay_due_contracts_close_cdf3db4"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.confirm_default_release_reservation_3e38b308"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.evening_workshop_89b959a5"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.restore_b51f11f2"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.next_morning_296e989c"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.due_d_a10934de"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.delivery_d_51fb0b93"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.accept_marcus_s_offer_db96d1c3"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.decline_ed1fb32f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.pay_contract_e37ce3dd"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.extend_7853d8ec"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.news_d_1010b526"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.ian_thank_you_for_helping_a5e77da9"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.additional_clinic_supplies_have_not_been_co_4d04311"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.marcus_your_medicine_has_arrived_b406e251"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.marcus_this_delivery_did_not_go_through_1d0dcbc8"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.tan_people_do_get_out_who_and_when_that_s_a_35e3682"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.stock_and_custody_89da3ff3"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.shop_office_bf373655"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.cash_483e7412"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.closed_work_lamp_c39ab77b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.open_fc52508"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.ledger_a9dad261"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.contracts_8d973b95"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.terminal_230d7be0"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.transaction_ledger_261b8677"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.local_terminal_896458a8"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.no_known_contracts_2bc9a316"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.local_terminal_known_news_c72fbad6"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.no_confirmed_news_3a511909"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.messages_ee1edf9b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.close_office_1f6d1b1f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.office_b376d3f2"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.back_mark_reader_3f7e5eab"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.choose_the_appropriate_region_for_the_selec_b6c2d1e5"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.will_you_buy_this_item_dedc031b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.i_d_like_to_buy_this_item_91619a57"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.purchase_slip_3a9c7ac5"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.sale_slip_eca790c8"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.no_available_placement_e13e4384"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.insufficient_cash_e996d3a2"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.customer_cannot_pay_this_offer_917ad803"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.inspect_owned_item_1ce27160"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.confirm_purchase_4f429f57"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.confirm_sale_4f728d10"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.decline_19995241"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.i_d_like_this_serviced_7edcb5a2"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.i_m_here_to_collect_my_item_582aa83c"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.customer_owned_service_item_f25dc339"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.service_slip_fee_392df2d0"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.new_request_b95fd718"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.completed_return_after_check_fbd996e0"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.work_incomplete_125702a0"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.return_and_collect_fee_68cab1a0"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.known_e7b32f47"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.inspect_a_detail_not_shown_in_the_represent_cf021d06"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.inspection_tools_546ff394"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.returning_item_747d92af"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.min_a419b7d"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.select_the_region_on_the_item_688ed27a"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.select_the_detail_target_above_the_item_4719621e"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.inspect_1b481735"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.front_18a87342"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.back_479b23d1"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.book_assessment_4558d616"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.drag_a_tool_onto_the_item_b8fb2c5b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.last_observation_50e88897"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.do_you_buy_watches_d713ae5"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.do_you_buy_things_here_badbda7b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.i_bought_this_radio_here_before_it_is_not_i_f90fb14b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.alexei_i_withdraw_this_judgment_6447d2a2"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.alexei_this_is_what_i_observed_8ecbca0"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.alexei_a19a8468"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.correction_290b194e"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.hypothesis_a46bd249"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.customer_claim_20504483"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.present_a_card_to_customer_ce34e8f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.no_assessment_cards_inspect_and_choose_a_ju_54b904ca"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.correction_fe5aa275"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.hypothesis_links_2ea00e9e"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.asking_5b3abf58"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.estimate_6c11b6a7"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.offer_with_basis_28e673c"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.make_offer_debd0b52"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.price_only_4dd8fd0f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.condition_8d30e730"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.working_8ec30d03"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.inoperable_2e345410"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.placement_confirm_288df946"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.sheet_facts_522abb77"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.rebut_1ebcc6f6"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.close_9033cd56"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.after_hours_workspace_6bed36b7"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.business_stockroom_78d9de60"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.18_00_clock_paused_work_lamp_2937810e"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.lighting_follows_business_clock_6cfe15a9"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.inventory_evening_work_enabled_c70bc29e"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.inventory_stock_management_b833915b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.stock_select_drag_cb25bbc5"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.owned_8db45f16"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.custody_8dedb8de"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.item_details_714a9da7"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.select_drop_item_here_574430c9"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.owned_stock_ce8e11c5"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.customer_custody_not_movable_5b46d3f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.empty_cell_48b5c4e3"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.return_to_counter_cebd9414"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.rotate_f4b9db24"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.place_7dd2830a"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.cancel_d94f1bb5"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.placement_available_2b4c9c70"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.unavailable_collision_bounds_or_same_placem_cb2ee070"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.select_an_item_review_is_free_4169758e"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.work_slip_e2c533c4"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.restoration_cost_8d85a068"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.service_complete_awaiting_customer_pickup_89f3cde7"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.player_owned_stock_632e1d7a"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.customer_owned_authorized_service_only_77420968"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.footprint_a7d5b186"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.root_allocated_basis_f50b9a44"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.individual_basis_806c519c"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.review_discard_3c8f4db7"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.discard_abf4183b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.items_no_proceeds_lost_basis_ab2e8a51"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.discard_is_irreversible_included_ids_e0955b48"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.discard_4f578617"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.keep_item_181a689b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.exterior_care_recorded_no_price_function_ch_d0113030"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.no_exterior_care_recorded_94fe8880"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.wipe_exterior_86cb1372"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.restoration_and_composition_changes_availab_24359ec5"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.no_available_restoration_77a6ed7c"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.close_history_d14c1606"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.transaction_and_work_history_a0515557"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.restore_f7ee4ed5"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.restore_b3664298"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.abstract_component_slots_cc4c2618"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.current_family_basis_d7579729"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.additional_restoration_expense_28e000ca"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.owned_materials_are_not_free_revenue_is_unk_1f4312df"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.incoming_material_basis_2844658d"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.recovered_material_basis_a9d26739"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.projected_family_basis_d107bee3"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.composition_itself_costs_no_cash_restoratio_c195f4d7"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.slot_6b7a60"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.empty_e5d310ea"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.assess_ae77322c"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.remove_995fb47b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.exchange_fbc905ee"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.attach_1adbb93f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.attach_e13a33af"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.exchange_66cb631a"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.pending_85fe9c9f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.outgoing_26d261a5"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.stock_f4513ad2"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.apply_parts_69f89d86"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.cancel_parts_ab9e9c5a"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.known_assessment_b83529c4"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.current_family_basis_fa3fef24"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.assessed_item_basis_359cb4c3"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.unknown_a150fe4"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.refurbished_9d11a831"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.serviceable_f3da9c82"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.assessment_46221f2e"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.return_to_root_assessment_5e3e949"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.function_db9959e9"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.completeness_62959d0b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.restoration_status_3bcca6d2"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.known_a7456c9f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.historical_retest_required_36d87653"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.yes_c5a2dae0"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.no_3885b742"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.free_review_f3820f59"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.inspect_ddb0fd77"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.observed_fact_a49cf725"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.no_active_appraisal_e67124a0"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.appraisal_sheet_public_assessments_9d1a1781"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.you_may_disclose_acquired_observations_sepa_4423d9f0"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.withdrawn_1db3c465"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.earlier_hypothesis_af584293"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.current_hypothesis_6b5dc0fc"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.current_disclosure_439956a0"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.earlier_disclosure_3a8a0acb"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.withdraw_this_judgment_d34bfe1b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.inspect_item_70038369"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.negotiate_aaca716"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.generic_appraisal_pilot_776dd0b4"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.present_an_assessment_card_or_offer_a_price_ee29b6ac"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.alexei_i_withdraw_this_18ff8bf6"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.alexei_my_assessment_is_817169e8"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.inspection_tools_6050cc0a"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.observations_7f06a163"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.stale_92e2fc99"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.claim_eff9e604"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.hypothesis_6acf1919"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.clear_selection_e6cd7119"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.unlink_66ae24e2"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.link_related_observation_c5c87266"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.link_evidence_f73569d9"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.reference_estimate_f7dbb0ad"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.available_hypotheses_bb25869f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.prepare_fc6314c2"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.private_assessment_cards_8be73713"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.prepared_cards_75964db5"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.drop_a_card_to_address_customer_fe4dc946"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.correction_df85060b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.stale_d90d0a15"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.drag_65ae8ec5"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.present_fc2a476"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.rebut_c998d426"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.remove_9f25f42f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.disclosed_assessments_and_observations_59fe26d2"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.evidence_links_d13b010c"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.customer_statements_unverified_ff613f53"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.decline_visit_aac393e"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.assessment_f3699db5"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.agrees_cb6cdb85"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.disagrees_430f6fac"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.customer_recollection_unverified_b603fb29"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.rebuttal_hypothesis_unverified_70f1ad55"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.against_36877636"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.new_evidence_links_b00e811b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.asking_price_ea7c175"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.remaining_offers_eb43b87f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.accepted_b23c0c2b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.rejected_a87ae7cd"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.public_statements_8093fd8"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.offer_with_public_statements_a1f16ddc"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.offer_price_only_8752ad1"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.trade_condition_4177e64c"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.inoperable_b9430e79"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.choose_stock_location_a32e0265"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.agreed_trade_condition_ee639037"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.at_transaction_only_c7402a31"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.accepted_available_797c28c3"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.footprint_f393fcec"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.drag_item_to_stock_a562ce7d"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.rotated_809425c0"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.no_available_placement_ed72b32b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.insufficient_funds_e40e5f71"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.known_transaction_and_work_history_2d7614b9"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.no_completed_transactions_or_work_d389140d"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.purchase_974ce25d"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.sale_1b445528"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.group_price_individual_price_unknown_a66a6e3b"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.accepted_offer_76df8d19"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.transaction_appraisal_sheet_public_assessme_7cf0b256"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.no_disclosed_assessments_f225e2f2"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.agreed_quality_condition_4c8da3e4"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.no_separate_quality_commitment_6843d1f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.historical_hypothesis_e6e5938a"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.withdrawal_a0a18d3f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.superseded_hypothesis_897d2a20"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.corrected_hypothesis_10da6774"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.superseded_observation_d1db4d1c"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.historical_disclosure_4e27737a"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.accepted_price_basis_410208f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.customer_claim_unverified_408b2a1f"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.rebuttal_hypothesis_b96af849"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.historical_observation_48ff76a2"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.older_work_3362b54c"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.older_transactions_f45d7962"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.older_items_418a4c01"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.unrecorded_external_history_and_current_con_5b18354a"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.assembly_d235871e"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.disassembly_95945c61"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.root_49448c67"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.component_411f045"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.component_exchange_9b7fcc96"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.exterior_care_no_function_or_value_bonus_2aeb08c4"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.maintenance_expense_f9f86d33"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.disposal_loss_d70e5fb1"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.group_disposal_individual_loss_unknown_3fefe596"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.copy.work_record_70cf0ec4"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.sale.working"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.sale.inoperable"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "settings.panel.title"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "settings.audio.music"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "settings.audio.ambience"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "settings.audio.sfx"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "settings.audio.ui"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "settings.motion"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "settings.audio.title"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.workspace.customer"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.workspace.item"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.service.expected_cost"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.service.fee_on_delivery"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.service.no_upfront_fee"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.service.unknown_cost"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.contract.status.offered"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.contract.status.reserved"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.contract.status.paid"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.contract.status.delivered"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.contract.status.defaulted"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.contract.status.declined"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.contract.status.missed"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.location.counter"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.location.inspection"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.location.inventory"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.location.workshop"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.location.office"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.location.history"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.location.shop"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.tool.wear_detail"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.tool.casing_detail"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.tool.material_detail"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.tool.batch_detail"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.tool.function_detail"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.tool.display_damage_detail"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.tool.unknown"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.condition.unavailable"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.condition.verify_complete"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.condition.incomplete"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.condition.inoperable"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.condition.unverified"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.condition.functional"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.condition.refurbished"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "ui.condition.serviceable"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "menu.title"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "menu.new"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "menu.continue"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "menu.load"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "menu.settings"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "menu.quit"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "menu.back"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "menu.slot"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "menu.empty"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "menu.occupied"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "menu.full"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "menu.no_save"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "menu.blocked"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "menu.in_session"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "menu.version"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "settings.general.language"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "settings.general.font"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "settings.general.sound"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.card.fact"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.card.judgment"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.card.customer"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.card.unverified"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.card.correction"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.card.withdrawn"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.card.sources"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.card.public"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.table.hint"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.sheet.title"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.sheet.empty"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.card.agrees"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.card.disagrees"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.price.proposal"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.category.identification"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.category.appearance"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.category.material"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.category.function"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.category.special"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.category.history"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.category.composition"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.tab.judgment"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.tab.reference"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.tab.evidence"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.reference.no_detail"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.evidence.empty"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "catalog.radio.wear.light.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "catalog.radio.wear.visible.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "catalog.radio.wear.heavy.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.basic.working.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.basic.not_working.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.running.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.stopped.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.texture.reference"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.texture.observation"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inspection.review_record"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inspection.visible_crop"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inspection.not_observed"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.radio.reference"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inspection.readout_caption"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inventory.page.overview"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inventory.page.appraisal"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inventory.page.components"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inventory.page.plan"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inventory.page.history"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inventory.page.no_components"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inventory.page.no_assessment"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inventory.component.preview"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "history.summary.select"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "history.summary.previous"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "history.summary.next"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "history.summary.trades"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "history.summary.work"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "history.summary.recorded_only"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "settings.category.general"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inventory.legend.list"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inventory.legend.grid"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inventory.legend.empty"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.offer_pending"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.recover_short"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.recover_count"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.restore_short"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.restore_ready"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.restore_blocked"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.more"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.plan.less"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "history.receipt.open"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "history.receipt.close"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.meridian12.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.meridian12a.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.standard_case.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.decorative_case.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.ordinary_mark.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "p2.watch.commemorative_mark.description"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.mark.reference"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inspection.mark_transcription"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inspection.compare.crop"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inspection.compare.texture"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inspection.compare.mark"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inspection.compare.readout"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.reference.base"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.reference.factor"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.reference.adjustment"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.reference.browse"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.wear.reference"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.work.review_required"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.work.incomplete"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.work.known_bad_component"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "review.work.serviceable"
+msgstr ""
+
+#. Named arguments: vkc, usd; plain text.
+msgid "inventory.format.money_pair"
+msgstr ""
+
+#. Named arguments: owned, custody; plain text.
+msgid "inventory.format.stock_counts"
+msgstr ""
+
+#. Named arguments: item, name; plain text.
+msgid "inventory.format.item_heading"
+msgstr ""
+
+#. Named arguments: cost; plain text.
+msgid "inventory.format.restoration_cost"
+msgstr ""
+
+#. Named arguments: width, height; plain text.
+msgid "inventory.format.footprint"
+msgstr ""
+
+#. Named arguments: basis; plain text.
+msgid "inventory.format.root_basis"
+msgstr ""
+
+#. Named arguments: basis; plain text.
+msgid "inventory.format.individual_basis"
+msgstr ""
+
+#. Named arguments: count, basis; plain text.
+msgid "inventory.format.discard_summary"
+msgstr ""
+
+#. Named arguments: ids; plain text.
+msgid "inventory.format.discard_ids"
+msgstr ""
+
+#. Named arguments: vkc; plain text.
+msgid "inventory.format.restore_vkc"
+msgstr ""
+
+#. Named arguments: vkc, usd; plain text.
+msgid "inventory.format.restore_both"
+msgstr ""
+
+#. Named arguments: amount, currency; plain text.
+msgid "inventory.format.offer_amount"
+msgstr ""
+
+#. Named arguments: item, basis; plain text.
+msgid "inventory.format.recovered_basis"
+msgstr ""
+
+#. Named arguments: basis; plain text.
+msgid "inventory.format.plan_basis"
+msgstr ""
+
+#. Named arguments: offer; plain text.
+msgid "inventory.format.plan_sale"
+msgstr ""
+
+#. Named arguments: cost; plain text.
+msgid "inventory.format.plan_restore"
+msgstr ""
+
+#. Named arguments: offer; plain text.
+msgid "inventory.format.plan_opportunity"
+msgstr ""
+
+#. Named arguments: count; plain text.
+msgid "inventory.format.plan_count"
+msgstr ""
+
+#. Named arguments: cost; plain text.
+msgid "inventory.format.plan_restore_short"
+msgstr ""
+
+#. Named arguments: cost, status; plain text.
+msgid "inventory.format.plan_cost_status"
+msgstr ""
+
+#. Named arguments: page, total; plain text.
+msgid "inventory.format.slot_page"
+msgstr ""
+
+#. Named arguments: page, total; plain text.
+msgid "inventory.format.candidate_page"
+msgstr ""
+
+#. Named arguments: basis; plain text.
+msgid "inventory.format.family_basis"
+msgstr ""
+
+#. Named arguments: basis; plain text.
+msgid "inventory.format.additional_expense"
+msgstr ""
+
+#. Named arguments: basis; plain text.
+msgid "inventory.format.incoming_basis"
+msgstr ""
+
+#. Named arguments: basis; plain text.
+msgid "inventory.format.outgoing_basis"
+msgstr ""
+
+#. Named arguments: basis; plain text.
+msgid "inventory.format.projected_basis"
+msgstr ""
+
+#. Named arguments: number; plain text.
+msgid "inventory.format.slot_number"
+msgstr ""
+
+#. Named arguments: number, name; plain text.
+msgid "inventory.format.slot_named"
+msgstr ""
+
+#. Named arguments: slot, item; plain text.
+msgid "inventory.format.slot_contents"
+msgstr ""
+
+#. Named arguments: item; plain text.
+msgid "inventory.format.exchange_item"
+msgstr ""
+
+#. Named arguments: item; plain text.
+msgid "inventory.format.attach_item"
+msgstr ""
+
+#. Named arguments: kind, item; plain text.
+msgid "inventory.format.pending_attach"
+msgstr ""
+
+#. Named arguments: kind, item, x, y; plain text.
+msgid "inventory.format.pending_detach"
+msgstr ""
+
+#. Named arguments: kind, item, outgoing, x, y; plain text.
+msgid "inventory.format.pending_replace"
+msgstr ""
+
+#. Named arguments: item; plain text.
+msgid "inventory.format.assessed_item"
+msgstr ""
+
+#. Named arguments: basis; plain text.
+msgid "inventory.format.assessment_family_basis"
+msgstr ""
+
+#. Named arguments: basis; plain text.
+msgid "inventory.format.assessment_item_basis"
+msgstr ""
+
+#. Named arguments: quality; plain text.
+msgid "inventory.format.assessment_quality"
+msgstr ""
+
+#. Named arguments: value; plain text.
+msgid "inventory.format.fact_current"
+msgstr ""
+
+#. Named arguments: value; plain text.
+msgid "inventory.format.fact_historical"
+msgstr ""
+
+#. Named arguments: name, description; plain text.
+msgid "inventory.format.fact_row"
+msgstr ""
+
+#. Named arguments: minutes; plain text.
+msgid "inventory.format.inspect_minutes"
+msgstr ""
+
+#. Named arguments: name, minutes; plain text.
+msgid "inventory.format.inspect_tooltip"
+msgstr ""
+
+#. Named arguments: cost; plain text.
+msgid "ui.format.service_fee"
+msgstr ""
+
+#. Named arguments: cost; plain text.
+msgid "ui.format.service_cost"
+msgstr ""
+
+#. Named arguments: reading; plain text.
+msgid "ui.format.last_observation"
+msgstr ""
+
+#. Named arguments: count; plain text.
+msgid "ui.format.source_count"
+msgstr ""
+
+#. Named arguments: page, total; plain text.
+msgid "ui.format.statement_page"
+msgstr ""
+
+#. Named arguments: judgment; plain text.
+msgid "ui.format.withdraw_dialogue"
+msgstr ""
+
+#. Named arguments: reading; plain text.
+msgid "ui.format.observation_dialogue"
+msgstr ""
+
+#. Named arguments: price; plain text.
+msgid "ui.format.asking"
+msgstr ""
+
+#. Named arguments: price; plain text.
+msgid "ui.format.estimate"
+msgstr ""
+
+#. Named arguments: count; plain text.
+msgid "ui.format.offer_basis"
+msgstr ""
+
+#. Named arguments: price, status; plain text.
+msgid "ui.format.offer_status"
+msgstr ""
+
+#. Named arguments: condition; plain text.
+msgid "ui.format.counter_condition"
+msgstr ""
+
+#. Named arguments: reading; plain text.
+msgid "ui.format.observed_fact"
+msgstr ""
+
+#. Named arguments: judgment; plain text.
+msgid "ui.format.withdrawn"
+msgstr ""
+
+#. Named arguments: category; plain text.
+msgid "ui.format.hypothesis_category"
+msgstr ""
+
+#. Named arguments: price; plain text.
+msgid "ui.format.reference_estimate"
+msgstr ""
+
+#. Named arguments: claim; plain text.
+msgid "ui.format.prepare_claim"
+msgstr ""
+
+#. Named arguments: claim; plain text.
+msgid "ui.format.drag_claim"
+msgstr ""
+
+#. Named arguments: claim; plain text.
+msgid "ui.format.rebut_claim"
+msgstr ""
+
+#. Named arguments: price; plain text.
+msgid "ui.format.reference_base"
+msgstr ""
+
+#. Named arguments: factor; plain text.
+msgid "ui.format.reference_factor"
+msgstr ""
+
+#. Named arguments: amount, currency; plain text.
+msgid "ui.format.reference_adjustment"
+msgstr ""
+
+#. Named arguments: judgment; plain text.
+msgid "ui.format.assessment_selection"
+msgstr ""
+
+#. Named arguments: price; plain text.
+msgid "ui.format.asking_price"
+msgstr ""
+
+#. Named arguments: count; plain text.
+msgid "ui.format.remaining_offers"
+msgstr ""
+
+#. Named arguments: price, status, count; plain text.
+msgid "ui.format.offer_history_row"
+msgstr ""
+
+#. Named arguments: condition; plain text.
+msgid "ui.format.trade_condition"
+msgstr ""
+
+#. Named arguments: amount, balance, currency; plain text.
+msgid "ui.format.checkout_balance"
+msgstr ""
+
+#. Named arguments: width, height; plain text.
+msgid "ui.format.checkout_footprint"
+msgstr ""
+
+#. Named arguments: direction, day, time, price; plain text.
+msgid "ui.format.receipt_headline"
+msgstr ""
+
+#. Named arguments: price; plain text.
+msgid "ui.format.accepted_offer"
+msgstr ""
+
+#. Named arguments: condition; plain text.
+msgid "ui.format.receipt_condition"
+msgstr ""
+
+#. Named arguments: claim; plain text.
+msgid "ui.format.receipt_customer_claim"
+msgstr ""
+
+#. Named arguments: claim; plain text.
+msgid "ui.format.receipt_rebuttal"
+msgstr ""
+
+#. Named arguments: reading; plain text.
+msgid "ui.format.receipt_observation"
+msgstr ""
+
+#. Named arguments: count; plain text.
+msgid "ui.format.older_work"
+msgstr ""
+
+#. Named arguments: count; plain text.
+msgid "ui.format.older_transactions"
+msgstr ""
+
+#. Named arguments: count; plain text.
+msgid "ui.format.older_items"
+msgstr ""
+
+#. Named arguments: root, outgoing, incoming; plain text.
+msgid "ui.format.history_exchange"
+msgstr ""
+
+#. Named arguments: cost; plain text.
+msgid "ui.format.maintenance_expense"
+msgstr ""
+
+#. Named arguments: loss; plain text.
+msgid "ui.format.disposal_loss"
+msgstr ""
+
+#. Named arguments: revision, description; plain text.
+msgid "ui.format.work_record"
+msgstr ""
+
+#. Named arguments: item, trades, work; plain text.
+msgid "ui.format.history_summary"
+msgstr ""
+
+#. Named arguments: cash; plain text.
+msgid "ui.format.office_cash"
+msgstr ""
+
+#. Named arguments: due, delivery, status; plain text.
+msgid "ui.format.contract_status"
+msgstr ""
+
+#. Named arguments: price; plain text.
+msgid "ui.format.contract_price"
+msgstr ""
+
+#. Named arguments: number; plain text.
+msgid "ui.format.slot_number"
+msgstr ""
+
+#. Named arguments: language; plain text.
+msgid "ui.format.settings_language"
+msgstr ""
+
+#. Named arguments: percent; plain text.
+msgid "ui.format.settings_font"
+msgstr ""
+
+#. Named arguments: candidate, day, time, vkc, usd; plain text.
+msgid "ui.format.legacy_hud"
+msgstr ""
+
+#. Named arguments: cash; plain text.
+msgid "ui.format.final_cash"
+msgstr ""
+
+#. Named arguments: count; plain text.
+msgid "ui.format.remaining_visits"
+msgstr ""
+
+#. Named arguments: amount; plain text.
+msgid "ui.format.overdue_overhead"
+msgstr ""
+
+#. Named arguments: item, fee; plain text.
+msgid "ui.format.service_summary"
+msgstr ""
+
+#. Named arguments: due; plain text.
+msgid "ui.format.closing_settlement"
+msgstr ""
+
+#. Named arguments: cash; plain text.
+msgid "ui.format.cash_after_overhead"
+msgstr ""
+
+#. Named arguments: price, status; plain text.
+msgid "ui.format.contract_summary"
+msgstr ""
+
+#. Named arguments: day, time, vkc, usd; plain text.
+msgid "ui.format.native_hud"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.compare.case.caption"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.compare.mark.caption"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.compare.function.caption"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.compare.sample.standard"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.compare.sample.decorative"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.compare.sample.ordinary"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.compare.sample.commemorative"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.compare.sample.working"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.compare.sample.stopped"
+msgstr ""
+
+#. Named arguments: chapter; plain text.
+msgid "book.compare.related_chapter"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "book.compare.related_hint"
+msgstr ""
+
+#. Named arguments: topic, reading; plain text.
+msgid "inspection.compare.topic_reading"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inventory.assessment.limit_function"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inventory.assessment.limit_completeness"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "inventory.assessment.limit_restoration"
+msgstr ""
+
+#. Named arguments: page, total; plain text.
+msgid "counter.claim.page"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.claim.rebuttal_recorded"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.claim.rebuttal_hypothesis"
+msgstr ""
+
+#. Named arguments: claim, count; plain text.
+msgid "counter.claim.rebuttal_target"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.price.no_basis"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.price.current_basis"
+msgstr ""
+
+#. Named arguments: none; plain text.
+msgid "counter.price.previous_basis"
+msgstr ""
+

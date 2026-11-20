@@ -1,0 +1,72 @@
+[gd_resource type="Resource" load_steps=29 format=3]
+
+[ext_resource type="Script" path="res://src/presentation/scene_visual_catalog.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/room.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/counter.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/lamp.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/amber_reflection.png" id="5"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/g01.png" id="6"]
+[ext_resource type="Texture2D" path="res://assets/art/characters/g04_pilot.svg" id="7"]
+[ext_resource type="Texture2D" path="res://assets/art/characters/visitor_neutral_pilot.svg" id="8"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/rooms/office_room.png" id="9"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/rooms/office_foreground.png" id="10"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/rooms/office_amber.png" id="11"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/rooms/office_lamp.png" id="12"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/rooms/stock_room.png" id="13"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/rooms/stock_foreground.png" id="14"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/rooms/stock_amber.png" id="15"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/rooms/stock_lamp.png" id="16"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/window_0.png" id="17"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/window_1.png" id="18"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/window_2.png" id="19"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/window_3.png" id="20"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/window_4.png" id="21"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/window_5.png" id="22"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/cold_0.png" id="23"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/cold_1.png" id="24"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/cold_2.png" id="25"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/cold_3.png" id="26"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/cold_4.png" id="27"]
+[ext_resource type="Texture2D" path="res://assets/art/native_v23/cold_5.png" id="28"]
+
+[resource]
+script = ExtResource("1")
+textures = {
+"counter.room": ExtResource("2"),
+"counter.foreground": ExtResource("3"),
+"counter.lamp": ExtResource("4"),
+"counter.amber": ExtResource("5"),
+"customer.opening": ExtResource("6"),
+"customer.watch": ExtResource("7"),
+"customer.neutral": ExtResource("8"),
+"office.room": ExtResource("9"),
+"office.foreground": ExtResource("10"),
+"office.amber": ExtResource("11"),
+"office.lamp": ExtResource("12"),
+"stock.room": ExtResource("13"),
+"stock.foreground": ExtResource("14"),
+"stock.amber": ExtResource("15"),
+"stock.lamp": ExtResource("16"),
+"window.0": ExtResource("17"),
+"window.1": ExtResource("18"),
+"window.2": ExtResource("19"),
+"window.3": ExtResource("20"),
+"window.4": ExtResource("21"),
+"window.5": ExtResource("22"),
+"cold.0": ExtResource("23"),
+"cold.1": ExtResource("24"),
+"cold.2": ExtResource("25"),
+"cold.3": ExtResource("26"),
+"cold.4": ExtResource("27"),
+"cold.5": ExtResource("28")
+}
+tool_icons = {
+"wear_detail": null,
+"casing_detail": null,
+"material_detail": null,
+"batch_detail": null,
+"function_detail": null,
+"display_damage_detail": null,
+"basic_function_v1": null
+}
+provisional = true

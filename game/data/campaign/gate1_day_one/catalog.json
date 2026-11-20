@@ -1,0 +1,82 @@
+{
+  "content_version": "0.1.0",
+  "definitions": [
+    {
+      "def_id": "portable_radio",
+      "category": "electronics",
+      "localization_key": "item.portable_radio",
+      "render_key": "placeholder_none",
+      "width": 2,
+      "height": 1
+    },
+    {
+      "def_id": "fictional_gear",
+      "category": "fictional_equipment",
+      "localization_key": "item.fictional_gear",
+      "render_key": "placeholder_none",
+      "width": 3,
+      "height": 2,
+      "kind": "atomic",
+      "weight": 1,
+      "tag": "service_sample",
+      "required_tags": [],
+      "footprints": {},
+      "inside": {},
+      "recombine": false,
+      "restorable": true,
+      "observation_minutes": 0,
+      "restore_cost": {
+        "VKC": 10,
+        "USD": 0
+      }
+    },
+    {
+      "def_id": "abstract_module_a",
+      "category": "fictional_module",
+      "localization_key": "item.abstract_module_a",
+      "render_key": "placeholder_none",
+      "width": 1,
+      "height": 1
+    },
+    {
+      "def_id": "abstract_module_b",
+      "category": "fictional_module",
+      "localization_key": "item.abstract_module_b",
+      "render_key": "placeholder_none",
+      "width": 1,
+      "height": 1
+    },
+    {
+      "def_id": "battery",
+      "category": "consumable",
+      "localization_key": "item.battery",
+      "render_key": "placeholder_none",
+      "width": 1,
+      "height": 1
+    },
+    {
+      "def_id": "canned_food",
+      "category": "food",
+      "localization_key": "item.canned_food",
+      "render_key": "placeholder_none",
+      "width": 1,
+      "height": 1
+    },
+    {
+      "def_id": "watch",
+      "category": "valuables",
+      "localization_key": "item.watch",
+      "render_key": "placeholder_none",
+      "width": 1,
+      "height": 1
+    },
+    {
+      "def_id": "rad1",
+      "category": "personal_medical",
+      "localization_key": "item.rad1",
+      "render_key": "placeholder_none",
+      "width": 1,
+      "height": 1
+    }
+  ]
+}

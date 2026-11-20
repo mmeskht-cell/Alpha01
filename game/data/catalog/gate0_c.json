@@ -1,0 +1,155 @@
+{
+  "content_version": "0.1.0",
+  "definitions": [
+    {
+      "def_id": "sample_device",
+      "category": "fixture",
+      "localization_key": "item.fixture_parcel",
+      "render_key": "placeholder_none",
+      "width": 3,
+      "height": 2,
+      "kind": "composite",
+      "weight": 2,
+      "tag": "sample_device",
+      "required_tags": [
+        "sample_insert_a",
+        "sample_insert_b",
+        "sample_insert_c"
+      ],
+      "footprints": {
+        "0": [
+          2,
+          1
+        ],
+        "1": [
+          2,
+          1
+        ],
+        "2": [
+          2,
+          2
+        ],
+        "3": [
+          3,
+          2
+        ]
+      },
+      "inside": {},
+      "recombine": true,
+      "restorable": true,
+      "observation_minutes": 1,
+      "restore_cost": {
+        "VKC": 5,
+        "USD": 2
+      }
+    },
+    {
+      "def_id": "sample_insert_a",
+      "category": "fixture",
+      "localization_key": "item.fixture_parcel",
+      "render_key": "placeholder_none",
+      "width": 1,
+      "height": 1,
+      "kind": "atomic",
+      "weight": 3,
+      "tag": "sample_insert_a",
+      "required_tags": [],
+      "footprints": {},
+      "inside": {},
+      "recombine": false,
+      "restorable": false,
+      "observation_minutes": 1,
+      "restore_cost": {
+        "VKC": 0,
+        "USD": 0
+      }
+    },
+    {
+      "def_id": "sample_insert_b",
+      "category": "fixture",
+      "localization_key": "item.fixture_parcel",
+      "render_key": "placeholder_none",
+      "width": 1,
+      "height": 1,
+      "kind": "atomic",
+      "weight": 1,
+      "tag": "sample_insert_b",
+      "required_tags": [],
+      "footprints": {},
+      "inside": {},
+      "recombine": false,
+      "restorable": false,
+      "observation_minutes": 1,
+      "restore_cost": {
+        "VKC": 0,
+        "USD": 0
+      }
+    },
+    {
+      "def_id": "sample_insert_c",
+      "category": "fixture",
+      "localization_key": "item.fixture_parcel",
+      "render_key": "placeholder_none",
+      "width": 1,
+      "height": 1,
+      "kind": "atomic",
+      "weight": 1,
+      "tag": "sample_insert_c",
+      "required_tags": [],
+      "footprints": {},
+      "inside": {},
+      "recombine": false,
+      "restorable": false,
+      "observation_minutes": 1,
+      "restore_cost": {
+        "VKC": 0,
+        "USD": 0
+      }
+    },
+    {
+      "def_id": "sample_box",
+      "category": "fixture",
+      "localization_key": "item.fixture_parcel",
+      "render_key": "placeholder_none",
+      "width": 2,
+      "height": 2,
+      "kind": "atomic",
+      "weight": 1,
+      "tag": "sample_box",
+      "required_tags": [],
+      "footprints": {},
+      "inside": {
+        "width": 3,
+        "height": 2
+      },
+      "recombine": false,
+      "restorable": false,
+      "observation_minutes": 1,
+      "restore_cost": {
+        "VKC": 0,
+        "USD": 0
+      }
+    },
+    {
+      "def_id": "sample_consumable",
+      "category": "fixture",
+      "localization_key": "item.fixture_parcel",
+      "render_key": "placeholder_none",
+      "width": 1,
+      "height": 1,
+      "kind": "atomic",
+      "weight": 1,
+      "tag": "sample_consumable",
+      "required_tags": [],
+      "footprints": {},
+      "inside": {},
+      "recombine": false,
+      "restorable": false,
+      "observation_minutes": 1,
+      "restore_cost": {
+        "VKC": 0,
+        "USD": 0
+      }
+    }
+  ]
+}

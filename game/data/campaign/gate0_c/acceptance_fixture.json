@@ -1,0 +1,191 @@
+{
+  "prep_version": 2,
+  "scope": "gate_0_c",
+  "design_sha": "4b73887e0832a6a4d1992c1227e6684e21273d37",
+  "format": "implementation_contract_not_runtime_snapshot",
+  "currency": "VKC",
+  "notes": [
+    "Synthetic fictional equipment only; no physical weapon components or mapping.",
+    "All amounts, conditions and dimensions are test fixtures, not balance values.",
+    "Use isolated cases; no extra money in first-week ledger.",
+    "cost_allocation_weight means synthetic accounting weight only, not physical weight.",
+    "Container is an atomic container-capable item; contents are independent inventory occupants, not attached components.",
+    "Same item may return in a later valid visit; only duplicate execution or a second trade in the same ordinary visit is forbidden."
+  ],
+  "initial": {
+    "player_wallet": {
+      "VKC": 180,
+      "USD": 0
+    },
+    "seller_wallet": {
+      "VKC": 0,
+      "USD": 0
+    },
+    "buyer_wallet": {
+      "VKC": 200,
+      "USD": 0
+    },
+    "player_grid": {
+      "width": 10,
+      "height": 6
+    },
+    "definitions": [
+      {
+        "id": "sample_device",
+        "type": "composite",
+        "width": 3,
+        "height": 2,
+        "cost_allocation_weight": 2
+      },
+      {
+        "id": "sample_insert_a",
+        "type": "atomic",
+        "width": 1,
+        "height": 1,
+        "cost_allocation_weight": 3
+      },
+      {
+        "id": "sample_insert_b",
+        "type": "atomic",
+        "width": 1,
+        "height": 1,
+        "cost_allocation_weight": 1
+      },
+      {
+        "id": "sample_insert_c",
+        "type": "atomic",
+        "width": 1,
+        "height": 1,
+        "cost_allocation_weight": 1
+      },
+      {
+        "id": "sample_box",
+        "type": "atomic",
+        "width": 2,
+        "height": 2,
+        "inside": {
+          "width": 3,
+          "height": 2
+        },
+        "container_capability": true
+      },
+      {
+        "id": "sample_consumable",
+        "type": "atomic",
+        "width": 1,
+        "height": 1
+      }
+    ],
+    "object_tree": {
+      "root": "X01",
+      "owner": "seller",
+      "custodian": "seller",
+      "condition": "inoperable",
+      "children": [
+        {
+          "id": "X01_A",
+          "condition": "usable",
+          "restored": false
+        },
+        {
+          "id": "X01_B",
+          "condition": "usable",
+          "restored": true
+        },
+        {
+          "id": "X01_C",
+          "condition": "inoperable",
+          "restored": false
+        }
+      ]
+    },
+    "transaction": {
+      "purchase": 70,
+      "cost_basis": {
+        "X01": 20,
+        "X01_A": 30,
+        "X01_B": 10,
+        "X01_C": 10
+      }
+    }
+  },
+  "cases": [
+    {
+      "id": "C01",
+      "expected": "10x6 grid valid; existing small grids, cash and USD rules preserved"
+    },
+    {
+      "id": "C02",
+      "action": "purchase X01 for 70; detach X01_A and X01_B using abstract fixture commands",
+      "expected": {
+        "player_VKC": 110,
+        "seller_VKC": 70,
+        "independent_ids": [
+          "X01",
+          "X01_A",
+          "X01_B"
+        ],
+        "attached_ids": [
+          "X01_C"
+        ],
+        "active_total_cost": 70
+      },
+      "additional_check": "On an isolated copy of the post-purchase state, detach then reattach one synthetic device insert; preserve identities, ownership and total cost. Keep the main C02 state for C06."
+    },
+    {
+      "id": "C03",
+      "expected": "reject synthetic unmatched tag, collision, cycle, duplicate parent, insufficient space; exact no mutation"
+    },
+    {
+      "id": "C04",
+      "expected": "all tree owners transferred on purchase; protected/custody-only objects rejected for disposal/transfer"
+    },
+    {
+      "id": "C05",
+      "expected": "working+not restored = serviceable; working+restored = refurbished; inoperable regardless of history; unknown separate; DTO does not leak truth"
+    },
+    {
+      "id": "C06",
+      "action": "after C02 explicitly discard X01 and included X01_C",
+      "expected": {
+        "player_VKC": 110,
+        "seller_VKC": 70,
+        "active_ids": [
+          "X01_A",
+          "X01_B"
+        ],
+        "disposed_ids": [
+          "X01",
+          "X01_C"
+        ],
+        "active_cost": 40,
+        "realized_disposal_loss": 30,
+        "discard_cash_income": 0,
+        "retry": "same receipt; no duplicate loss"
+      }
+    },
+    {
+      "id": "C07",
+      "expected": "contents preserved on moving sample_box; reject container nesting/filled sale or disposal"
+    },
+    {
+      "id": "C08",
+      "expected": "one ordinary visit, one purpose and root; second independent trade in same visit rejected; valid later visits may trade same item; explicit special contract can atomically transfer distinct roots"
+    },
+    {
+      "id": "C09",
+      "expected": "A/B reload and corruption recovery, old verified save migration or safe rejection, same command idempotence, changed payload rejected, oversize no mutation"
+    },
+    {
+      "id": "C10",
+      "expected": "measure active, child, ledger and tombstone records; keep 1048576-byte ceiling; targeted financial and storage regression"
+    }
+  ],
+  "arithmetic_checks": {
+    "purchase_cost_total": 70,
+    "retained_cost": 40,
+    "discard_loss": 30,
+    "player_after_purchase": 110,
+    "player_after_disposal": 110
+  }
+}
