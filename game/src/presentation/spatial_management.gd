@@ -53,7 +53,12 @@ func _drag_token(row:Dictionary,kind:String,offset:Vector2i=Vector2i.ZERO)->Dict
 	_tokens[str(row.id)+":"+str(offset)]=token.duplicate(true)
 	return token
 
+func _confirmation_pending()->bool:
+	return preview_native_v23 and (_discard_open or not _prepared_composition.is_empty())
+
 func _token_valid(data:Variant,kind:String)->bool:
+	if _confirmation_pending():
+		return false
 	if not is_visible_in_tree() or _sent or _view.get("locked",true) or _view.get("complete",false) or not data is Dictionary or data.get("kind")!=kind:
 		return false
 	return _tokens.get(str(data.get("id",""))+":"+str(data.get("offset",Vector2i(-1,-1))),{})==data and data.get("owner")==get_instance_id() and data.get("revision")==_revision and data.get("slot")==_slot and data.get("epoch")==_epoch
@@ -216,6 +221,8 @@ func _item(id:String)->Dictionary:
 	return {}
 
 func _select(id:String,page:String="overview")->void:
+	if _confirmation_pending():
+		return
 	var row:Dictionary=_item(id)
 	if row.is_empty():
 		return
@@ -372,7 +379,7 @@ func _build_inventory()->void:
 	heading.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
 	heading.name="inventory_selection_header"
 	heading.tooltip_text=heading.text
-	var drop:Button=_button(right,"inventory_detail_drop",_label("ui.copy.select_drop_item_here_574430c9"),func()->void: pass,false,true)
+	var drop:Button=_button(right,"inventory_detail_drop",_label("ui.copy.select_drop_item_here_574430c9"),func()->void: pass,_confirmation_pending(),true)
 	drop.clip_text=true
 	drop.accepts=_detail_drop_allowed
 	drop.commit=_detail_drop
@@ -448,7 +455,7 @@ func _build_inventory()->void:
 						_destination=p
 						_build()
 					elif not occupied.is_empty():
-						_select(occupied.id),false,true)
+						_select(occupied.id),_confirmation_pending(),true)
 				cell.clip_text=true
 				# Codes must fit the 48-unit grid even at large UI font settings.
 				# Full names in the legend use the normal accessible UI font.
@@ -458,7 +465,7 @@ func _build_inventory()->void:
 				if grid.id==_stock_id:
 					cell.accepts=func(data:Variant)->bool: return _stock_drop_allowed(data,p)
 					cell.commit=func(data:Variant)->void: _stock_drop(data,p)
-				if not occupied.is_empty() and not _view.locked and not _view.complete:
+				if not occupied.is_empty() and not _view.locked and not _view.complete and not _confirmation_pending():
 					var kind:String="stock" if grid.id==_stock_id and occupied.owned else "detail"
 					cell.token=_drag_token(occupied,kind,p-Vector2i(int(occupied.x),int(occupied.y)))
 				if preview:
@@ -590,13 +597,13 @@ func _build_grid_tabs(parent:Control)->void:
 		var tab:=_button(tabs,"inventory_grid_"+id,caption,func()->void:
 			_grid_page_id=id
 			_legend_open=false
-			_build(),id==_grid_page_id and not _legend_open)
+			_build(),_confirmation_pending() or (id==_grid_page_id and not _legend_open))
 		tab.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 		tab.clip_text=true
 		tab.tooltip_text=_label("ui.copy.stock_select_drag_cb25bbc5") if id==_stock_id else _label("ui.copy.customer_custody_not_movable_5b46d3f")
 	var list_button:=_button(tabs,"inventory_legend_toggle",_label("inventory.legend.grid" if _legend_open else "inventory.legend.list"),func()->void:
 		_legend_open=not _legend_open
-		_build())
+		_build(),_confirmation_pending())
 	list_button.clip_text=true
 	list_button.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 
@@ -617,7 +624,7 @@ func _build_detail_tabs(parent:Control,selected:Dictionary)->void:
 		var caption:String=_label("inventory.page."+id)
 		var tab:=_button(tabs,"inventory_detail_"+id,caption,func()->void:
 			_detail_page=id
-			_build(),id==_detail_page or not _prepared_composition.is_empty())
+			_build(),id==_detail_page or _confirmation_pending())
 		tab.custom_minimum_size.x=48
 		tab.clip_text=true
 		tab.tooltip_text=caption

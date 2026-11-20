@@ -117,6 +117,26 @@ func command(kind:String,p:Dictionary={})->bool:
 	var result:Dictionary=host.runtime.submit(kind,p,host.runtime.view().revision)
 	return check(result.ok and result.get("persisted",false),"setup "+kind+" "+str(result.get("error","")))
 
+# Exercise the actual disabled input path while a local confirmation is open.
+func verify_confirmation_context(tag:String)->void:
+	var panel:Control=host._management
+	var selection:String=panel._selected
+	var page:String=panel._detail_page
+	var draft:Dictionary=panel._discard_draft.duplicate(true)
+	var composition:Dictionary=panel._prepared_composition.duplicate(true)
+	var before:Dictionary=host.runtime.snapshot()
+	for id:String in [inventory_cell(selection),"inventory_detail_drop","inventory_detail_history","inventory_legend_toggle"]:
+		var target:=panel.find_child(id,true,false) as Button
+		if not check(target!=null and target.is_visible_in_tree() and target.disabled,"confirmation isolates "+id+" "+tag):
+			continue
+		var p:Vector2=target.get_global_rect().get_center()
+		if root.get_visible_rect().has_point(p):
+			pointer(p,true)
+			pointer(p,false)
+			await frames()
+	check(panel._selected==selection and panel._detail_page==page and panel._discard_draft==draft and panel._prepared_composition==composition and host.runtime.snapshot()==before,"pending confirmation identity and state preserved "+tag)
+	check(button("discard_confirm")!=null and button("discard_cancel")!=null if tag=="discard" else button("component_confirm")!=null and button("component_cancel")!=null,"explicit confirm/cancel remain accessible "+tag)
+
 func inventory_cell(id:String)->String:
 	for row:Dictionary in host.runtime.view().stock:
 		if row.id==id:
@@ -282,10 +302,12 @@ func run()->void:
 		await finish()
 		return
 	check(host.runtime.snapshot()==prior and button("discard_confirm")!=null and button("discard_cancel")!=null,"disposal preview is free and explicitly confirmed")
+	await verify_confirmation_context("discard")
 	if not await click("discard_cancel"):
 		await finish()
 		return
 	check(host.runtime.snapshot()==prior and button("discard_confirm")==null,"disposal cancel leaves actual family untouched")
+	check(button(inventory_cell("CR06"))!=null and button("inventory_detail_history")!=null,"discard cancel restores grid and navigation")
 	var before_care_art: TextureRect=host._management.find_child("native_selected_art",true,false) as TextureRect
 	check(before_care_art!=null and not before_care_art.get_meta("exterior_cleaned",true) and before_care_art.modulate!=Color.WHITE,"uncared item tint before explicit action")
 	if not await click("care_exterior"):
@@ -319,11 +341,13 @@ func run()->void:
 	check_component_visible("component_cash_notice")
 	check(label_text("component_projected_basis").contains("75 VKC") and label_text("component_restore_cost").contains("5 VKC"),"projected basis and separate restoration charge in preview")
 	check(button("work_confirm")==null,"restoration cannot bypass pending composition")
+	await verify_confirmation_context("composition")
 	await capture("civilian-exchange-preview-720-ko")
 	if not await click("component_cancel"):
 		await finish()
 		return
 	check(host.runtime.snapshot()==prior,"compact exchange cancel free")
+	check(button(inventory_cell("CM06C"))!=null and button("inventory_detail_history")!=null,"composition cancel restores input")
 	if not await drag(inventory_cell("CM06C"),"component_replace_CM06C"):
 		await finish()
 		return
