@@ -384,9 +384,14 @@ func inventory_route()->void:
 	var latest_claim:Dictionary=host.runtime.view().appraisal.deck.presented.back().customer_response
 	var claim_navigation:=host._spatial.find_child("counter_claim_navigation",true,false) as Control
 	check(claim_navigation!=null and root.get_visible_rect().encloses(claim_navigation.get_global_rect()),"multiple public customer cards have visible browse controls")
+	# The second disclosure rebuilds the counter; never inspect the detached first card.
+	customer=host._spatial.find_child("counter_customer_claim",true,false) as Control
+	check(is_instance_valid(customer) and customer.is_inside_tree() and customer.get_meta("claim_id","")==latest_claim.beat_id,"current claim geometry is bound to the latest live customer card")
 	# Require actual button and card geometry, then a real pointer transition.
 	var claim_prev:=button("claim_previous")
-	check(claim_prev!=null and customer!=null and not claim_prev.get_global_rect().intersects(customer.get_global_rect()),"claim previous button separated from drop target")
+	var claim_next:=button("claim_next")
+	check(claim_prev!=null and is_instance_valid(customer) and customer.is_inside_tree() and not claim_prev.get_global_rect().intersects(customer.get_global_rect()),"claim previous button separated from drop target")
+	check(claim_next!=null and is_instance_valid(customer) and customer.is_inside_tree() and not claim_next.get_global_rect().intersects(customer.get_global_rect()),"claim next button separated from drop target")
 	if not await click("claim_previous"):
 		return
 	customer=host._spatial.find_child("counter_customer_claim",true,false) as Control
