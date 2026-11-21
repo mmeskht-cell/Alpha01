@@ -56,6 +56,7 @@ func run() -> void:
 	var request_slip := host.find_child("b2_commission_status_tool_for_g03",true,false) as Label
 	check(request_slip != null and request_slip.text.contains("D4") and not request_slip.text.contains("D4.0"),"commission due date shown as whole day")
 	check((host.find_child("alpha_speech",true,false) as Label).text.contains("공구"),"G03 request is spoken in same dialogue bubble")
+	check(host.find_child("alpha_contract_rad1_first",true,false) == null,"G03 counter cannot display Marcus-only supplier contract")
 	check(press("b2_commission_accept"),"customer request accepted by UI")
 	check(host.session.snapshot().wallets.player.VKC==180 and host.session.alpha_view().commissions.entries[0].status=="accepted","no advance paid or fake wallet")
 	if not exit_customer() or not enter():
@@ -67,9 +68,12 @@ func run() -> void:
 	var named_speech := host.find_child("alpha_speech",true,false) as Label
 	check(named_label != null and named_label.text.contains("마르쿠스") and named_speech != null and not named_speech.text.contains("공구"),"named dialogue cannot inherit G03 request or hidden evidence")
 	check(host.session.alpha_view().npc_context.prior.is_empty(),"named character has no invented prior knowledge")
+	check(host.find_child("alpha_contract_rad1_first",true,false) != null,"named supplier's own contract stays in original counter")
+	check(host.find_child("b2_commission_status_tool_for_g03",true,false) == null,"G03 private request is not displayed on Marcus counter")
 	if not exit_customer() or not press("alpha_close") or not press("alpha_settle"):
 		quit(1)
 		return
+	check(host.find_child("b2_commission_status_tool_for_g03",true,false) != null,"accepted request remains visible in quiet evening shop")
 	var snapshot_before_preview: Dictionary=host.session.snapshot()
 	check(press("alpha_contact_G01"),"consented night contact is selectable")
 	var preview := host.find_child("alpha_contact_preview_text",true,false) as Label
@@ -86,6 +90,7 @@ func run() -> void:
 		quit(1)
 		return
 	check(host.session.alpha_view().active.actor_id=="G01","source tool must be offered by actual G01")
+	check(host.find_child("b2_commission_status_tool_for_g03",true,false) == null,"G01 price negotiation excludes G03's commission slip")
 	var field := host.find_child("b2_price_input",true,false) as LineEdit
 	if not check(field != null,"same price field on ordinary tool procurement"):
 		quit(1)
