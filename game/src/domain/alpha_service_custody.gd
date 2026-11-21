@@ -176,7 +176,7 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 			state.wallets[row.actor_id][curr] -= fee[curr]
 			state.wallets.player[curr] += fee[curr]
 		job.paid = fee.duplicate(true)
-	job.status = "delivered"
+		job.status = "delivered"
 	else:
 		job.status = "returned_unpaid"
 	job.return_action = command.action_id
