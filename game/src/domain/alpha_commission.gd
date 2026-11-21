@@ -5,18 +5,28 @@ extends RefCounted
 const Rules = preload("res://src/domain/value_rules.gd")
 const Objects = preload("res://src/domain/object_schema.gd")
 const PATH: String = "res://data/alpha_b2/commission_pilot_1.json"
+const NAMED_PATH: String = "res://data/alpha_b2/commission_named_parity_1.json"
+const DEFAULT_PROFILE: String = "b2_commission_pilot_1"
+const NAMED_PROFILE: String = "b2_commission_named_parity_1"
 const ACTIONS: Array = ["alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver"]
 
-static func config() -> Dictionary:
-	var value: Variant = JSON.parse_string(FileAccess.get_file_as_string(PATH))
-	if not Rules.keys(value, ["version", "profile_id", "requests"]) or value.version != 1 or value.profile_id != "b2_commission_pilot_1" or not value.requests is Array:
+## Profile-bound allowlist; old save's authored config bytes remain untouched.
+static func config(profile_id: String = DEFAULT_PROFILE) -> Dictionary:
+	var path: String = PATH if profile_id == DEFAULT_PROFILE else (NAMED_PATH if profile_id == NAMED_PROFILE else "")
+	if path.is_empty():
+		return {}
+	var value: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if not Rules.keys(value, ["version", "profile_id", "requests"]) or value.version != 1 or value.profile_id != profile_id or not value.requests is Array:
 		return {}
 	if value.requests.is_empty() or value.requests.size() > 16:
 		return {}
 	return value
 
+static func _profile_id(state: Dictionary) -> String:
+	return str(state.alpha_shop.profile.get("commission_profile_id", "")) if state.has("alpha_shop") else ""
+
 static func profile_valid(profile: Dictionary, state: Dictionary) -> bool:
-	var c: Dictionary = config()
+	var c: Dictionary = config(str(profile.get("commission_profile_id", "")))
 	if c.is_empty() or profile.get("commission_profile_id") != c.profile_id or not profile.has("days"):
 		return false
 	var ids: Dictionary = {}
@@ -30,6 +40,10 @@ static func profile_valid(profile: Dictionary, state: Dictionary) -> bool:
 		if ids.has(r.request_id) or return_visits.has(r.return_visit_id) or r.offer_visit_id == r.return_visit_id or not Rules.integer(r.offer_day, 1, profile.days.size()) or not Rules.integer(r.due_day, int(r.offer_day) + 1, profile.days.size()):
 			return false
 		if not r.require_functional is bool or not Objects.money(r.price, false) or int(r.price.VKC) + int(r.price.USD) <= 0 or (int(r.price.VKC) > 0 and int(r.price.USD) > 0):
+			return false
+		# An authored return must choose a real free cell in the receiver's
+		# existing physical inventory. The old pilot defaults to (0,0).
+		if not Rules.integer(r.get("delivery_x", 0), 0, 9) or not Rules.integer(r.get("delivery_y", 0), 0, 5):
 			return false
 		if not state.wallets.has(r.actor_id) or not state.items.has(r.return_item_id) or state.items[r.return_item_id].def_id != r.target_def_id:
 			return false
@@ -50,9 +64,9 @@ static func profile_valid(profile: Dictionary, state: Dictionary) -> bool:
 		return_visits[r.return_visit_id] = true
 	return true
 
-static func seed() -> Dictionary:
+static func seed(profile_id: String = DEFAULT_PROFILE) -> Dictionary:
 	var entries: Dictionary = {}
-	for r: Dictionary in config().get("requests",[]):
+	for r: Dictionary in config(profile_id).get("requests",[]):
 		entries[r.request_id] = {
 			"status":"unoffered","item_id":"","offer_action":"","accept_action":"",
 			"reserve_action":"","deliver_action":"","end_action":"","verified_functional":false
@@ -63,47 +77,47 @@ static func current(state: Dictionary, r: Dictionary, return_trip: bool = false)
 	var a: Dictionary = state.alpha_shop
 	return a.phase == "CUSTOMER_ACTIVE" and a.day == (r.due_day if return_trip else r.offer_day) and a.active == (r.return_visit_id if return_trip else r.offer_visit_id)
 
-static func is_return_visit(visit_id: String) -> bool:
-	for r: Dictionary in config().get("requests", []):
+static func is_return_visit(visit_id: String, profile_id: String = DEFAULT_PROFILE) -> bool:
+	for r: Dictionary in config(profile_id).get("requests", []):
 		if r.return_visit_id == visit_id:
 			return true
 	return false
 
 static func scheduled(state: Dictionary, visit_id: String) -> bool:
-	for r: Dictionary in config().get("requests", []):
+	for r: Dictionary in config(_profile_id(state)).get("requests", []):
 		if r.return_visit_id == visit_id:
 			return state.alpha_shop.commissions.entries[r.request_id].status in ["accepted","ready"]
 	return true
 
-static func _request(request_id: String) -> Dictionary:
-	for r: Dictionary in config().get("requests",[]):
+static func _request(request_id: String, profile_id: String) -> Dictionary:
+	for r: Dictionary in config(profile_id).get("requests",[]):
 		if r.request_id == request_id:
 			return r
 	return {}
 
 static func on_entry(state: Dictionary, action_id: String) -> void:
-	for r: Dictionary in config().requests:
+	for r: Dictionary in config(_profile_id(state)).requests:
 		var entry: Dictionary = state.alpha_shop.commissions.entries[r.request_id]
 		if entry.status == "unoffered" and current(state,r):
 			entry.status = "offered"
 			entry.offer_action = action_id
 
 static func on_leave(state: Dictionary, action_id: String) -> void:
-	for r: Dictionary in config().requests:
+	for r: Dictionary in config(_profile_id(state)).requests:
 		var entry: Dictionary = state.alpha_shop.commissions.entries[r.request_id]
 		if entry.status == "offered" and current(state,r):
 			entry.status = "missed"
 			entry.end_action = action_id
 
 static func on_close(state: Dictionary, action_id: String) -> void:
-	for r: Dictionary in config().requests:
+	for r: Dictionary in config(_profile_id(state)).requests:
 		var entry: Dictionary = state.alpha_shop.commissions.entries[r.request_id]
 		if state.alpha_shop.day == r.offer_day and entry.status in ["unoffered","offered"]:
 			entry.status = "missed"
 			entry.end_action = action_id
 
 static func on_settle(state: Dictionary, action_id: String) -> void:
-	for r: Dictionary in config().requests:
+	for r: Dictionary in config(_profile_id(state)).requests:
 		var entry: Dictionary = state.alpha_shop.commissions.entries[r.request_id]
 		if state.alpha_shop.day == r.due_day and entry.status in ["accepted","ready"]:
 			if entry.status == "ready" and state.items.has(entry.item_id) and state.items[entry.item_id].reservation_id == r.request_id:
@@ -132,7 +146,7 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 		return "alpha_commission_shape"
 	if not Rules.identifier(p.request_id):
 		return "alpha_commission_shape"
-	var r: Dictionary = _request(p.request_id)
+	var r: Dictionary = _request(p.request_id, _profile_id(state))
 	if r.is_empty():
 		return "alpha_commission_unknown"
 	var entry: Dictionary = state.alpha_shop.commissions.entries[r.request_id]
@@ -172,7 +186,7 @@ static func delivery_gate(state: Dictionary, command: Dictionary) -> String:
 	var p: Dictionary = command.payload
 	if not Rules.keys(p,["request_id"]) or not Rules.identifier(p.request_id):
 		return "alpha_commission_delivery_shape"
-	var r: Dictionary = _request(p.request_id)
+	var r: Dictionary = _request(p.request_id, _profile_id(state))
 	if r.is_empty() or not state.alpha_shop.commissions.entries.has(r.request_id):
 		return "alpha_commission_unknown"
 	var entry: Dictionary = state.alpha_shop.commissions.entries[r.request_id]
@@ -190,15 +204,15 @@ static func delivery_gate(state: Dictionary, command: Dictionary) -> String:
 	return ""
 
 static func transfer_payload(state: Dictionary, request_id: String) -> Dictionary:
-	var r: Dictionary = _request(request_id)
+	var r: Dictionary = _request(request_id, _profile_id(state))
 	var item_id: String = state.alpha_shop.commissions.entries[request_id].item_id
 	return {"visit_id":r.return_visit_id, "item_id":item_id,
 		"seller":"player","buyer":r.actor_id,"currency":"VKC" if int(r.price.VKC) > 0 else "USD",
 		"amount":int(r.price.VKC) if int(r.price.VKC) > 0 else int(r.price.USD),
-		"inventory":r.actor_id+"_grid","x":0,"y":0,"rotated":false}
+		"inventory":r.actor_id+"_grid","x":int(r.get("delivery_x",0)),"y":int(r.get("delivery_y",0)),"rotated":false}
 
 static func after_delivery(state: Dictionary, request_id: String, action_id: String) -> void:
-	var r: Dictionary = _request(request_id)
+	var r: Dictionary = _request(request_id, _profile_id(state))
 	var entry: Dictionary = state.alpha_shop.commissions.entries[request_id]
 	entry.status = "fulfilled"
 	entry.deliver_action = action_id
@@ -211,7 +225,7 @@ static func view(state: Dictionary) -> Dictionary:
 	if not state.alpha_shop.has("commissions"):
 		return result
 	var a: Dictionary = state.alpha_shop
-	for r: Dictionary in config().requests:
+	for r: Dictionary in config(_profile_id(state)).requests:
 		var entry: Dictionary = a.commissions.entries[r.request_id]
 		if entry.status == "unoffered" and a.active != r.offer_visit_id:
 			continue
