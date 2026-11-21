@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "profile_id": "b2_service_custody_pilot_1",
+  "jobs": [
+    {
+      "job_id": "service_w001",
+      "actor_id": "G02",
+      "offer_visit_id": "visit_g02_buy",
+      "return_visit_id": "alpha_service_g02_return_d2",
+      "offer_day": 1,
+      "due_day": 2,
+      "item_id": "W001",
+      "fee": {
+        "VKC": 30,
+        "USD": 0
+      },
+      "text_key": "b2.service.w001"
+    }
+  ]
+}
