@@ -31,8 +31,9 @@ jobs:
           $exe = Get-ChildItem $engineDir -Filter 'Godot_v4.7.2-stable_win64.exe' -Recurse | Select-Object -First 1
           if ($null -eq $exe) { throw 'Pinned engine missing' }
           "GODOT_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          & $exe.FullName --version
-          if ($LASTEXITCODE -ne 0) { throw 'Pinned engine version failed' }
+          $version = & $exe.FullName --version
+          Write-Host $version
+          if (-not ($version -join ' ').StartsWith('4.7.2.stable.')) { throw 'Unexpected Godot version' }
       - name: Prepare isolated alpha entry point
         shell: pwsh
         run: |
