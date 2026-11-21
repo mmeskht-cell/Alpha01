@@ -12,12 +12,26 @@ const CalendarLife = preload("res://src/domain/calendar_lifecycle.gd")
 const Selection = preload("res://src/domain/calendar_tracking.gd")
 const Reaction = preload("res://src/domain/calendar_reaction.gd")
 const Retention=preload("res://src/domain/appraisal_history_retention.gd")
+const Regional=preload("res://src/domain/regional_world_state.gd")
+const Npc=preload("res://src/domain/npc_continuity.gd")
 const ACTIONS: Array = ["calendar_close", "calendar_morning", "calendar_pay_overhead"]
 const COMMON: Array = ["trade", "deliver", "move", "observe", "restore_item", "attach", "detach", "discard", "replace_component","clean_exterior"]
 const OVERHEAD: int = 15
 const LIFECYCLE_VERSION: String = "calendar-lifecycle-1"
 
 static func profile_valid(p: Variant) -> bool:
+	if p is Dictionary and p.has("npc_continuity"):
+		if not p.npc_continuity is Dictionary or not p.has("visit_days"):
+			return false
+		var base:Dictionary=p.duplicate(true)
+		base.erase("npc_continuity")
+		return profile_valid(base)
+	if p is Dictionary and p.has("regional_world"):
+		if not p.regional_world is Dictionary or not p.has("visit_days"):
+			return false
+		var base:Dictionary=p.duplicate(true)
+		base.erase("regional_world")
+		return profile_valid(base)
 	if p is Dictionary and p.has("observation_retention"):
 		if p.observation_retention!=Retention.CONTRACT or p.get("id")!="campaign_42" or p.get("appraisal_profile")!="watch_p2_v1":
 			return false
@@ -118,6 +132,13 @@ static func seed(state: Dictionary, defs: Dictionary, profile: Dictionary) -> Di
 		if reaction.is_empty():
 			return {}
 		result.calendar["reaction"]=reaction
+	if profile.has("npc_continuity") and not Npc.seed_valid(result,profile):
+		return {}
+	if profile.has("regional_world"):
+		var region_seed:Dictionary=Regional.seed(result,profile)
+		if region_seed.is_empty():
+			return {}
+		result.calendar["regional_world"]=region_seed
 	if not CalendarLife.rules_valid(result,profile):
 		return {}
 	return Rules.normalized(result)
@@ -158,6 +179,7 @@ static func apply(s: Dictionary, kind: String, payload: Dictionary, action: Stri
 					Medicine.morning(s, action)
 				Contract.morning(s, action)
 				Reaction.morning(s,action)
+				Regional.morning(s,action)
 		"calendar_pay_overhead":
 			if not Clock.business_at(int(s.game_minutes), s.phase) or c.debt <= 0 or s.wallets.player.VKC < c.debt:
 				return "calendar_debt"

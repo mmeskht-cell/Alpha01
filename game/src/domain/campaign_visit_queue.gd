@@ -6,6 +6,8 @@ const Clock = preload("res://src/domain/business_clock.gd")
 const Visits = preload("res://src/domain/visit_primitives.gd")
 const Service = preload("res://src/domain/campaign_service.gd")
 const Reaction = preload("res://src/domain/calendar_reaction.gd")
+const Regional=preload("res://src/domain/regional_world_state.gd")
+const Npc=preload("res://src/domain/npc_continuity.gd")
 const ACTIONS: Array = ["calendar_next_visit", "calendar_decline_visit"]
 
 static func seed(state: Dictionary, profile: Dictionary, service_visits: Dictionary = {}) -> Dictionary:
@@ -61,7 +63,7 @@ static func today(s: Dictionary) -> Array:
 	return result
 
 static func eligible(s:Dictionary,id:String)->bool:
-	if not Service.eligible(s,id) or not Reaction.eligible(s,id):
+	if not Service.eligible(s,id) or not Reaction.eligible(s,id) or not Regional.eligible(s,id) or not Npc.eligible(s,id):
 		return false
 	if s.calendar.profile.content_version not in ["demo7-integrated-1","demo7-integrated-2","demo7-integrated-3"]:
 		return true

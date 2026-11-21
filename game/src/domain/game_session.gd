@@ -28,6 +28,8 @@ const InspectionAccess = preload("res://src/domain/inspection_access.gd")
 const Observation = preload("res://src/domain/observation_record.gd")
 const VisitObservation = preload("res://src/domain/visit_appraisal_observation.gd")
 const AppraisalRetention=preload("res://src/domain/appraisal_history_retention.gd")
+const RegionalWorld=preload("res://src/domain/regional_world_state.gd")
+const NpcContinuity=preload("res://src/domain/npc_continuity.gd")
 const VisitAssessment = preload("res://src/domain/visit_appraisal_assessment.gd")
 const VisitDeck = preload("res://src/domain/visit_negotiation_deck.gd")
 const VisitPrice = preload("res://src/domain/visit_price_offer.gd")
@@ -393,6 +395,14 @@ func calendar_view(basic_visit:String="") -> Dictionary:
 		result["obligations"] = Contract.view(_state)
 	if _state.calendar.has("reaction"):
 		result["world_news"]=CalendarReaction.view(_state)
+	if _state.calendar.has("regional_world"):
+		result["world_regions"]=RegionalWorld.view(_state)
+	if _state.calendar.profile.has("npc_continuity") and result.get("visits",{}).has("active") and not str(result.visits.active).is_empty():
+		var terms:Dictionary=result.visits.terms
+		var actor:String=str(terms.get("seller","")) if terms.get("buyer")=="player" else str(terms.get("buyer",terms.get("customer","")))
+		var contact:Dictionary=NpcContinuity.visible_history(_state,actor)
+		if not contact.is_empty():
+			result["npc_encounters"]=contact
 	return result
 
 ## Seed-bound full replay, with a local cache only for exact validated prefixes.
@@ -406,6 +416,8 @@ func _calendar_valid(state: Dictionary) -> bool:
 		keys.append("tracking")
 	if _calendar_seed.calendar.has("reaction"):
 		keys.append("reaction")
+	if _calendar_seed.calendar.has("regional_world"):
+		keys.append("regional_world")
 	if _calendar_seed.calendar.has("medicine"):
 		keys.append("medicine")
 	if _calendar_seed.calendar.has("queue"):
