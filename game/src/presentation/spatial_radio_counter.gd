@@ -626,8 +626,7 @@ func _build_plain()->void:
 		caption.text=_customer_id()+": "+word("고장 난 수신기입니다. 부품 상태는 직접 확인해 보세요.","A faulty receiver. Check its parts yourself.")
 	var remembered:String=_previous_trade_copy()
 	if not remembered.is_empty():
-		caption.text+="
-"+remembered
+		caption.text+="\n"+remembered
 	caption.name="spatial_speech_text"
 	caption.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART if preview_native_v23 else TextServer.AUTOWRAP_OFF
 	caption.clip_text=true
@@ -1538,8 +1537,7 @@ func _build_customer()->void:
 	# current object's identity or reveal an unobserved customer memory.
 	var remembered:String=_previous_trade_copy()
 	if _app.deck.presented.is_empty() and not remembered.is_empty():
-		dialogue+="
-"+remembered
+		dialogue+="\n"+remembered
 	# Bound the speech independently of wrapping/container minimum sizes.
 	# Keep the customer, counter and physical item visible below the dialogue.
 	var speech:=ColorRect.new()
