@@ -15,6 +15,7 @@ const PROFILE_ID: String = "watch_p2_v1"
 const PUBLIC_PATH: String = "res://data/campaign/gate2/watch_public_catalog.json"
 const Catalog = preload("res://src/domain/public_appraisal_catalog.gd")
 const CustomerClaims = preload("res://src/domain/visit_customer_claims.gd")
+const Retention=preload("res://src/domain/appraisal_history_retention.gd")
 const MAX_OBSERVATIONS: int = 128
 
 # Immutable catalog/profile routing for the existing approved versions.
@@ -97,7 +98,7 @@ static func specimen_id(state:Dictionary,id:String)->String:
 	return "W001" if state.get("calendar",{}).get("profile",{}).get("content_version") in ["demo7-integrated-1","demo7-integrated-2","demo7-integrated-3"] and id=="WAT02" else id
 
 static func records(state: Dictionary) -> Dictionary:
-	return state.get("calendar",{}).get("appraisal_observations",state.get("appraisal_observations",{}))
+	return Retention.records(state)
 
 static func active_visit(state: Dictionary, visit_id: String) -> bool:
 	var calendar: Variant = state.get("calendar",{}).get("queue")
@@ -225,13 +226,21 @@ static func apply(state: Dictionary, p: Dictionary, action_id: String) -> String
 	if marker.get("id") != PROFILE_ID or marker.get("content_sha") != Rules.canonical(book(state)).sha256_text():
 		return "appraisal_profile_unavailable"
 	var history: Dictionary = records(state)
-	if history.size() >= MAX_OBSERVATIONS or history.has(action_id):
+	var max_total:int=Retention.MAX_TOTAL if Retention.enabled(state) else MAX_OBSERVATIONS
+	if history.size() >= max_total or history.has(action_id):
 		return "appraisal_observation_limit"
 	var result: Dictionary = prepare(state,p,action_id)
 	if not result.ok:
 		return result.error
+	# Old 7-day profiles preserve their exact journal/state and hard cap.
+	if Retention.enabled(state):
+		if not Retention.make_room(state):
+			return "appraisal_observation_archive"
+	else:
+		if state.calendar.appraisal_observations.size()>=MAX_OBSERVATIONS:
+			return "appraisal_observation_limit"
 	state.game_minutes = result.end_minute
-	history[action_id] = result.entry
+	state.calendar.appraisal_observations[action_id] = result.entry
 	return ""
 
 static func active_view(state: Dictionary,basic_visit:String="") -> Dictionary:

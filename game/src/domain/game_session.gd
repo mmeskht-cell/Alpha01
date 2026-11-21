@@ -27,6 +27,7 @@ const Evidence = preload("res://src/domain/evidence_primitives.gd")
 const InspectionAccess = preload("res://src/domain/inspection_access.gd")
 const Observation = preload("res://src/domain/observation_record.gd")
 const VisitObservation = preload("res://src/domain/visit_appraisal_observation.gd")
+const AppraisalRetention=preload("res://src/domain/appraisal_history_retention.gd")
 const VisitAssessment = preload("res://src/domain/visit_appraisal_assessment.gd")
 const VisitDeck = preload("res://src/domain/visit_negotiation_deck.gd")
 const VisitPrice = preload("res://src/domain/visit_price_offer.gd")
@@ -416,13 +417,15 @@ func _calendar_valid(state: Dictionary) -> bool:
 	if _calendar_seed.calendar.has("appraisal_profile"):
 		keys.append("appraisal_profile")
 		keys.append("appraisal_observations")
+		if _calendar_seed.calendar.has("appraisal_observation_archive"):
+			keys.append("appraisal_observation_archive")
 		keys.append("appraisal_assessments")
 		# Optional on first explicit deck action; old B2/B3 snapshots remain valid.
 		if c is Dictionary and c.has("appraisal_decks"):
 			keys.append("appraisal_decks")
 		if c is Dictionary and c.has("appraisal_offers"):
 			keys.append("appraisal_offers")
-	if not Rules.keys(c, keys) or c.version != 1 or c.profile != _calendar_seed.calendar.profile or c.binding != _calendar_seed.calendar.binding or not Rules.integer(c.debt) or not c.commands is Array or c.commands.size() != state.revision:
+	if not Rules.keys(c, keys) or c.version != 1 or c.profile != _calendar_seed.calendar.profile or c.binding != _calendar_seed.calendar.binding or not Rules.integer(c.debt) or not c.commands is Array or c.commands.size() != state.revision or not AppraisalRetention.valid(state):
 		return false
 	var replay: Dictionary = _calendar_seed.duplicate(true)
 	var start: int = 0
@@ -981,7 +984,7 @@ func inventory_appraisal(id:String)->Dictionary:
 	# Reuse already obtained purchase evidence if its field version remains current.
 	# This is a derived DTO only; the historical receipt and value are untouched.
 	if basic:
-		for entry:Dictionary in _state.calendar.get("appraisal_observations",{}).values():
+		for entry:Dictionary in VisitObservation.records(_state).values():
 			var record:Dictionary=entry.record
 			if record.item_id!=id or record.observation_key!="function_status" or record.observed_value not in ["serviceable","inoperable"]:
 				continue
@@ -1255,7 +1258,8 @@ func validate(state: Dictionary, receipt_limit: int = MAX_RECEIPTS, legacy_prefi
 	if not state.ledger is Array or state.ledger.size() > state.revision or state.receipts.size() > receipt_limit or state.receipts.size() + state.receipt_archive.size() != state.revision:
 		_validation_error = "guard_4"
 		return false
-	if state.wallets.is_empty() or state.wallets.size() > 32 or state.inventories.size() > 32 or state.items.size() > 128:
+	var campaign_42:bool=state.get("calendar",{}).get("profile",{}).get("id")=="campaign_42"
+	if state.wallets.is_empty() or state.wallets.size() > (64 if campaign_42 else 32) or state.inventories.size() > (64 if campaign_42 else 32) or state.items.size() > 128:
 		_validation_error = "guard_5"
 		return false
 	for owner: Variant in state.wallets:

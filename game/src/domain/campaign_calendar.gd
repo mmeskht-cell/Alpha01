@@ -11,12 +11,19 @@ const VisitObservation = preload("res://src/domain/visit_appraisal_observation.g
 const CalendarLife = preload("res://src/domain/calendar_lifecycle.gd")
 const Selection = preload("res://src/domain/calendar_tracking.gd")
 const Reaction = preload("res://src/domain/calendar_reaction.gd")
+const Retention=preload("res://src/domain/appraisal_history_retention.gd")
 const ACTIONS: Array = ["calendar_close", "calendar_morning", "calendar_pay_overhead"]
 const COMMON: Array = ["trade", "deliver", "move", "observe", "restore_item", "attach", "detach", "discard", "replace_component","clean_exterior"]
 const OVERHEAD: int = 15
 const LIFECYCLE_VERSION: String = "calendar-lifecycle-1"
 
 static func profile_valid(p: Variant) -> bool:
+	if p is Dictionary and p.has("observation_retention"):
+		if p.observation_retention!=Retention.CONTRACT or p.get("id")!="campaign_42" or p.get("appraisal_profile")!="watch_p2_v1":
+			return false
+		var base:Dictionary=p.duplicate(true)
+		base.erase("observation_retention")
+		return profile_valid(base)
 	if p is Dictionary and p.has("carryover_returns"):
 		if p.get("id")!="demo_7" or p.get("content_version") not in ["demo7-integrated-1","demo7-integrated-2","demo7-integrated-3"] or not p.has("services") or not p.has("visit_days") or not p.carryover_returns is Dictionary or p.carryover_returns.is_empty() or p.carryover_returns.size()>8:
 			return false
@@ -103,6 +110,8 @@ static func seed(state: Dictionary, defs: Dictionary, profile: Dictionary) -> Di
 			return {}
 		result.calendar["appraisal_profile"] = observation_profile
 		result.calendar["appraisal_observations"] = {}
+		if profile.get("observation_retention","")==Retention.CONTRACT:
+			result.calendar["appraisal_observation_archive"]={}
 		result.calendar["appraisal_assessments"] = {}
 	if profile.has("reaction_rules"):
 		var reaction:Dictionary=Reaction.seed(result,profile)
