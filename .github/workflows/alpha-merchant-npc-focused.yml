@@ -7,6 +7,10 @@ on:
       - '.github/workflows/alpha-merchant-npc-focused.yml'
       - 'game/tests/scenarios/merchant_office_ui_test.gd'
       - 'game/tests/scenarios/alpha_cross_system_42day_test.gd'
+      - 'game/tests/scenarios/calendar_merchant_contracts_test.gd'
+      - 'game/src/domain/calendar_merchant_contracts.gd'
+      - 'game/src/domain/item_lineage.gd'
+      - 'game/src/presentation/generic_trade_history.gd'
 permissions:
   contents: read
 jobs:
