@@ -72,6 +72,7 @@
     "b2.board.note": "실제 지갑·재고·내가 확인한 카드만 표시합니다.",
     "b2.npc.named.supplier": "RAD-1 공급을 제안합니다. 대금은 %d VKC, 납부 기한은 D%d입니다.",
     "b2.commission.current_terms": "의뢰 조건 · 납기 D%d · 보수 %d %s · %s",
-    "b2.commission.hygiene_ian": "진료소에 위생 물자 한 묶음이 필요합니다. D5까지 준비해 주실 수 있나요?"
+    "b2.commission.hygiene_ian": "진료소에 위생 물자 한 묶음이 필요합니다. D5까지 준비해 주실 수 있나요?",
+    "b2.npc.commission.pickup": "지난번 부탁한 %s, 준비됐나요?"
   }
 }
