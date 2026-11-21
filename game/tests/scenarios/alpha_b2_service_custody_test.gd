@@ -29,7 +29,7 @@ func command(s: RefCounted, kind: String, payload: Dictionary={}) -> Dictionary:
 func go(s: RefCounted, kind: String, payload: Dictionary={}) -> bool:
 	var r: Dictionary=s.execute(command(s,kind,payload))
 	if not r.ok:
-		printerr("B2_SERVICE_COMMAND ",kind," ",r)
+		printerr("B2_SERVICE_COMMAND ",kind," ",r," validation=",s._validation_error)
 	return r.ok
 
 func deny(s: RefCounted, kind: String, payload: Dictionary={}) -> bool:
@@ -87,7 +87,8 @@ func happy() -> void:
 		return
 	check(s.alpha_view().services.entries[0].can_repair,"actual owned-repair workflow exposes evening action")
 	check(deny(s,"alpha_service_repair",{"job_id":"service_w001","item_id":"R001"}),"cannot restore someone else's item under service permission")
-	check(go(s,"alpha_service_repair",{"job_id":"service_w001","item_id":"W001"}),"existing restore primitive repairs actual W001 with work cost")
+	if not check(go(s,"alpha_service_repair",{"job_id":"service_w001","item_id":"W001"}),"existing restore primitive repairs actual W001 with work cost"):
+		return
 	var repaired: Dictionary=s.snapshot()
 	check(repaired.wallets.player.VKC==initial.wallets.player.VKC-10 and repaired.items.W001.owner_id=="G02","workshop charges existing 10 VKC cost but never transfers ownership")
 	check(repaired.items.W001.functional and repaired.items.W001.restored and repaired.items.W001.status=="custody_service","actual restored physical object remains in customer custody")
