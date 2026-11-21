@@ -50,6 +50,7 @@ const Negotiation = preload("res://src/domain/gate1_negotiation.gd")
 const AlphaShop = preload("res://src/domain/alpha_shop_cycle.gd")
 const AlphaCards = preload("res://src/domain/alpha_card_trade.gd")
 const AlphaCommission = preload("res://src/domain/alpha_commission.gd")
+const AlphaServiceCustody = preload("res://src/domain/alpha_service_custody.gd")
 const COMMAND_TYPES: Array = ["merchant_pawn_accept", "merchant_pawn_redeem", "merchant_pawn_extend", "merchant_order_accept", "merchant_order_deliver", "merchant_order_cancel", "calendar_exchange", "clean_exterior", "replace_component", "trade", "deliver", "move", "advance_time", "detach", "attach", "discard", "restore_item", "observe", "accept_rad1_contract", "next_visit", "inspect_radio", "record_hypothesis", "deck_action", "make_offer", "confirm_purchase", "decline_visit", "record_component_hypothesis", "request_open_inspection", "close_inspection", "decline_component_visit", "finish_component_visit", "begin_day_one", "day_one_next", "day_one_decline", "day_one_accept_service", "day_one_cancel_service", "day_one_close", "day_one_next_morning", "day_one_deliver_service", "day_one_pay_overhead", "open_component_sale", "day_one_composite_offer", "day_one_composite_request", "day_one_composite_close", "day_one_composite_decline", "world_sleep_family", "world_wake_family", "world_spawn_stock", "world_open_visit", "world_track_promote", "world_track_reference", "world_track_suspend", "calendar_close", "calendar_morning", "calendar_pay_overhead", "rad_reserve", "rad_decline", "rad_extend", "rad_pay", "rad_use", "rad_auto", "calendar_next_visit", "calendar_decline_visit", "calendar_accept_service", "calendar_deliver_service", "calendar_return_unpaid", "calendar_accept_contract", "calendar_decline_contract", "calendar_extend_contract", "calendar_pay_contract", "inspect_subject", "assess_subject", "link_subject_evidence", "subject_deck_action", "subject_price_offer"]
 const MAX_RECEIPTS: int = 32
 const STATE_KEYS: Array = ["revision", "game_minutes", "wallets", "inventories", "items", "ledger", "receipts", "receipt_archive", "object_schema", "tombstones", "object_events", "visits", "phase", "knowledge"]
@@ -284,6 +285,22 @@ func _execute(command: Dictionary, world: bool) -> Dictionary:
 ## opt-in profile supplies new phase/real-shelf admission permissions.
 func _apply_alpha(state: Dictionary, command: Dictionary) -> String:
 	var p: Dictionary = command.payload
+	if command.type == "alpha_service_repair":
+		if not state.alpha_shop.has("services"):
+			return "alpha_service_unavailable"
+		var guard: String = AlphaServiceCustody.work_gate(state, p)
+		if not guard.is_empty():
+			return guard
+		# The existing restoration primitive owns functional flags, cost and
+		# object events. Only a detached command candidate temporarily enters
+		# the legacy workshop phase; player-facing Alpha day remains unchanged.
+		var original_phase: String = str(state.phase)
+		state.phase = "workshop"
+		var error: String = _restore_item(state, {"actor":"player","item_id":str(p.item_id)}, command.action_id)
+		state.phase = original_phase
+		if error.is_empty():
+			AlphaServiceCustody.after_work(state, str(p.job_id), command.action_id)
+		return error
 	if command.type == "alpha_commission_deliver":
 		if not state.alpha_shop.has("commissions"):
 			return "alpha_commission_unavailable"
@@ -516,6 +533,8 @@ func _alpha_valid(state: Dictionary) -> bool:
 		expected_alpha_keys.append("appraisal")
 	if _alpha_seed.alpha_shop.has("commissions"):
 		expected_alpha_keys.append("commissions")
+	if _alpha_seed.alpha_shop.has("services"):
+		expected_alpha_keys.append("services")
 	if not Rules.keys(a, expected_alpha_keys):
 		return false
 	if a.version != 1 or a.profile != _alpha_seed.alpha_shop.profile or a.binding != _alpha_seed.alpha_shop.binding or not a.commands is Array or a.commands.size() != state.revision:
