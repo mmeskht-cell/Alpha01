@@ -5,6 +5,7 @@ const B2Seed = preload("res://src/content/alpha_b2_seed.gd")
 const CardSeed = preload("res://src/content/alpha_b2_cards_seed.gd")
 const CommissionSeed = preload("res://src/content/alpha_b2_commission_seed.gd")
 const NamedCommissionSeed = preload("res://src/content/alpha_b2_named_commission_seed.gd")
+const ServiceSeed = preload("res://src/content/alpha_b2_service_seed.gd")
 const B2_KO_PATH = "res://data/alpha_b2/ko.json"
 const Session = preload("res://src/domain/game_session.gd")
 const Alpha = preload("res://src/domain/alpha_shop_cycle.gd")
@@ -17,6 +18,7 @@ const SAVE_SLOT = "alpha_b1_profile_v3"
 @export var b2_interactive_mode: bool = false
 @export var b2_commission_mode: bool = false
 @export var b2_named_commission_mode: bool = false
+@export var b2_service_mode: bool = false
 var session: RefCounted
 var _repo: RefCounted
 var _strings: Dictionary = {}
@@ -42,7 +44,7 @@ func _ready() -> void:
 		var b2_locale: Variant = JSON.parse_string(FileAccess.get_file_as_string(B2_KO_PATH))
 		if b2_locale is Dictionary and b2_locale.get("strings") is Dictionary:
 			_strings.merge(b2_locale.strings, true)
-	var source: Dictionary = NamedCommissionSeed.content() if b2_named_commission_mode else (CommissionSeed.content() if b2_commission_mode else (CardSeed.content() if b2_interactive_mode else (B2Seed.content() if b2_mode else Seed.content())))
+	var source: Dictionary = ServiceSeed.content() if b2_service_mode else (NamedCommissionSeed.content() if b2_named_commission_mode else (CommissionSeed.content() if b2_commission_mode else (CardSeed.content() if b2_interactive_mode else (B2Seed.content() if b2_mode else Seed.content()))))
 	if source.is_empty():
 		_blocked = true
 		_message = "B1 콘텐츠를 읽지 못했습니다."
@@ -52,7 +54,7 @@ func _ready() -> void:
 			_blocked = true
 			_message = "세션 초기화 오류: " + session.initialization_error()
 		else:
-			var location: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b2_named_commission" if b2_named_commission_mode else ("user://zt_rebuild/alpha_b2_commission" if b2_commission_mode else ("user://zt_rebuild/alpha_b2_cards" if b2_interactive_mode else ("user://zt_rebuild/alpha_b2" if b2_mode else "user://zt_rebuild/alpha_b1"))))
+			var location: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b2_service" if b2_service_mode else ("user://zt_rebuild/alpha_b2_named_commission" if b2_named_commission_mode else ("user://zt_rebuild/alpha_b2_commission" if b2_commission_mode else ("user://zt_rebuild/alpha_b2_cards" if b2_interactive_mode else ("user://zt_rebuild/alpha_b2" if b2_mode else "user://zt_rebuild/alpha_b1")))))
 			_repo = Repo.new(location)
 			var loaded: Dictionary = _repo.load_session(session, _slot())
 			if loaded.get("ok", false):
@@ -63,7 +65,7 @@ func _ready() -> void:
 	refresh()
 
 func _slot() -> String:
-	return "alpha_b2_named_commission_parity_v1" if b2_named_commission_mode else ("alpha_b2_commission_pilot_v1" if b2_commission_mode else ("alpha_b2_cards_pilot_v1" if b2_interactive_mode else ("alpha_b2_trade_slice_v2" if b2_mode else SAVE_SLOT)))
+	return "alpha_b2_service_custody_pilot_v1" if b2_service_mode else ("alpha_b2_named_commission_parity_v1" if b2_named_commission_mode else ("alpha_b2_commission_pilot_v1" if b2_commission_mode else ("alpha_b2_cards_pilot_v1" if b2_interactive_mode else ("alpha_b2_trade_slice_v2" if b2_mode else SAVE_SLOT))))
 
 func _text(key: String) -> String:
 	return str(_strings.get(key, key))
@@ -158,6 +160,36 @@ func _add_b2_shop_board(panel: PanelContainer, view: Dictionary) -> void:
 	else:
 		_board_line(body, "b2_board_waiting", _text("b2.board.waiting"))
 	_board_line(body, "b2_board_caution", _text("b2.board.note"))
+
+## Customer property is shown separately from owner stock, never silently
+## counted as player-owned displayable inventory.
+func _add_b2_service_actions(actions: VBoxContainer, v: Dictionary) -> void:
+	for entry: Dictionary in v.services.entries:
+		if v.phase == "CUSTOMER_ACTIVE" and (v.active.is_empty() or str(v.active.actor_id) != str(entry.actor_id)):
+			continue
+		var label := Label.new()
+		label.name = "b2_service_status_" + str(entry.job_id)
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.text = _text("b2.service.receipt") % [
+			_text("b2.item." + str(entry.def_id)), int(entry.due_day),
+			int(entry.fee.VKC), _text("b2.service.status." + str(entry.status))]
+		actions.add_child(label)
+		var job_id: String = str(entry.job_id)
+		if entry.can_accept:
+			_button(actions,"b2_service_accept",_text("b2.service.accept"),
+				func() -> void: _submit("alpha_service_accept",{"job_id":job_id}))
+			_button(actions,"b2_service_decline",_text("b2.service.decline"),
+				func() -> void: _submit("alpha_service_decline",{"job_id":job_id}))
+		if entry.can_repair:
+			var item_id: String = str(entry.item_id)
+			_button(actions,"b2_service_repair",_text("b2.service.repair"),
+				func() -> void: _submit("alpha_service_repair",{"job_id":job_id,"item_id":item_id}))
+		if entry.can_deliver:
+			_button(actions,"b2_service_deliver",_text("b2.service.deliver"),
+				func() -> void: _submit("alpha_service_deliver",{"job_id":job_id}))
+		if entry.can_return:
+			_button(actions,"b2_service_return_unpaid",_text("b2.service.return_unpaid"),
+				func() -> void: _submit("alpha_service_return_unpaid",{"job_id":job_id}))
 
 ## NPC speech uses only accepted/declined price proposals that the actual
 ## visitor heard, and settled outcomes. Private inspection readings stay private.
@@ -374,12 +406,24 @@ func refresh() -> void:
 					if entry.can_deliver:
 						speech.text = _text("b2.npc.commission.pickup") % _text("b2.item." + str(entry.target_def_id))
 						break
+			if b2_service_mode:
+				for entry: Dictionary in v.services.entries:
+					if str(entry.actor_id) == str(row.actor_id):
+						if entry.can_accept:
+							speech.text = _text("b2.service.offer")
+						elif entry.can_deliver:
+							speech.text = _text("b2.service.pickup") % _text("b2.item." + str(entry.def_id))
+						elif entry.can_return:
+							speech.text = _text("b2.service.unfinished")
+						break
 		elif b2_mode and v.phase == "CUSTOMER_EXIT":
 			var completed: String = str(v.npc_context.get("current_outcome", ""))
 			if completed == "traded":
 				speech.text = _text("b2.npc.exit.traded")
 			elif completed == "commission_delivered":
 				speech.text = _text("b2.npc.exit.delivered")
+			elif completed == "service_delivered":
+				speech.text = _text("b2.npc.exit.serviced")
 	var actions := VBoxContainer.new()
 	actions.name = "alpha_actions"
 	if b2_interactive_mode:
@@ -413,6 +457,8 @@ func refresh() -> void:
 				_add_b2_display_action(actions, v)
 			if b2_commission_mode:
 				_add_b2_commission_actions(actions, v)
+			if b2_service_mode:
+				_add_b2_service_actions(actions, v)
 			if int(v.remaining) > 0:
 				_button(actions, "alpha_next_customer", _text("alpha.button.next"), func() -> void: _submit("alpha_next_customer"))
 			_button(actions, "alpha_close", _text("alpha.button.close"), func() -> void: _submit("alpha_close"))
@@ -426,6 +472,8 @@ func refresh() -> void:
 			_add_contract_actions(actions, v)
 			if b2_commission_mode:
 				_add_b2_commission_actions(actions, v)
+			if b2_service_mode:
+				_add_b2_service_actions(actions, v)
 			if bool(v.can_exchange):
 				_button(actions, "alpha_exchange_contact", _text("alpha.button.exchange"), func() -> void: _submit("alpha_exchange_contact", {"actor_id": row.actor_id, "accepted": true}))
 			_button(actions, "alpha_finish_customer", _text("alpha.button.leave"), func() -> void: _submit("alpha_finish_customer"))
@@ -440,6 +488,8 @@ func refresh() -> void:
 			_add_contract_actions(actions, v)
 			if b2_commission_mode:
 				_add_b2_commission_actions(actions, v)
+			if b2_service_mode:
+				_add_b2_service_actions(actions, v)
 			_add_evening_contacts(actions, v)
 			_button(actions, "alpha_next_day", _text("alpha.button.evening"), func() -> void: _submit("alpha_next_day"))
 		"NEXT_DAY":
@@ -538,18 +588,46 @@ func _add_contract_actions(actions: VBoxContainer, v: Dictionary) -> void:
 
 ## Same counter: actual item, inspectable facts, private card choice and one
 ## customer-facing price proposal. No separate modal or automatic price gains.
+## One physical counter: observed facts are PRIVATE until the player
+## intentionally selects them and makes a public offer. Panels only organize
+## existing click/keyboard commands; no new authority or auto-disclosure.
+func _b2_work_section(actions: VBoxContainer, id: String, heading: String, note: String) -> VBoxContainer:
+	var panel := PanelContainer.new()
+	panel.name = id
+	actions.add_child(panel)
+	var pad := MarginContainer.new()
+	for side: String in ["left","right","top","bottom"]:
+		pad.add_theme_constant_override("margin_" + side, 10)
+	panel.add_child(pad)
+	var body := VBoxContainer.new()
+	body.add_theme_constant_override("separation", 6)
+	pad.add_child(body)
+	var title := Label.new()
+	title.name = id + "_title"
+	title.text = heading
+	title.add_theme_font_size_override("font_size", 20)
+	body.add_child(title)
+	var hint := Label.new()
+	hint.text = note
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.add_theme_font_size_override("font_size", 15)
+	body.add_child(hint)
+	return body
+
 func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 	var a: Dictionary = v.appraisal
 	if a.is_empty():
-		# A contract or incoming commission is not an ordinary shelf trade.
-		# Do not announce an unrelated "no physical trade item" warning while
-		# the player is listening to the visitor's actual request.
+		# An accepted commission, existing RAD-1 contract or entrusted
+		# repair item is not a shelf sale; don't show a false "no item" warning.
 		if not v.active.is_empty():
 			for contract_id: String in v.contracts:
 				if str(v.contracts[contract_id].supplier) == str(v.active.actor_id):
 					return
 			for entry: Dictionary in v.commissions.entries:
 				if str(entry.actor_id) == str(v.active.actor_id):
+					return
+			for job: Dictionary in v.services.entries:
+				if str(job.actor_id) == str(v.active.actor_id):
 					return
 		var unavailable := Label.new()
 		unavailable.text = _text("b2.no_eligible_item")
@@ -560,24 +638,32 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 	item.text = _text("b2.we_buy" if a.we_buy else "b2.we_sell") + " · " + _text("b2.item." + str(a.def_id))
 	item.add_theme_font_size_override("font_size", 20)
 	actions.add_child(item)
-	var help := Label.new()
-	help.text = _text("b2.inspect.hint")
-	actions.add_child(help)
+	var inspect := _b2_work_section(actions,"b2_inspection_sheet",_text("b2.sheet.inspect.title"),_text("b2.sheet.inspect.note"))
+	if a.tools.is_empty():
+		var done := Label.new()
+		done.text = _text("b2.sheet.inspect.done")
+		inspect.add_child(done)
 	for tool: Dictionary in a.tools:
 		var slot: String = str(tool.id)
-		_button(actions,"b2_inspect_" + slot,_text("b2.inspect.action") + " · " + _text(str(tool.text_key)),
+		_button(inspect,"b2_inspect_" + slot,_text("b2.inspect.action") + " · " + _text(str(tool.text_key)),
 			func() -> void: _submit("alpha_inspect",{"slot":slot}))
+	var sheet := _b2_work_section(actions,"b2_private_sheet",_text("b2.sheet.private.title"),_text("b2.sheet.private.note"))
+	if a.cards.is_empty():
+		var empty := Label.new()
+		empty.text = _text("b2.sheet.private.empty")
+		sheet.add_child(empty)
 	for card: Dictionary in a.cards:
 		var slot: String = str(card.slot)
 		var selected: bool = bool(card.selected)
-		var control_name: String = "b2_card_" + slot
-		_button(actions,control_name,("☑ " if selected else "□ ") + _text(str(card.text_key)) + " · " + str(card.value),
+		_button(sheet,"b2_card_" + slot,("☑ " if selected else "□ ") + _text(str(card.text_key)) + " · " + str(card.value),
 			func() -> void: _submit("alpha_card_toggle",{"slot":slot,"selected":not selected}))
+	var bargain := _b2_work_section(actions,"b2_price_sheet",_text("b2.sheet.offer.title"),_text("b2.sheet.offer.note"))
 	for offer: Dictionary in a.offers:
-		var speech := Label.new()
-		speech.name = "b2_last_response"
-		speech.text = _text("b2.offer." + str(offer.response)) + " · " + str(offer.amount) + " " + str(offer.currency)
-		actions.add_child(speech)
+		var response := Label.new()
+		response.name = "b2_last_response"
+		response.text = _text("b2.offer." + str(offer.response)) + " · " + str(offer.amount) + " " + str(offer.currency) + " · " + (_text("b2.sheet.offer.revealed") % offer.public_cards.size())
+		response.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		bargain.add_child(response)
 	if not a.accepted.is_empty():
 		var amount: int = int(a.accepted.amount)
 		var visit_id: String = str(v.active.id)
@@ -591,7 +677,7 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 			"inventory":"player_stock" if buying else str(terms.buyer) + "_grid",
 			"x":0 if buying else 5,"y":0 if buying else 4,"rotated":false
 		}
-		_button(actions,"b2_trade",_text("b2.trade.confirm") + " · " + str(amount) + " " + str(a.accepted.currency),
+		_button(bargain,"b2_trade",_text("b2.trade.confirm") + " · " + str(amount) + " " + str(a.accepted.currency),
 			func() -> void: _submit("alpha_trade",payload))
 		return
 	var current: Dictionary = session.snapshot()
@@ -603,8 +689,8 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 	price_entry.text = str(price[currency])
 	price_entry.placeholder_text = _text("b2.price.placeholder")
 	price_entry.custom_minimum_size = Vector2(240, 42)
-	actions.add_child(price_entry)
-	_button(actions,"b2_offer",_text("b2.offer.submit"),
+	bargain.add_child(price_entry)
+	_button(bargain,"b2_offer",_text("b2.offer.submit"),
 		func() -> void:
 			if price_entry.text.is_valid_int() and int(price_entry.text) > 0:
 				_submit("alpha_price_offer",{"amount":int(price_entry.text)})
@@ -612,7 +698,6 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 				_message = _text("b2.price.invalid")
 				refresh()
 	)
-
 
 ## Requests live on the same counter and are recorded as one bounded ledger
 ## line. Reservations only name real, already purchased player-owned items.
