@@ -707,6 +707,9 @@ func refresh()->void:
 			var active:String=_view.visits.active
 			if not active.is_empty():
 				var terms:Dictionary=_view.visits.terms
+				var memory:Dictionary=_view.get("customer_memory",{})
+				if not memory.is_empty():
+					_line(tr_key("history.customer.previous_trade",{"count":str(memory.trades),"day":str(memory.last_day)}))
 				var trade:Dictionary=_view.trade
 				if not trade.is_empty():
 					var asking:int=int(_view.get("appraisal",{}).get("price_offer",{}).get("asking",trade.amount))

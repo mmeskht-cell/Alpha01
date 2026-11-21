@@ -3361,3 +3361,7 @@ msgstr "카드를 이곳에 공개하세요 · 가격은 별도로 제안합니�
 #. BR06 presentation only; public information, no new authority.
 msgid "book.watch.case.observed_limit"
 msgstr "당시 관찰: {reading} · 이 결만으로 외장 유형은 확정할 수 없습니다."
+ 
+#. Prior paid player transactions only; no assertion of trust or object identity.
+msgid "history.customer.previous_trade"
+msgstr "이 고객과 이전 거래 {count}건 · 최근 {day}일차"

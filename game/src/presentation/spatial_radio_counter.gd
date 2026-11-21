@@ -261,6 +261,13 @@ func _customer_id()->String:
 		return str(trade.get("seller","")) if trade.get("buyer")=="player" else str(trade.get("buyer",""))
 	return "G04" if _is_watch() else "G01"
 
+# Proven prior player transactions only. This is not a trust or identity score.
+func _previous_trade_copy()->String:
+	var memory:Dictionary=_view.get("customer_memory",{})
+	if memory.is_empty():
+		return ""
+	return _label("history.customer.previous_trade",{"count":str(memory.trades),"day":str(memory.last_day)})
+
 func _tool_title(id:String)->String:
 	if preview_native_v23:
 		var capability:Dictionary=ReferenceGuide.native_capability(_app)
@@ -617,6 +624,10 @@ func _build_plain()->void:
 		caption.text=_customer_id()+": "+word("현장 공구입니다. 수리반에서 찾는다는 얘긴 있지만 값은 미정입니다.","Field tool. Repair crews are asking, but no firm price.")
 	elif _view.get("alpha_playtest",false) and id=="CR06" and buying:
 		caption.text=_customer_id()+": "+word("고장 난 수신기입니다. 부품 상태는 직접 확인해 보세요.","A faulty receiver. Check its parts yourself.")
+	var remembered:String=_previous_trade_copy()
+	if not remembered.is_empty():
+		caption.text+="
+"+remembered
 	caption.name="spatial_speech_text"
 	caption.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART if preview_native_v23 else TextServer.AUTOWRAP_OFF
 	caption.clip_text=true
@@ -1523,6 +1534,12 @@ func _build_customer()->void:
 			# The native tabletop already carries the public player card.
 			# Let the speech area focus on the actual customer response.
 			dialogue=reply if preview_native_v23 else dialogue+"\n"+reply
+	# A prior paid transaction is a fact; never imply recognition of the
+	# current object's identity or reveal an unobserved customer memory.
+	var remembered:String=_previous_trade_copy()
+	if _app.deck.presented.is_empty() and not remembered.is_empty():
+		dialogue+="
+"+remembered
 	# Bound the speech independently of wrapping/container minimum sizes.
 	# Keep the customer, counter and physical item visible below the dialogue.
 	var speech:=ColorRect.new()

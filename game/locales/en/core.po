@@ -3215,3 +3215,7 @@ msgstr "Present a card here · offer the price separately."
 
 msgid "book.watch.case.observed_limit"
 msgstr "Observed: {reading} · grain alone cannot establish the case type."
+ 
+#. Prior paid player transactions only; no assertion of trust or object identity.
+msgid "history.customer.previous_trade"
+msgstr "Previous trades with this customer: {count} · latest Day {day}"

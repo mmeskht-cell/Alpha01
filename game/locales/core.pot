@@ -4003,3 +4003,7 @@ msgstr ""
 msgid "book.watch.case.observed_limit"
 msgstr ""
 
+#. Named arguments: count, day; plain text.
+msgid "history.customer.previous_trade"
+msgstr ""
+

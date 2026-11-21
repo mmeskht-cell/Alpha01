@@ -5,6 +5,7 @@ extends RefCounted
 const Rules=preload("res://src/domain/value_rules.gd")
 const Clock=preload("res://src/domain/business_clock.gd")
 const Receipt=preload("res://src/domain/receipt_primitives.gd")
+const Trace=preload("res://src/domain/world_causal_trace.gd")
 const MAX_RULES:int=8
 
 static func seed(s:Dictionary,p:Dictionary)->Dictionary:
@@ -59,11 +60,10 @@ static func morning(s:Dictionary,action:String)->void:
 		if r.has("trade_visit"):
 			external="clinic_supply_disruption"
 			contact=s.visits[r.trade_visit].buyer
-			for e:Dictionary in s.ledger:
-				if e.visit_id==r.trade_visit and Receipt.receipt_type(s,e.event_id)=="trade":
-					cause=e.event_id
-					fulfilled=true
-					break
+			var settled:Dictionary=Trace.trade_for_visit(s,r.trade_visit)
+			if not settled.is_empty():
+				cause=settled.event_id
+				fulfilled=true
 		else:
 			var job:Dictionary=s.calendar.services.jobs[r.service_id]
 			contact=job.terms.customer
@@ -98,6 +98,9 @@ static func eligible(s:Dictionary,visit:String)->bool:
 	var link:Dictionary=s.calendar.get("reaction",{}).get("links",{}).get(visit,{})
 	if link.is_empty() or Clock.day_index(int(s.game_minutes))!=link.day or s.calendar.queue.outcomes.has(visit):
 		return false
+	var event:Dictionary=s.calendar.reaction.events.get(str(link.get("event_id","")),{})
+	if event.is_empty() or event.get("result")!="limited_service" or event.get("cause")!=link.get("cause") or Trace.actual_cause(s,str(link.get("cause",""))).is_empty():
+		return false
 	if r.has("trade_visit"):
 		return s.calendar.services.visits.has(visit)
 	var v:Dictionary=s.visits[visit]
@@ -113,7 +116,7 @@ static func eligible(s:Dictionary,visit:String)->bool:
 ## Public actual events only. The underlying score, relationship memory,
 ## exact eligibility formula and future authored candidates stay private.
 static func view(s:Dictionary)->Dictionary:
-	var result:Dictionary={"news":[]}
+	var result:Dictionary={"news":[],"causal_events":Trace.public_events(s)}
 	for id:String in s.calendar.get("reaction",{}).get("events",{}):
 		var row:Dictionary=s.calendar.reaction.events[id]
 		var recovered:bool=row.result=="limited_service"

@@ -73,6 +73,13 @@ func _canonical()->void:
 			var v:Dictionary=r.view()
 			var terms:Dictionary=v.visits.terms
 			var trade:Dictionary=v.trade
+			if day==7 and v.visits.active=="radio_return":
+				var remembered:Dictionary=v.get("customer_memory",{})
+				check(remembered.get("actor_id")=="G02" and remembered.get("trades")==1 and remembered.get("last_day")==1 and remembered.get("last_direction")=="customer_bought","D7 repeat customer remembers only real D1 shop purchase")
+				var before_memory:Dictionary=r.snapshot()
+				check(r.view().get("customer_memory",{})==remembered and r.snapshot()==before_memory,"customer memory query immutable and repeatable")
+			elif day==1 and v.visits.active=="visit_g02_buy":
+				check(v.get("customer_memory",{}).is_empty(),"first customer contact has no invented history")
 			if not trade.is_empty():
 				if not v.get("appraisal",{}).is_empty():
 					var subject:Dictionary={"visit_id":trade.visit_id,"item_id":trade.item_id}
@@ -134,6 +141,9 @@ func _canonical()->void:
 			check(r.snapshot().calendar.dormant.has("R001") and not r.snapshot().items.has("R001"),"actual radio dormant")
 		if day==5:
 			check(r.view().world_news.news.size()==1 and r.view().world_news.news[0].cause_refs.size()==2,"causal clinic news")
+			var causal:Array=r.view().world_news.causal_events
+			check(causal.size()==1 and causal[0].player_contribution and causal[0].external_event=="clinic_supply_disruption" and causal[0].cause_refs.size()==2,"D6 clinic event traces verified paid trade")
+			check(causal[0].cause_refs[1]==r.view().world_news.news[0].cause_refs[1],"news and causal history share one exact receipt")
 		if day==6:
 			check(r.snapshot().items.R001.owner_id=="G02" and not r.snapshot().items.R001.functional and r.snapshot().visits.has("radio_return"),"authored return changes live state, not identity")
 	check(r.view().complete and r.view().minute==10080 and r.snapshot().items.R001.owner_id=="G08","week boundary and same R001 actual resale")

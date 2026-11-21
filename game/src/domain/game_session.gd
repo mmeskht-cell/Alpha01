@@ -7,6 +7,7 @@ const Calendar = preload("res://src/domain/campaign_calendar.gd")
 const CalendarLife = preload("res://src/domain/calendar_lifecycle.gd")
 const CalendarTracking = preload("res://src/domain/calendar_tracking.gd")
 const CalendarReaction = preload("res://src/domain/calendar_reaction.gd")
+const WorldTrace = preload("res://src/domain/world_causal_trace.gd")
 const VisitQueue = preload("res://src/domain/campaign_visit_queue.gd")
 const Service = preload("res://src/domain/campaign_service.gd")
 const Contract = preload("res://src/domain/campaign_contract.gd")
@@ -347,6 +348,14 @@ func calendar_view(basic_visit:String="") -> Dictionary:
 		result["trade_history"] = calendar_history_index()
 	if _state.calendar.has("queue"):
 		result["visits"] = VisitQueue.view(_state)
+		if not str(result.visits.active).is_empty():
+			var terms:Dictionary=result.visits.terms
+			var actor:String=str(terms.get("customer",""))
+			if actor.is_empty() and terms.has("seller") and terms.has("buyer"):
+				actor=str(terms.seller) if terms.buyer=="player" else str(terms.buyer)
+			var remembered:Dictionary=WorldTrace.customer_memory(_state,actor)
+			if not remembered.is_empty():
+				result["customer_memory"]=remembered
 		var quote:Dictionary=CivilianPrice.quote(_state,_definitions,str(result.visits.active))
 		if not quote.is_empty():
 			# Expose only whether the specific public transaction can be funded,

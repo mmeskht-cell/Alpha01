@@ -1428,5 +1428,9 @@
   "counter.table.first_hint": [],
   "book.watch.case.observed_limit": [
     "reading"
+  ],
+  "history.customer.previous_trade": [
+    "count",
+    "day"
   ]
 }
