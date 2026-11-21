@@ -44,6 +44,17 @@ static func seed(state:Dictionary,profile:Dictionary)->Dictionary:
 			if profile.market_flow.entries[visit_id].region==entry.region and visit.get("scope",{}).get("kind")=="ordinary" and (visit.get("buyer")==actor or visit.get("seller")==actor):
 				appears=true
 				break
+		if not appears and profile.has("npc_generated_visits"):
+			for slot_id:String in profile.npc_generated_visits.slots:
+				var slot:Dictionary=profile.npc_generated_visits.slots[slot_id]
+				if slot.region!=entry.region:
+					continue
+				for candidate:Dictionary in slot.candidates:
+					if candidate.actor==actor:
+						appears=true
+						break
+				if appears:
+					break
 		if not appears:
 			return {}
 		var basis:String=str(policy.seed)+":"+actor+":"+entry.region

@@ -19,6 +19,7 @@ const Population=preload("res://src/domain/npc_population.gd")
 const Finance=preload("res://src/domain/calendar_exchange_market.gd")
 const Merchant=preload("res://src/domain/calendar_merchant_contracts.gd")
 const Bargain=preload("res://src/domain/npc_bargaining_policy.gd")
+const VisitSource=preload("res://src/domain/npc_generated_visits.gd")
 const VisitorSlots=preload("res://src/domain/npc_visit_slots.gd")
 const ACTIONS: Array = ["calendar_close", "calendar_morning", "calendar_pay_overhead"]
 const COMMON: Array = ["trade", "deliver", "move", "observe", "restore_item", "attach", "detach", "discard", "replace_component","clean_exterior"]
@@ -26,6 +27,12 @@ const OVERHEAD: int = 15
 const LIFECYCLE_VERSION: String = "calendar-lifecycle-1"
 
 static func profile_valid(p: Variant) -> bool:
+	if p is Dictionary and p.has("npc_generated_visits"):
+		if p.get("id")!="campaign_42" or not p.get("npc_generated_visits") is Dictionary or not p.has("visit_days"):
+			return false
+		var base:Dictionary=p.duplicate(true)
+		base.erase("npc_generated_visits")
+		return profile_valid(base)
 	if p is Dictionary and p.has("npc_bargaining"):
 		if p.get("id")!="campaign_42" or not p.get("npc_bargaining") is Dictionary or not p.has("npc_population") or not p.has("market_flow"):
 			return false
@@ -131,8 +138,16 @@ static func seed(state: Dictionary, defs: Dictionary, profile: Dictionary) -> Di
 	for visit: Variant in state.visits.values():
 		if not visit is Dictionary or "player" not in [visit.get("seller"), visit.get("buyer")]:
 			return {}
-	var result: Dictionary = state.duplicate(true)
-	result["calendar"] = {"version": 1, "profile": profile.duplicate(true), "binding": Rules.canonical({"seed": state, "definitions": defs, "profile": profile}).sha256_text(), "debt": 0, "commands": []}
+	var grown_state:Dictionary=state
+	var grown_profile:Dictionary=profile
+	if profile.has("npc_generated_visits"):
+		var expanded:Dictionary=VisitSource.expand(state,profile)
+		if expanded.is_empty():
+			return {}
+		grown_state=expanded.state
+		grown_profile=expanded.profile
+	var result: Dictionary = grown_state.duplicate(true)
+	result["calendar"] = {"version": 1, "profile": grown_profile.duplicate(true), "binding": Rules.canonical({"seed": state, "definitions": defs, "profile": profile}).sha256_text(), "debt": 0, "commands": []}
 	if profile.get("lifecycle_version") == LIFECYCLE_VERSION:
 		result.calendar["dormant"] = {}
 		if profile.has("tracking_candidates"):
@@ -150,7 +165,7 @@ static func seed(state: Dictionary, defs: Dictionary, profile: Dictionary) -> Di
 			return {}
 		result.calendar["services"] = jobs
 	if profile.has("visit_days"):
-		var q: Dictionary = Queue.seed(state, profile, result.calendar.get("services", {}).get("visits", {}))
+		var q: Dictionary = Queue.seed(grown_state, grown_profile, result.calendar.get("services", {}).get("visits", {}))
 		if q.is_empty():
 			return {}
 		result.calendar["queue"] = q
@@ -184,7 +199,7 @@ static func seed(state: Dictionary, defs: Dictionary, profile: Dictionary) -> Di
 	if profile.has("market_flow") and not Market.seed_valid(result,profile):
 		return {}
 	if profile.has("npc_population"):
-		var generated:Dictionary=Population.seed(result,profile)
+		var generated:Dictionary=Population.seed(result,grown_profile)
 		if generated.is_empty():
 			return {}
 		result.calendar["npc_population"]=generated
@@ -202,7 +217,7 @@ static func seed(state: Dictionary, defs: Dictionary, profile: Dictionary) -> Di
 		if exchange.is_empty():
 			return {}
 		result.calendar["exchange_market"]=exchange
-	if not CalendarLife.rules_valid(result,profile):
+	if not CalendarLife.rules_valid(result,grown_profile):
 		return {}
 	return Rules.normalized(result)
 
