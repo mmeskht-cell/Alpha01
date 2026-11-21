@@ -1,0 +1,254 @@
+extends Control
+## B1 single-counter host; no bespoke named-character dialogue scene.
+const Seed = preload("res://src/content/alpha_b1_seed.gd")
+const B2Seed = preload("res://src/content/alpha_b2_seed.gd")
+const B2_KO_PATH = "res://data/alpha_b2/ko.json"
+const Session = preload("res://src/domain/game_session.gd")
+const Alpha = preload("res://src/domain/alpha_shop_cycle.gd")
+const Repo = preload("res://src/persistence/save_repository.gd")
+const KO_PATH = "res://data/alpha_b1/ko.json"
+const SAVE_SLOT = "alpha_b1_profile_v2"
+@export var save_directory_override: String = ""
+@export var b2_mode: bool = false
+var session: RefCounted
+var _repo: RefCounted
+var _strings: Dictionary = {}
+var _intro: bool = true
+var _intro_page: int = 0
+var _blocked: bool = false
+var _message: String = ""
+
+func _ready() -> void:
+	var catalog: Variant = JSON.parse_string(FileAccess.get_file_as_string(KO_PATH))
+	if catalog is Dictionary and catalog.get("strings") is Dictionary:
+		_strings = catalog.strings
+	if b2_mode:
+		var b2_locale: Variant = JSON.parse_string(FileAccess.get_file_as_string(B2_KO_PATH))
+		if b2_locale is Dictionary and b2_locale.get("strings") is Dictionary:
+			_strings.merge(b2_locale.strings, true)
+	var source: Dictionary = B2Seed.content() if b2_mode else Seed.content()
+	if source.is_empty():
+		_blocked = true
+		_message = "B1 콘텐츠를 읽지 못했습니다."
+	else:
+		session = Session.new()
+		if not session.initialize(source.defs, source.state, false, false, {}, source.alpha_profile):
+			_blocked = true
+			_message = "세션 초기화 오류: " + session.initialization_error()
+		else:
+			var location: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b2" if b2_mode else "user://zt_rebuild/alpha_b1")
+			_repo = Repo.new(location)
+			var loaded: Dictionary = _repo.load_session(session, _slot())
+			if loaded.get("ok", false):
+				_intro = false
+			elif FileAccess.file_exists(location.path_join(_slot() + ".a.json")) or FileAccess.file_exists(location.path_join(_slot() + ".b.json")):
+				_blocked = true
+				_message = "기존 저장의 무결성이 확인되지 않아 새 게임으로 덮어쓰지 않습니다."
+	refresh()
+
+func _slot() -> String:
+	return "alpha_b2_trade_slice_v1" if b2_mode else SAVE_SLOT
+
+func _text(key: String) -> String:
+	return str(_strings.get(key, key))
+
+func _button(parent: VBoxContainer, name: String, title: String, callback: Callable) -> Button:
+	var control := Button.new()
+	control.name = name
+	control.text = title
+	control.custom_minimum_size = Vector2(290, 50)
+	control.pressed.connect(callback)
+	parent.add_child(control)
+	return control
+
+func intro_next() -> void:
+	if not _intro or _blocked:
+		return
+	if _intro_page < 1:
+		_intro_page += 1
+	else:
+		intro_skip()
+
+func intro_skip() -> void:
+	if _blocked:
+		return
+	_intro = false
+	refresh()
+
+func _submit(kind: String, payload: Dictionary = {}) -> void:
+	if _intro or _blocked:
+		return
+	var c: Dictionary = {"action_id": "alpha_b1_" + str(session.snapshot().revision + 1),
+		"expected_revision": session.snapshot().revision, "type": kind, "payload": payload}
+	var result: Dictionary = session.execute(c)
+	if not result.ok:
+		_message = "입력 거절: " + str(result.error)
+	else:
+		var stored: Dictionary = _repo.save_session(session, _slot())
+		_message = "" if stored.get("ok", false) else "저장에 실패했습니다: " + str(stored.get("error", "unknown"))
+		if not stored.get("ok", false):
+			_blocked = true
+	refresh()
+
+func refresh() -> void:
+	for child: Node in get_children():
+		remove_child(child)
+		child.queue_free()
+	var background := ColorRect.new()
+	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	background.color = Color("#1B1E21")
+	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(background)
+	var margin := MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 38)
+	margin.add_theme_constant_override("margin_top", 25)
+	margin.add_theme_constant_override("margin_right", 38)
+	margin.add_theme_constant_override("margin_bottom", 25)
+	add_child(margin)
+	var outer := VBoxContainer.new()
+	outer.add_theme_constant_override("separation", 16)
+	margin.add_child(outer)
+	var title := Label.new()
+	title.text = _text("alpha.heading")
+	title.add_theme_font_size_override("font_size", 31)
+	outer.add_child(title)
+	if _blocked:
+		var blocked := Label.new()
+		blocked.text = _message
+		outer.add_child(blocked)
+		return
+	if _intro:
+		var intro := PanelContainer.new()
+		outer.add_child(intro)
+		var inner := VBoxContainer.new()
+		inner.add_theme_constant_override("separation", 18)
+		intro.add_child(inner)
+		var content := Label.new()
+		content.name = "intro_subtitle"
+		content.text = _text("alpha.intro." + str(_intro_page))
+		content.add_theme_font_size_override("font_size", 27)
+		content.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		inner.add_child(content)
+		_button(inner, "intro_next", _text("alpha.intro.next" if _intro_page == 0 else "alpha.intro.start"), intro_next)
+		_button(inner, "intro_skip", _text("alpha.intro.skip"), intro_skip)
+		return
+	var v: Dictionary = Alpha.view(session.snapshot())
+	var top := Label.new()
+	top.name = "alpha_phase_label"
+	top.text = "DAY %d · %s · 남은 방문 %d" % [int(v.day), _text("alpha.phase." + str(v.phase)), int(v.remaining)]
+	top.add_theme_font_size_override("font_size", 23)
+	outer.add_child(top)
+	var counter := PanelContainer.new()
+	counter.name = "alpha_counter"
+	counter.custom_minimum_size = Vector2(0, 210)
+	outer.add_child(counter)
+	var bubble := VBoxContainer.new()
+	bubble.add_theme_constant_override("separation", 14)
+	counter.add_child(bubble)
+	var actor := Label.new()
+	actor.name = "alpha_actor"
+	actor.add_theme_font_size_override("font_size", 27)
+	var speech := Label.new()
+	speech.name = "alpha_speech"
+	speech.add_theme_font_size_override("font_size", 22)
+	speech.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	bubble.add_child(actor)
+	bubble.add_child(speech)
+	var row: Dictionary = v.active
+	if row.is_empty():
+		actor.text = "크라벤스크 · 상점 카운터"
+		speech.text = _text("alpha.evening.note") if v.phase == "EVENING_WORK" else _text("alpha.b1.notice")
+	else:
+		actor.text = _text("alpha.named." + row.actor_id) if row.kind == "named" else (_text("alpha.actor.regular") % row.actor_id)
+		var say: String = "alpha.say.enter" if v.phase == "CUSTOMER_ENTER" else ("alpha.say.exit" if v.phase == "CUSTOMER_EXIT" else row.purpose_key)
+		speech.text = _text(say)
+	var actions := VBoxContainer.new()
+	actions.name = "alpha_actions"
+	outer.add_child(actions)
+	match str(v.phase):
+		"DAY_PREP":
+			_button(actions, "alpha_open", _text("alpha.button.open"), func() -> void: _submit("alpha_open"))
+		"OPEN_IDLE":
+			if b2_mode:
+				_add_b2_display_action(actions, v)
+			if int(v.remaining) > 0:
+				_button(actions, "alpha_next_customer", _text("alpha.button.next"), func() -> void: _submit("alpha_next_customer"))
+			_button(actions, "alpha_close", _text("alpha.button.close"), func() -> void: _submit("alpha_close"))
+		"CUSTOMER_ENTER":
+			_button(actions, "alpha_ack_entry", _text("alpha.button.enter"), func() -> void: _submit("alpha_ack_entry"))
+		"CUSTOMER_ACTIVE":
+			if b2_mode:
+				_add_b2_trade_action(actions, v)
+			if bool(v.can_exchange):
+				_button(actions, "alpha_exchange_contact", _text("alpha.button.exchange"), func() -> void: _submit("alpha_exchange_contact", {"actor_id": row.actor_id, "accepted": true}))
+			_button(actions, "alpha_finish_customer", _text("alpha.button.leave"), func() -> void: _submit("alpha_finish_customer"))
+		"CUSTOMER_EXIT":
+			_button(actions, "alpha_ack_exit", _text("alpha.button.exit"), func() -> void: _submit("alpha_ack_exit"))
+		"CLOSE_SETTLE":
+			_button(actions, "alpha_settle", _text("alpha.button.settle"), func() -> void: _submit("alpha_settle"))
+		"EVENING_WORK":
+			if b2_mode:
+				_add_b2_display_action(actions, v)
+			var contacts := Label.new()
+			contacts.name = "alpha_contacts"
+			var lines: Array[String] = []
+			for contact: Dictionary in v.contacts:
+				lines.append(str(contact.actor_id) + " · " + _text("alpha.contacts.available" if contact.callable else "alpha.contacts.none"))
+			contacts.text = _text("alpha.contacts.empty") if lines.is_empty() else "\n".join(lines)
+			actions.add_child(contacts)
+			_button(actions, "alpha_next_day", _text("alpha.button.evening"), func() -> void: _submit("alpha_next_day"))
+		"NEXT_DAY":
+			_button(actions, "alpha_prepare_day", _text("alpha.button.prepare"), func() -> void: _submit("alpha_prepare_day"))
+		"COMPLETE":
+			speech.text = _text("alpha.complete")
+	if not _message.is_empty():
+		var message := Label.new()
+		message.text = _message
+		outer.add_child(message)
+
+
+## A bounded B2 first trade slice, using the physical inventory grid rather
+## than an unlimited virtual market entry. No appraisal/commission completion.
+func _add_b2_display_action(actions: VBoxContainer, v: Dictionary) -> void:
+	var stock: Dictionary = session.snapshot()
+	var label := Label.new()
+	label.name = "alpha_b2_shelf"
+	label.text = _text("b2.shelf") + ": " + ", ".join(PackedStringArray(v.displayed_items))
+	actions.add_child(label)
+	for item_id: String in stock.items:
+		var item: Dictionary = stock.items[item_id]
+		if item.owner_id == "player" and item.custodian_id == "player" and item.inventory == "player_stock" and item.status == "stock" and not item.protected and item.reservation_id.is_empty() and item.parent_id.is_empty():
+			_button(actions, "b2_display_" + item_id, _text("b2.display") + " · " + item_id,
+				func() -> void: _submit("alpha_display", {"item_id": item_id, "x": 0, "y": 0, "rotated": false}))
+			break
+
+func _add_b2_trade_action(actions: VBoxContainer, v: Dictionary) -> void:
+	var visit_id: String = str(v.active.get("id", ""))
+	var current: Dictionary = session.snapshot()
+	if not current.visits.has(visit_id):
+		return
+	var visit: Dictionary = current.visits[visit_id]
+	if visit.scope.completed or visit.prices.is_empty():
+		return
+	var item_id: String = str(visit.prices.keys()[0])
+	var ask: Dictionary = visit.prices[item_id]
+	if not current.items.has(item_id):
+		return
+	var currency: String = "VKC" if int(ask.VKC) > 0 else "USD"
+	var amount: int = int(ask[currency])
+	var buying: bool = visit.buyer == "player"
+	if not buying and (item_id not in v.displayed_items or current.items[item_id].inventory != "storefront_grid"):
+		var note := Label.new()
+		note.text = _text("b2.not_listed")
+		actions.add_child(note)
+		return
+	var payload: Dictionary = {
+		"visit_id": visit_id, "item_id": item_id,
+		"seller": visit.seller, "buyer": visit.buyer,
+		"currency": currency, "amount": amount,
+		"inventory": "player_stock" if buying else str(visit.buyer) + "_grid",
+		"x": 0 if buying else 5, "y": 0 if buying else 4, "rotated": false
+	}
+	_button(actions, "b2_trade", (_text("b2.buy") if buying else _text("b2.sell")) + " · " + str(amount) + " " + currency,
+		func() -> void: _submit("alpha_trade", payload))

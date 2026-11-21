@@ -1,0 +1,213 @@
+extends RefCounted
+## Opt-in B1 date/phase authority. Does not mint funds, items, time or contracts.
+const Rules = preload("res://src/domain/value_rules.gd")
+const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade"]
+const PHASES: Array = ["DAY_PREP", "OPEN_IDLE", "CUSTOMER_ENTER", "CUSTOMER_ACTIVE", "CUSTOMER_EXIT", "CLOSE_SETTLE", "EVENING_WORK", "NEXT_DAY", "COMPLETE"]
+
+static func profile_valid(profile: Variant, state: Dictionary) -> bool:
+	if not Rules.keys(profile, ["id", "content_version", "days", "unavailable_actors"]) or profile.id != "alpha_b1_v1" or not Rules.identifier(profile.content_version):
+		return false
+	if not profile.days is Array or profile.days.is_empty() or profile.days.size() > 42 or not profile.unavailable_actors is Array:
+		return false
+	var visits: Dictionary = {}
+	for actor: Variant in profile.unavailable_actors:
+		if not Rules.identifier(actor) or not state.wallets.has(actor):
+			return false
+	for day_index: int in range(profile.days.size()):
+		var day: Variant = profile.days[day_index]
+		if not day is Array or day.size() > 10:
+			return false
+		var today: Dictionary = {}
+		for row: Variant in day:
+			if not Rules.keys(row, ["id", "actor_id", "kind", "purpose_key", "contact_offer"]):
+				return false
+			if not Rules.identifier(row.id) or not Rules.identifier(row.actor_id) or not state.wallets.has(row.actor_id) or row.actor_id == "player":
+				return false
+			if row.kind not in ["regular", "named"] or not Rules.identifier(row.purpose_key) or not row.contact_offer is bool:
+				return false
+			if visits.has(row.id) or today.has(row.actor_id) or row.actor_id in profile.unavailable_actors:
+				return false
+			# An authored counter identity may not impersonate a different
+			# transaction actor or smuggle a visit into another date.
+			if state.visits.has(row.id):
+				var transaction: Dictionary = state.visits[row.id]
+				var real_actor: String = str(transaction.seller if transaction.buyer == "player" else transaction.buyer)
+				if real_actor != row.actor_id or int(transaction.opens) != day_index * 1440:
+					return false
+			elif row.kind != "named" or not row.id.begins_with("alpha_"):
+				return false
+			visits[row.id] = true
+			today[row.actor_id] = true
+	return true
+
+static func seed(state: Dictionary, profile: Dictionary) -> Dictionary:
+	if not profile_valid(profile, state) or state.has("alpha_shop") or int(state.revision) != 0:
+		return {}
+	var next: Dictionary = state.duplicate(true)
+	next["alpha_shop"] = {
+		"version": 1, "profile": profile.duplicate(true),
+		"binding": Rules.canonical(profile).sha256_text(),
+		"day": 1, "phase": "DAY_PREP", "cursor": 0, "active": "",
+		"outcomes": {}, "settled_days": [], "contacts": {}, "commands": []
+	}
+	if profile.content_version == "b2-preview-1":
+		next.alpha_shop["displayed"] = []
+	return Rules.normalized(next)
+
+static func active_row(a: Dictionary) -> Dictionary:
+	if a.active == "":
+		return {}
+	for row: Dictionary in a.profile.days[int(a.day) - 1]:
+		if row.id == a.active:
+			return row.duplicate(true)
+	return {}
+
+static func can_contact(a: Dictionary, actor: String) -> bool:
+	return a.phase == "EVENING_WORK" and a.contacts.has(actor) and a.contacts[actor].status == "available" and actor not in a.profile.unavailable_actors
+
+## B2 candidate only: every physical shelf item must be an owned free root
+## located in the actual, non-custody inventory. Never infer listing from price.
+static func display_gate(state: Dictionary, p: Dictionary, withdraw: bool = false) -> String:
+	var a: Dictionary = state.alpha_shop
+	if a.profile.content_version != "b2-preview-1" or not Rules.keys(p, ["item_id", "x", "y", "rotated"]):
+		return "alpha_b2_display_shape"
+	if a.phase not in ["OPEN_IDLE", "EVENING_WORK"] or not Rules.identifier(p.item_id):
+		return "alpha_display_phase"
+	if not state.items.has(p.item_id) or not state.inventories.has("storefront_grid"):
+		return "alpha_display_item"
+	var item: Dictionary = state.items[p.item_id]
+	var listed: bool = p.item_id in a.displayed
+	if item.owner_id != "player" or item.custodian_id != "player" or item.status != "stock" or item.protected or not item.reservation_id.is_empty() or not item.parent_id.is_empty():
+		return "alpha_display_ownership"
+	if not p.rotated is bool or not Rules.integer(p.x, 0, 9) or not Rules.integer(p.y, 0, 5):
+		return "alpha_display_coordinates"
+	if withdraw:
+		return "" if listed and item.inventory == "storefront_grid" else "alpha_not_displayed"
+	return "" if not listed and item.inventory == "player_stock" else "alpha_already_displayed"
+
+static func after_display(state: Dictionary, item_id: String, withdraw: bool = false) -> void:
+	if withdraw:
+		state.alpha_shop.displayed.erase(item_id)
+	else:
+		state.alpha_shop.displayed.append(item_id)
+
+static func trade_gate(state: Dictionary, p: Dictionary) -> String:
+	var a: Dictionary = state.alpha_shop
+	var row: Dictionary = active_row(a)
+	if a.profile.content_version != "b2-preview-1" or a.phase != "CUSTOMER_ACTIVE" or row.is_empty():
+		return "alpha_trade_phase"
+	if not Rules.keys(p, ["visit_id", "item_id", "seller", "buyer", "currency", "amount", "inventory", "x", "y", "rotated"]) or p.visit_id != row.id or not state.visits.has(row.id):
+		return "alpha_trade_visit"
+	var visit: Dictionary = state.visits[row.id]
+	if visit.scope.completed or not visit.prices.has(p.item_id) or not state.items.has(p.item_id):
+		return "alpha_trade_item"
+	if visit.seller != p.seller or visit.buyer != p.buyer or row.actor_id not in [p.seller, p.buyer]:
+		return "alpha_trade_actor"
+	var item: Dictionary = state.items[p.item_id]
+	if visit.seller == "player":
+		if visit.buyer != row.actor_id or p.item_id not in a.displayed or item.inventory != "storefront_grid" or p.inventory != row.actor_id + "_grid":
+			return "alpha_trade_not_displayed"
+	elif visit.seller != row.actor_id or visit.buyer != "player" or item.inventory == "storefront_grid" or p.inventory != "player_stock":
+		return "alpha_trade_purchase_terms"
+	return ""
+
+static func after_trade(state: Dictionary, p: Dictionary) -> void:
+	var a: Dictionary = state.alpha_shop
+	a.outcomes[a.active] = "traded"
+	if p.item_id in a.displayed:
+		a.displayed.erase(p.item_id)
+	a.phase = "CUSTOMER_EXIT"
+
+static func apply(state: Dictionary, command: Dictionary) -> String:
+	var a: Dictionary = state.alpha_shop
+	var p: Dictionary = command.payload
+	var kind: String = command.type
+	if kind not in ACTIONS:
+		return "alpha_command_unavailable"
+	if kind != "alpha_exchange_contact" and not p.is_empty():
+		return "alpha_payload"
+	match kind:
+		"alpha_open":
+			if a.phase != "DAY_PREP":
+				return "alpha_phase"
+			a.phase = "OPEN_IDLE"
+		"alpha_next_customer":
+			if a.phase != "OPEN_IDLE" or int(a.cursor) >= a.profile.days[int(a.day) - 1].size():
+				return "alpha_no_next_customer"
+			var row: Dictionary = a.profile.days[int(a.day) - 1][int(a.cursor)]
+			a.active = row.id
+			a.cursor += 1
+			a.phase = "CUSTOMER_ENTER"
+		"alpha_ack_entry":
+			if a.phase != "CUSTOMER_ENTER":
+				return "alpha_phase"
+			a.phase = "CUSTOMER_ACTIVE"
+		"alpha_exchange_contact":
+			var row: Dictionary = active_row(a)
+			if a.phase != "CUSTOMER_ACTIVE" or not Rules.keys(p, ["actor_id", "accepted"]):
+				return "alpha_contact_context"
+			if row.is_empty() or p.actor_id != row.actor_id or not row.contact_offer or p.accepted != true:
+				return "alpha_contact_consent"
+			if a.contacts.has(row.actor_id) or row.actor_id in a.profile.unavailable_actors:
+				return "alpha_contact_duplicate_or_unavailable"
+			a.contacts[row.actor_id] = {
+				"contact_id": "contact_" + row.actor_id, "actor_id": row.actor_id,
+				"exchange_event_id": command.action_id, "acquired_day": a.day,
+				"channel": "counter", "status": "available"
+			}
+		"alpha_finish_customer":
+			if a.phase != "CUSTOMER_ACTIVE":
+				return "alpha_phase"
+			a.outcomes[a.active] = "departed"
+			a.phase = "CUSTOMER_EXIT"
+		"alpha_ack_exit":
+			if a.phase != "CUSTOMER_EXIT":
+				return "alpha_phase"
+			a.active = ""
+			a.phase = "OPEN_IDLE"
+		"alpha_close":
+			if a.phase != "OPEN_IDLE":
+				return "alpha_customer_active"
+			for i: int in range(int(a.cursor), a.profile.days[int(a.day) - 1].size()):
+				var row: Dictionary = a.profile.days[int(a.day) - 1][i]
+				a.outcomes[row.id] = "unserved"
+			a.cursor = a.profile.days[int(a.day) - 1].size()
+			a.phase = "CLOSE_SETTLE"
+		"alpha_settle":
+			if a.phase != "CLOSE_SETTLE" or int(a.day) in a.settled_days:
+				return "alpha_duplicate_settlement"
+			# No simulated overhead or payment; economic settlement comes with B2/B3.
+			a.settled_days.append(a.day)
+			a.phase = "EVENING_WORK"
+		"alpha_next_day":
+			if a.phase != "EVENING_WORK" or int(a.day) not in a.settled_days:
+				return "alpha_phase"
+			a.phase = "COMPLETE" if int(a.day) == a.profile.days.size() else "NEXT_DAY"
+		"alpha_prepare_day":
+			if a.phase != "NEXT_DAY":
+				return "alpha_phase"
+			a.day += 1
+			# Internal legacy day-index bridge only. No player-visible clock,
+			# inspection minutes, action points or time-consuming actions.
+			state.game_minutes = (int(a.day) - 1) * 1440
+			a.cursor = 0
+			a.phase = "DAY_PREP"
+	return ""
+
+static func view(state: Dictionary) -> Dictionary:
+	if not state.has("alpha_shop"):
+		return {}
+	var a: Dictionary = state.alpha_shop
+	var row: Dictionary = active_row(a)
+	var contacts: Array = []
+	for actor: String in a.contacts:
+		contacts.append({"actor_id": actor, "contact_id": a.contacts[actor].contact_id, "callable": can_contact(a, actor)})
+	contacts.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return x.actor_id < y.actor_id)
+	return {
+		"day": a.day, "phase": a.phase, "active": row,
+		"remaining": a.profile.days[int(a.day) - 1].size() - int(a.cursor),
+		"contacts": contacts, "contact_exchanged": not row.is_empty() and a.contacts.has(row.actor_id),
+		"can_exchange": a.phase == "CUSTOMER_ACTIVE" and not row.is_empty() and row.contact_offer and not a.contacts.has(row.actor_id),
+		"settled": int(a.day) in a.settled_days,
+		"displayed_items": a.get("displayed", []).duplicate()
+	}

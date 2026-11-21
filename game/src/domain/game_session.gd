@@ -47,6 +47,7 @@ const Opening = preload("res://src/domain/gate1_opening.gd")
 const DayOne = preload("res://src/domain/day_one.gd")
 const ComponentMarket = preload("res://src/domain/component_market.gd")
 const Negotiation = preload("res://src/domain/gate1_negotiation.gd")
+const AlphaShop = preload("res://src/domain/alpha_shop_cycle.gd")
 const COMMAND_TYPES: Array = ["merchant_pawn_accept", "merchant_pawn_redeem", "merchant_pawn_extend", "merchant_order_accept", "merchant_order_deliver", "merchant_order_cancel", "calendar_exchange", "clean_exterior", "replace_component", "trade", "deliver", "move", "advance_time", "detach", "attach", "discard", "restore_item", "observe", "accept_rad1_contract", "next_visit", "inspect_radio", "record_hypothesis", "deck_action", "make_offer", "confirm_purchase", "decline_visit", "record_component_hypothesis", "request_open_inspection", "close_inspection", "decline_component_visit", "finish_component_visit", "begin_day_one", "day_one_next", "day_one_decline", "day_one_accept_service", "day_one_cancel_service", "day_one_close", "day_one_next_morning", "day_one_deliver_service", "day_one_pay_overhead", "open_component_sale", "day_one_composite_offer", "day_one_composite_request", "day_one_composite_close", "day_one_composite_decline", "world_sleep_family", "world_wake_family", "world_spawn_stock", "world_open_visit", "world_track_promote", "world_track_reference", "world_track_suspend", "calendar_close", "calendar_morning", "calendar_pay_overhead", "rad_reserve", "rad_decline", "rad_extend", "rad_pay", "rad_use", "rad_auto", "calendar_next_visit", "calendar_decline_visit", "calendar_accept_service", "calendar_deliver_service", "calendar_return_unpaid", "calendar_accept_contract", "calendar_decline_contract", "calendar_extend_contract", "calendar_pay_contract", "inspect_subject", "assess_subject", "link_subject_evidence", "subject_deck_action", "subject_price_offer"]
 const MAX_RECEIPTS: int = 32
 const STATE_KEYS: Array = ["revision", "game_minutes", "wallets", "inventories", "items", "ledger", "receipts", "receipt_archive", "object_schema", "tombstones", "object_events", "visits", "phase", "knowledge"]
@@ -61,6 +62,8 @@ var _customer_policy: String = ""
 var _composite_pilot_mode: bool = false
 # Only exact outputs of successful deterministic replay are cached per session.
 # Never persisted, never initialized from a checksum or unvalidated save.
+var _alpha_mode: bool = false
+var _alpha_seed: Dictionary = {}
 var _calendar_mode: bool = false
 var _calendar_seed: Dictionary = {}
 var _calendar_checkpoint: Dictionary = {}
@@ -69,7 +72,7 @@ var _lifecycle_seed: Dictionary = {}
 var _replay_checkpoint: Dictionary = {}
 var _replay_steps: int = 0
 
-func initialize(definitions: Dictionary, initial: Dictionary, composite_pilot: bool = false, lifecycle_mode: bool = false, calendar_profile: Dictionary = {}) -> bool:
+func initialize(definitions: Dictionary, initial: Dictionary, composite_pilot: bool = false, lifecycle_mode: bool = false, calendar_profile: Dictionary = {}, alpha_profile: Dictionary = {}) -> bool:
 	if not _state.is_empty():
 		_initialization_error = "already_initialized"
 		return false
@@ -103,7 +106,17 @@ func initialize(definitions: Dictionary, initial: Dictionary, composite_pilot: b
 			return false
 		_customer_policy = prepared.customer_inspection.policy
 	_lifecycle_mode = lifecycle_mode
+	_alpha_mode = not alpha_profile.is_empty()
 	_calendar_mode = not calendar_profile.is_empty()
+	if _alpha_mode:
+		if _campaign_mode or _component_market_mode or _lifecycle_mode or _calendar_mode or not _customer_policy.is_empty() or prepared.has("alpha_shop") or prepared.has("calendar"):
+			_initialization_error = "alpha_mode_conflict"
+			return false
+		prepared = AlphaShop.seed(prepared, alpha_profile)
+		if prepared.is_empty():
+			_initialization_error = "alpha_seed"
+			return false
+		_alpha_seed = prepared.duplicate(true)
 	if _calendar_mode:
 		if _campaign_mode or _component_market_mode or _lifecycle_mode or not _customer_policy.is_empty() or prepared.has("component_hypotheses") or prepared.has("calendar"):
 			_initialization_error = "calendar_mode_conflict"
@@ -149,6 +162,8 @@ func restore(candidate: Dictionary) -> bool:
 	return true
 
 func clock_view() -> Dictionary:
+	if _alpha_mode:
+		return {"day": _state.alpha_shop.day, "phase": _state.alpha_shop.phase}
 	var minutes: int = _state.game_minutes
 	var date := Time.get_datetime_dict_from_unix_time(1982908800 + minutes * 60)
 	return {"day": Clock.day_index(minutes), "date": "%04d-%02d-%02d" % [date.year, date.month, date.day], "hour": date.hour, "minute": date.minute}
@@ -169,6 +184,8 @@ func _execute(command: Dictionary, world: bool) -> Dictionary:
 		return _error("command_shape")
 	if world != (command.type in Lifecycle.ACTIONS or command.type in CalendarTracking.ACTIONS) or (world and not ((command.type in Lifecycle.ACTIONS and _lifecycle_mode) or (_calendar_mode and CalendarLife.enabled(_state) and command.type in CalendarLife.ACTIONS))):
 		return _error("world_permission")
+	if _alpha_mode and command.type not in AlphaShop.ACTIONS:
+		return _error("alpha_command_unavailable")
 	if _lifecycle_mode and not world and command.type not in ["trade", "deliver", "move", "advance_time", "detach", "attach", "discard", "restore_item", "observe"]:
 		return _error("lifecycle_command_unavailable")
 	if _lifecycle_mode and command.type == "observe" and ComponentAppraisal.recognizes(command.payload.get("key")):
@@ -203,13 +220,15 @@ func _execute(command: Dictionary, world: bool) -> Dictionary:
 					if id not in live_ids:
 						return _error("subject_offer_reference")
 	# Historical receipt retries above and deterministic replay below retain old semantics.
-	var selected: Dictionary = CommandRoute.choose(_state, command.type, command.payload, _campaign_mode, _day_one_mode, _component_market_mode)
+	var selected: Dictionary = {"ok": true, "route": "alpha_shop"} if _alpha_mode else CommandRoute.choose(_state, command.type, command.payload, _campaign_mode, _day_one_mode, _component_market_mode)
 	if not selected.ok:
 		return _error(selected.error)
 	var continuation: bool = selected.route == "day_one"
 	var candidate: Dictionary = snapshot()
 	var error: String
-	if _calendar_mode:
+	if _alpha_mode:
+		error = _apply_alpha(candidate, command)
+	elif _calendar_mode:
 		error = _apply_calendar(candidate, command)
 	elif world:
 		candidate = Lifecycle.apply(candidate, _definitions, command)
@@ -246,6 +265,8 @@ func _execute(command: Dictionary, world: bool) -> Dictionary:
 		candidate.day_one.commands.append(Rules.normalized(command))
 	if _calendar_mode:
 		candidate.calendar.commands.append(Rules.normalized(command))
+	if _alpha_mode:
+		candidate.alpha_shop.commands.append(Rules.normalized(command))
 	if not _campaign_mode and (command.type == "record_component_hypothesis" or (command.type == "observe" and ComponentAppraisal.recognizes(command.payload.get("key")))):
 		ComponentHistory.compact(candidate, ComponentAppraisal.observation_keys())
 	_compact(candidate)
@@ -257,6 +278,31 @@ func _execute(command: Dictionary, world: bool) -> Dictionary:
 	return result
 
 ## Opt-in calendar pilot reuses the existing transaction primitives.
+## B2 candidate uses original transfer/move and accounting internals. Only the
+## opt-in profile supplies new phase/real-shelf admission permissions.
+func _apply_alpha(state: Dictionary, command: Dictionary) -> String:
+	var p: Dictionary = command.payload
+	if command.type == "alpha_trade":
+		var trade_guard: String = AlphaShop.trade_gate(state, p)
+		if not trade_guard.is_empty():
+			return trade_guard
+		var trade_error: String = _trade(state, p, command.action_id)
+		if trade_error.is_empty():
+			AlphaShop.after_trade(state, p)
+		return trade_error
+	if command.type in ["alpha_display", "alpha_withdraw_display"]:
+		var withdraw: bool = command.type == "alpha_withdraw_display"
+		var display_guard: String = AlphaShop.display_gate(state, p, withdraw)
+		if not display_guard.is_empty():
+			return display_guard
+		var target: String = "player_stock" if withdraw else "storefront_grid"
+		var move: Dictionary = {"item_id": p.item_id, "actor": "player", "inventory": target, "x": p.x, "y": p.y, "rotated": p.rotated}
+		var move_error: String = _move(state, move)
+		if move_error.is_empty():
+			AlphaShop.after_display(state, p.item_id, withdraw)
+		return move_error
+	return AlphaShop.apply(state, command)
+
 func _apply_calendar(state: Dictionary, command: Dictionary) -> String:
 	var active_before: String = state.calendar.get("queue",{}).get("active","")
 	var error: String = _apply_calendar_action(state,command)
@@ -431,6 +477,36 @@ func calendar_view(basic_visit:String="") -> Dictionary:
 
 ## Seed-bound full replay, with a local cache only for exact validated prefixes.
 ## No persisted cache or new live save schema. Existing capacity guard still applies.
+func alpha_view() -> Dictionary:
+	return AlphaShop.view(_state) if _alpha_mode and not _state.is_empty() else {}
+
+## Full immutable seed replay for B1 commands, independent of the legacy calendar.
+func _alpha_valid(state: Dictionary) -> bool:
+	if not state.get("alpha_shop") is Dictionary or _alpha_seed.is_empty():
+		return false
+	var a: Dictionary = state.alpha_shop
+	var expected_alpha_keys: Array = ["version", "profile", "binding", "day", "phase", "cursor", "active", "outcomes", "settled_days", "contacts", "commands"]
+	if _alpha_seed.alpha_shop.has("displayed"):
+		expected_alpha_keys.append("displayed")
+	if not Rules.keys(a, expected_alpha_keys):
+		return false
+	if a.version != 1 or a.profile != _alpha_seed.alpha_shop.profile or a.binding != _alpha_seed.alpha_shop.binding or not a.commands is Array or a.commands.size() != state.revision:
+		return false
+	var replay: Dictionary = _alpha_seed.duplicate(true)
+	for c: Variant in a.commands:
+		if not Rules.keys(c, ["action_id", "expected_revision", "type", "payload"]) or not Rules.identifier(c.action_id) or c.expected_revision != replay.revision or not c.type is String or not c.payload is Dictionary or replay.receipts.has(c.action_id) or replay.receipt_archive.has(c.action_id):
+			return false
+		var fingerprint: String = Rules.canonical(c)
+		if fingerprint.to_utf8_buffer().size() > 4096 or not _apply_alpha(replay, c).is_empty():
+			return false
+		replay.revision += 1
+		replay.receipts[c.action_id] = {"fingerprint": fingerprint, "result": {"ok": true, "revision": replay.revision}}
+		replay.alpha_shop.commands.append(Rules.normalized(c))
+		_compact(replay)
+		if not SnapshotFormat.fits(replay):
+			return false
+	return Rules.canonical(replay) == Rules.canonical(state)
+
 func _calendar_valid(state: Dictionary) -> bool:
 	var c: Variant = state.get("calendar")
 	var keys: Array = ["version", "profile", "binding", "debt", "commands"]
@@ -1271,6 +1347,8 @@ func counter_view() -> Dictionary:
 func validate(state: Dictionary, receipt_limit: int = MAX_RECEIPTS, legacy_prefix: bool = false) -> bool:
 	_validation_error = ""
 	var keys: Array = STATE_KEYS.duplicate()
+	if _alpha_mode:
+		keys.append("alpha_shop")
 	if _calendar_mode:
 		keys.append("calendar")
 	if _lifecycle_mode:
@@ -1381,7 +1459,7 @@ func validate(state: Dictionary, receipt_limit: int = MAX_RECEIPTS, legacy_prefi
 			if character not in "0123456789abcdef":
 				_validation_error = "guard_22"
 				return false
-		if receipt_revisions.has(int(archived[1])) or (archived[2] in ["trade", "deliver", "confirm_purchase"]) != event_ids.has(action_id):
+		if receipt_revisions.has(int(archived[1])) or (archived[2] in ["trade", "deliver", "confirm_purchase", "alpha_trade"]) != event_ids.has(action_id):
 			_validation_error = "guard_23"
 			return false
 		receipt_revisions[int(archived[1])] = true
@@ -1404,22 +1482,22 @@ func validate(state: Dictionary, receipt_limit: int = MAX_RECEIPTS, legacy_prefi
 		if not Rules.keys(command, ["action_id", "expected_revision", "type", "payload"]):
 			_validation_error = "guard_28"
 			return false
-		if command.action_id != action_id or not Rules.integer(command.expected_revision) or command.expected_revision + 1 != receipt.result.revision or command.type not in COMMAND_TYPES or not command.payload is Dictionary:
+		if command.action_id != action_id or not Rules.integer(command.expected_revision) or command.expected_revision + 1 != receipt.result.revision or (command.type not in COMMAND_TYPES and command.type not in AlphaShop.ACTIONS) or not command.payload is Dictionary:
 			_validation_error = "guard_29"
 			return false
 		if Rules.canonical(command) != receipt.fingerprint:
 			_validation_error = "guard_30"
 			return false
-		if (command.type in ["trade", "deliver", "confirm_purchase"]) != event_ids.has(action_id):
+		if (command.type in ["trade", "deliver", "confirm_purchase", "alpha_trade"]) != event_ids.has(action_id):
 			_validation_error = "guard_31"
 			return false
 	for entry: Dictionary in state.ledger:
-		if _receipt_revision(state, entry.event_id) != entry.revision or _receipt_type(state, entry.event_id) not in ["trade", "deliver", "confirm_purchase"]:
+		if _receipt_revision(state, entry.event_id) != entry.revision or _receipt_type(state, entry.event_id) not in ["trade", "deliver", "confirm_purchase", "alpha_trade"]:
 			_validation_error = "guard_32"
 			return false
 		if state.receipts.has(entry.event_id):
 			var command: Dictionary = JSON.parse_string(state.receipts[entry.event_id].fingerprint)
-			if command.type == "trade":
+			if command.type in ["trade", "alpha_trade"]:
 				var p: Dictionary = command.payload
 				if p.get("item_id") not in entry.root_ids or p.get("seller") != entry.to or p.get("buyer") != entry.from or p.get("currency") not in ["VKC", "USD"] or p.get("amount") != entry.amounts[p.currency]:
 					_validation_error = "guard_33"
@@ -1444,6 +1522,9 @@ func validate(state: Dictionary, receipt_limit: int = MAX_RECEIPTS, legacy_prefi
 	if _component_market_mode and not legacy_prefix and not _component_market_valid(state):
 		_validation_error = "guard_39"
 		return false
+	if _alpha_mode and not _alpha_valid(state):
+		_validation_error = "alpha_replay"
+		return false
 	if _calendar_mode and not _calendar_valid(state):
 		_validation_error = "guard_40"
 		return false
@@ -1452,6 +1533,9 @@ func validate(state: Dictionary, receipt_limit: int = MAX_RECEIPTS, legacy_prefi
 		return false
 	for table: Dictionary in [state.receipts, state.receipt_archive]:
 		for id: String in table:
+			if (not _alpha_mode and _receipt_type(state, id) in AlphaShop.ACTIONS) or (_alpha_mode and _receipt_type(state, id) not in AlphaShop.ACTIONS):
+				_validation_error = "alpha_profile_permission"
+				return false
 			if not _calendar_mode and (_receipt_type(state, id) in Calendar.ACTIONS or _receipt_type(state, id) in Medicine.ACTIONS or _receipt_type(state, id) in VisitQueue.ACTIONS or _receipt_type(state, id) in Service.ACTIONS or _receipt_type(state, id) in Contract.ACTIONS or _receipt_type(state, id) == "inspect_subject" or _receipt_type(state, id) in VisitAssessment.ACTIONS or _receipt_type(state, id) == VisitDeck.ACTION or _receipt_type(state, id) == VisitPrice.ACTION):
 				_validation_error = "guard_42"
 				return false
