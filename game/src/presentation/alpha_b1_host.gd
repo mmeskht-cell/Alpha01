@@ -4,6 +4,7 @@ const Seed = preload("res://src/content/alpha_b1_seed.gd")
 const B2Seed = preload("res://src/content/alpha_b2_seed.gd")
 const CardSeed = preload("res://src/content/alpha_b2_cards_seed.gd")
 const CommissionSeed = preload("res://src/content/alpha_b2_commission_seed.gd")
+const NamedCommissionSeed = preload("res://src/content/alpha_b2_named_commission_seed.gd")
 const B2_KO_PATH = "res://data/alpha_b2/ko.json"
 const Session = preload("res://src/domain/game_session.gd")
 const Alpha = preload("res://src/domain/alpha_shop_cycle.gd")
@@ -15,6 +16,7 @@ const SAVE_SLOT = "alpha_b1_profile_v3"
 @export var b2_mode: bool = false
 @export var b2_interactive_mode: bool = false
 @export var b2_commission_mode: bool = false
+@export var b2_named_commission_mode: bool = false
 var session: RefCounted
 var _repo: RefCounted
 var _strings: Dictionary = {}
@@ -40,7 +42,7 @@ func _ready() -> void:
 		var b2_locale: Variant = JSON.parse_string(FileAccess.get_file_as_string(B2_KO_PATH))
 		if b2_locale is Dictionary and b2_locale.get("strings") is Dictionary:
 			_strings.merge(b2_locale.strings, true)
-	var source: Dictionary = CommissionSeed.content() if b2_commission_mode else (CardSeed.content() if b2_interactive_mode else (B2Seed.content() if b2_mode else Seed.content()))
+	var source: Dictionary = NamedCommissionSeed.content() if b2_named_commission_mode else (CommissionSeed.content() if b2_commission_mode else (CardSeed.content() if b2_interactive_mode else (B2Seed.content() if b2_mode else Seed.content())))
 	if source.is_empty():
 		_blocked = true
 		_message = "B1 콘텐츠를 읽지 못했습니다."
@@ -50,7 +52,7 @@ func _ready() -> void:
 			_blocked = true
 			_message = "세션 초기화 오류: " + session.initialization_error()
 		else:
-			var location: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b2_commission" if b2_commission_mode else ("user://zt_rebuild/alpha_b2_cards" if b2_interactive_mode else ("user://zt_rebuild/alpha_b2" if b2_mode else "user://zt_rebuild/alpha_b1")))
+			var location: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b2_named_commission" if b2_named_commission_mode else ("user://zt_rebuild/alpha_b2_commission" if b2_commission_mode else ("user://zt_rebuild/alpha_b2_cards" if b2_interactive_mode else ("user://zt_rebuild/alpha_b2" if b2_mode else "user://zt_rebuild/alpha_b1"))))
 			_repo = Repo.new(location)
 			var loaded: Dictionary = _repo.load_session(session, _slot())
 			if loaded.get("ok", false):
@@ -61,7 +63,7 @@ func _ready() -> void:
 	refresh()
 
 func _slot() -> String:
-	return "alpha_b2_commission_pilot_v1" if b2_commission_mode else ("alpha_b2_cards_pilot_v1" if b2_interactive_mode else ("alpha_b2_trade_slice_v2" if b2_mode else SAVE_SLOT))
+	return "alpha_b2_named_commission_parity_v1" if b2_named_commission_mode else ("alpha_b2_commission_pilot_v1" if b2_commission_mode else ("alpha_b2_cards_pilot_v1" if b2_interactive_mode else ("alpha_b2_trade_slice_v2" if b2_mode else SAVE_SLOT)))
 
 func _text(key: String) -> String:
 	return str(_strings.get(key, key))
