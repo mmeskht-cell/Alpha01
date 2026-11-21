@@ -105,6 +105,21 @@ func _add_b2_shop_board(panel: PanelContainer, view: Dictionary) -> void:
 	var cash: Dictionary = current.wallets.get("player", {})
 	_board_line(body, "b2_board_cash", _text("b2.board.cash") % [int(cash.get("VKC", 0)), int(cash.get("USD", 0))])
 	body.add_child(HSeparator.new())
+	# At night the chosen consensual contact belongs in the readable right
+	# dossier, not in a clipped scroll row beneath unrelated action buttons.
+	if view.phase == "EVENING_WORK" and not _contact_focus.is_empty():
+		for contact: Dictionary in view.contacts:
+			if contact.actor_id == _contact_focus and contact.callable:
+				var preview := PanelContainer.new()
+				preview.name = "alpha_contact_preview"
+				body.add_child(preview)
+				var detail := Label.new()
+				detail.name = "alpha_contact_preview_text"
+				detail.add_theme_font_size_override("font_size", 18)
+				detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				detail.text = (_text("alpha.contacts.preview_title") % _actor_label(_contact_focus)) + "\n" + _text("alpha.contacts.preview_conditions")
+				preview.add_child(detail)
+				return
 	var owned: Array = []
 	var displayed: int = 0
 	var reserved: int = 0
@@ -184,7 +199,7 @@ func _show_evening_contact_preview() -> void:
 	# chosen with a real mouse click actually appear in the visible pane.
 	var scroller := find_child("alpha_card_scroll", true, false) as ScrollContainer
 	var detail := find_child("alpha_contact_preview", true, false) as Control
-	if scroller != null and detail != null and detail.is_visible_in_tree():
+	if scroller != null and detail != null and detail.is_visible_in_tree() and scroller.is_ancestor_of(detail):
 		scroller.ensure_control_visible(detail)
 
 ## Read-only conditions, sourced from an actual consensual contact. No
@@ -213,6 +228,9 @@ func _add_evening_contacts(actions: VBoxContainer, view: Dictionary) -> void:
 		hint.name = "alpha_contacts"
 		hint.text = _text("alpha.contacts.preview_hint")
 		actions.add_child(hint)
+		return
+	if b2_interactive_mode:
+		# The selected contact's real conditions are shown in the right dossier.
 		return
 	for contact: Dictionary in view.contacts:
 		if contact.actor_id == _contact_focus and contact.callable:
@@ -494,7 +512,8 @@ func _add_contract_actions(actions: VBoxContainer, v: Dictionary) -> void:
 			continue
 		var note := Label.new()
 		note.name = "alpha_contract_" + id
-		note.text = _text("alpha.contract.header") + " · " + str(id) + " · " + _text("alpha.contract.status." + str(offer.status)) + " · " + str(offer.price.VKC) + " VKC / D" + str(offer.due_day)
+		# The internal contract ID belongs in authority/receipts, not player prose.
+		note.text = _text("alpha.contract.header") + " · " + _text("alpha.contract.status." + str(offer.status)) + " · " + str(offer.price.VKC) + " VKC / D" + str(offer.due_day)
 		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		actions.add_child(note)
 		if offer.can_accept:
@@ -515,6 +534,16 @@ func _add_contract_actions(actions: VBoxContainer, v: Dictionary) -> void:
 func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 	var a: Dictionary = v.appraisal
 	if a.is_empty():
+		# A contract or incoming commission is not an ordinary shelf trade.
+		# Do not announce an unrelated "no physical trade item" warning while
+		# the player is listening to the visitor's actual request.
+		if not v.active.is_empty():
+			for contract_id: String in v.contracts:
+				if str(v.contracts[contract_id].supplier) == str(v.active.actor_id):
+					return
+			for entry: Dictionary in v.commissions.entries:
+				if str(entry.actor_id) == str(v.active.actor_id):
+					return
 		var unavailable := Label.new()
 		unavailable.text = _text("b2.no_eligible_item")
 		actions.add_child(unavailable)
@@ -591,7 +620,12 @@ func _add_b2_commission_actions(actions: VBoxContainer, v: Dictionary) -> void:
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		var currency: String = "VKC" if int(entry.price.VKC) > 0 else "USD"
 		var amount: int = int(entry.price[currency])
-		label.text = _text(str(entry.text_key)) + " · D" + str(int(entry.due_day)) + " · " + str(amount) + " " + currency + " · " + _text("b2.commission.status." + str(entry.status))
+		if v.phase == "CUSTOMER_ACTIVE" and not v.active.is_empty() and str(v.active.actor_id) == str(entry.actor_id):
+			# The customer already speaks the request; a short terms line avoids
+			# repeating their full sentence in the offer's paperwork.
+			label.text = _text("b2.commission.current_terms") % [int(entry.due_day), amount, currency, _text("b2.commission.status." + str(entry.status))]
+		else:
+			label.text = _text(str(entry.text_key)) + " · D" + str(int(entry.due_day)) + " · " + str(amount) + " " + currency + " · " + _text("b2.commission.status." + str(entry.status))
 		actions.add_child(label)
 		var request_id: String = str(entry.request_id)
 		if entry.can_accept:
