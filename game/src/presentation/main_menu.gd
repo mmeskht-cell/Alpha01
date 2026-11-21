@@ -166,7 +166,7 @@ func _path(index:int)->String:
 func _slot_time(index:int)->int:
 	var latest:int=-1
 	for generation:String in ["a","b"]:
-		var save_key:String=CampaignRuntime.SLOT if campaign42_alpha else (Runtime.ALPHA_SLOT if alpha_playtest else Runtime.CONDITION_SLOT_V2)
+		var save_key:String=CampaignRuntime.CAMPAIGN_SLOT if campaign42_alpha else (Runtime.ALPHA_SLOT if alpha_playtest else Runtime.CONDITION_SLOT_V2)
 		var path:String=_path(index).path_join(save_key+".v4."+generation+".json")
 		if FileAccess.file_exists(path):
 			latest=maxi(latest,int(FileAccess.get_modified_time(path)))
