@@ -140,10 +140,19 @@ func run(f:Dictionary,pledge:bool,buy_d3:bool)->Dictionary:
 	check(not deliveries.is_empty(),"real destination space for paid order")
 	if deliveries.is_empty():
 		return {}
+	var selected:Dictionary={}
+	for row:Dictionary in deliveries:
+		if row.item_id=="SELL01":
+			selected=row
+			break
+	check(not selected.is_empty(),"order can explicitly pick original SELL01 among matching real SKUs")
+	if selected.is_empty():
+		return {}
+	if not pledge:
+		check(deliveries.size()>=2,"physical order offers two distinct compatible owned IDs")
 	check(action(s,"merchant_order_deliver","o1_ship",{"contract_id":"o1",
-		"item_id":deliveries[0].item_id,"placement":deliveries[0].placement}),
+		"item_id":selected.item_id,"placement":selected.placement}),
 		"physical shop stock delivered, reserved money settles once")
-	print("CROSS_DELIVERY_DIAG ",s.snapshot().items.SELL01.owner_id," provenance=",s.snapshot().items.SELL01.provenance_id," escrow=",s.snapshot().wallets.escrow.VKC)
 	check(s.snapshot().items.SELL01.owner_id=="order_buyer"
 		and s.snapshot().items.SELL01.provenance_id=="original_item"
 		and s.snapshot().wallets.escrow.VKC==0,

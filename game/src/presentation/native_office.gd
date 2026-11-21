@@ -237,7 +237,7 @@ func _merchant_finance(parent:Control)->void:
 			for option:Dictionary in order.get("delivery_options",[]):
 				var item_id:String=str(option.item_id)
 				var placement:Dictionary=option.placement.duplicate(true)
-				var caption:String=word("실물 납품","Deliver item")
+				var caption:String=word("실물 납품","Deliver item")+" · "+item_id
 				for owned:Dictionary in _view.get("stock",[]):
 					if owned.id==item_id:
 						caption+=" · "+_label(str(owned.label))
