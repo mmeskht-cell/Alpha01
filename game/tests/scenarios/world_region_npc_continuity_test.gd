@@ -98,5 +98,13 @@ func _initialize()->void:
 	invalid=c.duplicate(true)
 	invalid.profile.npc_continuity.gates.watch_b.prior_visit="future_unknown"
 	check(not Npc.seed_valid(invalid.state,invalid.profile),"unbacked customer memory gate rejected")
+	var rumored:Dictionary=c.duplicate(true)
+	rumored.profile.regional_world.events.market_d2.source="civilian_rumor"
+	var rumor_route:Dictionary=route(rumored,true)
+	check(rumor_route.get("ok",false),"rumor source isolated by its own profile hash")
+	if rumor_route.get("ok",false):
+		var disclosed:Dictionary=rumor_route.session.calendar_view().world_regions
+		check(disclosed.events.size()==1 and disclosed.events[0].certainty=="unconfirmed" and disclosed.events[0].status=="unverified" and disclosed.events[0].cause_refs.is_empty(),"unconfirmed rumor must not disclose a confirmed cause or actual status")
+		check(disclosed.regions.market_quarter=="ordinary","rumored outcome does not leak through the region map")
 	print("WORLD_REGION_NPC_CONTINUITY: ",checks," checks, ",failures," failures")
 	quit(0 if failures==0 else 1)

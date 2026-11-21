@@ -109,10 +109,15 @@ static func view(s:Dictionary)->Dictionary:
 		var row:Dictionary=event_verified(s,id)
 		if row.is_empty():
 			continue
-		result.regions[row.region]=row.status
-		var refs:Array=[id]
-		if not row.cause.is_empty():
+		# Rumored events may affect private authored encounters but must never
+		# reveal their real source receipt or actual state as confirmed news.
+		var rumor:bool=row.source=="civilian_rumor"
+		if not rumor:
+			result.regions[row.region]=row.status
+		var refs:Array=[] if rumor else [id]
+		if not rumor and not row.cause.is_empty():
 			refs.append(row.cause)
 		result.events.append({"event_id":id,"day":row.day,"region":row.region,"topic":row.topic,
-			"source":row.source,"certainty":"confirmed","status":row.status,"cause_refs":refs})
+			"source":row.source,"certainty":"unconfirmed" if rumor else "confirmed",
+			"status":"unverified" if rumor else row.status,"cause_refs":refs})
 	return result

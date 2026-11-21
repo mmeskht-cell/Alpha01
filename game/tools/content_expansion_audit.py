@@ -25,17 +25,25 @@ def int_const(relative_path, name):
 
 def authority_limits():
     game = (GAME / "src/domain/game_session.gd").read_text(encoding="utf-8")
-    found = re.search(r"state\.wallets\.size\(\)\s*>\s*(\d+)\s+or\s+"
-                      r"state\.inventories\.size\(\)\s*>\s*(\d+)\s+or\s+"
-                      r"state\.items\.size\(\)\s*>\s*(\d+)", game)
-    if not found:
-        raise ValueError("game_session wallet/inventory/active-item guards changed; manual audit required")
-    wallets, inventories, active_items = (int(v) for v in found.groups())
+    # Both limits must be parsed from the actual authority rather than
+    # guessed from a simulation or silently inherited from older 7-day saves.
+    found = re.search(
+        r"state\.wallets\.size\(\)\s*>\s*\((\d+)\s+if\s+campaign_42\s+else\s+(\d+)\)\s+or\s+"
+        r"state\.inventories\.size\(\)\s*>\s*\((\d+)\s+if\s+campaign_42\s+else\s+(\d+)\)\s+or\s+"
+        r"state\.items\.size\(\)\s*>\s*(\d+)", game)
+    if not found or 'state.get("calendar",{}).get("profile",{}).get("id")=="campaign_42"' not in game:
+        raise ValueError("game_session seven/forty-two-day economic guard changed; manual review required")
+    wallets_42, wallets, inventories_42, inventories, active_items = map(int, found.groups())
     return {
         "wallets": wallets, "inventories": inventories,
+        "wallets_campaign_42": wallets_42, "inventories_campaign_42": inventories_42,
         "active_items": active_items,
         "observations": int_const("src/domain/visit_appraisal_observation.gd", "MAX_OBSERVATIONS"),
+        "observations_campaign_42_lossless_total": int_const("src/domain/appraisal_history_retention.gd", "MAX_TOTAL"),
         "reaction_rules": int_const("src/domain/calendar_reaction.gd", "MAX_RULES"),
+        "regional_events": int_const("src/domain/regional_world_state.gd", "MAX_EVENTS"),
+        "regional_regions": int_const("src/domain/regional_world_state.gd", "MAX_REGIONS"),
+        "npc_return_gates": int_const("src/domain/npc_continuity.gd", "MAX_GATES"),
         "reentry_rules": int_const("src/domain/calendar_lifecycle.gd", "MAX_RETURN_RULES"),
         "dormant_roots": int_const("src/domain/dormant_registry.gd", "LIMIT"),
         "tracked_live": int_const("src/domain/selective_tracking.gd", "MAX_TRACKED"),
@@ -132,24 +140,31 @@ def authored_baseline(raw):
 def projection(limits, target_days, daily_visits, observation_share, npc_pool, fixed_npcs):
     visits = target_days * daily_visits
     observations = math.ceil(visits * observation_share)
-    # Pure what-if: assuming EVERY NPC owns an independent wallet; the actual
-    # game may use offline/dormant economic accounts and fewer active actors.
     wallets_if_simultaneous = npc_pool + fixed_npcs + 1
+    # The 42-day thresholds require an opt-in, content-bound lossless profile.
+    # Other profile horizons retain legacy caps. This remains a hypothesis.
+    expanded = target_days == 42
+    observation_cap = (limits["observations_campaign_42_lossless_total"]
+                       if expanded else limits["observations"])
+    wallet_cap = limits["wallets_campaign_42"] if expanded else limits["wallets"]
     alerts = []
-    if observations > limits["observations"]:
-        alerts.append("projected observation demand exceeds current observation count guard")
-    if wallets_if_simultaneous > limits["wallets"]:
-        alerts.append("all-persistent-wallet hypothetical exceeds active wallet guard")
+    if observations > observation_cap:
+        alerts.append("projected observations exceed the selected profile guard")
+    if wallets_if_simultaneous > wallet_cap:
+        alerts.append("hypothetical simultaneous wallets exceed the selected profile guard")
     if target_days * 1440 > limits["campaign_minutes"]:
         alerts.append("target duration exceeds existing absolute game clock")
     return {
         "target_days": target_days, "daily_visits_assumption": daily_visits,
         "observation_share_assumption": observation_share,
+        "capacity_profile_assumption": "campaign_42_lossless_v1" if expanded else "legacy",
+        "selected_observation_count_guard": observation_cap,
+        "selected_wallet_guard": wallet_cap,
         "estimated_visits": visits, "estimated_observations": observations,
         "simultaneous_wallets_if_all_npcs_active": wallets_if_simultaneous,
         "warnings": alerts,
         "not_tested": ["real trade outcomes", "economic affordability", "save-byte growth",
-                       "action latency", "NPC persistence", "actual player behavior"],
+                       "action latency", "actual 42-day authored content", "actual player behavior"],
     }
 
 
@@ -172,8 +187,16 @@ def self_test():
     wrong_definition["trades"][1][3] = "different_definition"
     assert any("definition changed" in e for e in authored_baseline(wrong_definition)["errors"])
     limits = authority_limits()
-    assert limits["save_bytes"] > 0 and limits["wallets"] > 0
-    assert projection(limits, 42, 6, 0.7, 40, 10)["warnings"]
+    assert limits["save_bytes"] == 1048576 and limits["wallets"] == 32
+    assert limits["wallets_campaign_42"] == 64 and limits["inventories_campaign_42"] == 64
+    assert limits["observations"] == 128 and limits["observations_campaign_42_lossless_total"] >= 177
+    sample = projection(limits, 42, 6, 0.7, 40, 10)
+    assert sample["selected_wallet_guard"] == 64 and sample["selected_observation_count_guard"] >= 177
+    assert not sample["warnings"], sample["warnings"]
+    stress = projection(limits, 42, 20, 10.0, 100, 10)
+    assert any("observations" in w for w in stress["warnings"])
+    assert any("wallets" in w for w in stress["warnings"])
+    assert projection(limits, 7, 6, 0.7, 40, 10)["warnings"]
     print("ZT_CONTENT_EXPANSION_SELF_TEST_PASS")
 
 
