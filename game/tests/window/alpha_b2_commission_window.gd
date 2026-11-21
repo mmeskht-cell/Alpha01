@@ -202,6 +202,8 @@ func run_named_counter() -> bool:
 		return false
 	var ready: Dictionary = host.session.alpha_view()
 	check(ready.active.actor_id == "ian" and ready.active.kind=="named","actual Ian D5 visit has named category")
+	var pickup_speech := host.find_child("alpha_speech",true,false) as Label
+	check(pickup_speech != null and pickup_speech.text.contains("위생") and pickup_speech.text.contains("준비됐나요"),"named return visit refers to its actual ordered hygiene goods")
 	check(host.find_child("b2_commission_deliver",true,false)!=null,"same delivery action as regular G03 appears for named Ian")
 	await shot("named-ian-ready-720p",Vector2i(1280,720))
 	if not await click("b2_commission_deliver"):
