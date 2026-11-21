@@ -89,7 +89,17 @@ func _choose_evening_contact(actor_id: String) -> void:
 		if contact.actor_id == actor_id and contact.callable:
 			_contact_focus = "" if _contact_focus == actor_id else actor_id
 			refresh()
+			if not _contact_focus.is_empty():
+				call_deferred("_show_evening_contact_preview")
 			return
+
+func _show_evening_contact_preview() -> void:
+	# A rebuilt counter resets the scrolling position. Ensure the details
+	# chosen with a real mouse click actually appear in the visible pane.
+	var scroller := find_child("alpha_card_scroll", true, false) as ScrollContainer
+	var detail := find_child("alpha_contact_preview", true, false) as Control
+	if scroller != null and detail != null and detail.is_visible_in_tree():
+		scroller.ensure_control_visible(detail)
 
 ## Read-only conditions, sourced from an actual consensual contact. No
 ## phantom salvage stock, advance, fund transfer or dispatch command.
@@ -234,6 +244,13 @@ func refresh() -> void:
 		actor.text = _actor_label(str(row.actor_id))
 		var say: String = "alpha.say.enter" if v.phase == "CUSTOMER_ENTER" else ("alpha.say.exit" if v.phase == "CUSTOMER_EXIT" else row.purpose_key)
 		speech.text = _text(say)
+		# Show the actual authored request as speech without mutating the
+		# immutable seed/profile binding used by old B2 commission saves.
+		if b2_commission_mode and v.phase == "CUSTOMER_ACTIVE":
+			for entry: Dictionary in v.commissions.entries:
+				if entry.actor_id == row.actor_id and entry.can_accept:
+					speech.text = _text(str(entry.text_key))
+					break
 	var actions := VBoxContainer.new()
 	actions.name = "alpha_actions"
 	if b2_interactive_mode:
@@ -448,7 +465,7 @@ func _add_b2_commission_actions(actions: VBoxContainer, v: Dictionary) -> void:
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		var currency: String = "VKC" if int(entry.price.VKC) > 0 else "USD"
 		var amount: int = int(entry.price[currency])
-		label.text = _text(str(entry.text_key)) + " · D" + str(entry.due_day) + " · " + str(amount) + " " + currency + " · " + _text("b2.commission.status." + str(entry.status))
+		label.text = _text(str(entry.text_key)) + " · D" + str(int(entry.due_day)) + " · " + str(amount) + " " + currency + " · " + _text("b2.commission.status." + str(entry.status))
 		actions.add_child(label)
 		var request_id: String = str(entry.request_id)
 		if entry.can_accept:
