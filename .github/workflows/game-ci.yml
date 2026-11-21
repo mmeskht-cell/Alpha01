@@ -56,6 +56,11 @@ jobs:
           unzip -q "$RUNNER_TEMP/zt-review/engine.zip" -d "$RUNNER_TEMP/zt-review"
           chmod +x "$RUNNER_TEMP/zt-review/Godot_v4.7.2-stable_linux.x86_64"
           "$RUNNER_TEMP/zt-review/Godot_v4.7.2-stable_linux.x86_64" --version
+      - name: Direct parse isolated B2 custody module (temporary diagnosis)
+        shell: bash
+        run: |
+          engine="$RUNNER_TEMP/zt-review/Godot_v4.7.2-stable_linux.x86_64"
+          "$engine" --headless --path game --check-only --script res://src/domain/alpha_service_custody.gd
       - name: Fixed regression, Gate0-C and Gate1 checks
         shell: bash
         run: |
