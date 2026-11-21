@@ -15,6 +15,9 @@ on:
       - 'game/src/domain/campaign_visit_queue.gd'
       - 'game/src/content/alpha42_mechanics_seed.gd'
       - 'game/src/application/campaign42_alpha_runtime.gd'
+      - 'game/tests/scenarios/alpha_hold_market_test.gd'
+      - 'game/src/content/civilian_candidate_seed.gd'
+      - 'game/src/application/demo7_runtime.gd'
       - 'game/src/presentation/demo7_host.gd'
       - 'game/src/presentation/main_menu.gd'
       - 'game/tests/scenarios/calendar_merchant_contracts_test.gd'
@@ -49,7 +52,7 @@ jobs:
           engine=/tmp/godot-alpha/Godot_v4.7.2-stable_linux.x86_64
           "$engine" --headless --editor --path game --import 2>&1 | tee alpha-import.log
           if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:' alpha-import.log; then exit 1; fi
-          for test in calendar_merchant_contracts_test npc_bargaining_policy_test npc_generated_visits_test alpha_cross_system_42day_test alpha42_production_runtime_test alpha42_traffic_capacity_test; do
+          for test in calendar_merchant_contracts_test npc_bargaining_policy_test npc_generated_visits_test alpha_cross_system_42day_test alpha42_production_runtime_test alpha42_traffic_capacity_test alpha_hold_market_test; do
             "$engine" --headless --path game --script "res://tests/scenarios/$test.gd" 2>&1 | tee "$test.log"
             if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:' "$test.log"; then exit 1; fi
           done
@@ -70,6 +73,7 @@ jobs:
             alpha_cross_system_42day_test.log
             alpha42_production_runtime_test.log
             alpha42_traffic_capacity_test.log
+            alpha_hold_market_test.log
             merchant_office_ui_test.log
             alpha_42day_real_office_test.log
           if-no-files-found: warn
