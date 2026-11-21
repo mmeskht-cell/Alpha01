@@ -7,6 +7,7 @@ on:
       - '.github/workflows/alpha-merchant-npc-focused.yml'
       - 'game/tests/scenarios/merchant_office_ui_test.gd'
       - 'game/tests/scenarios/alpha_cross_system_42day_test.gd'
+      - 'game/tests/scenarios/alpha_42day_real_office_test.gd'
       - 'game/tests/scenarios/calendar_merchant_contracts_test.gd'
       - 'game/src/domain/calendar_merchant_contracts.gd'
       - 'game/src/domain/item_lineage.gd'
@@ -44,7 +45,9 @@ jobs:
             if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:' "$test.log"; then exit 1; fi
           done
           LIBGL_ALWAYS_SOFTWARE=1 timeout 45s xvfb-run -a -s '-screen 0 1280x720x24' "$engine" --path game --audio-driver Dummy --script res://tests/scenarios/merchant_office_ui_test.gd 2>&1 | tee merchant_office_ui_test.log
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 55s xvfb-run -a -s '-screen 0 1280x720x24' "$engine" --path game --audio-driver Dummy --script res://tests/scenarios/alpha_42day_real_office_test.gd 2>&1 | tee alpha_42day_real_office_test.log
           if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:' merchant_office_ui_test.log; then exit 1; fi
+          if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:' alpha_42day_real_office_test.log; then exit 1; fi
       - name: Preserve focused logs
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -57,5 +60,6 @@ jobs:
             npc_generated_visits_test.log
             alpha_cross_system_42day_test.log
             merchant_office_ui_test.log
+            alpha_42day_real_office_test.log
           if-no-files-found: warn
           retention-days: 3

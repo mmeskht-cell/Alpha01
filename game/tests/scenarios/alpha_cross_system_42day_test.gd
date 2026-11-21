@@ -13,13 +13,13 @@ func check(ok:bool,label:String)->void:
 	if not ok:
 		failures+=1
 		printerr("FAIL: "+label)
-func cash(n:int)->Dictionary:
+static func cash(n:int)->Dictionary:
 	return {"VKC":n,"USD":0}
-func market(id:String,n:int)->Dictionary:
+static func market(id:String,n:int)->Dictionary:
 	return {"region":"market_quarter","category":"field_goods",
 		"item_id":id,"def_id":"fictional_watch_p2","currency":"VKC",
 		"prices":{"ordinary":n,"strained":n,"limited":n}}
-func fixture()->Dictionary:
+static func fixture()->Dictionary:
 	var base:RefCounted=Watch.fresh(false)
 	if base==null:
 		return {}
