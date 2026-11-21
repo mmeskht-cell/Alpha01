@@ -87,6 +87,41 @@ static func active_row(a: Dictionary) -> Dictionary:
 static func can_contact(a: Dictionary, actor: String) -> bool:
 	return a.phase == "EVENING_WORK" and a.contacts.has(actor) and a.contacts[actor].status == "available" and actor not in a.profile.unavailable_actors
 
+## A customer's conversation can only refer to actions actually addressed to
+## that same actor. This projection is read-only; it does not persist a second
+## NPC memory or expose the player's unshared private appraisal observations.
+static func _last_public_offer(a: Dictionary, visit_id: String) -> Dictionary:
+	if not a.has("appraisal"):
+		return {}
+	var notes: Dictionary = a.appraisal.visits.get(visit_id, {})
+	var offers: Array = notes.get("offers", [])
+	if offers.is_empty():
+		return {}
+	var offer: Dictionary = offers[offers.size() - 1]
+	return {"amount": int(offer.amount), "currency": str(offer.currency),
+		"response": str(offer.response), "disclosed_count": offer.revealed.size()}
+
+static func npc_context(state: Dictionary) -> Dictionary:
+	if not state.has("alpha_shop"):
+		return {}
+	var a: Dictionary = state.alpha_shop
+	var current: Dictionary = active_row(a)
+	if current.is_empty():
+		return {}
+	var prior: Dictionary = {}
+	for day: Array in a.profile.days:
+		for visit: Dictionary in day:
+			if visit.actor_id != current.actor_id or visit.id == current.id:
+				continue
+			var outcome: String = str(a.outcomes.get(visit.id, ""))
+			if outcome.is_empty() or outcome == "unserved":
+				continue
+			var offer: Dictionary = _last_public_offer(a, str(visit.id))
+			if not offer.is_empty() or outcome in ["traded", "commission_delivered"]:
+				prior = {"outcome": outcome, "offer": offer}
+	return {"current_offer": _last_public_offer(a, str(current.id)),
+		"current_outcome": str(a.outcomes.get(current.id, "")), "prior": prior}
+
 ## B2 candidate only: every physical shelf item must be an owned free root
 ## located in the actual, non-custody inventory. Never infer listing from price.
 static func display_gate(state: Dictionary, p: Dictionary, withdraw: bool = false) -> String:
@@ -273,6 +308,7 @@ static func view(state: Dictionary) -> Dictionary:
 		"settled": int(a.day) in a.settled_days,
 		"displayed_items": a.get("displayed", []).duplicate(),
 		"appraisal": Cards.view(state) if a.has("appraisal") else {},
+		"npc_context": npc_context(state),
 		"commissions": Commission.view(state) if a.has("commissions") else {"entries":[]},
 		"contracts": contract_view.contracts, "news": contract_view.news
 	}
