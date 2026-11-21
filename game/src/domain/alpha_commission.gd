@@ -32,7 +32,12 @@ static func profile_valid(profile: Dictionary, state: Dictionary) -> bool:
 	var ids: Dictionary = {}
 	var return_visits: Dictionary = {}
 	for r: Variant in c.requests:
-		if not Rules.keys(r, ["request_id","actor_id","offer_visit_id","return_visit_id","offer_day","due_day","target_def_id","return_item_id","require_functional","price","text_key"]):
+		var shape: Array = ["request_id","actor_id","offer_visit_id","return_visit_id","offer_day","due_day","target_def_id","return_item_id","require_functional","price","text_key"]
+		# Strict exact-key validation also applies to the two optional
+		# receiver-grid coordinates: allow both together, never only one.
+		if r is Dictionary and (r.has("delivery_x") or r.has("delivery_y")):
+			shape.append_array(["delivery_x","delivery_y"])
+		if not Rules.keys(r, shape):
 			return false
 		for key: String in ["request_id","actor_id","offer_visit_id","return_visit_id","target_def_id","return_item_id","text_key"]:
 			if not Rules.identifier(r[key]):
