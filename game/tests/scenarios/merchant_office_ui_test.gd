@@ -46,6 +46,7 @@ func tap(name:String)->bool:
 	return true
 
 func _initialize()->void:
+	root.visible=true
 	office=Office.new()
 	office._tab="contracts"
 	office.name="stage3_office"
