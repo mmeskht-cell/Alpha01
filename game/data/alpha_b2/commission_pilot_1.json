@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "profile_id": "b2_commission_pilot_1",
+  "requests": [
+    {
+      "request_id": "tool_for_g03",
+      "actor_id": "G03",
+      "offer_visit_id": "radio_wholesale",
+      "return_visit_id": "alpha_commission_g03_d4",
+      "offer_day": 1,
+      "due_day": 4,
+      "target_def_id": "demo_tool",
+      "return_item_id": "TL04",
+      "require_functional": true,
+      "price": {
+        "VKC": 90,
+        "USD": 0
+      },
+      "text_key": "b2.commission.tool_g03"
+    }
+  ]
+}

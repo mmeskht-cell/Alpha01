@@ -3,6 +3,7 @@ extends Control
 const Seed = preload("res://src/content/alpha_b1_seed.gd")
 const B2Seed = preload("res://src/content/alpha_b2_seed.gd")
 const CardSeed = preload("res://src/content/alpha_b2_cards_seed.gd")
+const CommissionSeed = preload("res://src/content/alpha_b2_commission_seed.gd")
 const B2_KO_PATH = "res://data/alpha_b2/ko.json"
 const Session = preload("res://src/domain/game_session.gd")
 const Alpha = preload("res://src/domain/alpha_shop_cycle.gd")
@@ -12,6 +13,7 @@ const SAVE_SLOT = "alpha_b1_profile_v3"
 @export var save_directory_override: String = ""
 @export var b2_mode: bool = false
 @export var b2_interactive_mode: bool = false
+@export var b2_commission_mode: bool = false
 var session: RefCounted
 var _repo: RefCounted
 var _strings: Dictionary = {}
@@ -28,7 +30,7 @@ func _ready() -> void:
 		var b2_locale: Variant = JSON.parse_string(FileAccess.get_file_as_string(B2_KO_PATH))
 		if b2_locale is Dictionary and b2_locale.get("strings") is Dictionary:
 			_strings.merge(b2_locale.strings, true)
-	var source: Dictionary = CardSeed.content() if b2_interactive_mode else (B2Seed.content() if b2_mode else Seed.content())
+	var source: Dictionary = CommissionSeed.content() if b2_commission_mode else (CardSeed.content() if b2_interactive_mode else (B2Seed.content() if b2_mode else Seed.content()))
 	if source.is_empty():
 		_blocked = true
 		_message = "B1 콘텐츠를 읽지 못했습니다."
@@ -38,7 +40,7 @@ func _ready() -> void:
 			_blocked = true
 			_message = "세션 초기화 오류: " + session.initialization_error()
 		else:
-			var location: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b2_cards" if b2_interactive_mode else ("user://zt_rebuild/alpha_b2" if b2_mode else "user://zt_rebuild/alpha_b1"))
+			var location: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b2_commission" if b2_commission_mode else ("user://zt_rebuild/alpha_b2_cards" if b2_interactive_mode else ("user://zt_rebuild/alpha_b2" if b2_mode else "user://zt_rebuild/alpha_b1")))
 			_repo = Repo.new(location)
 			var loaded: Dictionary = _repo.load_session(session, _slot())
 			if loaded.get("ok", false):
@@ -49,7 +51,7 @@ func _ready() -> void:
 	refresh()
 
 func _slot() -> String:
-	return "alpha_b2_cards_pilot_v1" if b2_interactive_mode else ("alpha_b2_trade_slice_v2" if b2_mode else SAVE_SLOT)
+	return "alpha_b2_commission_pilot_v1" if b2_commission_mode else ("alpha_b2_cards_pilot_v1" if b2_interactive_mode else ("alpha_b2_trade_slice_v2" if b2_mode else SAVE_SLOT))
 
 func _text(key: String) -> String:
 	return str(_strings.get(key, key))
@@ -182,6 +184,8 @@ func refresh() -> void:
 		"OPEN_IDLE":
 			if b2_mode:
 				_add_b2_display_action(actions, v)
+			if b2_commission_mode:
+				_add_b2_commission_actions(actions, v)
 			if int(v.remaining) > 0:
 				_button(actions, "alpha_next_customer", _text("alpha.button.next"), func() -> void: _submit("alpha_next_customer"))
 			_button(actions, "alpha_close", _text("alpha.button.close"), func() -> void: _submit("alpha_close"))
@@ -193,6 +197,8 @@ func refresh() -> void:
 			elif b2_mode:
 				_add_b2_trade_action(actions, v)
 			_add_contract_actions(actions, v)
+			if b2_commission_mode:
+				_add_b2_commission_actions(actions, v)
 			if bool(v.can_exchange):
 				_button(actions, "alpha_exchange_contact", _text("alpha.button.exchange"), func() -> void: _submit("alpha_exchange_contact", {"actor_id": row.actor_id, "accepted": true}))
 			_button(actions, "alpha_finish_customer", _text("alpha.button.leave"), func() -> void: _submit("alpha_finish_customer"))
@@ -205,6 +211,8 @@ func refresh() -> void:
 			if b2_mode:
 				_add_b2_display_action(actions, v)
 			_add_contract_actions(actions, v)
+			if b2_commission_mode:
+				_add_b2_commission_actions(actions, v)
 			var contacts := Label.new()
 			contacts.name = "alpha_contacts"
 			var lines: Array[String] = []
@@ -368,3 +376,33 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 				_message = _text("b2.price.invalid")
 				refresh()
 	)
+
+
+## Requests live on the same counter and are recorded as one bounded ledger
+## line. Reservations only name real, already purchased player-owned items.
+func _add_b2_commission_actions(actions: VBoxContainer, v: Dictionary) -> void:
+	for entry: Dictionary in v.commissions.entries:
+		var label := Label.new()
+		label.name = "b2_commission_status_" + str(entry.request_id)
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		var currency: String = "VKC" if int(entry.price.VKC) > 0 else "USD"
+		var amount: int = int(entry.price[currency])
+		label.text = _text(str(entry.text_key)) + " · D" + str(entry.due_day) + " · " + str(amount) + " " + currency + " · " + _text("b2.commission.status." + str(entry.status))
+		actions.add_child(label)
+		var request_id: String = str(entry.request_id)
+		if entry.can_accept:
+			_button(actions,"b2_commission_accept",_text("b2.commission.accept"),
+				func() -> void: _submit("alpha_commission_accept",{"request_id":request_id}))
+			_button(actions,"b2_commission_decline",_text("b2.commission.decline"),
+				func() -> void: _submit("alpha_commission_decline",{"request_id":request_id}))
+		for good_id: String in entry.reserve_options:
+			var current: Dictionary = session.snapshot()
+			var label_key: String = "b2.item." + str(current.items[good_id].def_id)
+			_button(actions,"b2_commission_reserve_" + good_id,_text("b2.commission.reserve") + " · " + _text(label_key),
+				func() -> void: _submit("alpha_commission_reserve",{"request_id":request_id,"item_id":good_id}))
+		if entry.can_deliver:
+			_button(actions,"b2_commission_deliver",_text("b2.commission.deliver"),
+				func() -> void: _submit("alpha_commission_deliver",{"request_id":request_id}))
+		if entry.can_cancel and v.phase in ["OPEN_IDLE","EVENING_WORK"]:
+			_button(actions,"b2_commission_cancel",_text("b2.commission.cancel"),
+				func() -> void: _submit("alpha_commission_cancel",{"request_id":request_id}))

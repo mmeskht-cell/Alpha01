@@ -3,7 +3,8 @@ extends RefCounted
 const Rules = preload("res://src/domain/value_rules.gd")
 const Contract = preload("res://src/domain/alpha_dated_contract.gd")
 const Cards = preload("res://src/domain/alpha_card_trade.gd")
-const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer"]
+const Commission = preload("res://src/domain/alpha_commission.gd")
+const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver"]
 const PHASES: Array = ["DAY_PREP", "OPEN_IDLE", "CUSTOMER_ENTER", "CUSTOMER_ACTIVE", "CUSTOMER_EXIT", "CLOSE_SETTLE", "EVENING_WORK", "NEXT_DAY", "COMPLETE"]
 
 static func profile_valid(profile: Variant, state: Dictionary) -> bool:
@@ -12,6 +13,8 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 		keys.append_array(["contracts", "story_rules"])
 	if profile is Dictionary and profile.has("appraisal_id"):
 		keys.append("appraisal_id")
+	if profile is Dictionary and profile.has("commission_profile_id"):
+		keys.append("commission_profile_id")
 	if not Rules.keys(profile, keys) or profile.id != "alpha_b1_v1" or not Rules.identifier(profile.content_version):
 		return false
 	if not profile.days is Array or profile.days.is_empty() or profile.days.size() > 42 or not profile.unavailable_actors is Array:
@@ -49,6 +52,8 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 		return false
 	if profile.has("appraisal_id") and not Cards.profile_valid(profile, state):
 		return false
+	if profile.has("commission_profile_id") and not Commission.profile_valid(profile, state):
+		return false
 	return true
 
 static func seed(state: Dictionary, profile: Dictionary) -> Dictionary:
@@ -61,12 +66,14 @@ static func seed(state: Dictionary, profile: Dictionary) -> Dictionary:
 		"day": 1, "phase": "DAY_PREP", "cursor": 0, "active": "",
 		"outcomes": {}, "settled_days": [], "contacts": {}, "commands": []
 	}
-	if profile.content_version in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1"]:
+	if profile.content_version in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1"]:
 		next.alpha_shop["displayed"] = []
 	if profile.has("contracts"):
 		next.alpha_shop["contracts"] = Contract.seed(profile)
 	if profile.has("appraisal_id"):
 		next.alpha_shop["appraisal"] = Cards.seed()
+	if profile.has("commission_profile_id"):
+		next.alpha_shop["commissions"] = Commission.seed()
 	return Rules.normalized(next)
 
 static func active_row(a: Dictionary) -> Dictionary:
@@ -84,7 +91,7 @@ static func can_contact(a: Dictionary, actor: String) -> bool:
 ## located in the actual, non-custody inventory. Never infer listing from price.
 static func display_gate(state: Dictionary, p: Dictionary, withdraw: bool = false) -> String:
 	var a: Dictionary = state.alpha_shop
-	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1"] or not Rules.keys(p, ["item_id", "x", "y", "rotated"]):
+	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1"] or not Rules.keys(p, ["item_id", "x", "y", "rotated"]):
 		return "alpha_b2_display_shape"
 	if a.phase not in ["OPEN_IDLE", "EVENING_WORK"] or not Rules.identifier(p.item_id):
 		return "alpha_display_phase"
@@ -109,7 +116,7 @@ static func after_display(state: Dictionary, item_id: String, withdraw: bool = f
 static func trade_gate(state: Dictionary, p: Dictionary) -> String:
 	var a: Dictionary = state.alpha_shop
 	var row: Dictionary = active_row(a)
-	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1"] or a.phase != "CUSTOMER_ACTIVE" or row.is_empty():
+	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1"] or a.phase != "CUSTOMER_ACTIVE" or row.is_empty():
 		return "alpha_trade_phase"
 	if not Rules.keys(p, ["visit_id", "item_id", "seller", "buyer", "currency", "amount", "inventory", "x", "y", "rotated"]) or p.visit_id != row.id or not state.visits.has(row.id):
 		return "alpha_trade_visit"
@@ -143,6 +150,8 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 		return Contract.apply(state, command) if a.has("contracts") else "alpha_contract_unavailable"
 	if kind in Cards.ACTIONS:
 		return Cards.apply(state, command) if a.has("appraisal") else "alpha_appraisal_unavailable"
+	if kind in Commission.ACTIONS:
+		return Commission.apply(state, command) if a.has("commissions") else "alpha_commission_unavailable"
 	if kind != "alpha_exchange_contact" and not p.is_empty():
 		return "alpha_payload"
 	match kind:
@@ -151,11 +160,17 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 				return "alpha_phase"
 			a.phase = "OPEN_IDLE"
 		"alpha_next_customer":
-			if a.phase != "OPEN_IDLE" or int(a.cursor) >= a.profile.days[int(a.day) - 1].size():
+			if a.phase != "OPEN_IDLE":
 				return "alpha_no_next_customer"
-			var row: Dictionary = a.profile.days[int(a.day) - 1][int(a.cursor)]
+			var offered: Array = a.profile.days[int(a.day) - 1]
+			var cursor: int = int(a.cursor)
+			while cursor < offered.size() and a.has("commissions") and not Commission.scheduled(state, str(offered[cursor].id)):
+				cursor += 1
+			if cursor >= offered.size():
+				return "alpha_no_next_customer"
+			var row: Dictionary = offered[cursor]
 			a.active = row.id
-			a.cursor += 1
+			a.cursor = cursor + 1
 			a.phase = "CUSTOMER_ENTER"
 		"alpha_ack_entry":
 			if a.phase != "CUSTOMER_ENTER":
@@ -163,6 +178,8 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 			a.phase = "CUSTOMER_ACTIVE"
 			if a.has("contracts"):
 				Contract.on_entry(state, command.action_id)
+			if a.has("commissions"):
+				Commission.on_entry(state, command.action_id)
 		"alpha_exchange_contact":
 			var row: Dictionary = active_row(a)
 			if a.phase != "CUSTOMER_ACTIVE" or not Rules.keys(p, ["actor_id", "accepted"]):
@@ -181,6 +198,8 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 				return "alpha_phase"
 			if a.has("contracts"):
 				Contract.on_visit_end(state, command.action_id)
+			if a.has("commissions"):
+				Commission.on_leave(state, command.action_id)
 			a.outcomes[a.active] = "departed"
 			a.phase = "CUSTOMER_EXIT"
 		"alpha_ack_exit":
@@ -193,10 +212,13 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 				return "alpha_customer_active"
 			for i: int in range(int(a.cursor), a.profile.days[int(a.day) - 1].size()):
 				var row: Dictionary = a.profile.days[int(a.day) - 1][i]
-				a.outcomes[row.id] = "unserved"
+				if not a.has("commissions") or Commission.scheduled(state, row.id):
+					a.outcomes[row.id] = "unserved"
 			a.cursor = a.profile.days[int(a.day) - 1].size()
 			if a.has("contracts"):
 				Contract.on_close(state, command.action_id)
+			if a.has("commissions"):
+				Commission.on_close(state, command.action_id)
 			a.phase = "CLOSE_SETTLE"
 		"alpha_settle":
 			if a.phase != "CLOSE_SETTLE" or int(a.day) in a.settled_days:
@@ -205,6 +227,8 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 			# resolves due obligations, never invents automatic profit or fees.
 			if a.has("contracts"):
 				Contract.on_settle(state, command.action_id)
+			if a.has("commissions"):
+				Commission.on_settle(state, command.action_id)
 			a.settled_days.append(a.day)
 			a.phase = "EVENING_WORK"
 		"alpha_next_day":
@@ -230,17 +254,23 @@ static func view(state: Dictionary) -> Dictionary:
 	var a: Dictionary = state.alpha_shop
 	var row: Dictionary = active_row(a)
 	var contacts: Array = []
+	var pending_visits: int = 0
+	for i: int in range(int(a.cursor), a.profile.days[int(a.day) - 1].size()):
+		var candidate: Dictionary = a.profile.days[int(a.day) - 1][i]
+		if not a.has("commissions") or Commission.scheduled(state, candidate.id):
+			pending_visits += 1
 	var contract_view: Dictionary = Contract.view(state)
 	for actor: String in a.contacts:
 		contacts.append({"actor_id": actor, "contact_id": a.contacts[actor].contact_id, "callable": can_contact(a, actor)})
 	contacts.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return x.actor_id < y.actor_id)
 	return {
 		"day": a.day, "phase": a.phase, "active": row,
-		"remaining": a.profile.days[int(a.day) - 1].size() - int(a.cursor),
+		"remaining": pending_visits,
 		"contacts": contacts, "contact_exchanged": not row.is_empty() and a.contacts.has(row.actor_id),
 		"can_exchange": a.phase == "CUSTOMER_ACTIVE" and not row.is_empty() and row.contact_offer and not a.contacts.has(row.actor_id),
 		"settled": int(a.day) in a.settled_days,
 		"displayed_items": a.get("displayed", []).duplicate(),
 		"appraisal": Cards.view(state) if a.has("appraisal") else {},
+		"commissions": Commission.view(state) if a.has("commissions") else {"entries":[]},
 		"contracts": contract_view.contracts, "news": contract_view.news
 	}

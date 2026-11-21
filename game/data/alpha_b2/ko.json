@@ -33,6 +33,21 @@
     "alpha.heading": "EXIT NOT INCLUDED · 감정·흥정 B2 시험",
     "alpha.b1.notice": "실제 재고와 외부 매대를 살펴보고 다음 손님을 맞이합니다.",
     "b2.item.demo_hygiene": "위생용품",
-    "b2.item.fictional_gear": "보호 장비"
+    "b2.item.fictional_gear": "보호 장비",
+    "alpha.purpose.commission_return": "맡겼던 물건을 받으러 왔습니다.",
+    "b2.commission.tool_g03": "공구 한 점을 구해 주세요. 약속한 날 직접 찾으러 오겠습니다.",
+    "b2.commission.status.offered": "문의",
+    "b2.commission.status.accepted": "의뢰 수락 · 물품 대기",
+    "b2.commission.status.ready": "실물 예약 · 검수 완료",
+    "b2.commission.status.fulfilled": "인도·정산 완료",
+    "b2.commission.status.declined": "거절",
+    "b2.commission.status.missed": "미수락",
+    "b2.commission.status.cancelled": "취소",
+    "b2.commission.status.expired": "기한 종료",
+    "b2.commission.accept": "의뢰 수락",
+    "b2.commission.decline": "의뢰 거절",
+    "b2.commission.reserve": "실물 지정·검수·예약",
+    "b2.commission.deliver": "약속한 고객에게 인도·정산",
+    "b2.commission.cancel": "의뢰 취소"
   }
 }

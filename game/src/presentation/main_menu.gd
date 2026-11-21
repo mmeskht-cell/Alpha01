@@ -5,6 +5,7 @@ const GameScene=preload("res://scenes/app/integrated_b_candidate.tscn")
 const AlphaScene=preload("res://scenes/app/alpha_playtest_candidate.tscn")
 const B1ScenePath="res://scenes/app/alpha_b1.tscn"
 const B2CardsScenePath="res://scenes/app/alpha_b2_cards.tscn"
+const B2CommissionScenePath="res://scenes/app/alpha_b2_commission.tscn"
 const CampaignScene=preload("res://scenes/app/alpha42_mechanics_host.tscn")
 const HoldScene=preload("res://scenes/app/alpha_hold_market_host.tscn")
 const Street=preload("res://src/presentation/menu_street.gd")
@@ -151,6 +152,7 @@ func _build_buttons()->void:
 	_button("menu_new",tr_key("menu.new"),_new_game)
 	_button("menu_b1","신규 영업 프로필 · B1",func()->void: get_tree().change_scene_to_file(B1ScenePath))
 	_button("menu_b2_cards","물품 감정·흥정 · B2 시험",func()->void: get_tree().change_scene_to_file(B2CardsScenePath))
+	_button("menu_b2_commission","고객 의뢰 · B2 시험",func()->void: get_tree().change_scene_to_file(B2CommissionScenePath))
 	_continue=_button("menu_continue",tr_key("menu.continue"),_continue_game)
 	_load=_button("menu_load",tr_key("menu.load"),_show_slots)
 	if alpha_playtest:

@@ -103,6 +103,13 @@ jobs:
           ) || civilian_status=$?
           printf 'Civilian host probe exit: %s\n' "$civilian_status"
           if [ "$CI_SCOPE" = full ]; then
+            # Commission request and accept in the same rendered counter;
+            # physical D4 reserve/payment and replay verified by fixed checks.
+            LIBGL_ALWAYS_SOFTWARE=1 timeout 110s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/window/alpha_b2_commission_window.gd -- "$GITHUB_WORKSPACE/evidence" 2>&1 | tee evidence/alpha-b2-commission-window.log
+            grep -E 'ALPHA_B2_COMMISSION_WINDOW: [0-9]+ checks, 0 failures' evidence/alpha-b2-commission-window.log
+            if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:|ObjectDB instances were leaked|Leaked instance:|resources still in use at exit' evidence/alpha-b2-commission-window.log; then exit 1; fi
+          fi
+          if [ "$CI_SCOPE" = full ]; then
             # B2 card/offer pilot: same counter, actual mouse targets and
             # 720p/1080p screenshots, independently of B1 fixed-term route.
             LIBGL_ALWAYS_SOFTWARE=1 timeout 120s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/window/alpha_b2_cards_window.gd -- "$GITHUB_WORKSPACE/evidence" 2>&1 | tee evidence/alpha-b2-cards-window.log
