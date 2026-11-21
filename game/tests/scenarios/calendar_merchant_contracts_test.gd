@@ -63,16 +63,17 @@ func open(f:Dictionary)->RefCounted:
 func _initialize()->void:
 	var f:Dictionary=fixture()
 	check(not f.is_empty(),"real funded pawn and order fixture")
-	check(not Merchant.seed(f.seed,f.defs,f.profile).is_empty(),"seed validates real item and escrow")
+	var normalized_defs:Dictionary={"fictional_watch_p2":Objects.definition(f.defs.fictional_watch_p2)}
+	check(not Merchant.seed(f.seed,normalized_defs,f.profile).is_empty(),"seed validates real item and escrow")
 	var invalid:Dictionary=f.duplicate(true)
 	invalid.seed.wallets.order_escrow.VKC=1
-	check(Merchant.seed(invalid.seed,invalid.defs,invalid.profile).is_empty(),"no prefilled magic escrow")
+	check(Merchant.seed(invalid.seed,normalized_defs,invalid.profile).is_empty(),"no prefilled magic escrow")
 	invalid=f.duplicate(true)
 	invalid.profile.merchant_contracts.pawns.pawn_a.principal.VKC=-1
-	check(Merchant.seed(invalid.seed,invalid.defs,invalid.profile).is_empty(),"negative loan rejected")
+	check(Merchant.seed(invalid.seed,normalized_defs,invalid.profile).is_empty(),"negative loan rejected")
 	invalid=f.duplicate(true)
 	invalid.profile.merchant_contracts.orders.order_a.customer="unknown"
-	check(Merchant.seed(invalid.seed,invalid.defs,invalid.profile).is_empty(),"unfinanced fictional order denied")
+	check(Merchant.seed(invalid.seed,normalized_defs,invalid.profile).is_empty(),"unfinanced fictional order denied")
 	var redeemed:RefCounted=open(f)
 	var forfeited:RefCounted=open(f)
 	var cancelled:RefCounted=open(f)

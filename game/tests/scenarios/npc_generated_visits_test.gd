@@ -85,7 +85,7 @@ func _initialize()->void:
 	check(grown.visits.has("d3_merc_guest") and grown.visits.size()==3
 		and grown.calendar.profile.visit_days.d3==["d3_merc_guest"],
 		"one selected visit exists in the true GameSession state and schedule")
-	check(not s.calendar_view().has("npc_visitor") and not s.calendar_view().visits.active,
+	check(not s.calendar_view().has("npc_visitor") and s.calendar_view().visits.active=="",
 		"no D3 guest disclosed on D1")
 	check(cmd(s,"calendar_close","close_d1").get("ok",false)
 		and cmd(s,"calendar_morning","morning_d2").get("ok",false)
