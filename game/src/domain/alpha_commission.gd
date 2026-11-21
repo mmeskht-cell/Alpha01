@@ -53,7 +53,7 @@ static func profile_valid(profile: Dictionary, state: Dictionary) -> bool:
 		if not state.wallets.has(r.actor_id) or not state.items.has(r.return_item_id) or state.items[r.return_item_id].def_id != r.target_def_id:
 			return false
 		var visit: Dictionary = state.visits.get(r.return_visit_id, {})
-		if visit.is_empty() or visit.seller != "player" or visit.buyer != r.actor_id or visit.prices.size() != 1 or visit.prices.get(r.return_item_id) != r.price or visit.opens != (int(r.due_day) - 1) * 1440 or visit.scope.kind != "ordinary" or visit.scope.purpose != "sale":
+		if visit.is_empty() or visit.seller != "player" or visit.buyer != r.actor_id or visit.prices.size() != 1 or Rules.canonical(visit.prices.get(r.return_item_id, {})) != Rules.canonical(r.price) or visit.opens != (int(r.due_day) - 1) * 1440 or visit.scope.kind != "ordinary" or visit.scope.purpose != "sale":
 			return false
 		var offer: bool = false
 		var returned: bool = false
