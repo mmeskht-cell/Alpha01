@@ -173,9 +173,28 @@ func expired() -> void:
 	var cold: RefCounted=fresh()
 	check(cold != null and db.load_session(cold,"commission").ok and cold.snapshot()==s.snapshot(),"expiry and physical release cold restore")
 
+func bypass() -> void:
+	var s: RefCounted=fresh()
+	if not check(s != null and start_g03(s) and go(s,"alpha_commission_accept",{"request_id":REQUEST}),"bypass setup"):
+		return
+	if not check(to_day4(s) and next_actor(s)=="G12" and leave(s) and next_actor(s)=="G01" and buy_tool(s),"real stock acquired before pickup"):
+		return
+	check(go(s,"alpha_display",{"item_id":"TL04","x":0,"y":0,"rotated":false}),"actual player stock can be displayed before binding")
+	if not check(next_actor(s)=="G04" and leave(s) and next_actor(s)=="G03","G03 returns even when player forgot reservation"):
+		return
+	check(s.alpha_view().appraisal.is_empty(),"returning customer cannot use unrelated ordinary appraisal/bargaining")
+	check(deny(s,"alpha_price_offer",{"amount":90}),"return visit blocks unofficial price offers")
+	check(deny(s,"alpha_trade",{"visit_id":"alpha_commission_g03_d4","item_id":"TL04","seller":"player",
+		"buyer":"G03","currency":"VKC","amount":90,"inventory":"G03_grid","x":0,"y":0,"rotated":false}),"ordinary retail command cannot bypass accepted obligation")
+	check(deny(s,"alpha_commission_deliver",{"request_id":REQUEST}),"no forged delivery without physical reservation")
+	check(s.snapshot().ledger.size()==1 and s.snapshot().wallets.player.VKC==120,"both sales remain uncommitted, no phantom payout")
+	check(leave(s) and go(s,"alpha_close") and go(s,"alpha_settle"),"unfinished pickup resolves at real deadline")
+	check(s.snapshot().alpha_shop.commissions.entries[REQUEST].status=="expired" and s.snapshot().items.TL04.owner_id=="player","unsatisfied buyer may not seize ordinary listed stock")
+
+
 func _initialize() -> void:
 	var args: PackedStringArray=OS.get_cmdline_user_args()
-	if args.size()!=1 or args[0] not in ["happy","declined","expired"]:
+	if args.size()!=1 or args[0] not in ["happy","declined","expired","bypass"]:
 		printerr("ALPHA_B2_COMMISSION_PART_REQUIRED")
 		quit(2)
 		return
@@ -183,5 +202,6 @@ func _initialize() -> void:
 		"happy": happy()
 		"declined": declined()
 		"expired": expired()
+		"bypass": bypass()
 	print("ALPHA_B2_COMMISSION_CHECKS part=",args[0]," checks=",checks," failures=",failures)
 	quit(0 if failures==0 else 1)

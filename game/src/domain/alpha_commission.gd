@@ -63,6 +63,12 @@ static func current(state: Dictionary, r: Dictionary, return_trip: bool = false)
 	var a: Dictionary = state.alpha_shop
 	return a.phase == "CUSTOMER_ACTIVE" and a.day == (r.due_day if return_trip else r.offer_day) and a.active == (r.return_visit_id if return_trip else r.offer_visit_id)
 
+static func is_return_visit(visit_id: String) -> bool:
+	for r: Dictionary in config().get("requests", []):
+		if r.return_visit_id == visit_id:
+			return true
+	return false
+
 static func scheduled(state: Dictionary, visit_id: String) -> bool:
 	for r: Dictionary in config().get("requests", []):
 		if r.return_visit_id == visit_id:

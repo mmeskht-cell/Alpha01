@@ -6,6 +6,7 @@ extends RefCounted
 ## not a canonical 7-day economy or an automatic per-card price formula.
 const Rules = preload("res://src/domain/value_rules.gd")
 const Objects = preload("res://src/domain/object_schema.gd")
+const Commission = preload("res://src/domain/alpha_commission.gd")
 const CONFIG_PATH: String = "res://data/alpha_b2/cards_pilot_1.json"
 const MAX_OFFERS: int = 3
 const MAX_OBSERVATIONS: int = 8
@@ -43,6 +44,8 @@ static func seed() -> Dictionary:
 static func _visit_context(state: Dictionary) -> Dictionary:
 	var a: Dictionary = state.alpha_shop
 	if a.profile.get("content_version") not in ["b2-cards-pilot-1","b2-cards-commission-1"] or a.phase != "CUSTOMER_ACTIVE" or not state.visits.has(a.active):
+		return {}
+	if a.has("commissions") and Commission.is_return_visit(a.active):
 		return {}
 	var visit: Dictionary = state.visits[a.active]
 	if visit.scope.completed or visit.prices.size() != 1 or (visit.seller != "player" and not visit.allow_inspection):

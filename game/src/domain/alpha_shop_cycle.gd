@@ -120,6 +120,8 @@ static func trade_gate(state: Dictionary, p: Dictionary) -> String:
 		return "alpha_trade_phase"
 	if not Rules.keys(p, ["visit_id", "item_id", "seller", "buyer", "currency", "amount", "inventory", "x", "y", "rotated"]) or p.visit_id != row.id or not state.visits.has(row.id):
 		return "alpha_trade_visit"
+	if a.has("commissions") and Commission.is_return_visit(p.visit_id):
+		return "alpha_commission_delivery_only"
 	var visit: Dictionary = state.visits[row.id]
 	if visit.scope.completed or not visit.prices.has(p.item_id) or not state.items.has(p.item_id):
 		return "alpha_trade_item"

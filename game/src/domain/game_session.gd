@@ -1525,10 +1525,18 @@ func validate(state: Dictionary, receipt_limit: int = MAX_RECEIPTS, legacy_prefi
 			return false
 		if state.receipts.has(entry.event_id):
 			var command: Dictionary = JSON.parse_string(state.receipts[entry.event_id].fingerprint)
-			if command.type in ["trade", "alpha_trade", "alpha_commission_deliver"]:
+			if command.type in ["trade", "alpha_trade"]:
 				var p: Dictionary = command.payload
 				if p.get("item_id") not in entry.root_ids or p.get("seller") != entry.to or p.get("buyer") != entry.from or p.get("currency") not in ["VKC", "USD"] or p.get("amount") != entry.amounts[p.currency]:
 					_validation_error = "guard_33"
+					return false
+			if command.type == "alpha_commission_deliver":
+				# Unlike generic trade, the public command contains a request
+				# identity, never caller-authored price/recipient/item fields.
+				var id: String = str(command.payload.get("request_id",""))
+				var delivery: Dictionary = state.get("alpha_shop",{}).get("commissions",{}).get("entries",{}).get(id,{})
+				if delivery.get("status") != "fulfilled" or delivery.get("deliver_action") != entry.event_id or delivery.get("item_id") not in entry.root_ids:
+					_validation_error = "alpha_commission_ledger_binding"
 					return false
 	if not _customer_policy.is_empty() and not CustomerInspection.valid(state, _customer_policy):
 		_validation_error = "guard_34"

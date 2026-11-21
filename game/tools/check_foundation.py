@@ -82,7 +82,7 @@ demo_parts = ('canonical', 'civilian', 'condition_v1', 'condition_v2', 'alpha')
 for test in tests:
     command = [engine, '--headless', '--path', str(root), '--script', f'res://tests/{test}.gd']
     if test == 'scenarios/alpha_b2_commission_test':
-        commands.extend(command + ['--', part] for part in ('happy', 'declined', 'expired'))
+        commands.extend(command + ['--', part] for part in ('happy', 'declined', 'expired', 'bypass'))
     elif test == 'scenarios/alpha_b1_contract_boundary_test':
         # Four bounded source-authored obligation paths; isolate each failure.
         commands.extend(command + ['--', part] for part in ('missed', 'unpaid', 'extension', 'paid'))
