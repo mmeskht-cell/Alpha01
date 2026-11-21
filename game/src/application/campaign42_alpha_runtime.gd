@@ -9,7 +9,7 @@ func _fresh()->RefCounted:
 	return Candidate.fresh()
 
 func open(directory:String=PREFIX,civilian:bool=false,
-	condition_pricing:bool=false,condition_version:int=1)->bool:
+	condition_pricing:bool=false,condition_version:int=1,hold_market:bool=false)->bool:
 	if not directory.begins_with(PREFIX) or ".." in directory or (directory!=PREFIX and not directory.begins_with(PREFIX+"/slot_")):
 		return false
 	_view_cache.clear()
