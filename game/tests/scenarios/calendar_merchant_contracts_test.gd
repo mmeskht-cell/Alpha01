@@ -170,5 +170,60 @@ func _initialize()->void:
 	var cold_f:RefCounted=open(f)
 	check(cold_f!=null and cold_f.restore(b) and cold_f.snapshot()==b,
 		"automatic deadline change fully deterministic and cold replayable")
+	# Legacy pawn remains unchanged. Opt-in extension requires an authored
+	# later due day, a borrower-funded fee and a new repayment window.
+	var proposal:Dictionary=fixture()
+	proposal.profile.merchant_contracts.pawns.pawn_a["extension_day"]=4
+	proposal.profile.merchant_contracts.pawns.pawn_a["extension_repayment_day"]=3
+	proposal.profile.merchant_contracts.pawns.pawn_a["extension_fee"]=money(5)
+	var ex:RefCounted=open(proposal)
+	check(ex!=null,"optional finite pawn amendment terms seed separately")
+	if ex!=null:
+		check(cmd(ex,"calendar_next_visit","ex_arrive").get("ok",false) and
+			cmd(ex,"merchant_pawn_accept","ex_loan",{"contract_id":"pawn_a"}).get("ok",false),
+			"real collateral loan precedes amendment")
+		check(cmd(ex,"calendar_close","ex_close1").get("ok",false) and
+			cmd(ex,"calendar_morning","ex_open2").get("ok",false),
+			"original D2 deadline opens")
+		check(ex.calendar_view().merchant_contracts.pawns.pawn_a.can_extend and
+			cmd(ex,"merchant_pawn_extend","ex_extend",{"contract_id":"pawn_a"}).get("ok",false),
+			"genuine authored deadline extension executed on borrower funds")
+		var x:Dictionary=ex.snapshot()
+		check(x.calendar.merchant_contracts.pawns.pawn_a.extended and
+			x.calendar.merchant_contracts.pawns.pawn_a.effective_due_day==4 and
+			x.wallets.seller.VKC==45 and x.items.W001.status=="custody_pawn",
+			"extension charges five exactly without a phantom goods transfer")
+		check(not cmd(ex,"merchant_pawn_extend","ex_double",{"contract_id":"pawn_a"}).get("ok",false)
+			and ex.snapshot()==x,"cannot double collect real fee")
+		check(cmd(ex,"calendar_close","ex_close2").get("ok",false) and
+			cmd(ex,"calendar_morning","ex_open3").get("ok",false) and
+			cmd(ex,"merchant_pawn_redeem","ex_repay",{"contract_id":"pawn_a"}).get("ok",false),
+			"genuine D3 agreed new repayment returns original collateral")
+		var now:Dictionary=ex.snapshot()
+		check(now.items.W001.owner_id=="seller" and now.items.W001.custodian_id=="seller"
+			and now.wallets.seller.VKC==0,
+			"no invented cash, borrower pays original principal+fee+interest")
+		var history:Array=ex.calendar_item_history("W001").get("contract_records",[])
+		check(history.size()==3 and history[1].kind=="pawn_extension"
+			and history[1].amounts.VKC==5,"signed amendment fee appears in same item ledger")
+		var replay:RefCounted=open(proposal)
+		check(replay!=null and replay.restore(now) and replay.snapshot()==now,
+			"authoritative extension and rescheduled repayment cold replay")
+		var defaulted:RefCounted=open(proposal)
+		check(cmd(defaulted,"calendar_next_visit","df_arrive").get("ok",false) and
+			cmd(defaulted,"merchant_pawn_accept","df_loan",{"contract_id":"pawn_a"}).get("ok",false)
+			and cmd(defaulted,"calendar_close","df_close1").get("ok",false)
+			and cmd(defaulted,"calendar_morning","df_open2").get("ok",false)
+			and cmd(defaulted,"merchant_pawn_extend","df_extend",{"contract_id":"pawn_a"}).get("ok",false),
+			"alternative real pledged path granted same extension")
+		check(cmd(defaulted,"calendar_close","df_close2").get("ok",false)
+			and cmd(defaulted,"calendar_morning","df_open3").get("ok",false)
+			and cmd(defaulted,"calendar_close","df_close3").get("ok",false)
+			and cmd(defaulted,"calendar_morning","df_open4").get("ok",false)
+			and cmd(defaulted,"calendar_close","df_close4").get("ok",false),
+			"unredeemed collateral forfeit on new D4 expiry, not original D2")
+		check(defaulted.snapshot().items.W001.owner_id=="player" and
+			defaulted.snapshot().items.W001.basis.VKC==40,
+			"physical collateral becomes original principal-basis player stock")
 	print("CALENDAR_MERCHANT_CONTRACTS: ",checks," checks, ",failures," failures")
 	quit(0 if failures==0 else 1)

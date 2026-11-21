@@ -134,6 +134,7 @@ func configure(index: Dictionary,translator: Callable,locale: String) -> void:
 				"pawn_loan": name=_word("담보 대출금 지급","Pawn loan paid")
 				"pawn_repayment": name=_word("고객 상환·담보 반환","Loan repaid, collateral returned")
 				"pawn_forfeit": name=_word("미상환 담보 귀속","Unredeemed collateral forfeited")
+				"pawn_extension": name=_word("담보 기한 유예·수수료","Pawn extension fee")
 			if name.is_empty():
 				continue
 			var amount_text:String=_word("현물 귀속, 추가 현금 수입 없음","Asset forfeit; no additional cash") if contract.kind=="pawn_forfeit" else _money(contract.amounts)

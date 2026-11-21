@@ -63,6 +63,7 @@ static func content()->Dictionary:
 		"pawns":{"alpha_pawn":{"customer":"alpha_pawn_seller",
 			"visit_id":"alpha_pawn_offer","item_id":"ALPHA_PAWN01",
 			"principal":_cash(40),"repayment":_cash(45),"repayment_day":9,"due_day":10,
+			"extension_day":12,"extension_repayment_day":11,"extension_fee":_cash(5),
 			"placement":{"inventory":"player_stock","x":1,"y":5,"rotated":false}}},
 		"orders":{"alpha_order":{"customer":"alpha_order_buyer","def_id":"demo_tool",
 			"price":_cash(90),"offer_day":8,"due_day":10}}}

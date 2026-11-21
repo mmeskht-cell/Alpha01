@@ -217,6 +217,12 @@ func _merchant_finance(parent:Control)->void:
 		if p.status=="offered" and p.visit_id==active:
 			_button(panel,"office_pawn_accept_"+id,word("담보 인수·대출 실행","Accept collateral and lend"),func()->void:
 				action_requested.emit("merchant_pawn_accept",{"contract_id":pawn_id},revision))
+		elif p.get("can_extend",false) and active.is_empty():
+			_line(panel,word("유예 D","Extended to D")+str(p.extension_day)+
+				word(" · 수수료 "," · fee ")+str(p.extension_fee.VKC)+" VKC")
+			_button(panel,"office_pawn_extend_"+id,
+				word("기한 유예·고객 수수료 수납","Extend for actual customer fee"),func()->void:
+					action_requested.emit("merchant_pawn_extend",{"contract_id":pawn_id},revision))
 		elif p.get("repayment_offered",false) and active.is_empty():
 			_button(panel,"office_pawn_redeem_"+id,word("고객 상환 접수·담보 반환","Accept repayment and return collateral"),func()->void:
 				action_requested.emit("merchant_pawn_redeem",{"contract_id":pawn_id},revision))

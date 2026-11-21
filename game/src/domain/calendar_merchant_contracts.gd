@@ -9,7 +9,7 @@ const Relations=preload("res://src/domain/object_relation_primitives.gd")
 const Items=preload("res://src/domain/item_primitives.gd")
 const Grid=preload("res://src/domain/grid_primitives.gd")
 const Receipt=preload("res://src/domain/receipt_primitives.gd")
-const ACTIONS:Array=["merchant_pawn_accept","merchant_pawn_redeem",
+const ACTIONS:Array=["merchant_pawn_accept","merchant_pawn_redeem","merchant_pawn_extend",
 	"merchant_order_accept","merchant_order_deliver","merchant_order_cancel"]
 const VERSION:int=1
 const MAX_PAWNS:int=16
@@ -49,7 +49,9 @@ static func _event(s:Dictionary,id:String,kind:String,action:String,item_id:Stri
 		"minute":int(s.game_minutes),"item_id":item_id,"amount":amount.duplicate(true)})
 
 static func _pawn_policy(s:Dictionary,defs:Dictionary,id:String,p:Dictionary)->bool:
-	if not Rules.identifier(id) or not Rules.keys(p,["customer","visit_id","item_id","principal","repayment","repayment_day","due_day","placement"]):
+	var basic:Array=["customer","visit_id","item_id","principal","repayment","repayment_day","due_day","placement"]
+	var extended:Array=basic+["extension_day","extension_fee","extension_repayment_day"]
+	if not Rules.identifier(id) or (not Rules.keys(p,basic) and not Rules.keys(p,extended)):
 		return false
 	if not Rules.identifier(p.customer) or p.customer=="player" or not s.wallets.has(p.customer) or not Rules.identifier(p.visit_id) or not Rules.identifier(p.item_id):
 		return false
@@ -65,6 +67,11 @@ static func _pawn_policy(s:Dictionary,defs:Dictionary,id:String,p:Dictionary)->b
 	var first_day:int=Clock.day_index(int(visit.opens))
 	if not Rules.integer(p.due_day,first_day+1,42) or not Rules.integer(p.repayment_day,first_day+1,int(p.due_day)):
 		return false
+	if p.has("extension_day"):
+		if not Rules.integer(p.extension_day,int(p.due_day)+1,42) or not Rules.integer(p.extension_repayment_day,int(p.due_day)+1,int(p.extension_day)) or not _money(p.extension_fee):
+			return false
+		if (int(p.extension_fee.VKC)>0)!=(int(p.principal.VKC)>0) or (int(p.extension_fee.USD)>0)!=(int(p.principal.USD)>0):
+			return false
 	if not _good_family(s,defs,p.item_id,p.customer):
 		return false
 	if not Rules.keys(p.placement,["inventory","x","y","rotated"]) or not Objects.destination_accessible(s,p.placement.inventory,p.customer,"player") or not Rules.integer(p.placement.x,0,9) or not Rules.integer(p.placement.y,0,9) or not p.placement.rotated is bool:
@@ -98,6 +105,10 @@ static func seed(s:Dictionary,defs:Dictionary,profile:Dictionary)->Dictionary:
 			return {}
 		seen_items[pawn.item_id]=true
 		result.pawns[id]={"status":"offered","original":{},"open_action":"","close_action":""}
+		if pawn.has("extension_day"):
+			result.pawns[id]["extended"]=false
+			result.pawns[id]["extension_action"]=""
+			result.pawns[id]["effective_due_day"]=pawn.due_day
 	for id:String in m.orders:
 		var order:Dictionary=m.orders[id]
 		if m.pawns.has(id) or not _order_policy(s,defs,id,order):
@@ -133,7 +144,7 @@ static func close(s:Dictionary,defs:Dictionary,action:String)->void:
 	var day:int=Clock.day_index(int(s.game_minutes))
 	var rows:Dictionary=s.calendar.merchant_contracts
 	for id:String in rows.pawns:
-		if rows.pawns[id].status=="pledged" and _policy(s).pawns[id].due_day==day:
+		if rows.pawns[id].status=="pledged" and int(rows.pawns[id].get("effective_due_day",_policy(s).pawns[id].due_day))==day:
 			_pawn_forfeit(s,defs,id,action)
 		elif rows.pawns[id].status=="offered":
 			var t:Dictionary=_policy(s).pawns[id]
@@ -184,11 +195,24 @@ static func apply(s:Dictionary,defs:Dictionary,kind:String,p:Dictionary,action:S
 		s.calendar.queue.outcomes[t.visit_id]="pawned"
 		s.calendar.queue.active=""
 		return ""
+	if kind=="merchant_pawn_extend":
+		if not rows.pawns.has(id) or rows.pawns[id].status!="pledged" or rows.pawns[id].get("extended",false):
+			return "pawn_extension_unavailable"
+		var t:Dictionary=pol.pawns[id]
+		if not t.has("extension_day") or day!=int(t.due_day) or (s.calendar.has("queue") and not s.calendar.queue.active.is_empty()) or not _funds(s,t.customer,"player",t.extension_fee):
+			return "pawn_extension_terms_or_funds"
+		_send(s,t.customer,"player",t.extension_fee)
+		rows.pawns[id].extended=true
+		rows.pawns[id].extension_action=action
+		rows.pawns[id].effective_due_day=t.extension_day
+		_event(s,id,"pawn_extension",action,t.item_id,t.extension_fee)
+		return ""
 	if kind=="merchant_pawn_redeem":
 		if not rows.pawns.has(id) or rows.pawns[id].status!="pledged":
 			return "pawn_not_held"
 		var t:Dictionary=pol.pawns[id]
-		if day!=int(t.repayment_day) or (s.calendar.has("queue") and not s.calendar.queue.active.is_empty()) or not _funds(s,t.customer,"player",t.repayment):
+		var due_repayment:int=int(t.extension_repayment_day) if rows.pawns[id].get("extended",false) else int(t.repayment_day)
+		if day!=due_repayment or (s.calendar.has("queue") and not s.calendar.queue.active.is_empty()) or not _funds(s,t.customer,"player",t.repayment):
 			return "pawn_redeem_funds_or_time"
 		var original:Dictionary=rows.pawns[id].original
 		if not Objects.destination_accessible(s,original.inventory,t.customer,t.customer):
@@ -267,9 +291,16 @@ static func view(s:Dictionary,defs:Dictionary)->Dictionary:
 		output.pawns[id]={"status":c.pawns[id].status,"customer":t.customer,
 			"item_id":t.item_id,"visit_id":t.visit_id,
 			"principal":t.principal.duplicate(true),
-			"repayment":t.repayment.duplicate(true),"repayment_day":t.repayment_day,
-			"repayment_offered":day==int(t.repayment_day) and c.pawns[id].status=="pledged",
-			"due_day":t.due_day}
+			"repayment":t.repayment.duplicate(true),
+			"repayment_day":int(t.extension_repayment_day) if c.pawns[id].get("extended",false) else int(t.repayment_day),
+			"repayment_offered":day==(int(t.extension_repayment_day) if c.pawns[id].get("extended",false) else int(t.repayment_day)) and c.pawns[id].status=="pledged",
+			"due_day":int(c.pawns[id].get("effective_due_day",t.due_day)),
+			"extended":c.pawns[id].get("extended",false),
+			"can_extend":t.has("extension_day") and c.pawns[id].status=="pledged" and not c.pawns[id].get("extended",false) and day==int(t.due_day) and s.calendar.get("queue",{}).get("active","").is_empty()}
+		if t.has("extension_day"):
+			output.pawns[id]["extension_day"]=t.extension_day
+			output.pawns[id]["extension_repayment_day"]=t.extension_repayment_day
+			output.pawns[id]["extension_fee"]=t.extension_fee.duplicate(true)
 	for id:String in c.orders:
 		var t:Dictionary=_policy(s).orders[id]
 		if day<int(t.offer_day):
@@ -320,7 +351,8 @@ static func item_records(s:Dictionary,item_id:String)->Array:
 	var policy:Dictionary=c.get("profile",{}).get("merchant_contracts",{})
 	var results:Array=[]
 	var types:Dictionary={"pawn_loan":"merchant_pawn_accept",
-		"pawn_repayment":"merchant_pawn_redeem","pawn_forfeit":"calendar_close",
+		"pawn_repayment":"merchant_pawn_redeem","pawn_extension":"merchant_pawn_extend",
+		"pawn_forfeit":"calendar_close",
 		"order_delivery":"merchant_order_deliver"}
 	var events:Array=m.get("events",[])
 	for row:Dictionary in events:
@@ -337,7 +369,11 @@ static func item_records(s:Dictionary,item_id:String)->Array:
 		else:
 			if not policy.get("pawns",{}).has(contract_id) or policy.pawns[contract_id].item_id!=item_id:
 				continue
-			if kind=="pawn_loan":
+			if kind=="pawn_extension":
+				if m.pawns[contract_id].get("extension_action","")!=action_id or not policy.pawns[contract_id].has("extension_fee"):
+					continue
+				expected_amount=policy.pawns[contract_id].extension_fee
+			elif kind=="pawn_loan":
 				if m.pawns[contract_id].open_action!=action_id:
 					continue
 				expected_amount=policy.pawns[contract_id].principal
