@@ -1454,7 +1454,7 @@ func validate(state: Dictionary, receipt_limit: int = MAX_RECEIPTS, legacy_prefi
 		if not Rules.identifier(action_id) or state.receipts.has(action_id) or not archived is Array or archived.size() not in [3, 4]:
 			_validation_error = "guard_20"
 			return false
-		if not archived[0] is String or archived[0].length() != 64 or not Rules.integer(archived[1], 1, int(state.revision)) or archived[2] not in COMMAND_TYPES:
+		if not archived[0] is String or archived[0].length() != 64 or not Rules.integer(archived[1], 1, int(state.revision)) or (archived[2] not in COMMAND_TYPES and archived[2] not in AlphaShop.ACTIONS):
 			_validation_error = "guard_21"
 			return false
 		for character: String in archived[0]:

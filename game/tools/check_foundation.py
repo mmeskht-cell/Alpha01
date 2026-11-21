@@ -81,7 +81,10 @@ if args.scope in ('all', 'gate1'):
 demo_parts = ('canonical', 'civilian', 'condition_v1', 'condition_v2', 'alpha')
 for test in tests:
     command = [engine, '--headless', '--path', str(root), '--script', f'res://tests/{test}.gd']
-    if test == 'scenarios/gate2_demo_integration_test':
+    if test == 'scenarios/alpha_b1_contract_boundary_test':
+        # Four bounded source-authored obligation paths; isolate each failure.
+        commands.extend(command + ['--', part] for part in ('missed', 'unpaid', 'extension', 'paid'))
+    elif test == 'scenarios/gate2_demo_integration_test':
         # Identical four independent scenarios, one process and timeout per part.
         commands.extend(command + ['--', part] for part in demo_parts)
     else:
@@ -105,7 +108,7 @@ for index, command in enumerate(commands, start=1):
     if report:
         (report / f'{index:02d}.started.json').write_text(json.dumps({'command': command, 'started_utc': datetime.now(timezone.utc).isoformat()}, indent=2), encoding='utf-8')
     try:
-        result = subprocess.run(command, capture_output=True, text=True, timeout=180 if any('gate2_demo_integration_test.gd' in str(part) for part in command) else (90 if any('campaign_capacity_test.gd' in str(part) or 'gate2_demo_host_test.gd' in str(part) for part in command) else 45), encoding='utf-8', errors='replace')
+        result = subprocess.run(command, capture_output=True, text=True, timeout=180 if any('gate2_demo_integration_test.gd' in str(part) for part in command) else (90 if any('campaign_capacity_test.gd' in str(part) or 'gate2_demo_host_test.gd' in str(part) or 'alpha_b1_contract_boundary_test.gd' in str(part) for part in command) else 45), encoding='utf-8', errors='replace')
     except subprocess.TimeoutExpired as exc:
         def decoded(value):
             return value.decode('utf-8', errors='replace') if isinstance(value, bytes) else (value or '')

@@ -57,7 +57,7 @@ func trade(s: RefCounted, visit_id: String, item_id: String, seller: String, buy
 		"x": 0 if buying else 5, "y": 0 if buying else 4, "rotated": false}
 	return go(s, "alpha_trade", p) and go(s, "alpha_ack_exit")
 
-func _initialize() -> void:
+func run_missed() -> void:
 	var declined: RefCounted = fresh(B1.content())
 	check(declined != null, "B1 fresh contract profile")
 	if declined == null:
@@ -83,6 +83,7 @@ func _initialize() -> void:
 		check(go(refused,"alpha_close") and go(refused,"alpha_settle"), "decline path settles once")
 		check(refused.snapshot().alpha_shop.contracts.rows.rad1_first.status == "declined" and refused.snapshot().wallets.player.VKC == 180, "explicit refusal has no automatic debt")
 
+func run_unpaid() -> void:
 	var unpaid: RefCounted = fresh(B1.content())
 	check(unpaid != null and go(unpaid, "alpha_open"), "unpaid branch opens")
 	if unpaid == null:
@@ -106,9 +107,12 @@ func _initialize() -> void:
 			check(deny(unpaid,"alpha_contract_pay",terms()), "cannot pay 300 from 180 VKC")
 		check(go(unpaid,"alpha_settle"), "settle day " + str(day))
 	check(unpaid.snapshot().alpha_shop.contracts.rows.rad1_first.status == "defaulted", "D4 close defaults once")
+	check(unpaid.snapshot().receipt_archive.size() > 0, "alpha commands compact into archived receipts after 32")
 	check(unpaid.snapshot().wallets.player.VKC == 180 and unpaid.snapshot().alpha_shop.contracts.settlements.is_empty(), "unpaid branch never mints or deducts money")
 	check(prepare(unpaid) and short_day(unpaid) and prepare(unpaid), "D5 then D6 factual publication")
 	check(unpaid.snapshot().alpha_shop.contracts.facts.has("rad1_defaulted"), "D6 default news only from actual default")
+	var before_archive_retry: Dictionary = unpaid.snapshot()
+	check(unpaid.execute(before_archive_retry.alpha_shop.commands[0]).ok and unpaid.snapshot() == before_archive_retry, "archived alpha action idempotent replay")
 	var default_fact: Dictionary = unpaid.snapshot().alpha_shop.contracts.facts.rad1_defaulted
 	check(not default_fact.cause_action.is_empty() and default_fact.day == 6, "default news has one source event")
 	var store := Repo.new("user://zt_rebuild/alpha_contract_case_" + str(Time.get_ticks_usec()))
@@ -120,6 +124,7 @@ func _initialize() -> void:
 		forged.alpha_shop.contracts.facts.rad1_defaulted.cause_action = "forged"
 		check(not cold.restore(forged), "falsified news rejected by seed replay")
 
+func run_extension() -> void:
 	var extension: RefCounted = fresh(B1.content())
 	check(extension != null and go(extension,"alpha_open"), "extension branch setup")
 	if extension != null:
@@ -139,6 +144,7 @@ func _initialize() -> void:
 		check(prepare(extension) and short_day(extension), "unpaid extended D5 closes")
 		check(extension.snapshot().alpha_shop.contracts.rows.rad1_first.status == "defaulted" and extension.snapshot().wallets.player.VKC == 180, "extended deadline enforced without extra money")
 
+func run_paid() -> void:
 	var paid: RefCounted = fresh(B2.content())
 	check(paid != null and go(paid,"alpha_open"), "B2 real-wallet payment branch")
 	if paid == null:
@@ -172,5 +178,17 @@ func _initialize() -> void:
 	check(prepare(paid) and paid.snapshot().alpha_shop.contracts.facts.has("rad1_delivered"), "D6 story fact published from actual D5 event")
 	check(not paid.snapshot().alpha_shop.contracts.facts.has("rad1_defaulted"), "paid contract cannot emit default branch")
 	check(paid.snapshot().game_minutes == 7200 and not paid.clock_view().has("hour"), "date bridge only, never exposed clock")
-	print("ALPHA_B1_DATED_CONTRACT_CHECKS=", checks, " failures=", failures)
+
+func _initialize() -> void:
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	if args.size() != 1 or args[0] not in ["missed", "unpaid", "extension", "paid"]:
+		printerr("ALPHA_B1_DATE_TEST_PART_REQUIRED")
+		quit(2)
+		return
+	match args[0]:
+		"missed": run_missed()
+		"unpaid": run_unpaid()
+		"extension": run_extension()
+		"paid": run_paid()
+	print("ALPHA_B1_DATED_CONTRACT_CHECKS part=", args[0], " checks=", checks, " failures=", failures)
 	quit(0 if failures == 0 else 1)
