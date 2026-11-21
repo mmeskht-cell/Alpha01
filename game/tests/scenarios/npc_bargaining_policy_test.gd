@@ -92,7 +92,7 @@ func _initialize()->void:
 	var second:Dictionary=s.calendar_view()
 	check(second.regional_market.active_offer.amount==90+trait_price-2,
 		"verified prior paid trade applies bounded repeat-business adjustment")
-	check(second.npc_visitor.returning and second.npc_encounters.trades==1,
+	check(second.npc_visitor.returning and second.customer_memory.trades==1,
 		"same actor has first-hand history; no free loyalty")
 	check(not second.regional_market.has("future_balance"),"future buyer money still private")
 	var snap:Dictionary=s.snapshot()
