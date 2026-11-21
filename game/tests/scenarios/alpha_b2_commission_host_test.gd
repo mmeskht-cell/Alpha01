@@ -42,16 +42,30 @@ func run() -> void:
 		quit(1)
 		return
 	for actor: String in ["G01","G02"]:
-		if not enter() or not check(host.session.alpha_view().active.actor_id==actor,"visit "+actor) or not exit_customer():
+		if not enter() or not check(host.session.alpha_view().active.actor_id==actor,"visit "+actor):
+			quit(1)
+			return
+		if actor == "G01":
+			check(press("alpha_exchange_contact"),"actual agreed G01 contact in D1 counter")
+		if not exit_customer():
 			quit(1)
 			return
 	if not enter() or not check(host.session.alpha_view().active.actor_id=="G03","same regular G03 customer"):
 		quit(1)
 		return
 	check(host.find_child("b2_commission_status_tool_for_g03",true,false) != null,"readable named request in current counter")
+	check((host.find_child("alpha_speech",true,false) as Label).text.contains("공구"),"G03 request is spoken in same dialogue bubble")
 	check(press("b2_commission_accept"),"customer request accepted by UI")
 	check(host.session.snapshot().wallets.player.VKC==180 and host.session.alpha_view().commissions.entries[0].status=="accepted","no advance paid or fake wallet")
-	if not exit_customer() or not press("alpha_close") or not press("alpha_settle") or not press("alpha_next_day") or not press("alpha_prepare_day"):
+	if not exit_customer() or not press("alpha_close") or not press("alpha_settle"):
+		quit(1)
+		return
+	var snapshot_before_preview: Dictionary=host.session.snapshot()
+	check(press("alpha_contact_G01"),"consented night contact is selectable")
+	var preview := host.find_child("alpha_contact_preview_text",true,false) as Label
+	check(preview != null and preview.text.contains("선금") and preview.text.contains("지원하지"),"read-only conditions disclose missing real advance/order")
+	check(host.session.snapshot()==snapshot_before_preview,"preview never alters authoritative B2 commission state")
+	if not press("alpha_next_day") or not press("alpha_prepare_day"):
 		quit(1)
 		return
 	for day: int in [2,3]:
