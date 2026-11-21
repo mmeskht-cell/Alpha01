@@ -281,7 +281,10 @@ func _apply_calendar_action(state: Dictionary, command: Dictionary) -> String:
 	if kind == VisitPrice.ACTION:
 		return VisitPrice.apply(state,p,command.action_id)
 	if kind in Calendar.ACTIONS:
-		return Calendar.apply(state, kind, p, command.action_id)
+		var calendar_error:String=Calendar.apply(state, kind, p, command.action_id)
+		if calendar_error.is_empty() and kind=="calendar_close" and state.calendar.has("merchant_contracts"):
+			Merchant.close(state,_definitions,command.action_id)
+		return calendar_error
 	if kind in Medicine.ACTIONS:
 		return Medicine.apply(state, kind, p, command.action_id)
 	if kind in Contract.ACTIONS:
