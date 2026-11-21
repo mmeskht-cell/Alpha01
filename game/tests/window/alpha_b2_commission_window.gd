@@ -78,11 +78,15 @@ func run() -> void:
 			if not await click(id):
 				quit(1)
 				return
+			if i == 0 and id == "alpha_ack_entry" and not await click("alpha_exchange_contact"):
+				quit(1)
+				return
 	for id: String in ["alpha_next_customer","alpha_ack_entry"]:
 		if not await click(id):
 			quit(1)
 			return
 	check(host.session.alpha_view().active.actor_id=="G03","real same counter G03 request")
+	check((host.find_child("alpha_speech",true,false) as Label).text.contains("공구"),"real customer speaks the request, not generic placeholder")
 	check(host.find_child("b2_commission_status_tool_for_g03",true,false)!=null,"request text in original shop scene")
 	await shot("commission-request-720p",Vector2i(1280,720))
 	root.size=Vector2i(1920,1080)
@@ -93,6 +97,20 @@ func run() -> void:
 		return
 	check(host.session.alpha_view().commissions.entries[0].status=="accepted" and host.session.snapshot().wallets.player.VKC==180,"mouse accepts obligation, no deposit")
 	await shot("commission-accepted-1080p",Vector2i(1920,1080))
+	for id: String in ["alpha_finish_customer","alpha_ack_exit","alpha_close","alpha_settle"]:
+		if not await click(id):
+			quit(1)
+			return
+	var before_contact: Dictionary=host.session.snapshot()
+	if not await click("alpha_contact_G01"):
+		quit(1)
+		return
+	var preview := host.find_child("alpha_contact_preview_text",true,false) as Label
+	check(preview!=null and preview.text.contains("선금"),"actual consent unlocks read-only night order conditions")
+	check(host.session.snapshot()==before_contact,"night contact selection does not mutate session")
+	await shot("commission-evening-contact-1080p",Vector2i(1920,1080))
+	root.size=Vector2i(1280,720)
+	await shot("commission-evening-contact-720p",Vector2i(1280,720))
 	host.queue_free()
 	await frames()
 	print("ALPHA_B2_COMMISSION_WINDOW: ",checks," checks, ",failures," failures")
