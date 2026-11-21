@@ -24,7 +24,7 @@ func action(r:RefCounted,kind:String,p:Dictionary={})->bool:
 
 func _initialize()->void:
 	var args:=OS.get_cmdline_user_args()
-	var parts:Array[String]=["canonical","civilian","condition_v1","condition_v2"]
+	var parts:Array[String]=["canonical","civilian","condition_v1","condition_v2","alpha"]
 	if not args.is_empty():
 		if args.size()!=1 or not parts.has(args[0]):
 			printerr("FAIL: unknown demo integration part")
@@ -40,6 +40,8 @@ func _initialize()->void:
 			"condition_v2":
 				_condition_paths()
 				_design_conformance()
+			"alpha":
+				_alpha_playtest()
 		print("ZT_DEMO_INTEGRATION_PART_END ",part," cumulative_checks=",checks," failures=",failures)
 		if failures>0:
 			quit(1)
@@ -492,3 +494,115 @@ func _design_conformance()->void:
 	var after:Dictionary=owned.snapshot()
 	var replay:RefCounted=CivilianSeed.fresh(true,2)
 	check(replay!=null and replay.restore(after) and replay.snapshot()==after,"discard and subsequent visit boundary replay")
+
+
+# The opt-in alpha runs two actual seven-day choices without minting cash,
+# changing the canonical fixture, or directly mutating a snapshot.
+func _alpha_trade(r:RefCounted)->bool:
+	var v:Dictionary=r.view()
+	var trade:Dictionary=v.get("trade",{})
+	if trade.is_empty() or trade.get("placement",{}).is_empty():
+		return false
+	var payload:Dictionary=trade.duplicate(true)
+	payload.erase("label")
+	payload.erase("placement")
+	payload.merge(trade.placement)
+	if not v.get("appraisal",{}).is_empty():
+		var subject:Dictionary={"visit_id":trade.visit_id,"item_id":trade.item_id}
+		var chosen:int=125 if trade.visit_id=="visit_g01" else int(trade.amount)
+		if not action(r,"subject_price_offer",subject.merged({"currency":trade.currency,"amount":chosen,"presented_ids":[]})):
+			return false
+		var accepted:Variant=r.view().appraisal.price_offer.get("accepted_offer_id")
+		if accepted==null:
+			printerr("ALPHA_OFFER_NOT_ACCEPTED ",trade.visit_id)
+			return false
+		payload["offer_id"]=accepted
+		payload["amount"]=chosen
+	return action(r,"trade",payload)
+
+func _alpha_playtest()->void:
+	var canon:RefCounted=Seed.fresh()
+	var isolated:RefCounted=CivilianSeed.fresh(true,3)
+	check(canon!=null and isolated!=null and canon.snapshot().calendar.binding!=isolated.snapshot().calendar.binding and not canon.restore(isolated.snapshot()),"alpha isolated from canonical")
+	var outcomes:Dictionary={}
+	for route:String in ["speculate","repair"]:
+		var directory:String="user://zt_rebuild/demo7/alpha_proof_"+route+"_"+str(Time.get_ticks_usec())
+		var r:=Runtime.new()
+		if not r.open(directory,true,true,3) or r.blocked:
+			check(false,"alpha opens "+route+" "+r.error)
+			continue
+		check(r.view().alpha_playtest and r.view().condition_version==3 and r.view().wallet.VKC==180 and r.view().stock.is_empty(),"alpha fresh isolated save "+route)
+		for day:int in range(1,8):
+			var count:int=0
+			while r.view().visits.can_next and count<14:
+				count+=1
+				if not action(r,"calendar_next_visit"):
+					break
+				var v:Dictionary=r.view()
+				var visit:String=v.visits.active
+				var purchase:bool=visit in ["visit_g01","visit_g02_buy","battery_buy","battery_sale","electronics_buy","electronics_sale"]
+				if visit=="alpha_field_tool_buy":
+					check(day==6 and v.wallet.VKC==205,"D6 valid-earned cash before competing acquisitions")
+					purchase=route=="speculate"
+				elif visit=="civil_receiver_buy":
+					if route=="speculate":
+						check(not v.trade_can_pay and v.wallet.VKC==60,"field tool crowds out receiver purchase")
+						var denied:Dictionary=v.trade.duplicate(true)
+						denied.erase("label")
+						denied.erase("placement")
+						denied.merge(v.trade.placement)
+						var before:Dictionary=r.snapshot()
+						check(not r.submit("trade",denied,v.revision).ok and r.snapshot()==before,"unaffordable receiver is atomic")
+					purchase=route=="repair"
+				elif visit=="civil_spare_buy":
+					purchase=route=="repair"
+				elif visit=="alpha_field_tool_sale":
+					purchase=route=="speculate"
+				elif visit=="civil_receiver_condition_v3":
+					if route=="repair":
+						for key:String in ["complete","functional","restored"]:
+							check(action(r,"observe",{"actor":"player","item_id":"CR06","key":key}),"D7 actual evidence "+key)
+						check(r.view().condition_quote.amount==150 and r.view().condition_quote.can_sell,"repaired receiver current quote")
+						purchase=route=="repair"
+				if purchase:
+					if not _alpha_trade(r):
+						check(false,"alpha actual settlement "+route+" "+visit)
+						break
+					if visit=="civil_receiver_buy":
+						check(action(r,"observe",{"actor":"player","item_id":"CR06","key":"functional"}),"observed root defect")
+						check(action(r,"observe",{"actor":"player","item_id":"CR06_C","key":"functional"}),"observed component defect")
+				else:
+					if not action(r,"calendar_decline_visit",{"visit_id":visit}):
+						check(false,"alpha decline "+visit)
+						break
+			check(count<14,"bounded alpha queue D"+str(day)+" "+route)
+			if not action(r,"calendar_close"):
+				check(false,"alpha closing D"+str(day))
+				break
+			if day==6:
+				if route=="speculate":
+					check(r.snapshot().items.TL06A.owner_id=="player" and r.snapshot().items.CR06.owner_id=="G06","speculation retains alternative property")
+				else:
+					var layout:Dictionary=r.composition_options("CR06")
+					if not layout.is_empty() and not layout.slots[2].replace.is_empty():
+						check(action(r,"replace_component",layout.slots[2].replace[0]),"evening component replacement")
+						check(action(r,"observe",{"actor":"player","item_id":"CR06","key":"functional","owned_review":true}),"free owned reinspection")
+						check(action(r,"restore_item",{"actor":"player","item_id":"CR06"}),"evening paid restoration")
+					else:
+						check(false,"compatible physical spare present")
+					check(r.snapshot().items.CR06.owner_id=="player" and r.snapshot().items.CM06C.owner_id=="player","repair retains asset and replacement part")
+			if not action(r,"calendar_morning"):
+				check(false,"alpha morning D"+str(day))
+				break
+		var final:Dictionary=r.snapshot()
+		outcomes[route]=final.wallets.player.VKC
+		check(r.view().complete and (final.items.TL06A.owner_id=="G10" if route=="speculate" else final.items.CR06.owner_id=="G07"),"D7 authored buyer receives selected asset "+route)
+		check(outcomes[route]==(225 if route=="speculate" else 235),"actual alpha ledger "+route+" cash="+str(outcomes[route]))
+		r.close()
+		var resumed:=Runtime.new()
+		check(resumed.open(directory,true,true,3) and not resumed.blocked and resumed.snapshot()==final,"exact alpha save/reopen "+route)
+		resumed.close()
+		var old:=Runtime.new()
+		check(old.open(directory,true,true,2) and old.snapshot().revision==0 and not old.snapshot().items.has("TL06A"),"v2 saved content isolated from alpha "+route)
+		old.close()
+	check(outcomes.has("speculate") and outcomes.has("repair") and outcomes.speculate!=outcomes.repair,"actual strategies diverge without fixture replacement")

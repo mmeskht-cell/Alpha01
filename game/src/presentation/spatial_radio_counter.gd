@@ -612,6 +612,11 @@ func _build_plain()->void:
 	var caption:=_text(_customer_id()+": "+(_label("ui.copy.will_you_buy_this_item_dedc031b") if buying else _label("ui.copy.i_d_like_to_buy_this_item_91619a57")),HORIZONTAL_ALIGNMENT_CENTER)
 	if not quote.is_empty():
 		caption.text=_customer_id()+": "+_label("ui.condition."+str(quote.tier))
+	# Authored public demand signals: no future firm bid or private state.
+	if _view.get("alpha_playtest",false) and id=="TL06A" and buying:
+		caption.text=_customer_id()+": "+word("현장 공구입니다. 수리반에서 찾는다는 얘긴 있지만 값은 미정입니다.","Field tool. Repair crews are asking, but no firm price.")
+	elif _view.get("alpha_playtest",false) and id=="CR06" and buying:
+		caption.text=_customer_id()+": "+word("고장 난 수신기입니다. 부품 상태는 직접 확인해 보세요.","A faulty receiver. Check its parts yourself.")
 	caption.name="spatial_speech_text"
 	caption.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART if preview_native_v23 else TextServer.AUTOWRAP_OFF
 	caption.clip_text=true

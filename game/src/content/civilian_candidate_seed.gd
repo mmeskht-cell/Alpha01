@@ -11,7 +11,7 @@ static func _visit(id:String,item:String,seller:String,buyer:String,day:int,pric
 	return {"scope":{"visit_id":id,"kind":"ordinary","purpose":"purchase" if buyer=="player" else "sale","completed":false,"required_ids":[]},"seller":seller,"buyer":buyer,"prices":{item:Base.money(price)},"opens":(day-1)*1440,"expires":(day-1)*1440+600,"allow_inspection":true}
 
 static func content(condition_pricing:bool=false,condition_version:int=1)->Dictionary:
-	if condition_pricing and condition_version not in [1,2]:
+	if condition_pricing and condition_version not in [1,2,3]:
 		return {}
 	var c:Dictionary=Base.content()
 	var catalog:Dictionary=Catalog.load_file(CATALOG)
@@ -44,6 +44,15 @@ static func content(condition_pricing:bool=false,condition_version:int=1)->Dicti
 		state.visits[id]=_visit(id,"CR06","player","G07",7,160)
 		state.wallets.G07.VKC+=10
 		c.profile.visit_days.d7[-1]=id
+	if condition_pricing and condition_version==3:
+		# Isolated alpha: cash competes between one finite tool lot and a
+		# restorable receiver. No change to the frozen canonical 7-day profile.
+		state.items["TL06A"]=Objects.fresh_item("demo_tool","G12","G12_grid",6,4,"alpha_field_tool_06")
+		state.visits["alpha_field_tool_buy"]=_visit("alpha_field_tool_buy","TL06A","G12","player",6,145)
+		state.visits["alpha_field_tool_sale"]=_visit("alpha_field_tool_sale","TL06A","player","G10",7,195)
+		state.wallets.G10.VKC+=195
+		c.profile.visit_days.d6.insert(c.profile.visit_days.d6.size()-2,"alpha_field_tool_buy")
+		c.profile.visit_days.d7.append("alpha_field_tool_sale")
 	# Keep existing authored demo3 rule selector, including radio/claim bindings.
 	# Calendar seed binding includes ALL new data and definitions, not only version.
 	return c

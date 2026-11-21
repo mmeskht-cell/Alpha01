@@ -78,7 +78,7 @@ if args.scope in ('all', 'gate0c'):
     tests += ['scenarios/gate0_c_test']
 if args.scope in ('all', 'gate1'):
     tests += ['unit/appraisal_primitives_test', 'unit/gate2_p2_public_catalog_test', 'unit/gate2_p2_observation_prep_test', 'scenarios/gate2_p2_observation_authority_test', 'scenarios/gate2_p2_assessment_authority_test', 'scenarios/gate2_p2_deck_authority_test', 'scenarios/gate2_p2_generic_panel_test', 'scenarios/gate2_p2_customer_claims_test', 'scenarios/gate2_p2_price_offer_test', 'unit/inspection_profile_test', 'scenarios/gate1_opening_test', 'scenarios/gate1_appraisal_test', 'scenarios/gate1_trade_test', 'unit/inspection_interaction_test', 'scenarios/gate2_p1_card_test', 'scenarios/gate1_material_test', 'scenarios/component_appraisal_test', 'scenarios/component_retention_regions_test', 'scenarios/customer_inspection_test', 'scenarios/appraisal_audit_test', 'scenarios/gate1_2_test', 'scenarios/gate1_3_test', 'scenarios/campaign_composite_pilot_test', 'scenarios/component_market_test', 'unit/day_one_inventory_test', 'scenarios/gate1_scene_smoke_test']
-demo_parts = ('canonical', 'civilian', 'condition_v1', 'condition_v2')
+demo_parts = ('canonical', 'civilian', 'condition_v1', 'condition_v2', 'alpha')
 for test in tests:
     command = [engine, '--headless', '--path', str(root), '--script', f'res://tests/{test}.gd']
     if test == 'scenarios/gate2_demo_integration_test':
@@ -88,6 +88,7 @@ for test in tests:
         commands.append(command)
 commands.append([engine, '--headless', '--path', str(root), 'res://scenes/app/demo7.tscn', '--quit-after', '3'])
 commands.append([engine, '--headless', '--path', str(root), 'res://scenes/app/boot.tscn', '--quit-after', '3'])
+commands.append([engine, '--headless', '--path', str(root), 'res://scenes/app/alpha_playtest_menu.tscn', '--quit-after', '3'])
 commands.append([engine, '--headless', '--path', str(root), '--quit-after', '3'])
 def record_step(index, command, output, code, status):
     if report:

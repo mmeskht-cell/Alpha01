@@ -2,12 +2,14 @@ extends Control
 ## Startup shell. The actual integrated candidate stays the sole game authority.
 ## Menu and settings are presentation only; no command, clock or save mutation.
 const GameScene=preload("res://scenes/app/integrated_b_candidate.tscn")
+const AlphaScene=preload("res://scenes/app/alpha_playtest_candidate.tscn")
 const Street=preload("res://src/presentation/menu_street.gd")
 const ThemeSource=preload("res://src/presentation/ui_theme.gd")
 const Runtime=preload("res://src/application/demo7_runtime.gd")
 var game:Control
 var menu:Control
 var save_directory_override:String=""
+@export var alpha_playtest:bool=false
 var _street:Control
 var _title_column:VBoxContainer
 var _title_label:Label
@@ -23,7 +25,7 @@ func _ready()->void:
 	if not ThemeSource.apply_to(self):
 		return
 	ThemeSource.apply_native(theme)
-	game=GameScene.instantiate()
+	game=(AlphaScene.instantiate() if alpha_playtest else GameScene.instantiate()) as Control
 	game.name="integrated_game"
 	game.separate_settings=true
 	game.save_directory_override=save_directory_override
@@ -158,7 +160,8 @@ func _path(index:int)->String:
 func _slot_time(index:int)->int:
 	var latest:int=-1
 	for generation:String in ["a","b"]:
-		var path:String=_path(index).path_join(Runtime.CONDITION_SLOT_V2+".v4."+generation+".json")
+		var save_key:String=Runtime.ALPHA_SLOT if alpha_playtest else Runtime.CONDITION_SLOT_V2
+		var path:String=_path(index).path_join(save_key+".v4."+generation+".json")
 		if FileAccess.file_exists(path):
 			latest=maxi(latest,int(FileAccess.get_modified_time(path)))
 	# Avoid replacing an occupied but unsaved in-memory session.

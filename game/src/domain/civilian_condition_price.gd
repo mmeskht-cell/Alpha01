@@ -4,9 +4,10 @@ const Evidence=preload("res://src/domain/evidence_primitives.gd")
 const Access=preload("res://src/domain/inspection_access.gd")
 const VISIT="civil_receiver_condition_v1"
 const VISIT_V2="civil_receiver_condition_v2"
+const VISIT_ALPHA="civil_receiver_condition_v3"
 
 static func recognizes(visit_id:String)->bool:
-	return visit_id in [VISIT,VISIT_V2]
+	return visit_id in [VISIT,VISIT_V2,VISIT_ALPHA]
 
 const ITEM="CR06"
 
@@ -15,7 +16,7 @@ static func quote(s:Dictionary,defs:Dictionary,visit_id:String)->Dictionary:
 		return {}
 	var visit:Dictionary=s.visits[visit_id]
 	# v1 is replay-frozen. v2 removes the incentive to conceal a known defect.
-	var risk_price:int=40 if visit_id==VISIT_V2 else 55
+	var risk_price:int=40 if visit_id in [VISIT_V2,VISIT_ALPHA] else 55
 	var item:Dictionary=s.items[ITEM]
 	if visit.scope.completed or visit.seller!="player" or visit.buyer!="G07" or visit.scope.kind!="ordinary" or visit.scope.purpose!="sale" or not visit.prices.has(ITEM) or item.def_id!="civil_receiver" or not Access.stock_access(s,ITEM,"player"):
 		return {}

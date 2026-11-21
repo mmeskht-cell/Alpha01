@@ -335,6 +335,10 @@ func _build_inventory()->void:
 		_build_native_header(evening)
 	if not preview_native_v23:
 		_line(_body,_label("ui.copy.inventory_evening_work_enabled_c70bc29e") if evening else _label("ui.copy.inventory_stock_management_b833915b"))
+	if _view.get("alpha_playtest",false) and int(_view.get("day",0))==6:
+		var notice:=_line(_body,word("시장 문의: 현장 공구 수요가 있습니다. 가격은 미정이고, 고장난 수신기는 부품과 작업비가 따로 필요합니다.","Market inquiry: field tools are in demand without a firm bid. Faulty receivers require spare parts and work costs."))
+		notice.name="alpha_public_market_notice"
+		notice.add_theme_color_override("font_color",Color("#C4B28B"))
 	var split:=HBoxContainer.new()
 	split.size_flags_vertical=Control.SIZE_EXPAND_FILL
 	split.add_theme_constant_override("separation",12)

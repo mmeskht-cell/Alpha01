@@ -59,9 +59,12 @@ func verify_public_reference_guide()->void:
 				check(not guide.description_key(candidate).is_empty(),"public candidate has explanatory reference "+str(candidate.id))
 			if catalog.def_id=="fictional_watch_p2" and slot.id in ["material_id","function_id","mark_id"]:
 				var text_row:Dictionary=guide.comparison(catalog,slot)
-				check(text_row.get("kind")=="text" and text_row.get("entries",[]).size()==2,"both public watch alternatives "+str(slot.id))
+				var expected_kind:String="texture" if slot.id=="material_id" else "text"
+				check(text_row.get("kind")==expected_kind and text_row.get("entries",[]).size()==2,"both public watch alternatives "+str(slot.id))
 				if text_row.get("entries",[]).size()==2:
 					check(text_row.entries[0].sample!=text_row.entries[1].sample,"distinct public comparison "+str(slot.id))
+				if slot.id=="material_id":
+					check(text_row.entries[0].sample=="parallel" and text_row.entries[1].sample=="cross","authored watch case grain reference is public")
 			if slot.id=="model_id":
 				var comparison:Dictionary=guide.comparison(catalog,slot)
 				check(comparison.get("entries",[]).size()==2,"both public models represented "+str(catalog.def_id))
@@ -935,13 +938,19 @@ func verify_live_specimen(id:String,asset:String,comparison_id:String)->bool:
 	verify_book_bounds()
 	await capture("native-specimen-"+id+"-comparison")
 	if id=="WAT02":
+		check(FileAccess.get_file_as_string("res://assets/art/items/watch_wat02_native_pilot.svg").contains("case_parallel_grain"),"visible WAT02 case striation is authored onto public art")
 		for comparison:String in ["book_watch_case_comparison","book_watch_function_comparison","book_watch_mark_comparison"]:
 			if not await click("book_slot_next") or not await click("book_reference"):
 				return false
-			verify_text_comparison(comparison)
 			if comparison=="book_watch_case_comparison":
-				var caution:=host._spatial._notebook.find_child("book_watch_case_reasoning",true,false) as Label
-				check(caution!=null and caution.get_meta("case_type_unproven",false) and caution.text==host.tr_key("book.compare.case.caption") and host.runtime.snapshot()==before,"watch case inference is intentionally unresolved without fabricated evidence")
+				var case_row:=host._spatial._notebook.find_child(comparison,true,false) as Control
+				var standard:=host._spatial._notebook.find_child("reference_sample_standard_case",true,false) as Button
+				var decorative:=host._spatial._notebook.find_child("reference_sample_decorative_case",true,false) as Button
+				check(case_row!=null and standard!=null and decorative!=null and case_row.get_child_count()==2,"public case-grain reference has two distinct samples")
+				var guidance:=host._spatial._notebook.find_child("book_watch_case_reasoning",true,false) as Label
+				check(guidance!=null and not guidance.get_meta("case_type_unproven",false) and guidance.text==host.tr_key("book.texture.reference") and host.runtime.snapshot()==before,"case reference never auto-decides or inspects")
+			else:
+				verify_text_comparison(comparison)
 			await capture("native-"+comparison)
 	if not await click("open_book"):
 		return false

@@ -14,4 +14,6 @@
 <path d="M139 52H153V54H139ZM124 106H126V118H124ZM221 143H233V145H221Z" fill="#d0c2a6"/>
 <path d="M249 90H268V93H272V107H268V110H249Z" fill="#5b655b"/><path d="M252 93H267V96H252ZM252 103H267V106H252Z" fill="#a8aa92"/>
 <path d="M53 112H93V113H53ZM293 87H331V88H293Z" fill="#b3a083"/>
+<!-- Visible case striation is a public physical clue, never a private truth overlay. -->
+<path id="case_parallel_grain" d="M123 66L132 73M123 76L132 83M123 86L132 93M123 96L132 103M123 106L132 113M123 116L132 123M123 126L132 133" fill="none" stroke="#d7c9a5" stroke-width="2" opacity="0.92"/>
 </svg>

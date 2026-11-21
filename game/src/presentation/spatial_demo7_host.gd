@@ -21,7 +21,7 @@ func _ready()->void:
 	native_history_index=preview_native_v23
 	compact_settings_overlay=preview_native_v23 and not separate_settings
 	if preview_native_v23 and save_directory_override.is_empty():
-		save_directory_override="user://zt_rebuild/demo7/integrated_b_eval" if civilian_candidate and condition_pricing and condition_version==2 else "user://zt_rebuild/demo7/native_v23_preview"
+		save_directory_override="user://zt_rebuild/demo7/alpha_playtest" if civilian_candidate and condition_pricing and condition_version==3 else ("user://zt_rebuild/demo7/integrated_b_eval" if civilian_candidate and condition_pricing and condition_version==2 else "user://zt_rebuild/demo7/native_v23_preview")
 	if preview_r001_pixel_art and save_directory_override.is_empty():
 		save_directory_override="user://zt_rebuild/demo7/r001_art_preview"
 	super._ready()

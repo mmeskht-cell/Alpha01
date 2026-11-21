@@ -84,11 +84,11 @@
     },
     "fictional_watch_p2/material_id": {
       "id": "book_watch_case_comparison",
-      "kind": "text",
-      "caption_key": "book.compare.case.caption",
+      "kind": "texture",
+      "caption_key": "book.texture.reference",
       "samples": {
-        "standard_case": "book.compare.sample.standard",
-        "decorative_case": "book.compare.sample.decorative"
+        "standard_case": "parallel",
+        "decorative_case": "cross"
       }
     },
     "fictional_watch_p2/function_id": {

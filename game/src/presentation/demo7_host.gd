@@ -82,7 +82,7 @@ func _ready()->void:
 	if not ThemeSource.apply_to(self):
 		return
 	runtime=Runtime.new()
-	var directory:String=("user://zt_rebuild/demo7/civilian_condition_v2" if condition_version==2 else "user://zt_rebuild/demo7/civilian_condition") if condition_pricing and civilian_candidate else ("user://zt_rebuild/demo7/civilian_candidate" if civilian_candidate else "user://zt_rebuild/demo7")
+	var directory:String=(("user://zt_rebuild/demo7/alpha_playtest" if condition_version==3 else ("user://zt_rebuild/demo7/civilian_condition_v2" if condition_version==2 else "user://zt_rebuild/demo7/civilian_condition")) if condition_pricing and civilian_candidate else ("user://zt_rebuild/demo7/civilian_candidate" if civilian_candidate else "user://zt_rebuild/demo7"))
 	if not save_directory_override.is_empty():
 		directory=save_directory_override
 	for arg:String in OS.get_cmdline_user_args():

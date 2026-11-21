@@ -444,10 +444,9 @@ func _reference_comparison(catalog:Dictionary,slot:Dictionary,change:Callable,ev
 		return
 	var guidance:=_line(_body,_label(comparison.caption_key))
 	if catalog.get("def_id")=="fictional_watch_p2" and slot.get("id")=="material_id":
-		# The real public catalog cannot distinguish these cases from grain alone.
-		# Show only legitimately acquired observations, never the private specimen.
+		# Authored case-grain references are public, not a specimen answer.
+		# Any candidate comparison remains an explicit player judgment.
 		guidance.name="book_watch_case_reasoning"
-		guidance.set_meta("case_type_unproven",true)
 		for fact:Dictionary in evidence:
 			if fact.get("observation_key")=="case_texture" and fact.get("current",false) and not fact.get("is_claim",true):
 				var reading:String=PublicObservationText.fact("case_texture",fact.get("observed_value"),_translator)
