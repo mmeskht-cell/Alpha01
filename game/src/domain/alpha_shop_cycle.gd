@@ -66,14 +66,14 @@ static func seed(state: Dictionary, profile: Dictionary) -> Dictionary:
 		"day": 1, "phase": "DAY_PREP", "cursor": 0, "active": "",
 		"outcomes": {}, "settled_days": [], "contacts": {}, "commands": []
 	}
-	if profile.content_version in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1"]:
+	if profile.content_version in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1", "b2-cards-commission-named-1"]:
 		next.alpha_shop["displayed"] = []
 	if profile.has("contracts"):
 		next.alpha_shop["contracts"] = Contract.seed(profile)
 	if profile.has("appraisal_id"):
 		next.alpha_shop["appraisal"] = Cards.seed()
 	if profile.has("commission_profile_id"):
-		next.alpha_shop["commissions"] = Commission.seed()
+		next.alpha_shop["commissions"] = Commission.seed(str(profile.commission_profile_id))
 	return Rules.normalized(next)
 
 static func active_row(a: Dictionary) -> Dictionary:
@@ -126,7 +126,7 @@ static func npc_context(state: Dictionary) -> Dictionary:
 ## located in the actual, non-custody inventory. Never infer listing from price.
 static func display_gate(state: Dictionary, p: Dictionary, withdraw: bool = false) -> String:
 	var a: Dictionary = state.alpha_shop
-	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1"] or not Rules.keys(p, ["item_id", "x", "y", "rotated"]):
+	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1", "b2-cards-commission-named-1"] or not Rules.keys(p, ["item_id", "x", "y", "rotated"]):
 		return "alpha_b2_display_shape"
 	if a.phase not in ["OPEN_IDLE", "EVENING_WORK"] or not Rules.identifier(p.item_id):
 		return "alpha_display_phase"
@@ -151,11 +151,11 @@ static func after_display(state: Dictionary, item_id: String, withdraw: bool = f
 static func trade_gate(state: Dictionary, p: Dictionary) -> String:
 	var a: Dictionary = state.alpha_shop
 	var row: Dictionary = active_row(a)
-	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1"] or a.phase != "CUSTOMER_ACTIVE" or row.is_empty():
+	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1", "b2-cards-commission-named-1"] or a.phase != "CUSTOMER_ACTIVE" or row.is_empty():
 		return "alpha_trade_phase"
 	if not Rules.keys(p, ["visit_id", "item_id", "seller", "buyer", "currency", "amount", "inventory", "x", "y", "rotated"]) or p.visit_id != row.id or not state.visits.has(row.id):
 		return "alpha_trade_visit"
-	if a.has("commissions") and Commission.is_return_visit(p.visit_id):
+	if a.has("commissions") and Commission.is_return_visit(p.visit_id, str(a.profile.get("commission_profile_id", ""))):
 		return "alpha_commission_delivery_only"
 	var visit: Dictionary = state.visits[row.id]
 	if visit.scope.completed or not visit.prices.has(p.item_id) or not state.items.has(p.item_id):
