@@ -3,6 +3,7 @@ extends Control
 const Feedback=preload("res://src/presentation/commit_feedback.gd")
 const Preferences=preload("res://src/presentation/ui_preferences.gd")
 const Runtime=preload("res://src/application/demo7_runtime.gd")
+const CampaignRuntime=preload("res://src/application/campaign42_alpha_runtime.gd")
 const ThemeSource=preload("res://src/presentation/ui_theme.gd")
 const Appraisal=preload("res://src/presentation/generic_appraisal_panel.gd")
 const History=preload("res://src/presentation/generic_trade_history.gd")
@@ -24,6 +25,7 @@ var _history_open:bool=false
 var _view:Dictionary={}
 var _intro:bool=false
 var save_directory_override:String=""
+@export var campaign42_alpha:bool=false
 @export var civilian_candidate:bool=false
 @export var condition_pricing:bool=false
 @export var condition_version:int=1
@@ -81,8 +83,10 @@ func _apply_locale_preference()->void:
 func _ready()->void:
 	if not ThemeSource.apply_to(self):
 		return
-	runtime=Runtime.new()
+	runtime=CampaignRuntime.new() if campaign42_alpha else Runtime.new()
 	var directory:String=(("user://zt_rebuild/demo7/alpha_playtest" if condition_version==3 else ("user://zt_rebuild/demo7/civilian_condition_v2" if condition_version==2 else "user://zt_rebuild/demo7/civilian_condition")) if condition_pricing and civilian_candidate else ("user://zt_rebuild/demo7/civilian_candidate" if civilian_candidate else "user://zt_rebuild/demo7"))
+	if campaign42_alpha:
+		directory=CampaignRuntime.PREFIX
 	if not save_directory_override.is_empty():
 		directory=save_directory_override
 	for arg:String in OS.get_cmdline_user_args():
@@ -501,7 +505,7 @@ func _switch_slot()->void:
 	var index:int=_slot.selected
 	var path:String=_directory if index==0 else _directory.path_join("slot_"+str(index+1))
 	# Inspect candidate before changing active runtime. Both are read-only until a player command.
-	var candidate:=Runtime.new()
+	var candidate=CampaignRuntime.new() if campaign42_alpha else Runtime.new()
 	if not candidate.open(path,civilian_candidate,condition_pricing,condition_version):
 		candidate.close()
 		_apply_locale_preference()
@@ -654,7 +658,7 @@ func refresh()->void:
 		_history_open=false
 	_feedback_audio.set_phase("workshop" if _view.phase!="shop" else "shop")
 	_slot_open.disabled=runtime.pending
-	_head.text=tr_key("ui.format.legacy_hud",{"candidate":tr_key("ui.copy.composite_candidate_5191b827") if civilian_candidate else "","day":str(8 if _view.complete else _view.day),"time":Clock.clock_text(int(_view.minute)),"vkc":str(_view.wallet.VKC),"usd":str(_view.wallet.USD)})
+	_head.text=tr_key("ui.format.legacy_hud",{"candidate":tr_key("ui.copy.composite_candidate_5191b827") if civilian_candidate else "","day":str(43 if campaign42_alpha and _view.complete else (8 if _view.complete else _view.day)),"time":Clock.clock_text(int(_view.minute)),"vkc":str(_view.wallet.VKC),"usd":str(_view.wallet.USD)})
 	for child:Node in _body.get_children():
 		_body.remove_child(child)
 		child.queue_free()
@@ -682,9 +686,10 @@ func refresh()->void:
 		_refresh_visibility()
 		return
 	if _view.complete:
-		_line(tr_key("ui.copy.first_week_complete_the_story_continues_1cec1dd2"))
+		_line(word("42일 내부 알파 종료 · 미집필 스토리/엔딩과 무관","42-day mechanics alpha complete · story and ending remain un-authored") if campaign42_alpha else tr_key("ui.copy.first_week_complete_the_story_continues_1cec1dd2"))
 		_line(tr_key("ui.format.final_cash",{"cash":tr_key("inventory.format.money_pair",{"vkc":str(_view.wallet.VKC),"usd":str(_view.wallet.USD)})}))
-		_line(tr_key("ui.copy.this_is_the_demo_boundary_not_a_campaign_en_5fa73f01"))
+		if not campaign42_alpha:
+			_line(tr_key("ui.copy.this_is_the_demo_boundary_not_a_campaign_en_5fa73f01"))
 		for id:String in _view.get("services",{}):
 			var job:Dictionary=_view.services[id]
 			if job.status in ["accepted","complete"]:

@@ -221,7 +221,7 @@ func view()->Dictionary:
 func item_history(id:String)->Dictionary:
 	var history:Dictionary=_session.calendar_item_history(id)
 	var items:Array=[]
-	if not history.records.is_empty() or not history.work_records.is_empty():
+	if not history.records.is_empty() or not history.work_records.is_empty() or not history.get("contract_records",[]).is_empty():
 		items.append({"item_id":id,"history":history})
 	return {"items":items,"omitted":0}
 

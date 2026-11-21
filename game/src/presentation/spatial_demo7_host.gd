@@ -20,7 +20,7 @@ var _native_status:Label
 func _ready()->void:
 	native_history_index=preview_native_v23
 	compact_settings_overlay=preview_native_v23 and not separate_settings
-	if preview_native_v23 and save_directory_override.is_empty():
+	if preview_native_v23 and save_directory_override.is_empty() and not campaign42_alpha:
 		save_directory_override="user://zt_rebuild/demo7/alpha_playtest" if civilian_candidate and condition_pricing and condition_version==3 else ("user://zt_rebuild/demo7/integrated_b_eval" if civilian_candidate and condition_pricing and condition_version==2 else "user://zt_rebuild/demo7/native_v23_preview")
 	if preview_r001_pixel_art and save_directory_override.is_empty():
 		save_directory_override="user://zt_rebuild/demo7/r001_art_preview"
@@ -162,7 +162,7 @@ func _update_native_location(mode:String)->void:
 	_native_location.set_meta("mode",mode)
 	_native_location.text=tr_key("ui.location."+mode)
 	if not _view.is_empty():
-		_head.text=tr_key("ui.format.native_hud",{"day":str(8 if _view.complete else _view.day),"time":Clock.clock_text(int(_view.minute)),"vkc":str(_view.wallet.VKC),"usd":str(_view.wallet.USD)})
+		_head.text=tr_key("ui.format.native_hud",{"day":str(43 if campaign42_alpha and _view.complete else (8 if _view.complete else _view.day)),"time":Clock.clock_text(int(_view.minute)),"vkc":str(_view.wallet.VKC),"usd":str(_view.wallet.USD)})
 
 	_reflow_native_feedback()
 
