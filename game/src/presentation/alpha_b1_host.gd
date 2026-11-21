@@ -366,8 +366,13 @@ func refresh() -> void:
 			# older conversation; neither path modifies the save-bound seed.
 			if b2_commission_mode:
 				for entry: Dictionary in v.commissions.entries:
-					if entry.actor_id == row.actor_id and entry.can_accept:
+					if entry.actor_id != row.actor_id:
+						continue
+					if entry.can_accept:
 						speech.text = _text(str(entry.text_key))
+						break
+					if entry.can_deliver:
+						speech.text = _text("b2.npc.commission.pickup") % _text("b2.item." + str(entry.target_def_id))
 						break
 		elif b2_mode and v.phase == "CUSTOMER_EXIT":
 			var completed: String = str(v.npc_context.get("current_outcome", ""))
