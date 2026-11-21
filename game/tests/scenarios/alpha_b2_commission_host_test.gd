@@ -53,7 +53,8 @@ func run() -> void:
 	if not enter() or not check(host.session.alpha_view().active.actor_id=="G03","same regular G03 customer"):
 		quit(1)
 		return
-	check(host.find_child("b2_commission_status_tool_for_g03",true,false) != null,"readable named request in current counter")
+	var request_slip := host.find_child("b2_commission_status_tool_for_g03",true,false) as Label
+	check(request_slip != null and request_slip.text.contains("D4") and not request_slip.text.contains("D4.0"),"commission due date shown as whole day")
 	check((host.find_child("alpha_speech",true,false) as Label).text.contains("공구"),"G03 request is spoken in same dialogue bubble")
 	check(press("b2_commission_accept"),"customer request accepted by UI")
 	check(host.session.snapshot().wallets.player.VKC==180 and host.session.alpha_view().commissions.entries[0].status=="accepted","no advance paid or fake wallet")
