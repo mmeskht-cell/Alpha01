@@ -17,6 +17,7 @@ const Npc=preload("res://src/domain/npc_continuity.gd")
 const Market=preload("res://src/domain/regional_market_flow.gd")
 const Population=preload("res://src/domain/npc_population.gd")
 const Finance=preload("res://src/domain/calendar_exchange_market.gd")
+const Merchant=preload("res://src/domain/calendar_merchant_contracts.gd")
 const VisitorSlots=preload("res://src/domain/npc_visit_slots.gd")
 const ACTIONS: Array = ["calendar_close", "calendar_morning", "calendar_pay_overhead"]
 const COMMON: Array = ["trade", "deliver", "move", "observe", "restore_item", "attach", "detach", "discard", "replace_component","clean_exterior"]
@@ -24,6 +25,12 @@ const OVERHEAD: int = 15
 const LIFECYCLE_VERSION: String = "calendar-lifecycle-1"
 
 static func profile_valid(p: Variant) -> bool:
+	if p is Dictionary and p.has("merchant_contracts"):
+		if p.get("id")!="campaign_42" or not p.get("merchant_contracts") is Dictionary or not p.has("visit_days"):
+			return false
+		var base:Dictionary=p.duplicate(true)
+		base.erase("merchant_contracts")
+		return profile_valid(base)
 	if p is Dictionary and p.has("npc_visit_slots"):
 		if p.get("id")!="campaign_42" or not p.get("npc_visit_slots") is Dictionary or not p.has("visit_days"):
 			return false
@@ -176,6 +183,11 @@ static func seed(state: Dictionary, defs: Dictionary, profile: Dictionary) -> Di
 		result.calendar["npc_population"]=generated
 	if profile.has("npc_visit_slots") and not VisitorSlots.valid(result,profile):
 		return {}
+	if profile.has("merchant_contracts"):
+		var contracts:Dictionary=Merchant.seed(result,defs,profile)
+		if contracts.is_empty():
+			return {}
+		result.calendar["merchant_contracts"]=contracts
 	if profile.has("exchange_market"):
 		var exchange:Dictionary=Finance.seed(result,profile)
 		if exchange.is_empty():
@@ -210,6 +222,8 @@ static func apply(s: Dictionary, kind: String, payload: Dictionary, action: Stri
 			var contract_error:String=Contract.close(s,action,payload.get("contract_choices",{}),explicit)
 			if not contract_error.is_empty():
 				return contract_error
+			if c.has("merchant_contracts"):
+				Merchant.close(s,action)
 			s.phase = "workshop"
 		"calendar_morning":
 			if s.phase != "workshop" or int(s.game_minutes) % Clock.DAY_MINUTES != Clock.BUSINESS_MINUTES:
