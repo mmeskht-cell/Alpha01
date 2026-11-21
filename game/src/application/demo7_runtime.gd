@@ -43,10 +43,10 @@ func open(directory:String="user://zt_rebuild/demo7",civilian:bool=false,conditi
 	if _condition_pricing and condition_version not in [1,2,3]:
 		return false
 	_condition_version=condition_version if _condition_pricing else 1
+	_civilian=civilian
 	_hold_market=hold_market and _civilian and _condition_pricing and _condition_version==3
 	if hold_market and not _hold_market:
 		return false
-	_civilian=civilian
 	_save_slot=ALPHA_HOLD_SLOT if _hold_market else ((ALPHA_SLOT if _condition_version==3 else (CONDITION_SLOT_V2 if _condition_version==2 else CONDITION_SLOT)) if _condition_pricing else (CIVILIAN_SLOT if _civilian else SLOT))
 	_session=_fresh()
 	if _session==null:

@@ -48,10 +48,11 @@ func _initialize()->void:
 	check(hold.profile.visit_days.d5.has("hygiene_sale") and
 		hold.profile.story_rules.clinic_supply_confirmed.day==6,
 		"clinic stock trade remains D5, actual resulting event remains D6")
-	check(hold.profile.visit_days.d4.has("battery_sale") and
+	check(hold.profile.visit_days.d3.has("battery_sale") and
+		hold.profile.visit_days.d3.has("watch_sale") and
 		hold.profile.visit_days.d4.has("gear_sale") and
 		hold.profile.visit_days.d4.has("radio3_sale"),
-		"real D4 resale options permit cash recovery before unchanged 300 VKC deadline")
+		"four real pre-deadline cash-recovery opportunities have correct D3/D4 schedules")
 	var alpha3:=Session.new()
 	var holding:=Session.new()
 	check(alpha3.initialize(normal.defs,normal.state,false,false,normal.profile),
