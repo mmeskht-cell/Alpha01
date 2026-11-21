@@ -1,4 +1,5 @@
 extends RefCounted
+const Retention=preload("res://src/domain/appraisal_history_retention.gd")
 ## Fixed-term calendar purchase pilot: no new acceptance/discount policy.
 ## All writes are on GameSession's detached candidate, replay included.
 const Rules = preload("res://src/domain/value_rules.gd")
@@ -101,7 +102,7 @@ static func apply(s: Dictionary,p: Dictionary,action_id: String) -> String:
 		var supported:bool=false
 		for speech:Dictionary in references:
 			for id:String in speech.argument.evidence_ids:
-				var record:Dictionary=s.calendar.appraisal_observations.get(id,{}).get("record",{})
+				var record:Dictionary=Retention.records(s).get(id,{}).get("record",{})
 				if record.get("item_id")==p.item_id and record.get("observation_key") in ["R001.wear","R001.casing_detail"] and speech.argument.slot_id=="appearance_id":
 					supported=true
 		accepted=int(p.amount)>= (100 if supported else 110) and int(p.amount)<=125

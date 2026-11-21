@@ -1,4 +1,5 @@
 extends RefCounted
+const Retention=preload("res://src/domain/appraisal_history_retention.gd")
 ## Authored customer knowledge only, never specimen truth or player private assessment.
 ## Versioned opt-in for the isolated watch campaign. Keep old replay semantics.
 const Rules = preload("res://src/domain/value_rules.gd")
@@ -68,7 +69,7 @@ static func supported_wear(state:Dictionary,visit:String,item:String,references:
 	if latest.is_empty():
 		return false
 	for id:String in latest.argument.evidence_ids:
-		var entry:Dictionary=state.calendar.appraisal_observations.get(id,{})
+		var entry:Dictionary=Retention.records(state).get(id,{})
 		var record:Dictionary=entry.get("record",{})
 		if entry.get("visit_id")!=visit or record.get("item_id")!=item or record.get("observation_key") not in ["R001.wear","dial_wear"] or not Rules.integer(record.get("observed_value"),0,100):
 			continue

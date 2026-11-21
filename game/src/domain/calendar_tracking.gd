@@ -1,4 +1,5 @@
 extends RefCounted
+const Retention=preload("res://src/domain/appraisal_history_retention.gd")
 ## Private tracking policy for calendar lifecycle only. No second event journal.
 const Rules=preload("res://src/domain/value_rules.gd")
 const Tracking=preload("res://src/domain/selective_tracking.gd")
@@ -45,7 +46,7 @@ static func _ref(s:Dictionary,id:String,event:String)->bool:
 				return false
 			var command:Dictionary=s.calendar.commands[revision-1]
 			return id in row.item_ids and command.payload.get("actor")=="player" and command.action_id==event
-	var observation:Dictionary=s.calendar.get("appraisal_observations",{}).get(event,{})
+	var observation:Dictionary=Retention.records(s).get(event,{})
 	if not observation.is_empty():
 		return observation.record.item_id==id and observation.record.observer_id=="player" and Receipt.receipt_type(s,event)=="inspect_subject"
 	for entry:Dictionary in s.calendar.get("appraisal_decks",{}).values():

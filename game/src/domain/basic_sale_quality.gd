@@ -1,4 +1,5 @@
 extends RefCounted
+const Retention=preload("res://src/domain/appraisal_history_retention.gd")
 ## Optional functional term for existing ordinary fixed-price sales.
 ## Settlement only: no durability warranty or automatic refund.
 const Rules=preload("res://src/domain/value_rules.gd")
@@ -23,7 +24,7 @@ static func bound_record(s:Dictionary,id:String,item_id:String)->Dictionary:
 		if r.get("item_id")==item_id and r.get("observation_key")=="functional" and r.get("observed_value") is bool and Record.bound(s,id,r,"record") and r.dependent_field_versions.has("functional"):
 			return r
 		return {}
-	var e:Dictionary=s.get("calendar",{}).get("appraisal_observations",{}).get(id,{})
+	var e:Dictionary=Retention.records(s).get(id,{})
 	r=e.get("record",{})
 	if r.is_empty() or r.get("item_id")!=item_id or r.get("observer_id")!="player" or r.get("observation_key")!="function_status" or r.get("observed_value") not in ["serviceable","inoperable"] or e.get("tool_id")!="basic_function_v1" or e.get("target")!="basic_whole_function" or not r.get("dependent_field_versions",{}).has("functional"):
 		return {}
@@ -39,7 +40,7 @@ static func option(s:Dictionary,visit_id:String,item_id:String)->Dictionary:
 		return {}
 	var best:Dictionary={}
 	var best_rev:int=-1
-	var ids:Array=s.get("knowledge",{}).keys()+s.calendar.get("appraisal_observations",{}).keys()
+	var ids:Array=s.get("knowledge",{}).keys()+Retention.records(s).keys()
 	for id:String in ids:
 		var r:Dictionary=bound_record(s,id,item_id)
 		if r.is_empty() or not Evidence.eligible_ground(r,s.items[item_id].field_versions,item_id,["functional","function_status"]):

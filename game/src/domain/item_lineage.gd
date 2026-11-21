@@ -1,4 +1,5 @@
 extends RefCounted
+const Retention=preload("res://src/domain/appraisal_history_retention.gd")
 ## Read-only projection of validated, player-participating ledger records.
 ## No external simulation, separate save fields, private tracking tier or hidden state.
 const DISPLAY_LIMIT: int = 12
@@ -127,7 +128,7 @@ static func _historical_observations(state: Dictionary,statements: Array,visit_i
 			if id in seen:
 				continue
 			seen.append(id)
-			var saved: Dictionary = state.calendar.get("appraisal_observations",{}).get(id,{})
+			var saved: Dictionary = Retention.records(state).get(id,{})
 			var fact: Dictionary = saved.get("record",{})
 			var fact_revision: int = Receipt.receipt_revision(state,id)
 			if saved.get("visit_id") != visit_id or fact.get("item_id") != item_id or fact.get("observer_id") != "player" or fact_revision < 1 or fact_revision >= before_revision or Receipt.receipt_type(state,id) != "inspect_subject":
