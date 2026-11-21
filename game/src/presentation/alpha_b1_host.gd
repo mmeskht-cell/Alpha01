@@ -403,6 +403,10 @@ func _add_b2_trade_action(actions: VBoxContainer, v: Dictionary) -> void:
 func _add_contract_actions(actions: VBoxContainer, v: Dictionary) -> void:
 	for id: String in v.contracts:
 		var offer: Dictionary = v.contracts[id]
+		# Other characters' contracts belong in the quiet shop management
+		# phases, not in the currently speaking customer's counter actions.
+		if v.phase == "CUSTOMER_ACTIVE" and (v.active.is_empty() or str(v.active.actor_id) != str(offer.supplier)):
+			continue
 		var note := Label.new()
 		note.name = "alpha_contract_" + id
 		note.text = _text("alpha.contract.header") + " · " + str(id) + " · " + _text("alpha.contract.status." + str(offer.status)) + " · " + str(offer.price.VKC) + " VKC / D" + str(offer.due_day)
@@ -493,6 +497,10 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 ## line. Reservations only name real, already purchased player-owned items.
 func _add_b2_commission_actions(actions: VBoxContainer, v: Dictionary) -> void:
 	for entry: Dictionary in v.commissions.entries:
+		# A previous customer's request must not appear in a different
+		# visitor's dialogue. In the idle/evening shop, show owned obligations.
+		if v.phase == "CUSTOMER_ACTIVE" and (v.active.is_empty() or str(v.active.actor_id) != str(entry.actor_id)):
+			continue
 		var label := Label.new()
 		label.name = "b2_commission_status_" + str(entry.request_id)
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
