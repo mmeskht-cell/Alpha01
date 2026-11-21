@@ -87,7 +87,8 @@ func run() -> void:
 			return
 	check(host.session.alpha_view().active.actor_id=="G03","real same counter G03 request")
 	check((host.find_child("alpha_speech",true,false) as Label).text.contains("공구"),"real customer speaks the request, not generic placeholder")
-	check(host.find_child("b2_commission_status_tool_for_g03",true,false)!=null,"request text in original shop scene")
+	var request_terms := host.find_child("b2_commission_status_tool_for_g03",true,false) as Label
+	check(request_terms!=null and request_terms.text.contains("의뢰 조건") and request_terms.text.contains("D4") and not request_terms.text.contains("한 점을 구해"),"same-counter request is spoken once with compact terms receipt")
 	check(host.find_child("alpha_contract_rad1_first",true,false)==null,"other supplier's contract is hidden during G03 request")
 	var board := host.find_child("alpha_shop_board",true,false) as PanelContainer
 	var scroller := host.find_child("alpha_card_scroll",true,false) as ScrollContainer
@@ -113,7 +114,8 @@ func run() -> void:
 	var named_speech := host.find_child("alpha_speech",true,false) as Label
 	check(named_visit.active.actor_id == "marcus" and named_visit.active.kind == "named", "named actor uses same counter pointer path")
 	check(named_speech != null and named_speech.text.contains("300 VKC") and named_speech.text.contains("D4") and not named_speech.text.contains("공구") and named_visit.npc_context.prior.is_empty(), "named Marcus explains actual RAD-1 supplier terms without learning G03 request")
-	check(host.find_child("alpha_contract_rad1_first",true,false)!=null and host.find_child("b2_commission_status_tool_for_g03",true,false)==null,"named counter renders own offer but never G03 commission slip")
+	var supplier_slip := host.find_child("alpha_contract_rad1_first",true,false) as Label
+	check(supplier_slip!=null and supplier_slip.text.contains("300 VKC") and not supplier_slip.text.contains("rad1_first") and host.find_child("b2_commission_status_tool_for_g03",true,false)==null,"named counter shows actual terms without internal IDs or foreign commission")
 	await shot("commission-named-1080p",Vector2i(1920,1080))
 	for id: String in ["alpha_finish_customer","alpha_ack_exit","alpha_close","alpha_settle"]:
 		if not await click(id):
@@ -129,9 +131,14 @@ func run() -> void:
 	await frames()
 	var contact_scroll := host.find_child("alpha_card_scroll",true,false) as ScrollContainer
 	var contact_panel := host.find_child("alpha_contact_preview",true,false) as Control
-	check(contact_scroll!=null and contact_panel!=null and contact_scroll.get_global_rect().intersects(contact_panel.get_global_rect()),"selected contact preview actually visible after rebuilt scroll")
+	var night_board := host.find_child("alpha_shop_board",true,false) as PanelContainer
+	check(contact_scroll!=null and contact_panel!=null and night_board!=null and night_board.get_global_rect().intersects(contact_panel.get_global_rect()),"selected contact preview visible in right-hand night dossier rather than clipped action list")
+	if contact_panel!=null:
+		check(contact_panel.get_global_rect().end.y <= root.get_visible_rect().end.y,"night contact conditions fit without offscreen bottom at 1080p")
 	await shot("commission-evening-contact-1080p",Vector2i(1920,1080))
 	root.size=Vector2i(1280,720)
+	var contact_720 := host.find_child("alpha_contact_preview",true,false) as Control
+	check(contact_720!=null and contact_720.get_global_rect().end.y <= 720.0,"720p selected contact conditions fully visible without action-area scrolling")
 	await shot("commission-evening-contact-720p",Vector2i(1280,720))
 	host.queue_free()
 	await frames()
