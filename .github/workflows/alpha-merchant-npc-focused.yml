@@ -5,6 +5,7 @@ on:
     branches: [development]
     paths:
       - '.github/workflows/alpha-merchant-npc-focused.yml'
+      - 'game/tests/scenarios/merchant_office_ui_test.gd'
 permissions:
   contents: read
 jobs:
@@ -33,7 +34,7 @@ jobs:
           engine=/tmp/godot-alpha/Godot_v4.7.2-stable_linux.x86_64
           "$engine" --headless --editor --path game --import 2>&1 | tee alpha-import.log
           if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:' alpha-import.log; then exit 1; fi
-          for test in calendar_merchant_contracts_test npc_bargaining_policy_test npc_generated_visits_test; do
+          for test in calendar_merchant_contracts_test npc_bargaining_policy_test npc_generated_visits_test merchant_office_ui_test; do
             "$engine" --headless --path game --script "res://tests/scenarios/$test.gd" 2>&1 | tee "$test.log"
             if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:' "$test.log"; then exit 1; fi
           done
@@ -47,5 +48,6 @@ jobs:
             calendar_merchant_contracts_test.log
             npc_bargaining_policy_test.log
             npc_generated_visits_test.log
+            merchant_office_ui_test.log
           if-no-files-found: warn
           retention-days: 3
