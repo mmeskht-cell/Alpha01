@@ -8,6 +8,7 @@ const B2_KO_PATH = "res://data/alpha_b2/ko.json"
 const Session = preload("res://src/domain/game_session.gd")
 const Alpha = preload("res://src/domain/alpha_shop_cycle.gd")
 const Repo = preload("res://src/persistence/save_repository.gd")
+const ThemeSource = preload("res://src/presentation/ui_theme.gd")
 const KO_PATH = "res://data/alpha_b1/ko.json"
 const SAVE_SLOT = "alpha_b1_profile_v3"
 @export var save_directory_override: String = ""
@@ -23,6 +24,14 @@ var _blocked: bool = false
 var _message: String = ""
 
 func _ready() -> void:
+	# The UI asset pipeline prepares an exact hash-pinned OFL CJK font.
+	# The new alpha counter must inherit it too; Godot's default typeface
+	# renders Korean as missing-glyph boxes even when mouse tests succeed.
+	if not ThemeSource.apply_to(self):
+		_blocked = true
+		_message = "한국어 글꼴을 확인할 수 없어 화면을 시작할 수 없습니다."
+		refresh()
+		return
 	var catalog: Variant = JSON.parse_string(FileAccess.get_file_as_string(KO_PATH))
 	if catalog is Dictionary and catalog.get("strings") is Dictionary:
 		_strings = catalog.strings

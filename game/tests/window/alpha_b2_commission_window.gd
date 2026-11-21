@@ -65,6 +65,7 @@ func run() -> void:
 	host.save_directory_override="user://zt_rebuild/b2_commission_window_"+str(Time.get_ticks_usec())
 	root.add_child(host)
 	await frames()
+	check(host.theme != null and host.theme.default_font != null and host.theme.default_font.has_char(0xD55C) and host.theme.default_font.has_char(0xAE00), "verified Korean UI font supports Hangul glyphs")
 	if not check(host.session!=null and not host._blocked,"commission scene loads"):
 		quit(1)
 		return

@@ -34,6 +34,7 @@ func run() -> void:
 	host.save_directory_override="user://zt_rebuild/b2_commission_host_"+str(Time.get_ticks_usec())
 	root.add_child(host)
 	await process_frame
+	check(host.theme != null and host.theme.default_font != null and host.theme.default_font.has_char(0xD55C) and host.theme.default_font.has_char(0xAE00), "verified Korean UI font supports Hangul glyphs")
 	if not check(host.session != null and not host._blocked and host.b2_commission_mode,"commission scene boots, separate save profile"):
 		quit(1)
 		return
