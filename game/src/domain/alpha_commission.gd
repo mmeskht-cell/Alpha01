@@ -202,7 +202,7 @@ static func after_delivery(state: Dictionary, request_id: String, action_id: Str
 	var entry: Dictionary = state.alpha_shop.commissions.entries[request_id]
 	entry.status = "fulfilled"
 	entry.deliver_action = action_id
-	state.alpha_shop.commissions.settlements.append({"request_id":request_id,"action_id":action_id,"visit_id":r.return_visit_id,"item_id":entry.item_id,"price":r.price.duplicate(true)})
+	state.alpha_shop.commissions.settlements.append({"request_id":request_id,"action_id":action_id,"visit_id":r.return_visit_id,"item_id":entry.item_id,"price":Rules.normalized(r.price.duplicate(true))})
 	state.alpha_shop.outcomes[state.alpha_shop.active] = "commission_delivered"
 	state.alpha_shop.phase = "CUSTOMER_EXIT"
 

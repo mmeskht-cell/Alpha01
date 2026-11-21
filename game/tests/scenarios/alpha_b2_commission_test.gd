@@ -4,6 +4,7 @@ extends SceneTree
 const Seed = preload("res://src/content/alpha_b2_commission_seed.gd")
 const Session = preload("res://src/domain/game_session.gd")
 const Repo = preload("res://src/persistence/save_repository.gd")
+const Rules = preload("res://src/domain/value_rules.gd")
 const REQUEST: String = "tool_for_g03"
 var checks: int = 0
 var failures: int = 0
@@ -121,6 +122,7 @@ func happy() -> void:
 		return
 	var after: Dictionary = s.snapshot()
 	check(after.alpha_shop.commissions.entries[REQUEST].status=="fulfilled" and after.alpha_shop.commissions.settlements.size()==1,"FULFILLED once with exact action")
+	check(typeof(after.alpha_shop.commissions.settlements[0].price.VKC)==TYPE_INT,"persisted commission receipt amount is normalized before saving")
 	check(after.items.TL04.owner_id=="G03" and after.items.TL04.custodian_id=="G03" and after.items.TL04.reservation_id.is_empty(),"reserved tool actually delivered")
 	check(after.items.TL04.basis.VKC == 60 and after.ledger.size()==2 and after.ledger[1].amounts.VKC==90, "acquisition basis and real price recorded")
 	check(after.wallets.player.VKC == 210 and after.wallets.G03.VKC == initial.wallets.G03.VKC - 90,"actual player/buyer wallets conserved")
@@ -131,6 +133,13 @@ func happy() -> void:
 	check(save.save_session(s,"commission").ok,"A/B persisted real fulfilment")
 	var reloaded: RefCounted = fresh()
 	var loaded: Dictionary = save.load_session(reloaded,"commission") if reloaded != null else {}
+	if not loaded.get("ok",false) or reloaded.snapshot() != after:
+		var canonical_same: bool = reloaded != null and Rules.canonical(reloaded.snapshot()) == Rules.canonical(after)
+		var source_valid: bool = reloaded != null and reloaded.validate(after)
+		printerr("B2_COMMISSION_COLD_DIAGNOSTIC load=",loaded," canonical_same=",canonical_same,
+			" source_valid=",source_valid," validation_error=",reloaded._validation_error if reloaded != null else "no_session",
+			" original_sha=",Rules.canonical(after).sha256_text(),
+			" restored_sha=",Rules.canonical(reloaded.snapshot()).sha256_text() if reloaded != null else "none")
 	check(loaded.get("ok",false) and reloaded.snapshot()==after,"seed replay accepts exact cold restore")
 	var forged: Dictionary = after.duplicate(true)
 	forged.alpha_shop.commissions.settlements[0].price.VKC=999
