@@ -954,7 +954,7 @@ func inventory_appraisal(id:String)->Dictionary:
 		return {}
 	var item:Dictionary=_state.items[id]
 	var d:Dictionary=_definitions[item.def_id]
-	var basic:bool=_calendar_mode and item.def_id in VisitObservation.BASIC_V1.values() and d.kind=="atomic"
+	var basic:bool=_calendar_mode and item.def_id in VisitObservation.BASIC_DEFINITIONS_V1 and d.kind=="atomic"
 	if d.category!="civilian_electronics" and not basic:
 		return {}
 	var view:Dictionary=knowledge_view(id)
