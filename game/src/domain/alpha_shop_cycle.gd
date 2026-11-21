@@ -2,13 +2,16 @@ extends RefCounted
 ## Opt-in B1 date/phase authority. Does not mint funds, items, time or contracts.
 const Rules = preload("res://src/domain/value_rules.gd")
 const Contract = preload("res://src/domain/alpha_dated_contract.gd")
-const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend"]
+const Cards = preload("res://src/domain/alpha_card_trade.gd")
+const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer"]
 const PHASES: Array = ["DAY_PREP", "OPEN_IDLE", "CUSTOMER_ENTER", "CUSTOMER_ACTIVE", "CUSTOMER_EXIT", "CLOSE_SETTLE", "EVENING_WORK", "NEXT_DAY", "COMPLETE"]
 
 static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 	var keys: Array = ["id", "content_version", "days", "unavailable_actors"]
 	if profile is Dictionary and profile.has("contracts"):
 		keys.append_array(["contracts", "story_rules"])
+	if profile is Dictionary and profile.has("appraisal_id"):
+		keys.append("appraisal_id")
 	if not Rules.keys(profile, keys) or profile.id != "alpha_b1_v1" or not Rules.identifier(profile.content_version):
 		return false
 	if not profile.days is Array or profile.days.is_empty() or profile.days.size() > 42 or not profile.unavailable_actors is Array:
@@ -44,6 +47,8 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 			today[row.actor_id] = true
 	if profile.has("contracts") and not Contract.profile_valid(profile, state):
 		return false
+	if profile.has("appraisal_id") and not Cards.profile_valid(profile, state):
+		return false
 	return true
 
 static func seed(state: Dictionary, profile: Dictionary) -> Dictionary:
@@ -56,10 +61,12 @@ static func seed(state: Dictionary, profile: Dictionary) -> Dictionary:
 		"day": 1, "phase": "DAY_PREP", "cursor": 0, "active": "",
 		"outcomes": {}, "settled_days": [], "contacts": {}, "commands": []
 	}
-	if profile.content_version in ["b2-preview-1", "b2-preview-2"]:
+	if profile.content_version in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1"]:
 		next.alpha_shop["displayed"] = []
 	if profile.has("contracts"):
 		next.alpha_shop["contracts"] = Contract.seed(profile)
+	if profile.has("appraisal_id"):
+		next.alpha_shop["appraisal"] = Cards.seed()
 	return Rules.normalized(next)
 
 static func active_row(a: Dictionary) -> Dictionary:
@@ -77,7 +84,7 @@ static func can_contact(a: Dictionary, actor: String) -> bool:
 ## located in the actual, non-custody inventory. Never infer listing from price.
 static func display_gate(state: Dictionary, p: Dictionary, withdraw: bool = false) -> String:
 	var a: Dictionary = state.alpha_shop
-	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2"] or not Rules.keys(p, ["item_id", "x", "y", "rotated"]):
+	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1"] or not Rules.keys(p, ["item_id", "x", "y", "rotated"]):
 		return "alpha_b2_display_shape"
 	if a.phase not in ["OPEN_IDLE", "EVENING_WORK"] or not Rules.identifier(p.item_id):
 		return "alpha_display_phase"
@@ -102,7 +109,7 @@ static func after_display(state: Dictionary, item_id: String, withdraw: bool = f
 static func trade_gate(state: Dictionary, p: Dictionary) -> String:
 	var a: Dictionary = state.alpha_shop
 	var row: Dictionary = active_row(a)
-	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2"] or a.phase != "CUSTOMER_ACTIVE" or row.is_empty():
+	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1"] or a.phase != "CUSTOMER_ACTIVE" or row.is_empty():
 		return "alpha_trade_phase"
 	if not Rules.keys(p, ["visit_id", "item_id", "seller", "buyer", "currency", "amount", "inventory", "x", "y", "rotated"]) or p.visit_id != row.id or not state.visits.has(row.id):
 		return "alpha_trade_visit"
@@ -134,6 +141,8 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 		return "alpha_command_unavailable"
 	if kind in Contract.ACTIONS:
 		return Contract.apply(state, command) if a.has("contracts") else "alpha_contract_unavailable"
+	if kind in Cards.ACTIONS:
+		return Cards.apply(state, command) if a.has("appraisal") else "alpha_appraisal_unavailable"
 	if kind != "alpha_exchange_contact" and not p.is_empty():
 		return "alpha_payload"
 	match kind:
@@ -232,5 +241,6 @@ static func view(state: Dictionary) -> Dictionary:
 		"can_exchange": a.phase == "CUSTOMER_ACTIVE" and not row.is_empty() and row.contact_offer and not a.contacts.has(row.actor_id),
 		"settled": int(a.day) in a.settled_days,
 		"displayed_items": a.get("displayed", []).duplicate(),
+		"appraisal": Cards.view(state) if a.has("appraisal") else {},
 		"contracts": contract_view.contracts, "news": contract_view.news
 	}

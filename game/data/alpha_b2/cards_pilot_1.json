@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "profile_id": "alpha_b2_cards_pilot_1",
+  "specimen_sources": [
+    {
+      "def_id": "portable_radio",
+      "path": "res://data/campaign/gate2/demo_radio_inspection.json"
+    },
+    {
+      "def_id": "fictional_watch_p2",
+      "path": "res://data/campaign/gate2/watch_inspection_profile.json"
+    }
+  ],
+  "negotiation_terms": {
+    "visit_g01": {
+      "improved_amount": 95,
+      "required_slot": "wear_detail"
+    },
+    "visit_g02_buy": {
+      "improved_amount": 175,
+      "required_slot": "function_detail"
+    }
+  }
+}

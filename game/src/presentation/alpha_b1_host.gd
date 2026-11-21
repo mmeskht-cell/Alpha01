@@ -2,6 +2,7 @@ extends Control
 ## B1 single-counter host; no bespoke named-character dialogue scene.
 const Seed = preload("res://src/content/alpha_b1_seed.gd")
 const B2Seed = preload("res://src/content/alpha_b2_seed.gd")
+const CardSeed = preload("res://src/content/alpha_b2_cards_seed.gd")
 const B2_KO_PATH = "res://data/alpha_b2/ko.json"
 const Session = preload("res://src/domain/game_session.gd")
 const Alpha = preload("res://src/domain/alpha_shop_cycle.gd")
@@ -10,6 +11,7 @@ const KO_PATH = "res://data/alpha_b1/ko.json"
 const SAVE_SLOT = "alpha_b1_profile_v3"
 @export var save_directory_override: String = ""
 @export var b2_mode: bool = false
+@export var b2_interactive_mode: bool = false
 var session: RefCounted
 var _repo: RefCounted
 var _strings: Dictionary = {}
@@ -26,7 +28,7 @@ func _ready() -> void:
 		var b2_locale: Variant = JSON.parse_string(FileAccess.get_file_as_string(B2_KO_PATH))
 		if b2_locale is Dictionary and b2_locale.get("strings") is Dictionary:
 			_strings.merge(b2_locale.strings, true)
-	var source: Dictionary = B2Seed.content() if b2_mode else Seed.content()
+	var source: Dictionary = CardSeed.content() if b2_interactive_mode else (B2Seed.content() if b2_mode else Seed.content())
 	if source.is_empty():
 		_blocked = true
 		_message = "B1 콘텐츠를 읽지 못했습니다."
@@ -36,7 +38,7 @@ func _ready() -> void:
 			_blocked = true
 			_message = "세션 초기화 오류: " + session.initialization_error()
 		else:
-			var location: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b2" if b2_mode else "user://zt_rebuild/alpha_b1")
+			var location: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b2_cards" if b2_interactive_mode else ("user://zt_rebuild/alpha_b2" if b2_mode else "user://zt_rebuild/alpha_b1"))
 			_repo = Repo.new(location)
 			var loaded: Dictionary = _repo.load_session(session, _slot())
 			if loaded.get("ok", false):
@@ -47,7 +49,7 @@ func _ready() -> void:
 	refresh()
 
 func _slot() -> String:
-	return "alpha_b2_trade_slice_v2" if b2_mode else SAVE_SLOT
+	return "alpha_b2_cards_pilot_v1" if b2_interactive_mode else ("alpha_b2_trade_slice_v2" if b2_mode else SAVE_SLOT)
 
 func _text(key: String) -> String:
 	return str(_strings.get(key, key))
@@ -165,7 +167,15 @@ func refresh() -> void:
 		speech.text = _text(say)
 	var actions := VBoxContainer.new()
 	actions.name = "alpha_actions"
-	outer.add_child(actions)
+	if b2_interactive_mode:
+		var scrolling := ScrollContainer.new()
+		scrolling.name = "alpha_card_scroll"
+		scrolling.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		scrolling.custom_minimum_size = Vector2(0, 190)
+		outer.add_child(scrolling)
+		scrolling.add_child(actions)
+	else:
+		outer.add_child(actions)
 	match str(v.phase):
 		"DAY_PREP":
 			_button(actions, "alpha_open", _text("alpha.button.open"), func() -> void: _submit("alpha_open"))
@@ -178,7 +188,9 @@ func refresh() -> void:
 		"CUSTOMER_ENTER":
 			_button(actions, "alpha_ack_entry", _text("alpha.button.enter"), func() -> void: _submit("alpha_ack_entry"))
 		"CUSTOMER_ACTIVE":
-			if b2_mode:
+			if b2_interactive_mode:
+				_add_b2_card_actions(actions, v)
+			elif b2_mode:
 				_add_b2_trade_action(actions, v)
 			_add_contract_actions(actions, v)
 			if bool(v.can_exchange):
@@ -284,3 +296,71 @@ func _add_contract_actions(actions: VBoxContainer, v: Dictionary) -> void:
 		if offer.can_extend:
 			_button(actions, "alpha_contract_extend", _text("alpha.contract.extend"),
 				func() -> void: _submit("alpha_contract_extend", {"contract_id": id}))
+
+
+## Same counter: actual item, inspectable facts, private card choice and one
+## customer-facing price proposal. No separate modal or automatic price gains.
+func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
+	var a: Dictionary = v.appraisal
+	if a.is_empty():
+		var unavailable := Label.new()
+		unavailable.text = _text("b2.no_eligible_item")
+		actions.add_child(unavailable)
+		return
+	var item := Label.new()
+	item.name = "b2_current_item"
+	item.text = _text("b2.we_buy" if a.we_buy else "b2.we_sell") + " · " + _text("b2.item." + str(a.def_id))
+	item.add_theme_font_size_override("font_size", 20)
+	actions.add_child(item)
+	var help := Label.new()
+	help.text = _text("b2.inspect.hint")
+	actions.add_child(help)
+	for tool: Dictionary in a.tools:
+		var slot: String = str(tool.id)
+		_button(actions,"b2_inspect_" + slot,_text("b2.inspect.action") + " · " + _text(str(tool.text_key)),
+			func() -> void: _submit("alpha_inspect",{"slot":slot}))
+	for card: Dictionary in a.cards:
+		var slot: String = str(card.slot)
+		var selected: bool = bool(card.selected)
+		var control_name: String = "b2_card_" + slot
+		_button(actions,control_name,("☑ " if selected else "□ ") + _text(str(card.text_key)) + " · " + str(card.value),
+			func() -> void: _submit("alpha_card_toggle",{"slot":slot,"selected":not selected}))
+	for offer: Dictionary in a.offers:
+		var speech := Label.new()
+		speech.name = "b2_last_response"
+		speech.text = _text("b2.offer." + str(offer.response)) + " · " + str(offer.amount) + " " + str(offer.currency)
+		actions.add_child(speech)
+	if not a.accepted.is_empty():
+		var amount: int = int(a.accepted.amount)
+		var visit_id: String = str(v.active.id)
+		var current: Dictionary = session.snapshot()
+		var terms: Dictionary = current.visits[visit_id]
+		var item_id: String = str(a.item_id)
+		var buying: bool = terms.buyer == "player"
+		var payload: Dictionary = {
+			"visit_id": visit_id,"item_id":item_id,"seller":terms.seller,
+			"buyer":terms.buyer,"currency":a.accepted.currency,"amount":amount,
+			"inventory":"player_stock" if buying else str(terms.buyer) + "_grid",
+			"x":0 if buying else 5,"y":0 if buying else 4,"rotated":false
+		}
+		_button(actions,"b2_trade",_text("b2.trade.confirm") + " · " + str(amount) + " " + str(a.accepted.currency),
+			func() -> void: _submit("alpha_trade",payload))
+		return
+	var current: Dictionary = session.snapshot()
+	var active: Dictionary = current.visits[str(v.active.id)]
+	var price: Dictionary = active.prices[str(a.item_id)]
+	var currency: String = "VKC" if int(price.VKC) > 0 else "USD"
+	var price_entry := LineEdit.new()
+	price_entry.name = "b2_price_input"
+	price_entry.text = str(price[currency])
+	price_entry.placeholder_text = _text("b2.price.placeholder")
+	price_entry.custom_minimum_size = Vector2(240, 42)
+	actions.add_child(price_entry)
+	_button(actions,"b2_offer",_text("b2.offer.submit"),
+		func() -> void:
+			if price_entry.text.is_valid_int() and int(price_entry.text) > 0:
+				_submit("alpha_price_offer",{"amount":int(price_entry.text)})
+			else:
+				_message = _text("b2.price.invalid")
+				refresh()
+	)
