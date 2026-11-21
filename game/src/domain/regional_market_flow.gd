@@ -6,6 +6,7 @@ extends RefCounted
 const Rules=preload("res://src/domain/value_rules.gd")
 const Clock=preload("res://src/domain/business_clock.gd")
 const Trace=preload("res://src/domain/world_causal_trace.gd")
+const Bargain=preload("res://src/domain/npc_bargaining_policy.gd")
 const MAX_ORDERS:int=128
 const MAX_BUYERS:int=64
 const STATUSES:Array=["ordinary","strained","limited"]
@@ -102,7 +103,8 @@ static func quote(s:Dictionary,visit_id:String)->Dictionary:
 	var m:Dictionary=policy(s)
 	var net:int=_settled_flow(s,e.region,e.category,Clock.day_index(int(s.game_minutes)))
 	var delta:int=clampi(-net*int(m.flow_step),-int(m.max_flow_delta),int(m.max_flow_delta))
-	var settled:int=clampi(int(e.prices[status])+delta,maxi(1,int(ceili(basis*0.75))),maxi(1,int(floori(basis*1.25))))
+	var negotiated_delta:int=Bargain.adjustment(s,visit_id)
+	var settled:int=clampi(int(e.prices[status])+delta+negotiated_delta,maxi(1,int(ceili(basis*0.75))),maxi(1,int(floori(basis*1.25))))
 	return {"visit_id":visit_id,"item_id":e.item_id,"region":e.region,"category":e.category,"currency":e.currency,"amount":settled}
 
 static func eligible(s:Dictionary,visit_id:String)->bool:
