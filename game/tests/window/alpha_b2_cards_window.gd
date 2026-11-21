@@ -90,6 +90,14 @@ func run() -> void:
 	if scroller!=null and board!=null:
 		check(scroller.get_global_rect().end.x < board.get_global_rect().position.x and board.get_global_rect().end.x <= 1280.0,"720p split work surface fits viewport without overlapping buttons")
 	check(cash!=null and cash.text.contains("180 VKC"),"ledger displays actual starting cash")
+	var inspection_sheet := host.find_child("b2_inspection_sheet",true,false) as PanelContainer
+	var private_sheet := host.find_child("b2_private_sheet",true,false) as PanelContainer
+	var offer_sheet := host.find_child("b2_price_sheet",true,false) as PanelContainer
+	check(inspection_sheet!=null and private_sheet!=null and offer_sheet!=null,"one scroll surface has inspect, private card and offer sections")
+	if inspection_sheet!=null and private_sheet!=null and offer_sheet!=null:
+		check(inspection_sheet.get_global_rect().position.y < private_sheet.get_global_rect().position.y and private_sheet.get_global_rect().position.y < offer_sheet.get_global_rect().position.y,"inspection and card selection precede price submission visually")
+	var private_heading := host.find_child("b2_private_sheet_title",true,false) as Label
+	check(private_heading!=null and private_heading.text.contains("개인 감정표"),"cards clearly marked private before choosing public disclosure")
 	await capture("b2-cards-inspection-720p",Vector2i(1280,720))
 	if not await click("b2_inspect_wear_detail") or not await click("b2_card_wear_detail") or not await offer(95):
 		quit(1)
@@ -97,6 +105,8 @@ func run() -> void:
 	check(host.session.alpha_view().appraisal.accepted.get("amount",0) == 95, "real click accepted supported purchase price")
 	var negotiated_speech := host.find_child("alpha_speech",true,false) as Label
 	check(negotiated_speech != null and negotiated_speech.text.contains("95 VKC") and negotiated_speech.text.contains("1건"), "same customer speaks price and only one disclosed fact after real mouse offer")
+	var response := host.find_child("b2_last_response",true,false) as Label
+	check(response!=null and response.text.contains("공개 1건"),"post-offer visible receipt states only one shared fact")
 	var evidence := host.find_child("b2_board_evidence",true,false) as Label
 	check(evidence!=null and evidence.text.contains("공개 선택 1건"),"read-only side notebook shows only one explicitly disclosed card")
 	await capture("b2-cards-agreement-720p",Vector2i(1280,720))
