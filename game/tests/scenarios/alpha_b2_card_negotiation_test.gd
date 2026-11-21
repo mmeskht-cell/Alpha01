@@ -22,7 +22,7 @@ func fresh() -> RefCounted:
 	return s
 
 func cmd(s: RefCounted, action: String, payload: Dictionary = {}) -> Dictionary:
-	return {"action_id":"b2_cards_"+strade_payload(s.snapshot().revision + 1),
+	return {"action_id":"b2_cards_"+str(s.snapshot().revision + 1),
 		"expected_revision":s.snapshot().revision,"type":action,"payload":payload}
 
 func go(s: RefCounted, action: String, payload: Dictionary = {}) -> bool:
@@ -68,7 +68,7 @@ func _initialize() -> void:
 	check(accepted.alpha_shop.appraisal.visits.visit_g01.offers[0].revealed.is_empty() and accepted.alpha_shop.appraisal.visits.visit_g01.offers[1].revealed.size() == 1, "undisclosed fact not leaked retroactively")
 	check(deny(s,"alpha_price_offer",{"amount":94}) and deny(s,"alpha_card_toggle",{"slot":"wear_detail","selected":false}), "no new offer or revision after accepted")
 	check(deny(s,"alpha_trade",trade_payload("visit_g01","G01","player",100,"player_stock")), "stale pre-negotiation price rejected")
-	var store := Repo.new("user://zt_rebuild/b2_cards_test_"+strade_payload(Time.get_ticks_usec()))
+	var store := Repo.new("user://zt_rebuild/b2_cards_test_"+str(Time.get_ticks_usec()))
 	check(store.save_session(s,"cards").ok, "cold-save accepted price before actual transfer")
 	var cold: RefCounted = fresh()
 	check(cold != null and store.load_session(cold,"cards").ok and cold.snapshot() == s.snapshot(), "full seed replay of undisclosed and disclosed cards")
