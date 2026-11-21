@@ -89,6 +89,13 @@ func run() -> void:
 	check((host.find_child("alpha_speech",true,false) as Label).text.contains("공구"),"real customer speaks the request, not generic placeholder")
 	check(host.find_child("b2_commission_status_tool_for_g03",true,false)!=null,"request text in original shop scene")
 	check(host.find_child("alpha_contract_rad1_first",true,false)==null,"other supplier's contract is hidden during G03 request")
+	var board := host.find_child("alpha_shop_board",true,false) as PanelContainer
+	var scroller := host.find_child("alpha_card_scroll",true,false) as ScrollContainer
+	var cash := host.find_child("b2_board_cash",true,false) as Label
+	check(board!=null and scroller!=null and cash!=null,"commission shares original split shop counter")
+	if board!=null and scroller!=null:
+		check(board.get_global_rect().position.x > scroller.get_global_rect().end.x and board.get_global_rect().end.x <= 1280.0,"720p request and shop ledger each have visible nonoverlapping space")
+	check(cash!=null and cash.text.contains("180 VKC"),"request preview does not mint cash or pay advance")
 	await shot("commission-request-720p",Vector2i(1280,720))
 	root.size=Vector2i(1920,1080)
 	await frames()
@@ -105,7 +112,7 @@ func run() -> void:
 	var named_visit: Dictionary = host.session.alpha_view()
 	var named_speech := host.find_child("alpha_speech",true,false) as Label
 	check(named_visit.active.actor_id == "marcus" and named_visit.active.kind == "named", "named actor uses same counter pointer path")
-	check(named_speech != null and not named_speech.text.contains("공구") and named_visit.npc_context.prior.is_empty(), "named NPC cannot learn regular customer's private request")
+	check(named_speech != null and named_speech.text.contains("300 VKC") and named_speech.text.contains("D4") and not named_speech.text.contains("공구") and named_visit.npc_context.prior.is_empty(), "named Marcus explains actual RAD-1 supplier terms without learning G03 request")
 	check(host.find_child("alpha_contract_rad1_first",true,false)!=null and host.find_child("b2_commission_status_tool_for_g03",true,false)==null,"named counter renders own offer but never G03 commission slip")
 	await shot("commission-named-1080p",Vector2i(1920,1080))
 	for id: String in ["alpha_finish_customer","alpha_ack_exit","alpha_close","alpha_settle"]:
