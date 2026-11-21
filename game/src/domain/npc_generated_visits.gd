@@ -6,7 +6,7 @@ const Rules=preload("res://src/domain/value_rules.gd")
 const Objects=preload("res://src/domain/object_schema.gd")
 const Clock=preload("res://src/domain/business_clock.gd")
 const VERSION:int=1
-const MAX_SLOTS:int=32
+const MAX_SLOTS:int=294
 
 static func _choice(seed:int,slot:String,ids:int)->int:
 	var digest:String=(str(seed)+":"+slot).sha256_text()
@@ -17,6 +17,7 @@ static func expand(s:Dictionary,profile:Dictionary)->Dictionary:
 	if profile.get("id")!="campaign_42" or not Rules.keys(policy,["version","seed","slots"]) or policy.version!=VERSION or not Rules.integer(policy.seed,0,1000000000) or not policy.slots is Dictionary or policy.slots.is_empty() or policy.slots.size()>MAX_SLOTS or not profile.has("npc_population") or not profile.has("regional_world"):
 		return {}
 	var seen_items:Dictionary={}
+	var day_counts:Dictionary={}
 	var output_s:Dictionary=s.duplicate(true)
 	var output_p:Dictionary=profile.duplicate(true)
 	var keys:Array=policy.slots.keys()
@@ -26,10 +27,15 @@ static func expand(s:Dictionary,profile:Dictionary)->Dictionary:
 		if not Rules.identifier(visit_id) or s.visits.has(visit_id) or not Rules.keys(slot,["day_id","region","candidates"]) or not Rules.identifier(slot.day_id) or slot.day_id not in profile.day_ids or not Rules.identifier(slot.region) or not profile.regional_world.regions.has(slot.region) or not slot.candidates is Array or slot.candidates.size()<2 or slot.candidates.size()>4:
 			return {}
 		var day_index:int=profile.day_ids.find(slot.day_id)
+		day_counts[slot.day_id]=int(day_counts.get(slot.day_id,0))+1
+		if day_counts[slot.day_id]>7:
+			return {}
 		for choice:Variant in slot.candidates:
-			if not Rules.keys(choice,["actor","item_id","price","side"]) or not Rules.identifier(choice.actor) or choice.actor=="player" or not Rules.identifier(choice.item_id) or choice.side not in ["offer","request"] or not Objects.money(choice.price,false) or (int(choice.price.VKC)==0 and int(choice.price.USD)==0) or (int(choice.price.VKC)>0 and int(choice.price.USD)>0) or seen_items.has(choice.item_id):
+			if not Rules.keys(choice,["actor","item_id","price","side"]) or not Rules.identifier(choice.actor) or choice.actor=="player" or not Rules.identifier(choice.item_id) or choice.side not in ["offer","request"] or not Objects.money(choice.price,false) or (int(choice.price.VKC)==0 and int(choice.price.USD)==0) or (int(choice.price.VKC)>0 and int(choice.price.USD)>0) or seen_items.has(str(slot.day_id)+":"+str(choice.item_id)):
 				return {}
-			seen_items[choice.item_id]=true
+			# Re-offers on later days are allowed, but a physical object may
+			# appear only once per day; actual possession is checked at admission.
+			seen_items[str(slot.day_id)+":"+str(choice.item_id)]=true
 			if not s.wallets.has(choice.actor) or not s.items.has(choice.item_id):
 				return {}
 			var persona:Dictionary=profile.npc_population.actors.get(choice.actor,{})

@@ -67,6 +67,19 @@ static func today(s: Dictionary) -> Array:
 static func eligible(s:Dictionary,id:String)->bool:
 	if not VisitorSlots.eligible(s,id) or not Service.eligible(s,id) or not Reaction.eligible(s,id) or not Regional.eligible(s,id) or not Npc.eligible(s,id) or not Market.eligible(s,id):
 		return false
+	# A repeatedly offered object must still physically belong to the seller
+	# at THIS opening, not merely at seed time. A prior paid sale makes the
+	# later appointment unavailable; a refusal leaves it eligible.
+	if s.visits.has(id):
+		var ordinary:Dictionary=s.visits[id]
+		if ordinary.get("scope",{}).get("kind")=="ordinary":
+			var offered:Dictionary=ordinary.get("prices",{})
+			if offered.size()!=1:
+				return false
+			var item_id:String=str(offered.keys()[0])
+			var good:Dictionary=s.items.get(item_id,{})
+			if good.is_empty() or good.get("owner_id")!=ordinary.seller or good.get("custodian_id")!=ordinary.seller or good.get("status")!="stock" or good.get("protected",true) or not str(good.get("reservation_id","")).is_empty():
+				return false
 	if s.calendar.profile.content_version not in ["demo7-integrated-1","demo7-integrated-2","demo7-integrated-3"]:
 		return true
 	# Finite authored demo alternatives require actual current possession.
