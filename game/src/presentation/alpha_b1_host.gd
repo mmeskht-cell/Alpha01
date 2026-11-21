@@ -79,6 +79,29 @@ func _actor_label(actor_id: String) -> String:
 	var key: String = "alpha.named." + actor_id
 	return _text(key) if _strings.has(key) else (_text("alpha.actor.regular") % actor_id)
 
+## NPC speech uses only accepted/declined price proposals that the actual
+## visitor heard, and settled outcomes. Private inspection readings stay private.
+func _b2_npc_line(view: Dictionary) -> String:
+	var context: Dictionary = view.get("npc_context", {})
+	if context.is_empty():
+		return ""
+	var offer: Dictionary = context.get("current_offer", {})
+	if not offer.is_empty():
+		var response_key: String = "b2.npc.offer." + str(offer.response)
+		return (_text(response_key) % [int(offer.amount), str(offer.currency), int(offer.disclosed_count)]) if _strings.has(response_key) else ""
+	var previous: Dictionary = context.get("prior", {})
+	if previous.is_empty():
+		return ""
+	var last: Dictionary = previous.get("offer", {})
+	if not last.is_empty():
+		var outcome_key: String = "b2.npc.previous." + ("traded" if previous.outcome == "traded" else str(last.response))
+		return (_text(outcome_key) % [int(last.amount), str(last.currency)]) if _strings.has(outcome_key) else ""
+	if previous.outcome == "traded":
+		return _text("b2.npc.previous.settled")
+	if previous.outcome == "commission_delivered":
+		return _text("b2.npc.previous.delivered")
+	return ""
+
 func _choose_evening_contact(actor_id: String) -> void:
 	if _blocked or _intro or session == null:
 		return
@@ -244,13 +267,23 @@ func refresh() -> void:
 		actor.text = _actor_label(str(row.actor_id))
 		var say: String = "alpha.say.enter" if v.phase == "CUSTOMER_ENTER" else ("alpha.say.exit" if v.phase == "CUSTOMER_EXIT" else row.purpose_key)
 		speech.text = _text(say)
-		# Show the actual authored request as speech without mutating the
-		# immutable seed/profile binding used by old B2 commission saves.
-		if b2_commission_mode and v.phase == "CUSTOMER_ACTIVE":
-			for entry: Dictionary in v.commissions.entries:
-				if entry.actor_id == row.actor_id and entry.can_accept:
-					speech.text = _text(str(entry.text_key))
-					break
+		if b2_mode and v.phase == "CUSTOMER_ACTIVE":
+			var public_reply: String = _b2_npc_line(v)
+			if not public_reply.is_empty():
+				speech.text = public_reply
+			# The current customer's explicit request takes precedence over an
+			# older conversation; neither path modifies the save-bound seed.
+			if b2_commission_mode:
+				for entry: Dictionary in v.commissions.entries:
+					if entry.actor_id == row.actor_id and entry.can_accept:
+						speech.text = _text(str(entry.text_key))
+						break
+		elif b2_mode and v.phase == "CUSTOMER_EXIT":
+			var completed: String = str(v.npc_context.get("current_outcome", ""))
+			if completed == "traded":
+				speech.text = _text("b2.npc.exit.traded")
+			elif completed == "commission_delivered":
+				speech.text = _text("b2.npc.exit.delivered")
 	var actions := VBoxContainer.new()
 	actions.name = "alpha_actions"
 	if b2_interactive_mode:
