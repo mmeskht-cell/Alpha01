@@ -78,7 +78,7 @@ func cmd(s:RefCounted,kind:String,id:String,p:Dictionary={})->Dictionary:
 
 func trade_payload(visit:String,item:String,seller:String,buyer:String,amount:int,inventory:String)->Dictionary:
 	return {"visit_id":visit,"item_id":item,"seller":seller,"buyer":buyer,"currency":"VKC",
-		"amount":amount,"inventory":inventory,"x":0,"y":0,"rotated":false}
+		"amount":amount,"inventory":inventory,"x":1 if item=="W002" else 0,"y":0,"rotated":false}
 
 func advance(s:RefCounted,day:int)->bool:
 	return cmd(s,"calendar_close","close_"+str(day)).get("ok",false) and cmd(s,"calendar_morning","open_"+str(day+1)).get("ok",false)
