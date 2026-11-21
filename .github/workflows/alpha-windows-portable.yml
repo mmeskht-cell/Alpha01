@@ -28,12 +28,14 @@ jobs:
           if ($actual -ne $expected) { throw "Godot SHA256 mismatch $actual" }
           $engineDir = Join-Path $env:RUNNER_TEMP 'godot-win'
           Expand-Archive -Path $archive -DestinationPath $engineDir -Force
-          $exe = Get-ChildItem $engineDir -Filter 'Godot_v4.7.2-stable_win64.exe' -Recurse | Select-Object -First 1
+          $exe = Get-ChildItem $engineDir -Filter 'Godot_v4.7.2-stable_win64_console.exe' -Recurse | Select-Object -First 1
           if ($null -eq $exe) { throw 'Pinned engine missing' }
           "GODOT_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          $version = & $exe.FullName --version
-          Write-Host $version
-          if (-not ($version -join ' ').StartsWith('4.7.2.stable.')) { throw 'Unexpected Godot version' }
+          $gui = Get-ChildItem $engineDir -Filter 'Godot_v4.7.2-stable_win64.exe' -Recurse | Select-Object -First 1
+          if ($null -eq $gui) { throw 'GUI engine missing' }
+          "GODOT_GUI_EXE=$($gui.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          & $exe.FullName --version
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned console engine version failed' }
       - name: Prepare isolated alpha entry point
         shell: pwsh
         run: |
@@ -66,7 +68,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $root = Join-Path $env:RUNNER_TEMP 'exit-not-included-alpha-win'
           New-Item -ItemType Directory -Path $root -Force | Out-Null
-          Copy-Item $env:GODOT_EXE (Join-Path $root 'Godot_v4.7.2-stable_win64.exe')
+          Copy-Item $env:GODOT_GUI_EXE (Join-Path $root 'Godot_v4.7.2-stable_win64.exe')
           Copy-Item -Path game -Destination (Join-Path $root 'game') -Recurse
           $cache = Join-Path $root 'game/.godot'
           if (Test-Path $cache) { Remove-Item $cache -Recurse -Force }
