@@ -48,6 +48,15 @@
     "b2.commission.decline": "의뢰 거절",
     "b2.commission.reserve": "실물 지정·검수·예약",
     "b2.commission.deliver": "약속한 고객에게 인도·정산",
-    "b2.commission.cancel": "의뢰 취소"
+    "b2.commission.cancel": "의뢰 취소",
+    "b2.npc.offer.accepted": "%d %s 제안에 동의합니다. 공개한 단서 %d건을 확인했습니다.",
+    "b2.npc.offer.declined": "%d %s에는 동의하기 어렵습니다. 공개된 단서 %d건을 확인했습니다.",
+    "b2.npc.previous.traded": "지난번 %d %s 제안에 합의했고 거래도 마쳤지요.",
+    "b2.npc.previous.declined": "지난번 %d %s 제안은 받아들이지 않았습니다.",
+    "b2.npc.previous.accepted": "지난번 %d %s에는 동의했지만 거래는 끝나지 않았지요.",
+    "b2.npc.previous.settled": "지난 방문에서 실제 거래를 마쳤습니다.",
+    "b2.npc.previous.delivered": "지난 의뢰의 물품 인도와 정산을 마쳤지요.",
+    "b2.npc.exit.traded": "거래가 끝났습니다. 다음에 다시 들르겠습니다.",
+    "b2.npc.exit.delivered": "약속한 물품을 받았습니다. 정산도 마쳤습니다."
   }
 }
