@@ -1,0 +1,97 @@
+name: Alpha Windows portable debug smoke
+on:
+  workflow_dispatch:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/alpha-windows-portable.yml'
+permissions:
+  contents: read
+jobs:
+  portable-debug:
+    runs-on: windows-2022
+    timeout-minutes: 25
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Download pinned Godot Windows runtime
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $url = 'https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_win64.exe.zip'
+          $archive = Join-Path $env:RUNNER_TEMP 'godot_4.7.2_windows.zip'
+          Invoke-WebRequest -Uri $url -OutFile $archive
+          $expected = '731980f9608d61333e5baf54a2ef17210acc7a538446c0cb9969f002aca1e953'
+          $actual = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $expected) { throw "Godot SHA256 mismatch $actual" }
+          $engineDir = Join-Path $env:RUNNER_TEMP 'godot-win'
+          Expand-Archive -Path $archive -DestinationPath $engineDir -Force
+          $exe = Get-ChildItem $engineDir -Filter 'Godot_v4.7.2-stable_win64.exe' -Recurse | Select-Object -First 1
+          if ($null -eq $exe) { throw 'Pinned engine missing' }
+          "GODOT_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          & $exe.FullName --version
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned engine version failed' }
+      - name: Prepare isolated alpha entry point
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python game/tools/prepare_runtime_assets.py
+          if ($LASTEXITCODE -ne 0) { throw 'Assets unavailable' }
+          python game/tools/localization.py
+          if ($LASTEXITCODE -ne 0) { throw 'Locale assets unavailable' }
+          $cfg = 'game/project.godot'
+          $before = [IO.File]::ReadAllText((Resolve-Path $cfg))
+          $source = 'run/main_scene="res://scenes/app/main_menu.tscn"'
+          $target = 'run/main_scene="res://scenes/app/alpha_playtest_menu.tscn"'
+          if (-not $before.Contains($source)) { throw 'Unexpected Godot main scene' }
+          $after = $before.Replace($source,$target)
+          [IO.File]::WriteAllText((Resolve-Path $cfg),$after,(New-Object System.Text.UTF8Encoding($false)))
+      - name: Windows actual Godot import and startup smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & $env:GODOT_EXE --headless --editor --path game --import 2>&1 | Tee-Object -FilePath win-import.log
+          if ($LASTEXITCODE -ne 0) { throw 'Windows alpha import failed' }
+          if (Select-String -Path win-import.log -Pattern 'SCRIPT ERROR:|^ERROR:|^FAIL:' -Quiet) { throw 'Windows alpha import diagnostics' }
+          & $env:GODOT_EXE --headless --path game --quit-after 6 2>&1 | Tee-Object -FilePath win-launch.log
+          if ($LASTEXITCODE -ne 0) { throw 'Windows alpha startup failed' }
+          if (Select-String -Path win-launch.log -Pattern 'SCRIPT ERROR:|^ERROR:|^FAIL:' -Quiet) { throw 'Windows alpha startup diagnostics' }
+          if (-not (Select-String -Path win-launch.log -Pattern 'ZT_MAIN_MENU_READY' -Quiet)) { throw 'Alpha startup proof missing' }
+      - name: Assemble source-backed portable developer build
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:RUNNER_TEMP 'exit-not-included-alpha-win'
+          New-Item -ItemType Directory -Path $root -Force | Out-Null
+          Copy-Item $env:GODOT_EXE (Join-Path $root 'Godot_v4.7.2-stable_win64.exe')
+          Copy-Item -Path game -Destination (Join-Path $root 'game') -Recurse
+          $cache = Join-Path $root 'game/.godot'
+          if (Test-Path $cache) { Remove-Item $cache -Recurse -Force }
+          $nl = [Environment]::NewLine
+          $cmd = '@echo off' + $nl + 'cd /d "%~dp0"' + $nl + '"%~dp0Godot_v4.7.2-stable_win64.exe" --path "%~dp0game"' + $nl
+          [IO.File]::WriteAllText((Join-Path $root 'Launch Alpha.cmd'),$cmd,[Text.Encoding]::ASCII)
+          $notes = @(
+            'EXIT NOT INCLUDED - SOURCE-BACKED INTERNAL WINDOWS ALPHA',
+            'Portable Godot editor-runtime developer build; NOT a released Windows export.',
+            'Launch with Launch Alpha.cmd. Saves remain in Godot user data.',
+            "Source commit: $env:GITHUB_SHA",
+            'CI smoke: pinned Godot 4.7.2 Windows import and alpha menu startup.',
+            'Not a human playtest, rendered pointer check, or physical PC certification.'
+          ) -join $nl
+          [IO.File]::WriteAllText((Join-Path $root 'README_DEBUG.txt'),$notes,[Text.Encoding]::ASCII)
+          Compress-Archive -Path (Join-Path $root '*') -DestinationPath (Join-Path $env:GITHUB_WORKSPACE 'Exit-Not-Included-Alpha-Win-Portable.zip') -Force
+          $zip = Get-Item (Join-Path $env:GITHUB_WORKSPACE 'Exit-Not-Included-Alpha-Win-Portable.zip')
+          Write-Host "ALPHA_WINDOWS_PORTABLE_OK bytes=$($zip.Length) sha=$env:GITHUB_SHA"
+      - name: Upload portable alpha and smoke evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: alpha-windows-portable
+          path: |
+            Exit-Not-Included-Alpha-Win-Portable.zip
+            win-import.log
+            win-launch.log
+          if-no-files-found: warn
+          retention-days: 3
