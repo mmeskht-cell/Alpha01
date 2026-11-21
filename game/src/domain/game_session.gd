@@ -1653,7 +1653,7 @@ func _history_valid(state: Dictionary) -> bool:
 	for e: Variant in state.object_events:
 		if not Rules.keys(e, ["event_id", "revision", "type", "item_ids", "basis", "expenses"]) or not Rules.identifier(e.event_id) or events.has(e.event_id) or e.type not in ["detach", "attach", "discard", "restore_item", "replace_component","clean_exterior"]:
 			return false
-		if not _ids_valid(state, e.item_ids) or not Objects.money(e.basis) or not Objects.money(e.expenses, false) or e.revision != _receipt_revision(state, e.event_id) or e.type != _receipt_type(state, e.event_id):
+		if not _ids_valid(state, e.item_ids) or not Objects.money(e.basis) or not Objects.money(e.expenses, false) or e.revision != _receipt_revision(state, e.event_id) or e.type != ("restore_item" if _receipt_type(state, e.event_id) == "alpha_service_repair" else _receipt_type(state, e.event_id)):
 			return false
 		events[e.event_id] = e
 		if e.type=="clean_exterior":
@@ -1685,7 +1685,7 @@ func _history_valid(state: Dictionary) -> bool:
 				if not ComponentHistory.valid_link(state, id, ComponentAppraisal.observation_keys()):
 					return false
 				continue
-			if kind in ["detach", "attach", "discard", "restore_item", "replace_component","clean_exterior"] and not events.has(id):
+			if kind in ["detach", "attach", "discard", "restore_item", "alpha_service_repair", "replace_component","clean_exterior"] and not events.has(id):
 				return false
 			if kind == "observe" and not state.knowledge.has(id):
 				return false
