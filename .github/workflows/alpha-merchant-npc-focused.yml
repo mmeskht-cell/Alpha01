@@ -34,10 +34,12 @@ jobs:
           engine=/tmp/godot-alpha/Godot_v4.7.2-stable_linux.x86_64
           "$engine" --headless --editor --path game --import 2>&1 | tee alpha-import.log
           if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:' alpha-import.log; then exit 1; fi
-          for test in calendar_merchant_contracts_test npc_bargaining_policy_test npc_generated_visits_test merchant_office_ui_test; do
+          for test in calendar_merchant_contracts_test npc_bargaining_policy_test npc_generated_visits_test; do
             "$engine" --headless --path game --script "res://tests/scenarios/$test.gd" 2>&1 | tee "$test.log"
             if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:' "$test.log"; then exit 1; fi
           done
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 45s xvfb-run -a -s '-screen 0 1280x720x24' "$engine" --path game --audio-driver Dummy --script res://tests/scenarios/merchant_office_ui_test.gd 2>&1 | tee merchant_office_ui_test.log
+          if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:' merchant_office_ui_test.log; then exit 1; fi
       - name: Preserve focused logs
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

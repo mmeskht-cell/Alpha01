@@ -80,8 +80,8 @@ func _initialize()->void:
 	office.configure(visit,tr,"en",0)
 	check(tap("office_pawn_accept_p1"),"active genuine pawn offer can be accepted")
 	check(not tap("office_order_cancel_o1"),"order actions blocked while visitor is active")
-	check(tap("office_fx_fx1"),"FX button remains visible but transaction authority rejects while visitor active")
-	if actions.size()==6:
+	check(not tap("office_fx_fx1"),"FX not offered while a customer visit is active")
+	if actions.size()==5:
 		check(actions[4].type=="merchant_pawn_accept" and actions[4].payload=={"contract_id":"p1"}
 			and actions[4].revision==43,"pawn visitor offer exact revision")
 	office.queue_free()

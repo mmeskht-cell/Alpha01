@@ -197,7 +197,7 @@ func _merchant_finance(parent:Control)->void:
 		for q:Dictionary in fx:
 			var line:String="%s %d → %s %d" % [str(q.give_currency),int(q.give_amount),str(q.receive_currency),int(q.receive_amount)]
 			_line(fx_panel,line)
-			if _view.phase=="shop" and not _view.get("locked",true):
+			if _view.phase=="shop" and not _view.get("locked",true) and str(_view.get("visits",{}).get("active","")).is_empty():
 				var qid:String=str(q.quote_id)
 				var revision:int=int(_view.revision)
 				_button(fx_panel,"office_fx_"+qid,word("견적 수락","Accept quote"),func()->void:
