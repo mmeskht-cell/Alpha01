@@ -413,7 +413,7 @@ func calendar_view(basic_visit:String="") -> Dictionary:
 	if _state.calendar.has("exchange_market"):
 		result["exchange_market"]=Finance.view(_state)
 	if _state.calendar.has("merchant_contracts"):
-		result["merchant_contracts"]=Merchant.view(_state)
+		result["merchant_contracts"]=Merchant.view(_state,_definitions)
 	if _state.calendar.has("npc_population"):
 		var persona:Dictionary=NpcPopulation.active_view(_state)
 		if not persona.is_empty():

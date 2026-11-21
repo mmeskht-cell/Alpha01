@@ -184,7 +184,16 @@ func _reflow_native_feedback()->void:
 	_feedback.visible=not compact and not _feedback.text.is_empty()
 
 func _office_available()->bool:
-	return not _intro and not _view.get("locked",true) and not _view.get("complete",false) and str(_view.get("visits",{}).get("active","")).is_empty()
+	if _intro or _view.get("locked",true) or _view.get("complete",false):
+		return false
+	var active:String=str(_view.get("visits",{}).get("active",""))
+	if active.is_empty():
+		return true
+	for id:String in _view.get("merchant_contracts",{}).get("pawns",{}):
+		var p:Dictionary=_view.merchant_contracts.pawns[id]
+		if p.status=="offered" and p.visit_id==active:
+			return true
+	return false
 
 func _toggle_office()->void:
 	if not _office_available() or get_viewport().gui_is_dragging():

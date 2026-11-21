@@ -182,6 +182,72 @@ func _contracts(parent:Control)->void:
 			_contract_action(actions,id,"calendar_pay_contract",_label("ui.copy.pay_contract_e37ce3dd"))
 			if c.get("can_extend",false):
 				_contract_action(actions,id,"calendar_extend_contract",_label("ui.copy.extend_7853d8ec"))
+	_merchant_finance(parent)
+
+## Shared office contract surface. All actions remain revision-bound commands
+## validated in GameSession; no GUI-created stock, money, or hidden price.
+func _merchant_finance(parent:Control)->void:
+	var fx:Array=_view.get("exchange_market",{}).get("quotes",[])
+	var merchant:Dictionary=_view.get("merchant_contracts",{})
+	if fx.is_empty() and merchant.is_empty():
+		return
+	if not fx.is_empty():
+		var fx_panel:=_paper(parent,true)
+		_line(fx_panel,word("환전 제안", "Currency exchange"))
+		for q:Dictionary in fx:
+			var line:String="%s %d → %s %d" % [str(q.give_currency),int(q.give_amount),str(q.receive_currency),int(q.receive_amount)]
+			_line(fx_panel,line)
+			if _view.phase=="shop" and not _view.get("locked",true):
+				var qid:String=str(q.quote_id)
+				var revision:int=int(_view.revision)
+				_button(fx_panel,"office_fx_"+qid,word("견적 수락","Accept quote"),func()->void:
+					action_requested.emit("calendar_exchange",{"quote_id":qid},revision))
+	var active:String=str(_view.get("visits",{}).get("active",""))
+	for id:String in merchant.get("pawns",{}):
+		var p:Dictionary=merchant.pawns[id]
+		var panel:=_paper(parent,true)
+		_line(panel,word("전당 계약 · ","Pawn agreement · ")+str(p.status))
+		_line(panel,word("대출 ","Loan ")+str(p.principal.VKC)+" VKC / "+
+			word("상환 ","Repayment ")+str(p.repayment.VKC)+" VKC")
+		_line(panel,word("기한 ","Due D")+str(p.due_day))
+		if _view.phase!="shop" or _view.get("locked",true):
+			continue
+		var revision:int=int(_view.revision)
+		var pawn_id:String=id
+		if p.status=="offered" and p.visit_id==active:
+			_button(panel,"office_pawn_accept_"+id,word("담보 인수·대출 실행","Accept collateral and lend"),func()->void:
+				action_requested.emit("merchant_pawn_accept",{"contract_id":pawn_id},revision))
+		elif p.get("repayment_offered",false) and active.is_empty():
+			_button(panel,"office_pawn_redeem_"+id,word("고객 상환 접수·담보 반환","Accept repayment and return collateral"),func()->void:
+				action_requested.emit("merchant_pawn_redeem",{"contract_id":pawn_id},revision))
+	for id:String in merchant.get("orders",{}):
+		var order:Dictionary=merchant.orders[id]
+		var panel:=_paper(parent,true)
+		_line(panel,word("물품 주문 · ","Item order · ")+str(order.status))
+		_line(panel,word("예치금 ","Escrow ")+str(order.price.VKC)+" VKC / "+
+			word("기한 D","Due D")+str(order.due_day))
+		if _view.phase!="shop" or _view.get("locked",true) or not active.is_empty():
+			continue
+		var revision:int=int(_view.revision)
+		var order_id:String=id
+		if order.status=="offered" and int(_view.day)==int(order.offer_day):
+			_button(panel,"office_order_accept_"+id,word("주문 수락·대금 예치","Accept funded order"),func()->void:
+				action_requested.emit("merchant_order_accept",{"contract_id":order_id},revision))
+		elif order.status=="accepted":
+			for option:Dictionary in order.get("delivery_options",[]):
+				var item_id:String=str(option.item_id)
+				var placement:Dictionary=option.placement.duplicate(true)
+				var caption:String=word("실물 납품","Deliver item")
+				for owned:Dictionary in _view.get("stock",[]):
+					if owned.id==item_id:
+						caption+=" · "+_label(str(owned.label))
+						break
+				_button(panel,"office_order_deliver_"+id+"_"+item_id,caption,func()->void:
+					action_requested.emit("merchant_order_deliver",{
+						"contract_id":order_id,"item_id":item_id,
+						"placement":placement.duplicate(true)},revision))
+			_button(panel,"office_order_cancel_"+id,word("주문 취소·대금 환급","Cancel and refund"),func()->void:
+				action_requested.emit("merchant_order_cancel",{"contract_id":order_id},revision))
 
 func _news(parent:Control)->void:
 	var terminal:=_paper(parent)

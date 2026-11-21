@@ -7,6 +7,7 @@ const Clock=preload("res://src/domain/business_clock.gd")
 const Objects=preload("res://src/domain/object_schema.gd")
 const Relations=preload("res://src/domain/object_relation_primitives.gd")
 const Items=preload("res://src/domain/item_primitives.gd")
+const Grid=preload("res://src/domain/grid_primitives.gd")
 const ACTIONS:Array=["merchant_pawn_accept","merchant_pawn_redeem",
 	"merchant_order_accept","merchant_order_deliver","merchant_order_cancel"]
 const VERSION:int=1
@@ -254,7 +255,7 @@ static func apply(s:Dictionary,defs:Dictionary,kind:String,p:Dictionary,action:S
 	return "merchant_command"
 
 ## Reconciliation view for shop/office, never expose future orders or wallets.
-static func view(s:Dictionary)->Dictionary:
+static func view(s:Dictionary,defs:Dictionary)->Dictionary:
 	var output:Dictionary={"pawns":{},"orders":{},"events":[]}
 	var day:int=Clock.day_index(int(s.game_minutes))
 	var c:Dictionary=s.calendar.merchant_contracts
@@ -263,7 +264,8 @@ static func view(s:Dictionary)->Dictionary:
 		if day<Clock.day_index(int(s.visits[t.visit_id].opens)):
 			continue
 		output.pawns[id]={"status":c.pawns[id].status,"customer":t.customer,
-			"item_id":t.item_id,"principal":t.principal.duplicate(true),
+			"item_id":t.item_id,"visit_id":t.visit_id,
+			"principal":t.principal.duplicate(true),
 			"repayment":t.repayment.duplicate(true),"repayment_day":t.repayment_day,
 			"repayment_offered":day==int(t.repayment_day) and c.pawns[id].status=="pledged",
 			"due_day":t.due_day}
@@ -273,6 +275,35 @@ static func view(s:Dictionary)->Dictionary:
 			continue
 		output.orders[id]={"status":c.orders[id].status,"customer":t.customer,
 			"def_id":t.def_id,"price":t.price.duplicate(true),
-			"due_day":t.due_day,"delivered_item":c.orders[id].item_id}
+			"offer_day":t.offer_day,"due_day":t.due_day,
+			"delivered_item":c.orders[id].item_id,"delivery_options":[]}
+		if c.orders[id].status!="accepted":
+			continue
+		var delivery_options:Array=[]
+		for inventory_id:String in s.inventories:
+			var dest:Dictionary=s.inventories[inventory_id]
+			if dest.owner_id!=t.customer or not dest.host_item.is_empty():
+				continue
+			var placed:Array=[]
+			for owned_id:String in s.items:
+				var present:Dictionary=s.items[owned_id]
+				if present.inventory!=inventory_id or not present.parent_id.is_empty():
+					continue
+				var occupied:Array=Objects.footprint(s,defs,owned_id)
+				placed.append({"item_id":owned_id,"x":present.x,"y":present.y,
+					"width":occupied[0],"height":occupied[1],"rotated":present.rotated})
+			for owned_id:String in s.items:
+				var item:Dictionary=s.items[owned_id]
+				if item.def_id!=t.def_id or not _good_family(s,defs,owned_id,"player"):
+					continue
+				var size:Array=Objects.footprint(s,defs,owned_id)
+				var fit:Dictionary=Grid.first_fit(dest.width,dest.height,placed,
+					{"item_id":owned_id,"width":size[0],"height":size[1],
+					"rotated":item.rotated})
+				if fit.ok:
+					delivery_options.append({"item_id":owned_id,"placement":{
+						"inventory":inventory_id,"x":fit.x,"y":fit.y,
+						"rotated":fit.rotated}})
+		output.orders[id].delivery_options=delivery_options
 	output.events=c.events.duplicate(true)
 	return output
