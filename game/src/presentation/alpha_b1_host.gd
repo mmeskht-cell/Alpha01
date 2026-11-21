@@ -22,6 +22,7 @@ var _intro: bool = true
 var _intro_page: int = 0
 var _blocked: bool = false
 var _message: String = ""
+var _contact_focus: String = "" # UI-only selection; never persisted or billed.
 
 func _ready() -> void:
 	# The UI asset pipeline prepares an exact hash-pinned OFL CJK font.
@@ -73,6 +74,61 @@ func _button(parent: VBoxContainer, name: String, title: String, callback: Calla
 	control.pressed.connect(callback)
 	parent.add_child(control)
 	return control
+
+func _actor_label(actor_id: String) -> String:
+	var key: String = "alpha.named." + actor_id
+	return _text(key) if _strings.has(key) else (_text("alpha.actor.regular") % actor_id)
+
+func _choose_evening_contact(actor_id: String) -> void:
+	if _blocked or _intro or session == null:
+		return
+	var view: Dictionary = Alpha.view(session.snapshot())
+	if view.phase != "EVENING_WORK":
+		return
+	for contact: Dictionary in view.contacts:
+		if contact.actor_id == actor_id and contact.callable:
+			_contact_focus = "" if _contact_focus == actor_id else actor_id
+			refresh()
+			return
+
+## Read-only conditions, sourced from an actual consensual contact. No
+## phantom salvage stock, advance, fund transfer or dispatch command.
+func _add_evening_contacts(actions: VBoxContainer, view: Dictionary) -> void:
+	var heading := Label.new()
+	heading.name = "alpha_contacts_heading"
+	heading.text = _text("alpha.contacts.heading") + " · " + str(view.contacts.size())
+	heading.add_theme_font_size_override("font_size", 22)
+	actions.add_child(heading)
+	if view.contacts.is_empty():
+		var empty := Label.new()
+		empty.name = "alpha_contacts"
+		empty.text = _text("alpha.contacts.empty")
+		actions.add_child(empty)
+		return
+	for contact: Dictionary in view.contacts:
+		var actor_id: String = str(contact.actor_id)
+		var status: String = _text("alpha.contacts.available" if contact.callable else "alpha.contacts.none")
+		var entry: String = _actor_label(actor_id) + " · " + (_text("alpha.contacts.acquired") % int(contact.acquired_day)) + " · " + status
+		var control: Button = _button(actions, "alpha_contact_" + actor_id, entry, func() -> void: _choose_evening_contact(actor_id))
+		control.disabled = not bool(contact.callable)
+		control.tooltip_text = _text("alpha.contacts.preview_hint")
+	if _contact_focus.is_empty():
+		var hint := Label.new()
+		hint.name = "alpha_contacts"
+		hint.text = _text("alpha.contacts.preview_hint")
+		actions.add_child(hint)
+		return
+	for contact: Dictionary in view.contacts:
+		if contact.actor_id == _contact_focus and contact.callable:
+			var panel := PanelContainer.new()
+			panel.name = "alpha_contact_preview"
+			actions.add_child(panel)
+			var detail := Label.new()
+			detail.name = "alpha_contact_preview_text"
+			detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			detail.text = (_text("alpha.contacts.preview_title") % _actor_label(_contact_focus)) + "\n" + _text("alpha.contacts.preview_conditions")
+			panel.add_child(detail)
+			return
 
 func intro_next() -> void:
 	if not _intro or _blocked:
@@ -147,6 +203,8 @@ func refresh() -> void:
 		_button(inner, "intro_skip", _text("alpha.intro.skip"), intro_skip)
 		return
 	var v: Dictionary = Alpha.view(session.snapshot())
+	if v.phase != "EVENING_WORK":
+		_contact_focus = ""
 	var top := Label.new()
 	top.name = "alpha_phase_label"
 	top.text = "DAY %d · %s · 남은 방문 %d" % [int(v.day), _text("alpha.phase." + str(v.phase)), int(v.remaining)]
@@ -173,7 +231,7 @@ func refresh() -> void:
 		actor.text = "크라벤스크 · 상점 카운터"
 		speech.text = _text("alpha.evening.note") if v.phase == "EVENING_WORK" else _text("alpha.b1.notice")
 	else:
-		actor.text = _text("alpha.named." + row.actor_id) if row.kind == "named" else (_text("alpha.actor.regular") % row.actor_id)
+		actor.text = _actor_label(str(row.actor_id))
 		var say: String = "alpha.say.enter" if v.phase == "CUSTOMER_ENTER" else ("alpha.say.exit" if v.phase == "CUSTOMER_EXIT" else row.purpose_key)
 		speech.text = _text(say)
 	var actions := VBoxContainer.new()
@@ -222,13 +280,7 @@ func refresh() -> void:
 			_add_contract_actions(actions, v)
 			if b2_commission_mode:
 				_add_b2_commission_actions(actions, v)
-			var contacts := Label.new()
-			contacts.name = "alpha_contacts"
-			var lines: Array[String] = []
-			for contact: Dictionary in v.contacts:
-				lines.append(str(contact.actor_id) + " · " + _text("alpha.contacts.available" if contact.callable else "alpha.contacts.none"))
-			contacts.text = _text("alpha.contacts.empty") if lines.is_empty() else "\n".join(lines)
-			actions.add_child(contacts)
+			_add_evening_contacts(actions, v)
 			_button(actions, "alpha_next_day", _text("alpha.button.evening"), func() -> void: _submit("alpha_next_day"))
 		"NEXT_DAY":
 			_button(actions, "alpha_prepare_day", _text("alpha.button.prepare"), func() -> void: _submit("alpha_prepare_day"))
