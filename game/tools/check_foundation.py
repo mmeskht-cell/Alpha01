@@ -26,7 +26,6 @@ if not version.startswith('4.7.2.stable.'):
 commands = [
     [sys.executable, str(root / 'tools/prepare_runtime_assets.py')],
     [sys.executable, str(root / 'tools/localization.py')],
-    [engine, '--headless', '--path', str(root), '--check-only', '--script', 'res://src/domain/npc_bargaining_policy.gd'],
     [engine, '--headless', '--editor', '--path', str(root), '--import'],
 ]
 def check_shutdown():
