@@ -17,12 +17,19 @@ const Npc=preload("res://src/domain/npc_continuity.gd")
 const Market=preload("res://src/domain/regional_market_flow.gd")
 const Population=preload("res://src/domain/npc_population.gd")
 const Finance=preload("res://src/domain/calendar_exchange_market.gd")
+const VisitorSlots=preload("res://src/domain/npc_visit_slots.gd")
 const ACTIONS: Array = ["calendar_close", "calendar_morning", "calendar_pay_overhead"]
 const COMMON: Array = ["trade", "deliver", "move", "observe", "restore_item", "attach", "detach", "discard", "replace_component","clean_exterior"]
 const OVERHEAD: int = 15
 const LIFECYCLE_VERSION: String = "calendar-lifecycle-1"
 
 static func profile_valid(p: Variant) -> bool:
+	if p is Dictionary and p.has("npc_visit_slots"):
+		if p.get("id")!="campaign_42" or not p.get("npc_visit_slots") is Dictionary or not p.has("visit_days"):
+			return false
+		var base:Dictionary=p.duplicate(true)
+		base.erase("npc_visit_slots")
+		return profile_valid(base)
 	if p is Dictionary and p.has("exchange_market"):
 		if p.get("id")!="campaign_42" or not p.get("exchange_market") is Dictionary or not p.has("visit_days"):
 			return false
@@ -167,6 +174,8 @@ static func seed(state: Dictionary, defs: Dictionary, profile: Dictionary) -> Di
 		if generated.is_empty():
 			return {}
 		result.calendar["npc_population"]=generated
+	if profile.has("npc_visit_slots") and not VisitorSlots.valid(result,profile):
+		return {}
 	if profile.has("exchange_market"):
 		var exchange:Dictionary=Finance.seed(result,profile)
 		if exchange.is_empty():
