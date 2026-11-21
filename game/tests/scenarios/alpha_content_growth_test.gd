@@ -35,6 +35,14 @@ func fixture()->Dictionary:
 	profile["contracts"]={}
 	profile["story_rules"]={"probe_after_sale":{"day":9,"source":"trade",
 		"source_id":"new_supplier_offer","outcome":"traded","text_key":"story.probe_after_sale"}}
+	profile["future_events"]={"version":1,
+		"events":{
+			"future_receipt":{"day":9,"visit_id":"new_supplier_offer",
+				"trade_key":"alpha.future.receipt","alternative_key":"alpha.future.refusal"},
+			"future_followup":{"day":10,"prior_event":"future_receipt","requires":"traded",
+				"trade_key":"alpha.future.followup","alternative_key":"alpha.future.nonfollowup"}},
+		"endings":{"future_exit_candidate":{"day":11,"event_id":"future_followup",
+			"requires":"traded","label_key":"alpha.future.ending"}}}
 	state.wallets["new_supplier"]=money(0)
 	state.inventories["new_supplier_grid"]={"owner_id":"new_supplier",
 		"width":4,"height":3,"host_item":""}
@@ -119,11 +127,44 @@ func _initialize()->void:
 	check(fact.get("cause_action")=="new_goods_paid"
 		and fact.get("text_key")=="story.probe_after_sale",
 		"future story hook records exact verified cause, not a fabricated narrative")
+	var a:Dictionary=purchased.calendar_view().future_events
+	var b:Dictionary=declined.calendar_view().future_events
+	check(a.events.size()==1 and b.events.size()==1 and a.ending_candidates.is_empty(),
+		"two neutral future events remain bounded by authored date")
+	check(a.events[0].outcome=="traded" and a.events[0].cause_action=="new_goods_paid"
+		and b.events[0].outcome=="declined" and b.events[0].cause_action=="new_goods_refused",
+		"verified receipt and explicit refusal select different first-event branches")
+	for pair:Array in [[purchased,"sale"],[declined,"refusal"]]:
+		var q:RefCounted=pair[0]
+		var key:String=pair[1]
+		check(command(q,"calendar_close","d9_close_"+key).get("ok",false)
+			and command(q,"calendar_morning","d10_morning_"+key).get("ok",false),
+			"second authored future event opens after "+key)
+	a=purchased.calendar_view().future_events
+	b=declined.calendar_view().future_events
+	check(a.events.size()==2 and b.events.size()==2
+		and a.events[1].outcome=="traded" and b.events[1].outcome=="alternative",
+		"conditional future event has a non-payment alternative without inventing money")
+	for pair:Array in [[purchased,"sale"],[declined,"refusal"]]:
+		var q:RefCounted=pair[0]
+		var key:String=pair[1]
+		check(command(q,"calendar_close","d10_close_"+key).get("ok",false)
+			and command(q,"calendar_morning","d11_morning_"+key).get("ok",false),
+			"candidate ending date reached after "+key)
+	a=purchased.calendar_view().future_events
+	b=declined.calendar_view().future_events
+	check(a.ending_candidates.size()==1 and a.ending_candidates[0].candidate_only
+		and b.ending_candidates.is_empty(),
+		"only verified paid branch can expose a candidate ending hook")
+	check(a==purchased.calendar_view().future_events,
+		"read-only future projection cannot double trigger the story")
 	var final_state:Dictionary=purchased.snapshot()
 	var cold:=Session.new()
 	check(cold.initialize(c.defs,c.state,false,false,c.profile)
 		and cold.restore(final_state) and cold.snapshot()==final_state,
 		"42-day profile save and D9 conditional fact survive cold replay")
+	check(cold.calendar_view().future_events==a,
+		"future events and ending hook survive exact cold replay")
 	var fake:Dictionary=final_state.duplicate(true)
 	fake.calendar.contracts.facts.probe_after_sale.cause_action="fabricated_action"
 	check(not cold.restore(fake) and cold.snapshot()==final_state,

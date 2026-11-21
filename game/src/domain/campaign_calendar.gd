@@ -21,12 +21,19 @@ const Merchant=preload("res://src/domain/calendar_merchant_contracts.gd")
 const Bargain=preload("res://src/domain/npc_bargaining_policy.gd")
 const VisitSource=preload("res://src/domain/npc_generated_visits.gd")
 const VisitorSlots=preload("res://src/domain/npc_visit_slots.gd")
+const Future=preload("res://src/domain/calendar_future_events.gd")
 const ACTIONS: Array = ["calendar_close", "calendar_morning", "calendar_pay_overhead"]
 const COMMON: Array = ["trade", "deliver", "move", "observe", "restore_item", "attach", "detach", "discard", "replace_component","clean_exterior"]
 const OVERHEAD: int = 15
 const LIFECYCLE_VERSION: String = "calendar-lifecycle-1"
 
 static func profile_valid(p: Variant) -> bool:
+	if p is Dictionary and p.has("future_events"):
+		if p.get("id")!="campaign_42" or not p.has("visit_days"):
+			return false
+		var base:Dictionary=p.duplicate(true)
+		base.erase("future_events")
+		return profile_valid(base)
 	if p is Dictionary and p.has("npc_generated_visits"):
 		if p.get("id")!="campaign_42" or not p.get("npc_generated_visits") is Dictionary or not p.has("visit_days"):
 			return false
@@ -217,6 +224,8 @@ static func seed(state: Dictionary, defs: Dictionary, profile: Dictionary) -> Di
 		if exchange.is_empty():
 			return {}
 		result.calendar["exchange_market"]=exchange
+	if profile.has("future_events") and not Future.valid(result,grown_profile):
+		return {}
 	if not CalendarLife.rules_valid(result,grown_profile):
 		return {}
 	return Rules.normalized(result)

@@ -4,6 +4,7 @@ const Rules = preload("res://src/domain/value_rules.gd")
 const CommandRoute = preload("res://src/domain/command_route.gd")
 const Lifecycle = preload("res://src/domain/campaign_lifecycle.gd")
 const Calendar = preload("res://src/domain/campaign_calendar.gd")
+const Future=preload("res://src/domain/calendar_future_events.gd")
 const CalendarLife = preload("res://src/domain/calendar_lifecycle.gd")
 const CalendarTracking = preload("res://src/domain/calendar_tracking.gd")
 const CalendarReaction = preload("res://src/domain/calendar_reaction.gd")
@@ -404,6 +405,8 @@ func calendar_view(basic_visit:String="") -> Dictionary:
 		result["services"] = Service.view(_state)
 	if _state.calendar.has("contracts"):
 		result["obligations"] = Contract.view(_state)
+	if _state.calendar.profile.has("future_events"):
+		result["future_events"]=Future.view(_state)
 	if _state.calendar.has("reaction"):
 		result["world_news"]=CalendarReaction.view(_state)
 	if _state.calendar.has("regional_world"):
