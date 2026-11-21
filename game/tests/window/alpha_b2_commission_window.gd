@@ -108,6 +108,10 @@ func run() -> void:
 	var preview := host.find_child("alpha_contact_preview_text",true,false) as Label
 	check(preview!=null and preview.text.contains("선금"),"actual consent unlocks read-only night order conditions")
 	check(host.session.snapshot()==before_contact,"night contact selection does not mutate session")
+	await frames()
+	var contact_scroll := host.find_child("alpha_card_scroll",true,false) as ScrollContainer
+	var contact_panel := host.find_child("alpha_contact_preview",true,false) as Control
+	check(contact_scroll!=null and contact_panel!=null and contact_scroll.get_global_rect().intersects(contact_panel.get_global_rect()),"selected contact preview actually visible after rebuilt scroll")
 	await shot("commission-evening-contact-1080p",Vector2i(1920,1080))
 	root.size=Vector2i(1280,720)
 	await shot("commission-evening-contact-720p",Vector2i(1280,720))
