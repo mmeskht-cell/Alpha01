@@ -75,7 +75,7 @@ static func _settled_flow(s:Dictionary,region:String,category:String,before_day:
 		var e:Dictionary=entries.get(id,{})
 		if e.is_empty() or e.region!=region or e.category!=category or Clock.day_index(int(row.get("game_minutes",0)))>=before_day:
 			continue
-		if e.item_id not in row.get("root_ids",[]) or Trace.trade_for_visit(s,id).get("event_id")!=row.get("event_id"):
+		if e.item_id not in row.get("root_ids",[]) or not Trace.verified_trade_row(s,row):
 			continue
 		# Ledger from/to are CASH direction (buyer -> seller), not goods.
 		# Verify both recorded parties against the signed visit before a
@@ -145,9 +145,13 @@ static func view(s:Dictionary)->Dictionary:
 	var entries:Dictionary=policy(s).get("entries",{})
 	for row:Dictionary in s.get("ledger",[]):
 		var id:String=str(row.get("visit_id",""))
-		if not entries.has(id) or Trace.trade_for_visit(s,id).get("event_id")!=row.get("event_id"):
+		if not entries.has(id) or not Trace.verified_trade_row(s,row):
 			continue
-		result.settled.append({"visit_id":id,"region":entries[id].region,"category":entries[id].category,"revision":row.revision})
+		var entry:Dictionary=entries[id]
+		var visit:Dictionary=s.visits.get(id,{})
+		if visit.is_empty() or entry.item_id not in row.get("root_ids",[]) or row.get("from")!=visit.buyer or row.get("to")!=visit.seller:
+			continue
+		result.settled.append({"visit_id":id,"region":entry.region,"category":entry.category,"revision":row.revision})
 	var active:String=str(s.get("calendar",{}).get("queue",{}).get("active",""))
 	if entries.has(active):
 		var e:Dictionary=entries[active]

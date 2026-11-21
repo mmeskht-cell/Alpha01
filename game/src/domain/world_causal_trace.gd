@@ -32,6 +32,11 @@ static func _traded(s: Dictionary, row: Dictionary) -> bool:
 	var command: Dictionary = s.calendar.commands[int(rev) - 1]
 	return command.payload.get("visit_id") == visit
 
+## O(1) receipt verification for callers that already possess a ledger row.
+## Avoid N^2 scans across long campaign ledgers in price and history views.
+static func verified_trade_row(s:Dictionary,row:Dictionary)->bool:
+	return _traded(s,row)
+
 ## A purchase/sale must actually appear in the paid player ledger, with a
 ## matching authoritative journal receipt. A pending/declined offer is not one.
 static func trade_for_visit(s: Dictionary, visit_id: String) -> Dictionary:
