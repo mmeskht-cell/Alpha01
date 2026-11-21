@@ -82,6 +82,14 @@ func run() -> void:
 		if not await click(key):
 			quit(1)
 			return
+	var work_area := host.find_child("alpha_work_area",true,false) as HBoxContainer
+	var scroller := host.find_child("alpha_card_scroll",true,false) as ScrollContainer
+	var board := host.find_child("alpha_shop_board",true,false) as PanelContainer
+	var cash := host.find_child("b2_board_cash",true,false) as Label
+	check(work_area!=null and scroller!=null and board!=null and cash!=null, "one split counter presents actions and real ledger")
+	if scroller!=null and board!=null:
+		check(scroller.get_global_rect().end.x < board.get_global_rect().position.x and board.get_global_rect().end.x <= 1280.0,"720p split work surface fits viewport without overlapping buttons")
+	check(cash!=null and cash.text.contains("180 VKC"),"ledger displays actual starting cash")
 	await capture("b2-cards-inspection-720p",Vector2i(1280,720))
 	if not await click("b2_inspect_wear_detail") or not await click("b2_card_wear_detail") or not await offer(95):
 		quit(1)
@@ -89,12 +97,16 @@ func run() -> void:
 	check(host.session.alpha_view().appraisal.accepted.get("amount",0) == 95, "real click accepted supported purchase price")
 	var negotiated_speech := host.find_child("alpha_speech",true,false) as Label
 	check(negotiated_speech != null and negotiated_speech.text.contains("95 VKC") and negotiated_speech.text.contains("1건"), "same customer speaks price and only one disclosed fact after real mouse offer")
+	var evidence := host.find_child("b2_board_evidence",true,false) as Label
+	check(evidence!=null and evidence.text.contains("공개 선택 1건"),"read-only side notebook shows only one explicitly disclosed card")
 	await capture("b2-cards-agreement-720p",Vector2i(1280,720))
 	for key: String in ["b2_trade","alpha_ack_exit","b2_display_R001","alpha_next_customer","alpha_ack_entry"]:
 		if not await click(key):
 			quit(1)
 			return
 	check(host.session.snapshot().items.R001.inventory == "storefront_grid","shelf contains actual item")
+	var stocked := host.find_child("b2_board_stock",true,false) as Label
+	check(stocked!=null and stocked.text.contains("진열 1"),"right-side notebook follows actual physical shelf state")
 	root.size = Vector2i(1920,1080)
 	await frames()
 	await capture("b2-cards-buyer-1080p",Vector2i(1920,1080))
@@ -102,6 +114,8 @@ func run() -> void:
 		quit(1)
 		return
 	check(host.session.snapshot().wallets.player.VKC == 260 and host.session.snapshot().ledger.size() == 2,"full two-sided economic loop from real mouse clicks")
+	var sale_cash := host.find_child("b2_board_cash",true,false) as Label
+	check(sale_cash!=null and sale_cash.text.contains("260 VKC"),"1080p side notebook reflects settled revenue, not a guessed offer")
 	await capture("b2-cards-sale-1080p",Vector2i(1920,1080))
 	var traded_speech := host.find_child("alpha_speech",true,false) as Label
 	check(traded_speech != null and traded_speech.text.contains("거래가 끝났습니다"), "customer receives settled-exit dialogue only after actual wallet and stock transfer")
