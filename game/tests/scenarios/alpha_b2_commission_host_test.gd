@@ -66,7 +66,13 @@ func run() -> void:
 	check(named.actor_id == "marcus" and named.kind == "named", "named visitor uses the same finite counter after regular G03")
 	var named_label := host.find_child("alpha_actor",true,false) as Label
 	var named_speech := host.find_child("alpha_speech",true,false) as Label
-	check(named_label != null and named_label.text.contains("마르쿠스") and named_speech != null and not named_speech.text.contains("공구"),"named dialogue cannot inherit G03 request or hidden evidence")
+	check(named_label != null and named_label.text.contains("마르쿠스") and named_speech != null and named_speech.text.contains("300 VKC") and named_speech.text.contains("D4") and not named_speech.text.contains("공구"),"named supplier explains actual contract while excluding G03 request")
+	var board := host.find_child("alpha_shop_board",true,false) as PanelContainer
+	var board_cash := host.find_child("b2_board_cash",true,false) as Label
+	check(board!=null and board_cash!=null and board_cash.text.contains("180 VKC"),"named and regular actors share authoritative cash notebook")
+	var prior_snapshot: Dictionary = host.session.snapshot()
+	host.refresh()
+	check(host.session.snapshot()==prior_snapshot,"view-only counter rebuild never alters GameSession")
 	check(host.session.alpha_view().npc_context.prior.is_empty(),"named character has no invented prior knowledge")
 	check(host.find_child("alpha_contract_rad1_first",true,false) != null,"named supplier's own contract stays in original counter")
 	check(host.find_child("b2_commission_status_tool_for_g03",true,false) == null,"G03 private request is not displayed on Marcus counter")
@@ -102,6 +108,8 @@ func run() -> void:
 	check(host.session.snapshot().items.TL04.owner_id=="player","visible trade acquired actual tool")
 	check(press("b2_commission_reserve_TL04"),"counter-independent single-item inventory assignment")
 	check(host.session.snapshot().items.TL04.reservation_id=="tool_for_g03","reservation locks physical stock")
+	var reserved_book := host.find_child("b2_board_stock",true,false) as Label
+	check(reserved_book!=null and reserved_book.text.contains("예약 1"),"physical item reservation is reflected on stock notebook")
 	if not enter() or not exit_customer() or not enter():
 		quit(1)
 		return
