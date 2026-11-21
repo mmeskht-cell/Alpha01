@@ -67,6 +67,8 @@ func run() -> void:
 	var named_label := host.find_child("alpha_actor",true,false) as Label
 	var named_speech := host.find_child("alpha_speech",true,false) as Label
 	check(named_label != null and named_label.text.contains("마르쿠스") and named_speech != null and named_speech.text.contains("300 VKC") and named_speech.text.contains("D4") and not named_speech.text.contains("공구"),"named supplier explains actual contract while excluding G03 request")
+	var named_contract := host.find_child("alpha_contract_rad1_first",true,false) as Label
+	check(named_contract != null and not named_contract.text.contains("rad1_first"),"player-facing named supplier terms hide internal contract ID")
 	var board := host.find_child("alpha_shop_board",true,false) as PanelContainer
 	var board_cash := host.find_child("b2_board_cash",true,false) as Label
 	check(board!=null and board_cash!=null and board_cash.text.contains("180 VKC"),"named and regular actors share authoritative cash notebook")
@@ -84,6 +86,8 @@ func run() -> void:
 	check(press("alpha_contact_G01"),"consented night contact is selectable")
 	var preview := host.find_child("alpha_contact_preview_text",true,false) as Label
 	check(preview != null and preview.text.contains("선금") and preview.text.contains("지원하지"),"read-only conditions disclose missing real advance/order")
+	var dossier := host.find_child("alpha_shop_board",true,false) as PanelContainer
+	check(dossier != null and preview != null and dossier.is_ancestor_of(preview),"evening selected contact uses persistent right-side dossier, not scrolled behind buttons")
 	check(host.session.snapshot()==snapshot_before_preview,"preview never alters authoritative B2 commission state")
 	if not press("alpha_next_day") or not press("alpha_prepare_day"):
 		quit(1)
