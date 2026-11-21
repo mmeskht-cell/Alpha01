@@ -94,6 +94,18 @@ func run() -> void:
 		await finish()
 		return
 	check(host.session.snapshot().alpha_shop.contacts.has("G01"), "consented contact saved in evening")
+	var pre_preview: Dictionary = host.session.snapshot()
+	var contact_button := host.find_child("alpha_contact_G01", true, false) as Button
+	check(contact_button != null and not contact_button.disabled, "consented contact offered in evening only")
+	if contact_button != null:
+		contact_button.pressed.emit()
+		await frames()
+		var preview := host.find_child("alpha_contact_preview_text", true, false) as Label
+		check(preview != null and preview.text.contains("선금") and preview.text.contains("지원하지"), "contact previews unmet order terms without fake dispatch")
+		check(host.session.snapshot() == pre_preview, "contact preview does not touch money, ledger, items or save")
+	root.size = Vector2i(1280, 720)
+	await capture("alpha-b1-evening-contact-720p", Vector2i(1280, 720))
+	root.size = Vector2i(1920, 1080)
 	await capture("alpha-b1-evening-1080p", Vector2i(1920, 1080))
 	if not await click("alpha_next_day", "NEXT_DAY") or not await click("alpha_prepare_day", "DAY_PREP"):
 		await finish()
