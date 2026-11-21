@@ -2,6 +2,7 @@ extends SceneTree
 ## Real pointer/checkpoint for one same-counter zero-deposit commission offer.
 ## Does not replace headless multi-day ownership and settlement tests.
 const Scene = preload("res://scenes/app/alpha_b2_commission.tscn")
+const NamedScene = preload("res://scenes/app/alpha_b2_named_commission.tscn")
 var host: Control
 var path: String
 var checks: int=0
@@ -142,5 +143,74 @@ func run() -> void:
 	await shot("commission-evening-contact-720p",Vector2i(1280,720))
 	host.queue_free()
 	await frames()
+	if not await run_named_counter():
+		quit(1)
+		return
 	print("ALPHA_B2_COMMISSION_WINDOW: ",checks," checks, ",failures," failures")
 	quit(0 if failures==0 else 1)
+
+## Separate named parity profile. Uses exactly the same scene script and
+## mouse-controlled offer, physical procurement, reservation and handover.
+func run_named_counter() -> bool:
+	root.size = Vector2i(1280,720)
+	host = NamedScene.instantiate()
+	host.save_directory_override = "user://zt_rebuild/b2_named_window_" + str(Time.get_ticks_usec())
+	root.add_child(host)
+	await frames()
+	if not check(host.session != null and not host._blocked and host._slot() == "alpha_b2_named_commission_parity_v1", "isolated named scene, distinct save slot"):
+		return false
+	if not await click("intro_skip") or not await click("alpha_open"):
+		return false
+	for actor: String in ["G01","G02","G03","marcus","ian"]:
+		if not await click("alpha_next_customer") or not await click("alpha_ack_entry"):
+			return false
+		var view: Dictionary = host.session.alpha_view()
+		check(str(view.active.actor_id) == actor,"actual named parity D1 visitor " + actor)
+		if actor == "ian":
+			var speech := host.find_child("alpha_speech",true,false) as Label
+			var slip := host.find_child("b2_commission_status_hygiene_for_ian",true,false) as Label
+			check(view.active.kind == "named" and speech != null and speech.text.contains("위생 물자") and slip != null and slip.text.contains("D5"),"Ian issues actual named incoming order, not RAD-1 replacement")
+			check(host.find_child("b2_commission_status_tool_for_g03",true,false)==null,"Ian cannot see regular G03 request slip")
+			await shot("named-ian-request-720p",Vector2i(1280,720))
+			if not await click("b2_commission_accept"):
+				return false
+			check(host.session.snapshot().wallets.player.VKC == 180 and host.session.snapshot().alpha_shop.commissions.entries.hygiene_for_ian.status == "accepted","named mouse acceptance does not grant advance")
+		if not await click("alpha_finish_customer") or not await click("alpha_ack_exit"):
+			return false
+	if not await click("alpha_close") or not await click("alpha_settle"):
+		return false
+	for d: int in [2,3,4]:
+		for action: String in ["alpha_next_day","alpha_prepare_day","alpha_open","alpha_close","alpha_settle"]:
+			if not await click(action):
+				return false
+	for action: String in ["alpha_next_day","alpha_prepare_day","alpha_open","alpha_next_customer","alpha_ack_entry"]:
+		if not await click(action):
+			return false
+	check(host.session.alpha_view().active.actor_id == "G05","D5 source seller is existing G05, not fabricated stock")
+	var price := host.find_child("b2_price_input",true,false) as LineEdit
+	if not check(price != null,"D5 existing general appraisal-price input"):
+		return false
+	price.text = "60"
+	for action: String in ["b2_offer","b2_trade","alpha_ack_exit"]:
+		if not await click(action):
+			return false
+	check(host.session.snapshot().wallets.player.VKC==120 and host.session.snapshot().items.HY05.owner_id=="player","named job sources HY05 using real 60 VKC purchase")
+	if not await click("b2_commission_reserve_HY05"):
+		return false
+	check(host.session.snapshot().items.HY05.reservation_id=="hygiene_for_ian","real physical item reserved for named actor")
+	if not await click("alpha_next_customer") or not await click("alpha_ack_entry"):
+		return false
+	var ready: Dictionary = host.session.alpha_view()
+	check(ready.active.actor_id == "ian" and ready.active.kind=="named","actual Ian D5 visit has named category")
+	check(host.find_child("b2_commission_deliver",true,false)!=null,"same delivery action as regular G03 appears for named Ian")
+	await shot("named-ian-ready-720p",Vector2i(1280,720))
+	if not await click("b2_commission_deliver"):
+		return false
+	var state: Dictionary=host.session.snapshot()
+	check(state.items.HY05.owner_id=="ian" and state.items.HY05.reservation_id.is_empty() and state.items.HY05.basis.VKC==60, "mouse delivered same HY05 with preserved original cost basis")
+	check(state.wallets.player.VKC==210 and state.wallets.ian.VKC==25 and state.ledger.size()==2 and state.alpha_shop.commissions.settlements.size()==1, "named real customer funds and one settlement, no G03 ghost earnings")
+	root.size=Vector2i(1920,1080)
+	await shot("named-ian-settled-1080p",Vector2i(1920,1080))
+	host.queue_free()
+	await frames()
+	return true
