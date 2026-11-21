@@ -55,6 +55,7 @@ func _initialize() -> void:
 	check(go(s,"alpha_inspect",{"slot":"wear_detail"}), "original provenance-bound wear observation")
 	var view: Dictionary = s.alpha_view().appraisal
 	check(view.cards.size() == 1 and view.cards[0].value == "43" and not view.cards[0].selected, "private fact visible only to player")
+	check(typeof(s.snapshot().alpha_shop.appraisal.visits.visit_g01.observed.wear_detail.value) == TYPE_INT, "specimen numeric evidence normalized before saving")
 	check(deny(s,"alpha_inspect",{"slot":"wear_detail"}) and deny(s,"alpha_card_toggle",{"slot":"material_detail","selected":true}), "duplicate observation and forged disclosure rejected")
 	check(go(s,"alpha_price_offer",{"amount":95}), "unsubstantiated low offer may be made")
 	var rejected: Dictionary = s.snapshot()
@@ -71,7 +72,10 @@ func _initialize() -> void:
 	var store := Repo.new("user://zt_rebuild/b2_cards_test_"+str(Time.get_ticks_usec()))
 	check(store.save_session(s,"cards").ok, "cold-save accepted price before actual transfer")
 	var cold: RefCounted = fresh()
-	check(cold != null and store.load_session(cold,"cards").ok and cold.snapshot() == s.snapshot(), "full seed replay of undisclosed and disclosed cards")
+	var first_load: Dictionary = store.load_session(cold,"cards") if cold != null else {}
+	if not first_load.get("ok",false) or (cold != null and cold.snapshot() != s.snapshot()):
+		printerr("B2_FIRST_COLD_DIAGNOSTIC result=",first_load," exact_equal=",cold != null and cold.snapshot() == s.snapshot())
+	check(cold != null and first_load.get("ok",false) and cold.snapshot() == s.snapshot(), "full seed replay of undisclosed and disclosed cards")
 	var tamper: Dictionary = s.snapshot()
 	tamper.alpha_shop.appraisal.visits.visit_g01.offers[1].amount = 1
 	check(not s.restore(tamper), "tampered offer and receipt replay rejected")
@@ -95,7 +99,10 @@ func _initialize() -> void:
 	check(sold.ledger[0].amounts.VKC == 95 and sold.ledger[1].amounts.VKC == 175, "ledger records exact different negotiated amounts")
 	check(store.save_session(s,"cards").ok, "save full cross-visitor negotiation history")
 	var reopened: RefCounted = fresh()
-	check(reopened != null and store.load_session(reopened,"cards").ok and reopened.snapshot() == sold, "cold restore under archive and ownership changes")
+	var second_load: Dictionary = store.load_session(reopened,"cards") if reopened != null else {}
+	if not second_load.get("ok",false) or (reopened != null and reopened.snapshot() != sold):
+		printerr("B2_SECOND_COLD_DIAGNOSTIC result=",second_load," exact_equal=",reopened != null and reopened.snapshot() == sold)
+	check(reopened != null and second_load.get("ok",false) and reopened.snapshot() == sold, "cold restore under archive and ownership changes")
 	check(deny(s,"alpha_price_offer",{"amount":1}) and deny(s,"alpha_trade",trade_payload("visit_g02_buy","player","G02",175,"G02_grid",5,4)), "completed visit cannot renegotiate or resell")
 	check(go(s,"alpha_ack_exit") and go(s,"alpha_next_customer") and go(s,"alpha_ack_entry"), "next D1 customer uses same counter")
 	check(go(s,"alpha_finish_customer") and go(s,"alpha_ack_exit"),"no physical radio stock for wholesale, safe exit")

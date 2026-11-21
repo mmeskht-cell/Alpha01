@@ -90,7 +90,7 @@ static func _reading(state: Dictionary, item_id: String, slot: String) -> Dictio
 			continue
 		for tool: Dictionary in document.profiles[item.def_id].get("tools", []):
 			if tool.id == slot:
-				return {"slot":slot,"value":specimen.readings[slot],"kind":"fact","version":item.field_versions.duplicate(true)}
+				return {"slot":slot,"value":Rules.normalized(specimen.readings[slot]),"kind":"fact","version":item.field_versions.duplicate(true)}
 	return {}
 
 static func _row(state: Dictionary, context: Dictionary) -> Dictionary:

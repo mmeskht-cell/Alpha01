@@ -235,12 +235,16 @@ func _add_b2_display_action(actions: VBoxContainer, v: Dictionary) -> void:
 	var stock: Dictionary = session.snapshot()
 	var label := Label.new()
 	label.name = "alpha_b2_shelf"
-	label.text = _text("b2.shelf") + ": " + ", ".join(PackedStringArray(v.displayed_items))
+	var displayed_names: PackedStringArray = []
+	for displayed_id: String in v.displayed_items:
+		if stock.items.has(displayed_id):
+			displayed_names.append(_text("b2.item." + str(stock.items[displayed_id].def_id)))
+	label.text = _text("b2.shelf") + ": " + ", ".join(displayed_names)
 	actions.add_child(label)
 	for item_id: String in stock.items:
 		var item: Dictionary = stock.items[item_id]
 		if item.owner_id == "player" and item.custodian_id == "player" and item.inventory == "player_stock" and item.status == "stock" and not item.protected and item.reservation_id.is_empty() and item.parent_id.is_empty():
-			_button(actions, "b2_display_" + item_id, _text("b2.display") + " · " + item_id,
+			_button(actions, "b2_display_" + item_id, _text("b2.display") + " · " + _text("b2.item." + str(item.def_id)),
 				func() -> void: _submit("alpha_display", {"item_id": item_id, "x": 0, "y": 0, "rotated": false}))
 			break
 

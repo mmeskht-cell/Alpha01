@@ -29,6 +29,10 @@
     "b2.offer.submit": "선택한 카드와 가격 제안",
     "b2.offer.accepted": "상대가 제안에 동의했습니다.",
     "b2.offer.declined": "상대가 제안에 동의하지 않았습니다.",
-    "b2.trade.confirm": "합의한 가격으로 거래 확정"
+    "b2.trade.confirm": "합의한 가격으로 거래 확정",
+    "alpha.heading": "EXIT NOT INCLUDED · 감정·흥정 B2 시험",
+    "alpha.b1.notice": "실제 재고와 외부 매대를 살펴보고 다음 손님을 맞이합니다.",
+    "b2.item.demo_hygiene": "위생용품",
+    "b2.item.fictional_gear": "보호 장비"
   }
 }
