@@ -58,6 +58,15 @@ func run() -> void:
 	check((host.find_child("alpha_speech",true,false) as Label).text.contains("공구"),"G03 request is spoken in same dialogue bubble")
 	check(press("b2_commission_accept"),"customer request accepted by UI")
 	check(host.session.snapshot().wallets.player.VKC==180 and host.session.alpha_view().commissions.entries[0].status=="accepted","no advance paid or fake wallet")
+	if not exit_customer() or not enter():
+		quit(1)
+		return
+	var named: Dictionary = host.session.alpha_view().active
+	check(named.actor_id == "marcus" and named.kind == "named", "named visitor uses the same finite counter after regular G03")
+	var named_label := host.find_child("alpha_actor",true,false) as Label
+	var named_speech := host.find_child("alpha_speech",true,false) as Label
+	check(named_label != null and named_label.text.contains("마르쿠스") and named_speech != null and not named_speech.text.contains("공구"),"named dialogue cannot inherit G03 request or hidden evidence")
+	check(host.session.alpha_view().npc_context.prior.is_empty(),"named character has no invented prior knowledge")
 	if not exit_customer() or not press("alpha_close") or not press("alpha_settle"):
 		quit(1)
 		return
