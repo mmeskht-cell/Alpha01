@@ -14,12 +14,19 @@ const Reaction = preload("res://src/domain/calendar_reaction.gd")
 const Retention=preload("res://src/domain/appraisal_history_retention.gd")
 const Regional=preload("res://src/domain/regional_world_state.gd")
 const Npc=preload("res://src/domain/npc_continuity.gd")
+const Market=preload("res://src/domain/regional_market_flow.gd")
 const ACTIONS: Array = ["calendar_close", "calendar_morning", "calendar_pay_overhead"]
 const COMMON: Array = ["trade", "deliver", "move", "observe", "restore_item", "attach", "detach", "discard", "replace_component","clean_exterior"]
 const OVERHEAD: int = 15
 const LIFECYCLE_VERSION: String = "calendar-lifecycle-1"
 
 static func profile_valid(p: Variant) -> bool:
+	if p is Dictionary and p.has("market_flow"):
+		if p.get("id")!="campaign_42" or not p.get("market_flow") is Dictionary or not p.has("regional_world") or not p.has("visit_days"):
+			return false
+		var base:Dictionary=p.duplicate(true)
+		base.erase("market_flow")
+		return profile_valid(base)
 	if p is Dictionary and p.has("npc_continuity"):
 		if not p.npc_continuity is Dictionary or not p.has("visit_days"):
 			return false
@@ -139,6 +146,8 @@ static func seed(state: Dictionary, defs: Dictionary, profile: Dictionary) -> Di
 		if region_seed.is_empty():
 			return {}
 		result.calendar["regional_world"]=region_seed
+	if profile.has("market_flow") and not Market.seed_valid(result,profile):
+		return {}
 	if not CalendarLife.rules_valid(result,profile):
 		return {}
 	return Rules.normalized(result)
