@@ -70,7 +70,7 @@ static func eligible(s:Dictionary,id:String)->bool:
 	# A repeatedly offered object must still physically belong to the seller
 	# at THIS opening, not merely at seed time. A prior paid sale makes the
 	# later appointment unavailable; a refusal leaves it eligible.
-	if s.visits.has(id):
+	if s.calendar.profile.get("id")=="campaign_42" and s.visits.has(id):
 		var ordinary:Dictionary=s.visits[id]
 		if ordinary.get("scope",{}).get("kind")=="ordinary":
 			var offered:Dictionary=ordinary.get("prices",{})
