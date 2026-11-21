@@ -61,6 +61,6 @@
     "alpha.contacts.acquired": "D%d 교환",
     "alpha.contacts.preview_hint": "연락처를 선택해 회수 의뢰의 조건을 확인하세요.",
     "alpha.contacts.preview_title": "%s · 회수 의뢰 조건",
-    "alpha.contacts.preview_conditions": "카운터에서 상호 동의해 연락처 교환 · 확인\\n발주 가능 시간: 저녁 작업 · 확인\\n상대 연락 상태: 이용 가능 · 확인\\n품목·지역·선금·상대 수락: 아직 미설정\\n지금은 미리보기만 제공하며 실제 발주나 자금 이동은 지원하지 않습니다."
+    "alpha.contacts.preview_conditions": "카운터에서 상호 동의해 연락처 교환 · 확인\n발주 가능 시간: 저녁 작업 · 확인\n상대 연락 상태: 이용 가능 · 확인\n품목·지역·선금·상대 수락: 아직 미설정\n지금은 미리보기만 제공하며 실제 발주나 자금 이동은 지원하지 않습니다."
   }
 }
