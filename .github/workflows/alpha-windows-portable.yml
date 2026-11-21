@@ -5,6 +5,11 @@ on:
     branches: [development]
     paths:
       - '.github/workflows/alpha-windows-portable.yml'
+      - 'game/src/application/campaign42_alpha_runtime.gd'
+      - 'game/src/content/alpha42_mechanics_seed.gd'
+      - 'game/scenes/app/alpha42_mechanics_menu.tscn'
+      - 'game/scenes/app/alpha_hold_market_menu.tscn'
+      - 'game/src/presentation/main_menu.gd'
 permissions:
   contents: read
 jobs:
@@ -62,6 +67,15 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Windows alpha startup failed' }
           if (Select-String -Path win-launch.log -Pattern 'SCRIPT ERROR:|^ERROR:|^FAIL:' -Quiet) { throw 'Windows alpha startup diagnostics' }
           if (-not (Select-String -Path win-launch.log -Pattern 'ZT_MAIN_MENU_READY' -Quiet)) { throw 'Alpha startup proof missing' }
+          foreach ($scene in @('alpha42_mechanics_menu','alpha_hold_market_menu')) {
+            $log = "win-$scene.log"
+            & $env:GODOT_EXE --headless --path game "res://scenes/app/$scene.tscn" --quit-after 6 2>&1 | Tee-Object -FilePath $log
+            if ($LASTEXITCODE -ne 0) { throw "Windows $scene startup failed" }
+            if (Select-String -Path $log -Pattern 'SCRIPT ERROR:|^ERROR:|^FAIL:' -Quiet) { throw "Windows $scene startup diagnostics" }
+            if (-not (Select-String -Path $log -Pattern 'ZT_MAIN_MENU_READY' -Quiet)) { throw "Windows $scene menu not ready" }
+            if (-not (Select-String -Path $log -Pattern 'ZT_SPATIAL_COUNTER_READY' -Quiet)) { throw "Windows $scene gameplay host not ready" }
+          }
+
       - name: Assemble source-backed portable developer build
         shell: pwsh
         run: |
@@ -84,7 +98,7 @@ jobs:
             'Portable Godot editor-runtime developer build; NOT a released Windows export.',
             'Launch with Launch Alpha.cmd. Saves remain in Godot user data.',
             "Source commit: $env:GITHUB_SHA",
-            'CI smoke: pinned Godot 4.7.2 Windows import and alpha menu startup.',
+            'CI smoke: pinned Godot 4.7.2 Windows import plus alpha menu, 42-day menu, holding-market menu.',
             'Not a human playtest, rendered pointer check, or physical PC certification.'
           ) -join $nl
           [IO.File]::WriteAllText((Join-Path $root 'README_DEBUG.txt'),$notes,[Text.Encoding]::ASCII)
@@ -100,5 +114,7 @@ jobs:
             Exit-Not-Included-Alpha-Win-Portable.zip
             win-import.log
             win-launch.log
+            win-alpha42_mechanics_menu.log
+            win-alpha_hold_market_menu.log
           if-no-files-found: warn
           retention-days: 3
