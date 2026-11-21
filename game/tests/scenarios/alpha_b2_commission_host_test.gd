@@ -118,6 +118,8 @@ func run() -> void:
 		quit(1)
 		return
 	check(host.session.alpha_view().active.actor_id=="G03","authored pickup is same G03, not new NPC")
+	var pickup_line := host.find_child("alpha_speech",true,false) as Label
+	check(pickup_line != null and pickup_line.text.contains("공구") and pickup_line.text.contains("준비됐나요"),"regular G03 also receives item-specific pickup dialogue, not generic visitor speech")
 	check(press("b2_commission_deliver"),"pickup at same counter, no separate quest panel")
 	check(host.session.snapshot().wallets.player.VKC==210 and host.session.snapshot().ledger.size()==2,"cash and ledger reflect real 60 purchase then 90 sale")
 	check(host.session.snapshot().alpha_shop.commissions.entries.tool_for_g03.status=="fulfilled","one UI fulfillment only")
