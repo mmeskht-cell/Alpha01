@@ -12,6 +12,8 @@ const CIVILIAN_SLOT="demo7_civilian_candidate_v1"
 const CONDITION_SLOT="demo7_civilian_condition_v1"
 const CONDITION_SLOT_V2="demo7_civilian_condition_v2"
 const ALPHA_SLOT="demo7_alpha_playtest_v1"
+const ALPHA_HOLD_SLOT="demo7_alpha_market_hold_v1"
+var _hold_market:bool=false
 var _condition_version:int=1
 var _condition_pricing:bool=false
 var _civilian:bool=false
@@ -29,9 +31,9 @@ var _view_cache:Dictionary={}
 var _view_cache_key:Array=[]
 
 func _fresh()->RefCounted:
-	return CivilianSeed.fresh(_condition_pricing,_condition_version) if _civilian else Seed.fresh()
+	return CivilianSeed.fresh(_condition_pricing,_condition_version,_hold_market) if _civilian else Seed.fresh()
 
-func open(directory:String="user://zt_rebuild/demo7",civilian:bool=false,condition_pricing:bool=false,condition_version:int=1)->bool:
+func open(directory:String="user://zt_rebuild/demo7",civilian:bool=false,condition_pricing:bool=false,condition_version:int=1,hold_market:bool=false)->bool:
 	if not directory.begins_with("user://zt_rebuild/demo7") or ".." in directory:
 		return false
 	_view_cache.clear()
@@ -41,13 +43,16 @@ func open(directory:String="user://zt_rebuild/demo7",civilian:bool=false,conditi
 	if _condition_pricing and condition_version not in [1,2,3]:
 		return false
 	_condition_version=condition_version if _condition_pricing else 1
+	_hold_market=hold_market and _civilian and _condition_pricing and _condition_version==3
+	if hold_market and not _hold_market:
+		return false
 	_civilian=civilian
-	_save_slot=(ALPHA_SLOT if _condition_version==3 else (CONDITION_SLOT_V2 if _condition_version==2 else CONDITION_SLOT)) if _condition_pricing else (CIVILIAN_SLOT if _civilian else SLOT)
+	_save_slot=ALPHA_HOLD_SLOT if _hold_market else ((ALPHA_SLOT if _condition_version==3 else (CONDITION_SLOT_V2 if _condition_version==2 else CONDITION_SLOT)) if _condition_pricing else (CIVILIAN_SLOT if _civilian else SLOT))
 	_session=_fresh()
 	if _session==null:
 		error="seed_invalid"
 		return false
-	_defs=(CivilianSeed.content(_condition_pricing,_condition_version) if _civilian else Seed.content()).defs
+	_defs=(CivilianSeed.content(_condition_pricing,_condition_version,_hold_market) if _civilian else Seed.content()).defs
 	localization=Locale.new()
 	if not localization.initialize():
 		error="locale_invalid"
@@ -165,6 +170,7 @@ func view()->Dictionary:
 	result["condition_pricing"]=_condition_pricing
 	result["condition_version"]=_condition_version if _condition_pricing else 0
 	result["alpha_playtest"]=_civilian and _condition_pricing and _condition_version==3
+	result["hold_market_alpha"]=_hold_market
 	result["wallet"]=state.wallets.player.duplicate()
 	result["stock"]=[]
 	result["stock_grids"]=[]

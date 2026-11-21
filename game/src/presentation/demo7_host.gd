@@ -26,6 +26,7 @@ var _view:Dictionary={}
 var _intro:bool=false
 var save_directory_override:String=""
 @export var campaign42_alpha:bool=false
+@export var hold_market_eval:bool=false
 @export var civilian_candidate:bool=false
 @export var condition_pricing:bool=false
 @export var condition_version:int=1
@@ -87,12 +88,14 @@ func _ready()->void:
 	var directory:String=(("user://zt_rebuild/demo7/alpha_playtest" if condition_version==3 else ("user://zt_rebuild/demo7/civilian_condition_v2" if condition_version==2 else "user://zt_rebuild/demo7/civilian_condition")) if condition_pricing and civilian_candidate else ("user://zt_rebuild/demo7/civilian_candidate" if civilian_candidate else "user://zt_rebuild/demo7"))
 	if campaign42_alpha:
 		directory=CampaignRuntime.PREFIX
+	elif hold_market_eval:
+		directory="user://zt_rebuild/demo7/hold_market_alpha"
 	if not save_directory_override.is_empty():
 		directory=save_directory_override
 	for arg:String in OS.get_cmdline_user_args():
 		if arg.begins_with("--demo-dir="):
 			directory=arg.trim_prefix("--demo-dir=")
-	if not runtime.open(directory,civilian_candidate,condition_pricing,condition_version):
+	if not runtime.open(directory,civilian_candidate,condition_pricing,condition_version) if campaign42_alpha else runtime.open(directory,civilian_candidate,condition_pricing,condition_version,hold_market_eval):
 		push_error("ZT_DEMO_OPEN_FAILED "+runtime.error)
 		return
 	_directory=directory
@@ -506,7 +509,7 @@ func _switch_slot()->void:
 	var path:String=_directory if index==0 else _directory.path_join("slot_"+str(index+1))
 	# Inspect candidate before changing active runtime. Both are read-only until a player command.
 	var candidate=CampaignRuntime.new() if campaign42_alpha else Runtime.new()
-	if not candidate.open(path,civilian_candidate,condition_pricing,condition_version):
+	if not candidate.open(path,civilian_candidate,condition_pricing,condition_version) if campaign42_alpha else candidate.open(path,civilian_candidate,condition_pricing,condition_version,hold_market_eval):
 		candidate.close()
 		_apply_locale_preference()
 		_slot.select(_slot_index)

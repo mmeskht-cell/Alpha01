@@ -4,6 +4,7 @@ extends Control
 const GameScene=preload("res://scenes/app/integrated_b_candidate.tscn")
 const AlphaScene=preload("res://scenes/app/alpha_playtest_candidate.tscn")
 const CampaignScene=preload("res://scenes/app/alpha42_mechanics_host.tscn")
+const HoldScene=preload("res://scenes/app/alpha_hold_market_host.tscn")
 const Street=preload("res://src/presentation/menu_street.gd")
 const ThemeSource=preload("res://src/presentation/ui_theme.gd")
 const Runtime=preload("res://src/application/demo7_runtime.gd")
@@ -13,6 +14,7 @@ var menu:Control
 var save_directory_override:String=""
 @export var alpha_playtest:bool=false
 @export var campaign42_alpha:bool=false
+@export var hold_market_eval:bool=false
 var _street:Control
 var _title_column:VBoxContainer
 var _title_label:Label
@@ -28,7 +30,7 @@ func _ready()->void:
 	if not ThemeSource.apply_to(self):
 		return
 	ThemeSource.apply_native(theme)
-	game=(CampaignScene.instantiate() if campaign42_alpha else (AlphaScene.instantiate() if alpha_playtest else GameScene.instantiate())) as Control
+	game=(CampaignScene.instantiate() if campaign42_alpha else (HoldScene.instantiate() if hold_market_eval else (AlphaScene.instantiate() if alpha_playtest else GameScene.instantiate()))) as Control
 	game.name="integrated_game"
 	game.separate_settings=true
 	game.save_directory_override=save_directory_override
@@ -150,6 +152,9 @@ func _build_buttons()->void:
 	if alpha_playtest:
 		_button("menu_mode_switch","7일 알파로 / 7-day" if campaign42_alpha else "42일 기술 알파 / 42-day mechanics",func()->void:
 			get_tree().change_scene_to_file("res://scenes/app/alpha_playtest_menu.tscn" if campaign42_alpha else "res://scenes/app/alpha42_mechanics_menu.tscn"))
+	if alpha_playtest and not campaign42_alpha:
+		_button("menu_hold_mode","기존 알파로 / Original alpha" if hold_market_eval else "재고 보유형 알파 / Holding market",func()->void:
+			get_tree().change_scene_to_file("res://scenes/app/alpha_playtest_menu.tscn" if hold_market_eval else "res://scenes/app/alpha_hold_market_menu.tscn"))
 	_button("menu_settings",tr_key("menu.settings"),_open_settings)
 	_button("menu_quit",tr_key("menu.quit"),_quit_game)
 	var occupied:bool=_latest_slot()>=0
@@ -166,7 +171,7 @@ func _path(index:int)->String:
 func _slot_time(index:int)->int:
 	var latest:int=-1
 	for generation:String in ["a","b"]:
-		var save_key:String=CampaignRuntime.CAMPAIGN_SLOT if campaign42_alpha else (Runtime.ALPHA_SLOT if alpha_playtest else Runtime.CONDITION_SLOT_V2)
+		var save_key:String=CampaignRuntime.CAMPAIGN_SLOT if campaign42_alpha else (Runtime.ALPHA_HOLD_SLOT if hold_market_eval else (Runtime.ALPHA_SLOT if alpha_playtest else Runtime.CONDITION_SLOT_V2))
 		var path:String=_path(index).path_join(save_key+".v4."+generation+".json")
 		if FileAccess.file_exists(path):
 			latest=maxi(latest,int(FileAccess.get_modified_time(path)))

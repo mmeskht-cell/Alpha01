@@ -10,7 +10,9 @@ const CATALOG="res://data/campaign/gate2/civilian_candidate_catalog.json"
 static func _visit(id:String,item:String,seller:String,buyer:String,day:int,price:int)->Dictionary:
 	return {"scope":{"visit_id":id,"kind":"ordinary","purpose":"purchase" if buyer=="player" else "sale","completed":false,"required_ids":[]},"seller":seller,"buyer":buyer,"prices":{item:Base.money(price)},"opens":(day-1)*1440,"expires":(day-1)*1440+600,"allow_inspection":true}
 
-static func content(condition_pricing:bool=false,condition_version:int=1)->Dictionary:
+static func content(condition_pricing:bool=false,condition_version:int=1,hold_market:bool=false)->Dictionary:
+	if hold_market and (not condition_pricing or condition_version!=3):
+		return {}
 	if condition_pricing and condition_version not in [1,2,3]:
 		return {}
 	var c:Dictionary=Base.content()
@@ -53,12 +55,30 @@ static func content(condition_pricing:bool=false,condition_version:int=1)->Dicti
 		state.wallets.G10.VKC+=195
 		c.profile.visit_days.d6.insert(c.profile.visit_days.d6.size()-2,"alpha_field_tool_buy")
 		c.profile.visit_days.d7.append("alpha_field_tool_sale")
+	if hold_market:
+		# Internal isolated liquidity-pressure variant: no invented prices,
+		# items, customer money or new income. Buyers return after a real
+		# holding interval, not automatically on purchase day. Canon demo and
+		# existing Alpha v3 continue using their original schedules/saves.
+		for move:Array in [
+			["watch_sale",2,3],["battery_sale",2,3],
+			["gear_sale",3,4],["radio3_sale",3,4],
+			["tool_sale",4,6],["electronics_sale",6,7]]:
+			var id:String=move[0]
+			var first:String="d"+str(move[1])
+			var later:String="d"+str(move[2])
+			if not c.profile.visit_days[first].has(id) or state.visits[id].opens!=(int(move[1])-1)*1440:
+				return {}
+			c.profile.visit_days[first].erase(id)
+			c.profile.visit_days[later].append(id)
+			state.visits[id].opens=(int(move[2])-1)*1440
+			state.visits[id].expires=state.visits[id].opens+600
 	# Keep existing authored demo3 rule selector, including radio/claim bindings.
 	# Calendar seed binding includes ALL new data and definitions, not only version.
 	return c
 
-static func fresh(condition_pricing:bool=false,condition_version:int=1)->RefCounted:
-	var c:Dictionary=content(condition_pricing,condition_version)
+static func fresh(condition_pricing:bool=false,condition_version:int=1,hold_market:bool=false)->RefCounted:
+	var c:Dictionary=content(condition_pricing,condition_version,hold_market)
 	if c.is_empty():
 		return null
 	var s:=Session.new()
