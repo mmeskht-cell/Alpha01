@@ -36,7 +36,11 @@ func view()->Dictionary:
 
 func tap(name:String)->bool:
 	var button:Button=office.find_child(name,true,false) as Button
-	if button==null or button.disabled or not button.is_visible_in_tree():
+	if button==null:
+		printerr("UI_DIAG_NOT_FOUND ",name," tab=",office._tab," office_children=",office.get_child_count())
+		return false
+	if button.disabled or not button.is_visible_in_tree():
+		printerr("UI_DIAG_HIDDEN ",name," disabled=",button.disabled," own_visible=",button.visible," tree_visible=",button.is_visible_in_tree()," office_tree=",office.is_visible_in_tree())
 		return false
 	button.pressed.emit()
 	return true
