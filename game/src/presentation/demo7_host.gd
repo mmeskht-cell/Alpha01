@@ -95,7 +95,8 @@ func _ready()->void:
 	for arg:String in OS.get_cmdline_user_args():
 		if arg.begins_with("--demo-dir="):
 			directory=arg.trim_prefix("--demo-dir=")
-	if not runtime.open(directory,civilian_candidate,condition_pricing,condition_version) if campaign42_alpha else runtime.open(directory,civilian_candidate,condition_pricing,condition_version,hold_market_eval):
+	var opened:bool=runtime.open(directory,civilian_candidate,condition_pricing,condition_version) if campaign42_alpha else runtime.open(directory,civilian_candidate,condition_pricing,condition_version,hold_market_eval)
+	if not opened:
 		push_error("ZT_DEMO_OPEN_FAILED "+runtime.error)
 		return
 	_directory=directory
@@ -509,7 +510,8 @@ func _switch_slot()->void:
 	var path:String=_directory if index==0 else _directory.path_join("slot_"+str(index+1))
 	# Inspect candidate before changing active runtime. Both are read-only until a player command.
 	var candidate=CampaignRuntime.new() if campaign42_alpha else Runtime.new()
-	if not candidate.open(path,civilian_candidate,condition_pricing,condition_version) if campaign42_alpha else candidate.open(path,civilian_candidate,condition_pricing,condition_version,hold_market_eval):
+	var valid_candidate:bool=candidate.open(path,civilian_candidate,condition_pricing,condition_version) if campaign42_alpha else candidate.open(path,civilian_candidate,condition_pricing,condition_version,hold_market_eval)
+	if not valid_candidate:
 		candidate.close()
 		_apply_locale_preference()
 		_slot.select(_slot_index)
