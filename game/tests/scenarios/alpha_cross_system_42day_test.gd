@@ -143,6 +143,7 @@ func run(f:Dictionary,pledge:bool,buy_d3:bool)->Dictionary:
 	check(action(s,"merchant_order_deliver","o1_ship",{"contract_id":"o1",
 		"item_id":deliveries[0].item_id,"placement":deliveries[0].placement}),
 		"physical shop stock delivered, reserved money settles once")
+	print("CROSS_DELIVERY_DIAG ",s.snapshot().items.SELL01.owner_id," provenance=",s.snapshot().items.SELL01.provenance_id," escrow=",s.snapshot().wallets.escrow.VKC)
 	check(s.snapshot().items.SELL01.owner_id=="order_buyer"
 		and s.snapshot().items.SELL01.provenance_id=="original_item"
 		and s.snapshot().wallets.escrow.VKC==0,
