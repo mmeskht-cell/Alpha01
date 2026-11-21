@@ -62,17 +62,21 @@ static func book(state:Dictionary={}) -> Dictionary:
 		result.specimens.merge(source.specimens)
 	return result
 
-# V1 opt-in extension, only for authored ordinary functional goods in demo3.
-# Frozen tool ID/meaning and duration; no new seed binding or specimen reading.
-# Earlier successful journals never used this tool ID.
-const BASIC_V1:Dictionary={"battery_buy":"battery","tool_buy":"demo_tool","electronics_buy":"demo_electronics"}
+# Data-model level eligibility: the same authored, abstract 5-minute function
+# check applies to any permitted ordinary purchase of these three definitions.
+# No visit-ID whitelist or added private specimen table. Existing demo3 visits
+# retain identical tool ID, evidence meaning, time and seed/replay binding.
+# New definitions still require explicit review; restricted goods do not qualify.
+const BASIC_DEFINITIONS_V1:Array=["battery","demo_tool","demo_electronics"]
 const BASIC_TOOL:String="basic_function_v1"
 
 static func basic_available(state:Dictionary,visit_id:String,item_id:String)->bool:
 	if not CustomerClaims.demo3(state) or not CustomerClaims.enabled(state) or not permitted(state,visit_id,item_id):
 		return false
-	var expected:String=BASIC_V1.get(visit_id,"")
-	if expected.is_empty() or state.items[item_id].def_id!=expected:
+	var visit:Dictionary=state.visits.get(visit_id,{})
+	if visit.is_empty() or visit.scope.get("kind")!="ordinary" or visit.scope.get("purpose")!="purchase":
+		return false
+	if state.items[item_id].def_id not in BASIC_DEFINITIONS_V1:
 		return false
 	var marker:Dictionary=state.calendar.get("appraisal_profile",{})
 	return marker.get("id")==PROFILE_ID and marker.get("content_sha")==Rules.canonical(book(state)).sha256_text()

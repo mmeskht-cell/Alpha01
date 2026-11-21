@@ -543,6 +543,13 @@ func _alpha_playtest()->void:
 				var purchase:bool=visit in ["visit_g01","visit_g02_buy","battery_buy","battery_sale","electronics_buy","electronics_sale"]
 				if visit=="alpha_field_tool_buy":
 					check(day==6 and v.wallet.VKC==205,"D6 valid-earned cash before competing acquisitions")
+					check(v.get("basic_review_available",false),"shared basic inspection eligible for a NEW visit of an existing definition")
+					if route=="speculate":
+						check(r.open_basic_review(visit,v.revision),"player opts into shared basic function review")
+						var before_inspection:Dictionary=r.snapshot()
+						check(action(r,"inspect_subject",{"visit_id":visit,"item_id":"TL06A","tool_id":"basic_function_v1","target":"basic_whole_function"}),"common tool observes new D6 instance")
+						var inspected:Dictionary=r.view()
+						check(inspected.minute==before_inspection.game_minutes+5 and inspected.wallet==before_inspection.wallets.player and inspected.appraisal.evidence.size()==1 and inspected.appraisal.evidence[0].observed_value=="serviceable","five-minute observed evidence, no free money or private forecast")
 					purchase=route=="speculate"
 				elif visit=="civil_receiver_buy":
 					if route=="speculate":

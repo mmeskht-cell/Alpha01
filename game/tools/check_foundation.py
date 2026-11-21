@@ -90,6 +90,10 @@ commands.append([engine, '--headless', '--path', str(root), 'res://scenes/app/de
 commands.append([engine, '--headless', '--path', str(root), 'res://scenes/app/boot.tscn', '--quit-after', '3'])
 commands.append([engine, '--headless', '--path', str(root), 'res://scenes/app/alpha_playtest_menu.tscn', '--quit-after', '3'])
 commands.append([engine, '--headless', '--path', str(root), '--quit-after', '3'])
+# Cheap, deterministic expansion-budget diagnostics (never rewrites a save or
+# extrapolates the 42-day synthetic load into an acceptance certificate).
+commands.append([sys.executable, str(root / 'tools/content_expansion_audit.py'), '--self-test'])
+commands.append([sys.executable, str(root / 'tools/content_expansion_audit.py'), '--target-days', '42', '--daily-visits', '6', '--observation-share', '0.7', '--npc-pool', '40'])
 def record_step(index, command, output, code, status):
     if report:
         # Individual files survive interruption; no summary is needed to recover prior steps.
