@@ -97,6 +97,15 @@ func run() -> void:
 		return
 	check(host.session.alpha_view().commissions.entries[0].status=="accepted" and host.session.snapshot().wallets.player.VKC==180,"mouse accepts obligation, no deposit")
 	await shot("commission-accepted-1080p",Vector2i(1920,1080))
+	for id: String in ["alpha_finish_customer","alpha_ack_exit","alpha_next_customer","alpha_ack_entry"]:
+		if not await click(id):
+			quit(1)
+			return
+	var named_visit: Dictionary = host.session.alpha_view()
+	var named_speech := host.find_child("alpha_speech",true,false) as Label
+	check(named_visit.active.actor_id == "marcus" and named_visit.active.kind == "named", "named actor uses same counter pointer path")
+	check(named_speech != null and not named_speech.text.contains("공구") and named_visit.npc_context.prior.is_empty(), "named NPC cannot learn regular customer's private request")
+	await shot("commission-named-1080p",Vector2i(1920,1080))
 	for id: String in ["alpha_finish_customer","alpha_ack_exit","alpha_close","alpha_settle"]:
 		if not await click(id):
 			quit(1)
