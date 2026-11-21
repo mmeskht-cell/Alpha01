@@ -103,6 +103,13 @@ jobs:
           ) || civilian_status=$?
           printf 'Civilian host probe exit: %s\n' "$civilian_status"
           if [ "$CI_SCOPE" = full ]; then
+            # New B1/B2 gameplay candidate: actual rendered 720p/1080p screenshots
+            # and mouse-input path, never only programmatic button-signal tests.
+            LIBGL_ALWAYS_SOFTWARE=1 timeout 90s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/window/alpha_b1_b2_window.gd -- "$GITHUB_WORKSPACE/evidence" 2>&1 | tee evidence/alpha-b1-b2-window.log
+            grep -E 'ALPHA_B1_B2_WINDOW: [0-9]+ checks, 0 failures' evidence/alpha-b1-b2-window.log
+            if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:|ObjectDB instances were leaked|Leaked instance:|resources still in use at exit' evidence/alpha-b1-b2-window.log; then exit 1; fi
+          fi
+          if [ "$CI_SCOPE" = full ]; then
             LIBGL_ALWAYS_SOFTWARE=1 timeout 100s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/window/gate1_window.gd -- "$GITHUB_WORKSPACE/evidence" 2>&1 | tee evidence/window.log
             grep -E 'GATE1_4_WINDOW: [0-9]+ checks, 0 failures' evidence/window.log
             if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:|ObjectDB instances were leaked|Leaked instance:|resources still in use at exit' evidence/window.log; then exit 1; fi
