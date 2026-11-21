@@ -69,8 +69,8 @@ func _initialize()->void:
 		printerr("BARGAIN_INIT ",s.initialization_error())
 		quit(1)
 		return
-	var trait:String=s.snapshot().calendar.npc_population.actors.seller.private_trait
-	var trait_price:int=int(f.profile.npc_bargaining.traits[trait].seller_delta)
+	var behavior_key:String=s.snapshot().calendar.npc_population.actors.seller.private_trait
+	var trait_price:int=int(f.profile.npc_bargaining.traits[behavior_key].seller_delta)
 	check(not s.calendar_view().has("npc_visitor"),"no private future customer disclosed")
 	check(cmd(s,"calendar_next_visit","first_guest").get("ok",false),
 		"existing funded customer admitted")

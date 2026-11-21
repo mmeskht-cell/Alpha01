@@ -11,8 +11,8 @@ static func valid(s:Dictionary,profile:Dictionary)->bool:
 	var policy:Variant=profile.get("npc_bargaining",{})
 	if profile.get("id")!="campaign_42" or not profile.has("market_flow") or not profile.has("npc_population") or not s.get("calendar",{}).has("npc_population") or not Rules.keys(policy,["version","traits","loyalty_step","max_trades"]) or policy.version!=VERSION or not policy.traits is Dictionary or policy.traits.size()!=TRAITS.size() or not Rules.integer(policy.loyalty_step,0,3) or not Rules.integer(policy.max_trades,0,3):
 		return false
-	for trait:String in TRAITS:
-		var row:Variant=policy.traits.get(trait)
+	for behavior_key:String in TRAITS:
+		var row:Variant=policy.traits.get(behavior_key)
 		if not Rules.keys(row,["seller_delta","buyer_delta"]) or not Rules.integer(row.seller_delta,-10,10) or not Rules.integer(row.buyer_delta,-10,10):
 			return false
 	# Personalities only apply to already funded economic actors whose
