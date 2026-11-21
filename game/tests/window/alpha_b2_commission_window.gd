@@ -88,6 +88,7 @@ func run() -> void:
 	check(host.session.alpha_view().active.actor_id=="G03","real same counter G03 request")
 	check((host.find_child("alpha_speech",true,false) as Label).text.contains("공구"),"real customer speaks the request, not generic placeholder")
 	check(host.find_child("b2_commission_status_tool_for_g03",true,false)!=null,"request text in original shop scene")
+	check(host.find_child("alpha_contract_rad1_first",true,false)==null,"other supplier's contract is hidden during G03 request")
 	await shot("commission-request-720p",Vector2i(1280,720))
 	root.size=Vector2i(1920,1080)
 	await frames()
@@ -105,6 +106,7 @@ func run() -> void:
 	var named_speech := host.find_child("alpha_speech",true,false) as Label
 	check(named_visit.active.actor_id == "marcus" and named_visit.active.kind == "named", "named actor uses same counter pointer path")
 	check(named_speech != null and not named_speech.text.contains("공구") and named_visit.npc_context.prior.is_empty(), "named NPC cannot learn regular customer's private request")
+	check(host.find_child("alpha_contract_rad1_first",true,false)!=null and host.find_child("b2_commission_status_tool_for_g03",true,false)==null,"named counter renders own offer but never G03 commission slip")
 	await shot("commission-named-1080p",Vector2i(1920,1080))
 	for id: String in ["alpha_finish_customer","alpha_ack_exit","alpha_close","alpha_settle"]:
 		if not await click(id):
