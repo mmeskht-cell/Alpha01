@@ -8,6 +8,7 @@ const Evidence = preload("res://src/domain/evidence_primitives.gd")
 const Rules = preload("res://src/domain/value_rules.gd")
 const Deck = preload("res://src/domain/visit_negotiation_deck.gd")
 const BasicSaleQuality=preload("res://src/domain/basic_sale_quality.gd")
+const Merchant=preload("res://src/domain/calendar_merchant_contracts.gd")
 
 static func public_history(state: Dictionary, item_id: String) -> Dictionary:
 	var records: Array = []
@@ -70,6 +71,22 @@ static func calendar_history(state: Dictionary,item_id: String) -> Dictionary:
 			result.work_omitted += 1
 		else:
 			result.work_records.append(work)
+	if state.get("calendar",{}).has("merchant_contracts"):
+		result["contract_records"]=[]
+		for contract:Dictionary in Merchant.item_records(state,item_id):
+			if contract.kind=="order_delivery":
+				result.records.append({"event_id":contract.event_id,"minute":contract.minute,
+					"direction":"sale","amounts":contract.amounts.duplicate(true),
+					"contract_kind":"order"})
+			else:
+				result.contract_records.append(contract)
+		result.records.sort_custom(func(a:Dictionary,b:Dictionary)->bool:
+			return int(a.minute)>int(b.minute) if a.minute!=b.minute else str(a.event_id)>str(b.event_id))
+		if result.records.size()>DISPLAY_LIMIT:
+			result.omitted+=result.records.size()-DISPLAY_LIMIT
+			result.records=result.records.slice(0,DISPLAY_LIMIT)
+		if result.contract_records.size()>DISPLAY_LIMIT:
+			result.contract_records=result.contract_records.slice(0,DISPLAY_LIMIT)
 	return result
 
 ## Final disclosed appraisal is distinct from the earlier accepted offer.
@@ -217,6 +234,15 @@ static func calendar_index(state: Dictionary) -> Dictionary:
 		for id: String in e.item_ids:
 			if not _work_row(state,e,id).is_empty():
 				recent[id]=maxi(int(recent.get(id,0)),int(e.revision))
+	if state.get("calendar",{}).has("merchant_contracts"):
+		var indexed:Dictionary={}
+		for event:Dictionary in state.calendar.merchant_contracts.get("events",[]):
+			var item_id:String=str(event.get("item_id",""))
+			if not Rules.identifier(item_id) or indexed.has(item_id):
+				continue
+			indexed[item_id]=true
+			for record:Dictionary in Merchant.item_records(state,item_id):
+				recent[item_id]=maxi(int(recent.get(item_id,0)),int(record.revision))
 	var ids: Array=recent.keys()
 	ids.sort_custom(func(a: String,b: String) -> bool:
 		return a<b if recent[a]==recent[b] else recent[a]>recent[b])

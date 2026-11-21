@@ -127,6 +127,20 @@ func _initialize()->void:
 		and a.items.W001.status=="stock" and a.items.W001.inventory=="seller_grid"
 		and a.wallets.player.VKC==270 and a.wallets.seller.VKC==5,
 		"repayment transfers 45 after actual D1 operating cost")
+	var history_order:Dictionary=redeemed.calendar_item_history("SELL01")
+	check(history_order.records.size()==1 and history_order.records[0].get("contract_kind")=="order"
+		and history_order.records[0].amounts.VKC==100,
+		"real order sale appears in verified unified item history, never a fictitious visit")
+	var pawn_entries:Array=redeemed.calendar_item_history("W001").get("contract_records",[])
+	check(pawn_entries.size()==2 and pawn_entries[0].kind=="pawn_repayment"
+		and pawn_entries[1].kind=="pawn_loan" and pawn_entries[1].amounts.VKC==40,
+		"pledge and redemption recorded separately from purchases/sales")
+	var contract_index:Array=redeemed.calendar_history_index().items
+	var indexed:Dictionary={}
+	for row:Dictionary in contract_index:
+		indexed[row.item_id]=true
+	check(indexed.has("W001") and indexed.has("SELL01"),
+		"office ledger index includes real contract-only physical items")
 	check(redeemed.calendar_view().merchant_contracts.pawns.pawn_a.status=="redeemed",
 		"office contract projection exposes final redeem status")
 	var cold:RefCounted=open(f)

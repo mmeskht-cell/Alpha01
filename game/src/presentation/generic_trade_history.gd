@@ -75,7 +75,7 @@ func configure(index: Dictionary,translator: Callable,locale: String) -> void:
 	for item: Dictionary in index.get("items",[]):
 		_line(_body,str(item.item_id),"history_item_"+str(item.item_id))
 		for row: Dictionary in item.history.records:
-			var direction: String=_label("ui.copy.purchase_974ce25d") if row.direction=="purchase" else _label("ui.copy.sale_1b445528")
+			var direction: String=_word("주문 납품","Order fulfilled") if row.get("contract_kind")=="order" else (_label("ui.copy.purchase_974ce25d") if row.direction=="purchase" else _label("ui.copy.sale_1b445528"))
 			var price: String=_label("ui.copy.group_price_individual_price_unknown_a66a6e3b")
 			if row.amounts!=null:
 				price=_label("inventory.format.money_pair",{"vkc":str(row.amounts.VKC),"usd":str(row.amounts.USD)})
@@ -128,6 +128,18 @@ func configure(index: Dictionary,translator: Callable,locale: String) -> void:
 			var facts: Array = offer.get("observations",[]) if sheet.is_empty() else sheet.observations
 			for fact: Dictionary in facts:
 				_line(detail,_label("ui.format.receipt_observation",{"reading":PublicObservationText.fact(str(fact.observation_key),fact.observed_value,_translator)}),"history_evidence_"+str(row.event_id)+"_"+str(fact.evidence_id))
+		for contract:Dictionary in item.history.get("contract_records",[]):
+			var name:String=""
+			match str(contract.kind):
+				"pawn_loan": name=_word("담보 대출금 지급","Pawn loan paid")
+				"pawn_repayment": name=_word("고객 상환·담보 반환","Loan repaid, collateral returned")
+				"pawn_forfeit": name=_word("미상환 담보 귀속","Unredeemed collateral forfeited")
+			if name.is_empty():
+				continue
+			var amount_text:String=_word("현물 귀속, 추가 현금 수입 없음","Asset forfeit; no additional cash") if contract.kind=="pawn_forfeit" else _money(contract.amounts)
+			var receipt:=_receipt(_body,"history_contract_receipt_"+str(contract.event_id)+"_"+str(item.item_id))
+			_line(receipt,"D"+str(Clock.day_index(int(contract.minute)))+" "+Clock.clock_text(int(contract.minute))+
+				" · "+name+" · "+amount_text,"history_contract_"+str(contract.event_id)+"_"+str(item.item_id))
 		for work: Dictionary in item.history.get("work_records",[]):
 			_show_work(work,str(item.item_id))
 		if item.history.get("work_omitted",0)>0:

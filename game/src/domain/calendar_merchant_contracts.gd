@@ -8,6 +8,7 @@ const Objects=preload("res://src/domain/object_schema.gd")
 const Relations=preload("res://src/domain/object_relation_primitives.gd")
 const Items=preload("res://src/domain/item_primitives.gd")
 const Grid=preload("res://src/domain/grid_primitives.gd")
+const Receipt=preload("res://src/domain/receipt_primitives.gd")
 const ACTIONS:Array=["merchant_pawn_accept","merchant_pawn_redeem",
 	"merchant_order_accept","merchant_order_deliver","merchant_order_cancel"]
 const VERSION:int=1
@@ -307,3 +308,64 @@ static func view(s:Dictionary,defs:Dictionary)->Dictionary:
 		output.orders[id].delivery_options=delivery_options
 	output.events=c.events.duplicate(true)
 	return output
+
+## Receipt-bound item-level contract history. The ordinary visit ledger is
+## not forged: a funded order is a distinct merchant sale; a pledged good is
+## only custody and MUST NOT appear as an ordinary purchase.
+static func item_records(s:Dictionary,item_id:String)->Array:
+	var c:Dictionary=s.get("calendar",{})
+	var m:Dictionary=c.get("merchant_contracts",{})
+	if not Rules.identifier(item_id) or m.is_empty():
+		return []
+	var policy:Dictionary=c.get("profile",{}).get("merchant_contracts",{})
+	var results:Array=[]
+	var types:Dictionary={"pawn_loan":"merchant_pawn_accept",
+		"pawn_repayment":"merchant_pawn_redeem","pawn_forfeit":"calendar_close",
+		"order_delivery":"merchant_order_deliver"}
+	var events:Array=m.get("events",[])
+	for row:Dictionary in events:
+		var kind:String=str(row.get("kind",""))
+		var contract_id:String=str(row.get("contract_id",""))
+		var action_id:String=str(row.get("action_id",""))
+		if row.get("item_id")!=item_id or not types.has(kind) or not Rules.identifier(action_id):
+			continue
+		var expected_amount:Dictionary={}
+		if kind=="order_delivery":
+			if not policy.get("orders",{}).has(contract_id) or m.orders[contract_id].item_id!=item_id or m.orders[contract_id].close_action!=action_id:
+				continue
+			expected_amount=policy.orders[contract_id].price
+		else:
+			if not policy.get("pawns",{}).has(contract_id) or policy.pawns[contract_id].item_id!=item_id:
+				continue
+			if kind=="pawn_loan":
+				if m.pawns[contract_id].open_action!=action_id:
+					continue
+				expected_amount=policy.pawns[contract_id].principal
+			elif kind=="pawn_repayment":
+				if m.pawns[contract_id].close_action!=action_id:
+					continue
+				expected_amount=policy.pawns[contract_id].repayment
+			else:
+				if m.pawns[contract_id].close_action!=action_id:
+					continue
+				expected_amount={"VKC":0,"USD":0}
+		if row.get("amount")!=expected_amount:
+			continue
+		var revision:int=Receipt.receipt_revision(s,action_id)
+		var commands:Array=c.get("commands",[])
+		if revision<1 or revision>commands.size():
+			continue
+		var command:Dictionary=commands[revision-1]
+		var payload:Dictionary=command.get("payload",{})
+		if command.get("type")!=types[kind] or command.get("action_id")!=action_id or not Receipt.matches_receipt(s,action_id,types[kind],payload,revision):
+			continue
+		if kind!="pawn_forfeit" and payload.get("contract_id")!=contract_id:
+			continue
+		if kind=="order_delivery" and payload.get("item_id")!=item_id:
+			continue
+		if not Rules.integer(row.get("minute"),0,int(s.game_minutes)):
+			continue
+		results.append({"event_id":action_id,"revision":revision,"minute":int(row.minute),
+			"kind":kind,"contract_id":contract_id,"amounts":expected_amount.duplicate(true)})
+	results.sort_custom(func(a:Dictionary,b:Dictionary)->bool: return int(a.revision)>int(b.revision))
+	return results
