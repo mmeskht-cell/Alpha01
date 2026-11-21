@@ -79,6 +79,69 @@ func _actor_label(actor_id: String) -> String:
 	var key: String = "alpha.named." + actor_id
 	return _text(key) if _strings.has(key) else (_text("alpha.actor.regular") % actor_id)
 
+## Read-only shop work surface beside the existing physical counter.
+## Inventory and cash are taken from the same authoritative snapshot; never
+## substitute a virtual showroom, mint stock, or expose NPC private evidence.
+func _board_line(parent: VBoxContainer, name: String, value: String, heading: bool = false) -> Label:
+	var label := Label.new()
+	label.name = name
+	label.text = value
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.add_theme_font_size_override("font_size", 21 if heading else 17)
+	parent.add_child(label)
+	return label
+
+func _add_b2_shop_board(panel: PanelContainer, view: Dictionary) -> void:
+	var current: Dictionary = session.snapshot()
+	var inset := MarginContainer.new()
+	for side: String in ["left","right","top","bottom"]:
+		inset.add_theme_constant_override("margin_" + side, 14)
+	panel.add_child(inset)
+	var body := VBoxContainer.new()
+	body.add_theme_constant_override("separation", 9)
+	inset.add_child(body)
+	_board_line(body, "b2_board_title", _text("b2.board.title"), true)
+	var cash: Dictionary = current.wallets.get("player", {})
+	_board_line(body, "b2_board_cash", _text("b2.board.cash") % [int(cash.get("VKC", 0)), int(cash.get("USD", 0))])
+	body.add_child(HSeparator.new())
+	var owned: Array = []
+	var displayed: int = 0
+	var reserved: int = 0
+	for id: String in current.items:
+		var item: Dictionary = current.items[id]
+		if item.owner_id != "player" or item.custodian_id != "player" or item.status != "stock" or not item.parent_id.is_empty():
+			continue
+		owned.append(item)
+		if id in view.displayed_items:
+			displayed += 1
+		if not str(item.reservation_id).is_empty():
+			reserved += 1
+	_board_line(body, "b2_board_stock", _text("b2.board.stock") % [owned.size(), displayed, reserved], true)
+	var count: int = 0
+	for item: Dictionary in owned:
+		if count >= 4:
+			break
+		var location_key: String = "b2.board.reserved" if not str(item.reservation_id).is_empty() else ("b2.board.displayed" if item.inventory == "storefront_grid" else "b2.board.stored")
+		_board_line(body, "b2_board_item_" + str(count), "• " + _text("b2.item." + str(item.def_id)) + " · " + _text(location_key))
+		count += 1
+	if owned.size() > count:
+		_board_line(body, "b2_board_more", _text("b2.board.more") % (owned.size() - count))
+	if owned.is_empty():
+		_board_line(body, "b2_board_empty", _text("b2.board.empty"))
+	body.add_child(HSeparator.new())
+	var appraisal: Dictionary = view.appraisal
+	if not appraisal.is_empty():
+		var shown: int = 0
+		for card: Dictionary in appraisal.cards:
+			if card.selected:
+				shown += 1
+		_board_line(body, "b2_board_evidence", _text("b2.board.evidence") % [appraisal.cards.size(), shown], true)
+		_board_line(body, "b2_board_offer_count", _text("b2.board.offers") % appraisal.offers.size())
+	else:
+		_board_line(body, "b2_board_waiting", _text("b2.board.waiting"))
+	_board_line(body, "b2_board_caution", _text("b2.board.note"))
+
 ## NPC speech uses only accepted/declined price proposals that the actual
 ## visitor heard, and settled outcomes. Private inspection readings stay private.
 func _b2_npc_line(view: Dictionary) -> String:
@@ -209,11 +272,11 @@ func refresh() -> void:
 	margin.add_theme_constant_override("margin_bottom", 25)
 	add_child(margin)
 	var outer := VBoxContainer.new()
-	outer.add_theme_constant_override("separation", 16)
+	outer.add_theme_constant_override("separation", 12 if b2_interactive_mode else 16)
 	margin.add_child(outer)
 	var title := Label.new()
 	title.text = _text("alpha.heading")
-	title.add_theme_font_size_override("font_size", 31)
+	title.add_theme_font_size_override("font_size", 27 if b2_interactive_mode else 31)
 	outer.add_child(title)
 	if _blocked:
 		var blocked := Label.new()
@@ -245,17 +308,17 @@ func refresh() -> void:
 	outer.add_child(top)
 	var counter := PanelContainer.new()
 	counter.name = "alpha_counter"
-	counter.custom_minimum_size = Vector2(0, 210)
+	counter.custom_minimum_size = Vector2(0, 152 if b2_interactive_mode else 210)
 	outer.add_child(counter)
 	var bubble := VBoxContainer.new()
-	bubble.add_theme_constant_override("separation", 14)
+	bubble.add_theme_constant_override("separation", 9 if b2_interactive_mode else 14)
 	counter.add_child(bubble)
 	var actor := Label.new()
 	actor.name = "alpha_actor"
-	actor.add_theme_font_size_override("font_size", 27)
+	actor.add_theme_font_size_override("font_size", 25 if b2_interactive_mode else 27)
 	var speech := Label.new()
 	speech.name = "alpha_speech"
-	speech.add_theme_font_size_override("font_size", 22)
+	speech.add_theme_font_size_override("font_size", 21 if b2_interactive_mode else 22)
 	speech.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	bubble.add_child(actor)
 	bubble.add_child(speech)
@@ -271,6 +334,14 @@ func refresh() -> void:
 			var public_reply: String = _b2_npc_line(v)
 			if not public_reply.is_empty():
 				speech.text = public_reply
+			# Named suppliers explain their actual existing contract instead
+			# of repeating an empty generic line. Their specialized RAD-1 payment
+			# authority remains untouched and is never called a normal item order.
+			for contract_id: String in v.contracts:
+				var terms: Dictionary = v.contracts[contract_id]
+				if str(terms.supplier) == str(row.actor_id) and terms.can_accept:
+					speech.text = _text("b2.npc.named.supplier") % [int(terms.price.VKC), int(terms.due_day)]
+					break
 			# The current customer's explicit request takes precedence over an
 			# older conversation; neither path modifies the save-bound seed.
 			if b2_commission_mode:
@@ -287,12 +358,26 @@ func refresh() -> void:
 	var actions := VBoxContainer.new()
 	actions.name = "alpha_actions"
 	if b2_interactive_mode:
+		var work_area := HBoxContainer.new()
+		work_area.name = "alpha_work_area"
+		work_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		work_area.add_theme_constant_override("separation", 16)
+		outer.add_child(work_area)
 		var scrolling := ScrollContainer.new()
 		scrolling.name = "alpha_card_scroll"
 		scrolling.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		scrolling.custom_minimum_size = Vector2(0, 190)
-		outer.add_child(scrolling)
+		scrolling.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		scrolling.custom_minimum_size = Vector2(430, 180)
+		work_area.add_child(scrolling)
+		actions.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		actions.add_theme_constant_override("separation", 8)
 		scrolling.add_child(actions)
+		var board := PanelContainer.new()
+		board.name = "alpha_shop_board"
+		board.custom_minimum_size = Vector2(320, 0)
+		board.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		work_area.add_child(board)
+		_add_b2_shop_board(board, v)
 	else:
 		outer.add_child(actions)
 	match str(v.phase):
