@@ -11,5 +11,5 @@ static func content() -> Dictionary:
 	result.state.inventories["storefront_grid"] = {
 		"owner_id": "player", "width": 10, "height": 6, "host_item": ""
 	}
-	result.alpha_profile.content_version = "b2-preview-1"
+	result.alpha_profile.content_version = "b2-preview-2"
 	return result

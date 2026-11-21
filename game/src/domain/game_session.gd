@@ -488,6 +488,8 @@ func _alpha_valid(state: Dictionary) -> bool:
 	var expected_alpha_keys: Array = ["version", "profile", "binding", "day", "phase", "cursor", "active", "outcomes", "settled_days", "contacts", "commands"]
 	if _alpha_seed.alpha_shop.has("displayed"):
 		expected_alpha_keys.append("displayed")
+	if _alpha_seed.alpha_shop.has("contracts"):
+		expected_alpha_keys.append("contracts")
 	if not Rules.keys(a, expected_alpha_keys):
 		return false
 	if a.version != 1 or a.profile != _alpha_seed.alpha_shop.profile or a.binding != _alpha_seed.alpha_shop.binding or not a.commands is Array or a.commands.size() != state.revision:

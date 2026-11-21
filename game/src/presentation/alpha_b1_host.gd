@@ -7,7 +7,7 @@ const Session = preload("res://src/domain/game_session.gd")
 const Alpha = preload("res://src/domain/alpha_shop_cycle.gd")
 const Repo = preload("res://src/persistence/save_repository.gd")
 const KO_PATH = "res://data/alpha_b1/ko.json"
-const SAVE_SLOT = "alpha_b1_profile_v2"
+const SAVE_SLOT = "alpha_b1_profile_v3"
 @export var save_directory_override: String = ""
 @export var b2_mode: bool = false
 var session: RefCounted
@@ -47,7 +47,7 @@ func _ready() -> void:
 	refresh()
 
 func _slot() -> String:
-	return "alpha_b2_trade_slice_v1" if b2_mode else SAVE_SLOT
+	return "alpha_b2_trade_slice_v2" if b2_mode else SAVE_SLOT
 
 func _text(key: String) -> String:
 	return str(_strings.get(key, key))
@@ -180,16 +180,19 @@ func refresh() -> void:
 		"CUSTOMER_ACTIVE":
 			if b2_mode:
 				_add_b2_trade_action(actions, v)
+			_add_contract_actions(actions, v)
 			if bool(v.can_exchange):
 				_button(actions, "alpha_exchange_contact", _text("alpha.button.exchange"), func() -> void: _submit("alpha_exchange_contact", {"actor_id": row.actor_id, "accepted": true}))
 			_button(actions, "alpha_finish_customer", _text("alpha.button.leave"), func() -> void: _submit("alpha_finish_customer"))
 		"CUSTOMER_EXIT":
 			_button(actions, "alpha_ack_exit", _text("alpha.button.exit"), func() -> void: _submit("alpha_ack_exit"))
 		"CLOSE_SETTLE":
+			_add_contract_actions(actions, v)
 			_button(actions, "alpha_settle", _text("alpha.button.settle"), func() -> void: _submit("alpha_settle"))
 		"EVENING_WORK":
 			if b2_mode:
 				_add_b2_display_action(actions, v)
+			_add_contract_actions(actions, v)
 			var contacts := Label.new()
 			contacts.name = "alpha_contacts"
 			var lines: Array[String] = []
@@ -202,6 +205,12 @@ func refresh() -> void:
 			_button(actions, "alpha_prepare_day", _text("alpha.button.prepare"), func() -> void: _submit("alpha_prepare_day"))
 		"COMPLETE":
 			speech.text = _text("alpha.complete")
+	for news: Dictionary in v.news:
+		var notice := Label.new()
+		notice.name = "alpha_news_" + str(news.id)
+		notice.text = _text("alpha.news." + str(news.text_key))
+		notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		outer.add_child(notice)
 	if not _message.is_empty():
 		var message := Label.new()
 		message.text = _message
@@ -252,3 +261,26 @@ func _add_b2_trade_action(actions: VBoxContainer, v: Dictionary) -> void:
 	}
 	_button(actions, "b2_trade", (_text("b2.buy") if buying else _text("b2.sell")) + " · " + str(amount) + " " + currency,
 		func() -> void: _submit("alpha_trade", payload))
+
+
+## Contract actions are short responses in the same counter, never an
+## unrelated quest/options window. Money moves only after explicit pay click.
+func _add_contract_actions(actions: VBoxContainer, v: Dictionary) -> void:
+	for id: String in v.contracts:
+		var offer: Dictionary = v.contracts[id]
+		var note := Label.new()
+		note.name = "alpha_contract_" + id
+		note.text = _text("alpha.contract.header") + " · " + str(id) + " · " + _text("alpha.contract.status." + str(offer.status)) + " · " + str(offer.price.VKC) + " VKC / D" + str(offer.due_day)
+		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		actions.add_child(note)
+		if offer.can_accept:
+			_button(actions, "alpha_contract_accept", _text("alpha.contract.accept"),
+				func() -> void: _submit("alpha_contract_accept", {"contract_id": id}))
+			_button(actions, "alpha_contract_decline", _text("alpha.contract.decline"),
+				func() -> void: _submit("alpha_contract_decline", {"contract_id": id}))
+		if offer.can_pay:
+			_button(actions, "alpha_contract_pay", _text("alpha.contract.pay"),
+				func() -> void: _submit("alpha_contract_pay", {"contract_id": id}))
+		if offer.can_extend:
+			_button(actions, "alpha_contract_extend", _text("alpha.contract.extend"),
+				func() -> void: _submit("alpha_contract_extend", {"contract_id": id}))

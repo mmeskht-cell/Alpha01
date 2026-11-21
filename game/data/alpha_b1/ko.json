@@ -41,6 +41,21 @@
     "alpha.named.ian": "이안",
     "alpha.named.marcus": "마르쿠스",
     "alpha.actor.regular": "고객 %s",
-    "alpha.complete": "D7 일정을 마쳤습니다. 기존 원장·물품·지갑은 그대로 유지됩니다."
+    "alpha.complete": "D7 일정을 마쳤습니다. 기존 원장·물품·지갑은 그대로 유지됩니다.",
+    "alpha.contract.header": "RAD-1 공급 계약",
+    "alpha.contract.status.offered": "제안받음",
+    "alpha.contract.status.reserved": "예약·납부 대기",
+    "alpha.contract.status.paid": "납부 완료",
+    "alpha.contract.status.delivered": "인도 확인",
+    "alpha.contract.status.missed": "제안 기회 종료",
+    "alpha.contract.status.declined": "거절",
+    "alpha.contract.status.defaulted": "기한 미납",
+    "alpha.contract.accept": "조건 수락",
+    "alpha.contract.decline": "거절",
+    "alpha.contract.pay": "정본 금액 납부",
+    "alpha.contract.extend": "기한 연장 요청",
+    "alpha.news.rad1_delivered": "RAD-1 공급이 확인되었습니다.",
+    "alpha.news.rad1_defaulted": "RAD-1 공급 계약의 미납 사실이 확인되었습니다.",
+    "alpha.news.clinic_supply_confirmed": "실제 위생물자 납품이 진료소에 확인되었습니다."
   }
 }

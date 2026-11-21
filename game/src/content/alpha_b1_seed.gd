@@ -31,5 +31,7 @@ static func content() -> Dictionary:
 			day.append({"id":"alpha_marcus_intro","actor_id":"marcus","kind":"named","purpose_key":"alpha.purpose.contract","contact_offer":false})
 		days.append(day)
 	return {"defs": original.defs, "state": original.state,
-		"alpha_profile": {"id":"alpha_b1_v1","content_version":"b1-preview-2",
-			"days": days, "unavailable_actors":[]}}
+		"alpha_profile": {"id":"alpha_b1_v1","content_version":"b1-preview-3",
+			"days": days, "unavailable_actors":[],
+			"contracts": original.profile.contracts.duplicate(true),
+			"story_rules": original.profile.story_rules.duplicate(true)}}
