@@ -13,10 +13,6 @@ static func content() -> Dictionary:
 	next.alpha_profile.content_version = "b2-cards-commission-1"
 	next.alpha_profile["commission_profile_id"] = conf.profile_id
 	for r: Dictionary in conf.requests:
-		# The actual requester speaks the authored request at the existing counter.
-		for offer_row: Dictionary in next.alpha_profile.days[int(r.offer_day) - 1]:
-			if offer_row.id == r.offer_visit_id and offer_row.actor_id == r.actor_id:
-				offer_row.purpose_key = str(r.text_key)
 		if next.state.visits.has(r.return_visit_id) or not next.state.items.has(r.return_item_id):
 			return {}
 		var amount: Dictionary = r.price.duplicate(true)
