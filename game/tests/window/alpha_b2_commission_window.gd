@@ -3,6 +3,7 @@ extends SceneTree
 ## Does not replace headless multi-day ownership and settlement tests.
 const Scene = preload("res://scenes/app/alpha_b2_commission.tscn")
 const NamedScene = preload("res://scenes/app/alpha_b2_named_commission.tscn")
+const ServiceScene = preload("res://scenes/app/alpha_b2_service.tscn")
 var host: Control
 var path: String
 var checks: int=0
@@ -146,6 +147,9 @@ func run() -> void:
 	if not await run_named_counter():
 		quit(1)
 		return
+	if not await run_service_counter():
+		quit(1)
+		return
 	print("ALPHA_B2_COMMISSION_WINDOW: ",checks," checks, ",failures," failures")
 	quit(0 if failures==0 else 1)
 
@@ -213,6 +217,69 @@ func run_named_counter() -> bool:
 	check(state.wallets.player.VKC==210 and state.wallets.ian.VKC==25 and state.ledger.size()==2 and state.alpha_shop.commissions.settlements.size()==1, "named real customer funds and one settlement, no G03 ghost earnings")
 	root.size=Vector2i(1920,1080)
 	await shot("named-ian-settled-1080p",Vector2i(1920,1080))
+	host.queue_free()
+	await frames()
+	return true
+
+## Same counter, but the object is still owned by the customer. Genuine
+## pointer path: D1 G02 consent, paid D1 evening restoration, D2 pickup.
+func run_service_counter() -> bool:
+	root.size=Vector2i(1280,720)
+	host=ServiceScene.instantiate()
+	host.save_directory_override="user://zt_rebuild/b2_service_window_"+str(Time.get_ticks_usec())
+	root.add_child(host)
+	await frames()
+	if not check(host.session != null and not host._blocked and host._slot() == "alpha_b2_service_custody_pilot_v1", "service mode boots with isolated save slot"):
+		return false
+	for action: String in ["intro_skip","alpha_open","alpha_next_customer","alpha_ack_entry","alpha_finish_customer","alpha_ack_exit","alpha_next_customer","alpha_ack_entry"]:
+		if not await click(action):
+			return false
+	var offered: Dictionary=host.session.alpha_view()
+	check(offered.active.actor_id=="G02" and offered.services.entries.size()==1 and offered.services.entries[0].can_accept,"original G02 makes physical maintenance request at own D1 counter")
+	var slip := host.find_child("b2_service_status_service_w001",true,false) as Label
+	check(slip!=null and slip.text.contains("고객 소유") and slip.text.contains("D2"),"customer title and return day shown before acceptance")
+	await shot("service-g02-offer-720p",Vector2i(1280,720))
+	if not await click("b2_service_accept"):
+		return false
+	var held: Dictionary=host.session.snapshot()
+	check(held.items.W001.owner_id=="G02" and held.items.W001.custodian_id=="player" and held.items.W001.status=="custody_service" and held.items.W001.inventory=="service_grid","actual customer property entrusted; player does not own it")
+	var stock := host.find_child("b2_board_stock",true,false) as Label
+	check(stock!=null and stock.text.contains("보유 0"),"borrowed stock excluded from player's owned inventory notebook")
+	for action: String in ["alpha_finish_customer","alpha_ack_exit","alpha_close","alpha_settle"]:
+		if not await click(action):
+			return false
+	check(host.find_child("b2_service_repair",true,false)!=null,"real evening-work-only repair control visible")
+	await shot("service-evening-work-720p",Vector2i(1280,720))
+	if not await click("b2_service_repair"):
+		return false
+	var repaired: Dictionary=host.session.snapshot()
+	check(repaired.items.W001.owner_id=="G02" and repaired.items.W001.restored and repaired.items.W001.functional and repaired.wallets.player.VKC==170,"evening restoration charged 10, did not change title or mint item")
+	for action: String in ["alpha_next_day","alpha_prepare_day","alpha_open"]:
+		if not await click(action):
+			return false
+	for actor: String in ["G03","G04","G05","G06","G07"]:
+		for action: String in ["alpha_next_customer","alpha_ack_entry"]:
+			if not await click(action):
+				return false
+		check(host.session.alpha_view().active.actor_id==actor,"original D2 actor before G02 custody return "+actor)
+		for action: String in ["alpha_finish_customer","alpha_ack_exit"]:
+			if not await click(action):
+				return false
+	for action: String in ["alpha_next_customer","alpha_ack_entry"]:
+		if not await click(action):
+			return false
+	check(host.session.alpha_view().active.actor_id=="G02" and host.session.alpha_view().services.entries[0].can_deliver,"actual G02 D2 visits to receive finished property")
+	var pickup := host.find_child("alpha_speech",true,false) as Label
+	check(pickup!=null and pickup.text.contains("정비") and host.find_child("b2_service_deliver",true,false)!=null,"customer requests their repaired item, not a virtual retail item")
+	await shot("service-g02-pickup-720p",Vector2i(1280,720))
+	if not await click("b2_service_deliver"):
+		return false
+	var returned: Dictionary=host.session.snapshot()
+	check(returned.items.W001.owner_id=="G02" and returned.items.W001.custodian_id=="G02" and returned.items.W001.inventory=="G02_grid" and returned.wallets.player.VKC==200,"same item physically returned; 30 fee minus 10 real work cost")
+	check(returned.alpha_shop.services.settlements.size()==1 and returned.ledger.is_empty(),"one service-fee settlement without a fabricated retail trade")
+	root.size=Vector2i(1920,1080)
+	await frames()
+	await shot("service-g02-returned-1080p",Vector2i(1920,1080))
 	host.queue_free()
 	await frames()
 	return true
