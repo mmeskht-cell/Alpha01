@@ -52,6 +52,9 @@ func _initialize()->void:
 	office.name="stage3_office"
 	root.add_child(office)
 	office.visible=true
+	# SceneTree script starts before the X11 root window is visibly mapped.
+	# Wait for one rendered frame; otherwise Button.is_visible_in_tree() is false.
+	await process_frame
 	office.action_requested.connect(func(k:String,p:Dictionary,r:int)->void:
 		actions.append({"type":k,"payload":p,"revision":r}))
 	var tr:Callable=func(key:String,arguments:Dictionary={})->String:
