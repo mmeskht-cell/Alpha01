@@ -77,10 +77,16 @@ static func _settled_flow(s:Dictionary,region:String,category:String,before_day:
 			continue
 		if e.item_id not in row.get("root_ids",[]) or Trace.trade_for_visit(s,id).get("event_id")!=row.get("event_id"):
 			continue
-		if row.get("from")=="player":
-			total+=1
-		elif row.get("to")=="player":
-			total-=1
+		# Ledger from/to are CASH direction (buyer -> seller), not goods.
+		# Verify both recorded parties against the signed visit before a
+		# past receipt can influence stock pressure in the next opening.
+		var v:Dictionary=s.visits.get(id,{})
+		if v.is_empty() or row.get("from")!=v.buyer or row.get("to")!=v.seller:
+			continue
+		if v.buyer=="player":
+			total-=1 # player bought: one fewer local offered good
+		elif v.seller=="player":
+			total+=1 # player sold: one more good returned to circulation
 	return total
 
 ## Quote exists only for an authored order, never a new item or new wallet.
