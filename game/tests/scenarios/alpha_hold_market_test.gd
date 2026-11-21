@@ -6,9 +6,9 @@ const Runtime=preload("res://src/application/demo7_runtime.gd")
 const Session=preload("res://src/domain/game_session.gd")
 var checks:int=0
 var failures:int=0
-func check(pass:bool,label:String)->void:
+func check(ok:bool,label:String)->void:
 	checks+=1
-	if not pass:
+	if not ok:
 		failures+=1
 		printerr("FAIL: "+label)
 func _initialize()->void:
