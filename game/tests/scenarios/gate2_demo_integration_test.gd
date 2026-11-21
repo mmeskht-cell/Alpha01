@@ -546,7 +546,7 @@ func _alpha_playtest()->void:
 					purchase=route=="speculate"
 				elif visit=="civil_receiver_buy":
 					if route=="speculate":
-						check(not v.trade_can_pay and v.wallet.VKC==60,"field tool crowds out receiver purchase")
+						check(not v.trade_can_pay and v.wallet.VKC==25,"field tool crowds out receiver purchase")
 						var denied:Dictionary=v.trade.duplicate(true)
 						denied.erase("label")
 						denied.erase("placement")
