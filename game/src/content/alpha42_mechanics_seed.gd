@@ -30,8 +30,10 @@ static func content()->Dictionary:
 	# isolated forty-two-day extension, without changing demo7 data.
 	profile.erase("carryover_returns")
 	profile.visit_days["d8"].append("pickup7")
-	for actor:String in ["alpha_pawn_seller","alpha_order_buyer","alpha_escrow","alpha_broker",
-		"alpha_merc_a","alpha_merc_b"]:
+	var authored_actors:Array=["alpha_pawn_seller","alpha_order_buyer","alpha_escrow","alpha_broker"]
+	for index:int in range(6):
+		authored_actors.append("alpha_merc_"+str(index))
+	for actor:String in authored_actors:
 		if state.wallets.has(actor):
 			return {}
 		state.wallets[actor]=_cash(0)
@@ -39,8 +41,13 @@ static func content()->Dictionary:
 	state.wallets.alpha_pawn_seller=_cash(60)
 	state.wallets.alpha_order_buyer=_cash(175)
 	state.wallets.alpha_broker={"VKC":100,"USD":5}
-	state.wallets.alpha_merc_a=_cash(400)
-	state.wallets.alpha_merc_b=_cash(400)
+	for index:int in range(6):
+		state.wallets["alpha_merc_"+str(index)]=_cash(400)
+		for opt:int in range(2):
+			var actor:String="alpha_merc_"+str(index)
+			var sku:String=actor+"_item_"+str(opt)
+			state.items[sku]=Objects.fresh_item("demo_tool",actor,
+				actor+"_grid",opt,0,"authored_finite_merc_supply")
 	state.items["ALPHA_PAWN01"]=Objects.fresh_item("demo_tool","alpha_pawn_seller",
 		"alpha_pawn_seller_grid",0,0,"authored_pawn_stock")
 	state.items["ALPHA_ORDER01"]=Objects.fresh_item("demo_tool","player",
@@ -68,13 +75,15 @@ static func content()->Dictionary:
 		"regions":{"market_quarter":{"status":"ordinary"}},
 		"events":{"alpha_market_notice":{"day":10,"region":"market_quarter",
 			"topic":"trade_stock_pressure","without_player":"ordinary",
-			"with_player":"strained","cause_visit":"g09",
+			"with_player":"strained","cause_visit":"g09_0",
 			"source":"local_market_notice"}},"gates":{}}
 	profile["market_flow"]={"version":1,"flow_step":1,"max_flow_delta":8,
 		"buyers":{},"entries":{}}
-	profile["npc_population"]={"version":1,"seed":1729,
-		"actors":{"alpha_merc_a":{"kind":"mercenary","region":"market_quarter"},
-			"alpha_merc_b":{"kind":"scavenger","region":"market_quarter"}}}
+	var personas:Dictionary={}
+	for index:int in range(6):
+		personas["alpha_merc_"+str(index)]={"kind":"scavenger" if index%2==1 else "mercenary",
+			"region":"market_quarter"}
+	profile["npc_population"]={"version":1,"seed":1729,"actors":personas}
 	profile["npc_bargaining"]={"version":1,"traits":{
 		"cautious":{"seller_delta":5,"buyer_delta":-5},
 		"impatient":{"seller_delta":-5,"buyer_delta":5},
@@ -82,25 +91,21 @@ static func content()->Dictionary:
 		"reserved":{"seller_delta":2,"buyer_delta":-2}},
 		"loyalty_step":2,"max_trades":3}
 	var slots:Dictionary={}
-	var stock_count:Dictionary={"alpha_merc_a":0,"alpha_merc_b":0}
-	for number:int in range(12):
-		var day:int=9+number*3
-		var id:String="g"+str(day).pad_zeros(2)
-		var actor:String="alpha_merc_a" if int(number/2)%2==0 else "alpha_merc_b"
-		var candidates:Array=[]
-		for choice:int in range(2):
-			var serial:int=int(stock_count[actor])
-			stock_count[actor]=serial+1
-			var item_id:String=id+"_"+str(choice)
-			state.items[item_id]=Objects.fresh_item("demo_tool",actor,
-				actor+"_grid",serial%8,int(serial/8.0),"authored_finite_merc_supply")
-			candidates.append({"actor":actor,"item_id":item_id,
-				"price":_cash(42+number),"side":"offer"})
-		slots[id]={"day_id":"d"+str(day),"region":"market_quarter",
-			"candidates":candidates}
+	# Six financed ordinary slots per day after D8, minus one on D8
+	# when a separate pawn customer and conditional D7 service pickup exist.
+	# Candidate objects are real day-one inventory, not generated proceeds.
+	for day:int in range(8,43):
+		for index:int in range(1 if day==8 else 0,int(config.daily_visits)):
+			var id:String="g"+str(day).pad_zeros(2)+"_"+str(index)
+			var actor:String="alpha_merc_"+str(index)
+			var price:int=int(config.base_offer)+int((day-8)/7)*int(config.weekly_premium)
+			slots[id]={"day_id":"d"+str(day),"region":"market_quarter",
+				"candidates":[
+					{"actor":actor,"item_id":actor+"_item_0","price":_cash(price),"side":"offer"},
+					{"actor":actor,"item_id":actor+"_item_1","price":_cash(price),"side":"offer"}]}
 	profile["npc_generated_visits"]={"version":1,"seed":int(config.visit_seed),"slots":slots}
 	profile["npc_continuity"]={"version":1,
-		"gates":{"g12":{"prior_visit":"g09","outcome":"traded"}}}
+		"gates":{"g12_0":{"prior_visit":"g09_0","outcome":"traded"}}}
 	# The finite market indexes the selected *existing object*, not a
 	# speculative unnamed candidate, and never funds a new visitor.
 	var realized:Dictionary=Generated.expand(state,profile)

@@ -28,7 +28,7 @@ func _initialize()->void:
 		"original D7 pickup travels into D8 without changing seven-day baseline")
 	check(f.profile.merchant_contracts.pawns.size()==1 and
 		f.profile.merchant_contracts.orders.size()==1 and
-		f.profile.npc_generated_visits.slots.size()==12,
+		f.profile.npc_generated_visits.slots.size()==209,
 		"publicly authored finite merchant and NPC model is actual launch content")
 	var s:=Seed.fresh()
 	check(s!=null,"fresh source-backed campaign initialized by standard GameSession")
@@ -36,7 +36,7 @@ func _initialize()->void:
 		quit(1)
 		return
 	check(s.snapshot().calendar.profile.id=="campaign_42" and
-		s.snapshot().visits.has("g09") and
+		s.snapshot().visits.has("g09_0") and
 		s.snapshot().items.has("ALPHA_ORDER01"),
 		"real physical contract inventory and selected merchant supply materialized")
 	check(not s.calendar_view().has("npc_visitor"),"future actor secrets absent from public runtime")

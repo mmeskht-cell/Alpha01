@@ -2,5 +2,8 @@
   "version": 1,
   "visit_seed": 17290,
   "purpose": "Internal non-canonical finite 42-day mechanics alpha; new authored merchandise and customers only",
-  "description": "No final campaign writing or new money after Day 1. Shop and 7-day story sources are immutable."
+  "description": "Day8 pawn+five real ordinary visitors, then six daily finite re-offer slots; never mint new stock or cash after seed.",
+  "daily_visits": 6,
+  "base_offer": 42,
+  "weekly_premium": 3
 }
