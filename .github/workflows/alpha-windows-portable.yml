@@ -10,6 +10,9 @@ on:
       - 'game/scenes/app/alpha42_mechanics_menu.tscn'
       - 'game/scenes/app/alpha_hold_market_menu.tscn'
       - 'game/src/presentation/main_menu.gd'
+      - 'game/src/application/demo7_runtime.gd'
+      - 'game/src/content/civilian_candidate_seed.gd'
+      - 'game/src/domain/campaign_visit_queue.gd'
 permissions:
   contents: read
 jobs:
