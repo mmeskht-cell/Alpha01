@@ -127,6 +127,7 @@ func run() -> void:
 	var repeat_speech := host.find_child("alpha_speech",true,false) as Label
 	check(repeat_visit.active.actor_id == "G01" and repeat_visit.npc_context.prior.offer.amount == 95, "same G01 comes back with real old public deal")
 	check(repeat_speech != null and repeat_speech.text.contains("지난번") and repeat_speech.text.contains("95 VKC"), "returning customer actually speaks previous agreed quote")
+	check(host.find_child("alpha_contract_rad1_first",true,false)==null,"ordinary repeat customer's counter hides unrelated named supplier contract")
 	root.size = Vector2i(1280,720)
 	await capture("b2-cards-return-g01-720p",Vector2i(1280,720))
 	host.queue_free()
