@@ -148,7 +148,7 @@ func _initialize()->void:
 	var vb:Dictionary=b.calendar_view()
 	check(va.visits.active=="watch_b" and vb.visits.active=="watch_c","NPC continuity is not retroactively invented")
 	check(va.npc_visitor.actor_id=="seller" and va.npc_visitor.alias==personae.actors.seller.alias and va.npc_visitor.returning,"real trade returns the SAME generated persona")
-	check(vb.npc_visitor.actor_id=="seller" and not vb.npc_visitor.returning,"declined alternative has no invented paid relationship")
+	check(vb.npc_visitor.actor_id=="seller" and vb.npc_visitor.returning and b.snapshot().ledger.is_empty(),"decline is a remembered encounter but never a fabricated paid trade")
 	check(va.regional_market.active_offer.amount==75 and vb.regional_market.active_offer.amount==100,"authored status plus previous paid flow reprices actual visit")
 	check(va.visits.terms.prices.W002.VKC==75 and vb.visits.terms.prices.W002.VKC==100,"market quote frozen in real transaction authority")
 	var before:Dictionary=a.snapshot()
