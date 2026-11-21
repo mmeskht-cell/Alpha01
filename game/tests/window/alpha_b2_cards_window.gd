@@ -87,6 +87,8 @@ func run() -> void:
 		quit(1)
 		return
 	check(host.session.alpha_view().appraisal.accepted.get("amount",0) == 95, "real click accepted supported purchase price")
+	var negotiated_speech := host.find_child("alpha_speech",true,false) as Label
+	check(negotiated_speech != null and negotiated_speech.text.contains("95 VKC") and negotiated_speech.text.contains("1건"), "same customer speaks price and only one disclosed fact after real mouse offer")
 	await capture("b2-cards-agreement-720p",Vector2i(1280,720))
 	for key: String in ["b2_trade","alpha_ack_exit","b2_display_R001","alpha_next_customer","alpha_ack_entry"]:
 		if not await click(key):
@@ -101,6 +103,32 @@ func run() -> void:
 		return
 	check(host.session.snapshot().wallets.player.VKC == 260 and host.session.snapshot().ledger.size() == 2,"full two-sided economic loop from real mouse clicks")
 	await capture("b2-cards-sale-1080p",Vector2i(1920,1080))
+	var traded_speech := host.find_child("alpha_speech",true,false) as Label
+	check(traded_speech != null and traded_speech.text.contains("거래가 끝났습니다"), "customer receives settled-exit dialogue only after actual wallet and stock transfer")
+	for id: String in ["alpha_ack_exit","alpha_close","alpha_settle","alpha_next_day","alpha_prepare_day"]:
+		if not await click(id):
+			quit(1)
+			return
+	for day: int in [2,3]:
+		for id: String in ["alpha_open","alpha_close","alpha_settle","alpha_next_day","alpha_prepare_day"]:
+			if not await click(id):
+				quit(1)
+				return
+	for id: String in ["alpha_open","alpha_next_customer","alpha_ack_entry"]:
+		if not await click(id):
+			quit(1)
+			return
+	check(host.session.alpha_view().active.actor_id == "G12" and host.session.alpha_view().npc_context.prior.is_empty(), "unrelated G12 has no earlier buyer disclosure")
+	for id: String in ["alpha_finish_customer","alpha_ack_exit","alpha_next_customer","alpha_ack_entry"]:
+		if not await click(id):
+			quit(1)
+			return
+	var repeat_visit: Dictionary = host.session.alpha_view()
+	var repeat_speech := host.find_child("alpha_speech",true,false) as Label
+	check(repeat_visit.active.actor_id == "G01" and repeat_visit.npc_context.prior.offer.amount == 95, "same G01 comes back with real old public deal")
+	check(repeat_speech != null and repeat_speech.text.contains("지난번") and repeat_speech.text.contains("95 VKC"), "returning customer actually speaks previous agreed quote")
+	root.size = Vector2i(1280,720)
+	await capture("b2-cards-return-g01-720p",Vector2i(1280,720))
 	host.queue_free()
 	await frames()
 	print("ALPHA_B2_CARDS_WINDOW: ",checks," checks, ",failures," failures")
