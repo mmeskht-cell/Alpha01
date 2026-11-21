@@ -5,6 +5,9 @@ extends SceneTree
 const Seed = preload("res://src/content/alpha_b2_named_commission_seed.gd")
 const Legacy = preload("res://src/content/alpha_b2_commission_seed.gd")
 const Commission = preload("res://src/domain/alpha_commission.gd")
+const Alpha = preload("res://src/domain/alpha_shop_cycle.gd")
+const Contract = preload("res://src/domain/alpha_dated_contract.gd")
+const Cards = preload("res://src/domain/alpha_card_trade.gd")
 const Session = preload("res://src/domain/game_session.gd")
 const Repo = preload("res://src/persistence/save_repository.gd")
 const Rules = preload("res://src/domain/value_rules.gd")
@@ -66,6 +69,29 @@ func _initialize() -> void:
 	check(source.state.visits.hygiene_sale == original.state.visits.hygiene_sale and source.state.items.HY05 == original.state.items.HY05, "reuses identical D5 named buyer visit and existing physical hygiene goods")
 	check(source.state.wallets == original.state.wallets and source.state.ledger == original.state.ledger and source.state.items == original.state.items, "no minted money or stock")
 	check(source.alpha_profile.days[0].size() <= 10 and source.alpha_profile.days[4].size() <= 10, "finite named request and actual return slots")
+	print("B2_NAMED_DIAGNOSTIC alpha=",Alpha.profile_valid(source.alpha_profile,source.state),
+		" contract=",Contract.profile_valid(source.alpha_profile,source.state),
+		" cards=",Cards.profile_valid(source.alpha_profile,source.state),
+		" commission=",Commission.profile_valid(source.alpha_profile,source.state),
+		" revision=",source.state.revision)
+	for request: Dictionary in Commission.config(Commission.NAMED_PROFILE).requests:
+		var visit: Dictionary = source.state.visits.get(request.return_visit_id,{})
+		var offer_found: bool = false
+		var return_found: bool = false
+		for row: Dictionary in source.alpha_profile.days[int(request.offer_day)-1]:
+			if row.id == request.offer_visit_id and row.actor_id == request.actor_id:
+				offer_found = true
+		for row: Dictionary in source.alpha_profile.days[int(request.due_day)-1]:
+			if row.id == request.return_visit_id and row.actor_id == request.actor_id:
+				return_found = true
+		var keys: Array = ["request_id","actor_id","offer_visit_id","return_visit_id","offer_day","due_day","target_def_id","return_item_id","require_functional","price","text_key"]
+		if request.has("delivery_x") or request.has("delivery_y"):
+			keys.append_array(["delivery_x","delivery_y"])
+		print("B2_NAMED_REQUEST_DIAG ",request.request_id,
+			" exact_keys=",Rules.keys(request,keys)," item_def=",source.state.items.get(request.return_item_id,{}).get("def_id","missing"),
+			" actor_wallet=",source.state.wallets.has(request.actor_id)," offer=",offer_found," return=",return_found,
+			" visit_seller=",visit.get("seller","missing")," buyer=",visit.get("buyer","missing"),
+			" prices=",visit.get("prices",{}).get(request.return_item_id,{})," due=",request.due_day)
 	var s: RefCounted = fresh()
 	if not check(s != null,"named/regular parity game session initializes"):
 		quit(1)
