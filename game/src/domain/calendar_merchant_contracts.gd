@@ -47,7 +47,7 @@ static func _event(s:Dictionary,id:String,kind:String,action:String,item_id:Stri
 		"minute":int(s.game_minutes),"item_id":item_id,"amount":amount.duplicate(true)})
 
 static func _pawn_policy(s:Dictionary,defs:Dictionary,id:String,p:Dictionary)->bool:
-	if not Rules.identifier(id) or not Rules.keys(p,["customer","visit_id","item_id","principal","repayment","due_day","placement"]):
+	if not Rules.identifier(id) or not Rules.keys(p,["customer","visit_id","item_id","principal","repayment","repayment_day","due_day","placement"]):
 		return false
 	if not Rules.identifier(p.customer) or p.customer=="player" or not s.wallets.has(p.customer) or not Rules.identifier(p.visit_id) or not Rules.identifier(p.item_id):
 		return false
@@ -61,7 +61,7 @@ static func _pawn_policy(s:Dictionary,defs:Dictionary,id:String,p:Dictionary)->b
 	if int(p.repayment.VKC)<int(p.principal.VKC) or int(p.repayment.USD)<int(p.principal.USD):
 		return false
 	var first_day:int=Clock.day_index(int(visit.opens))
-	if not Rules.integer(p.due_day,first_day,42):
+	if not Rules.integer(p.due_day,first_day+1,42) or not Rules.integer(p.repayment_day,first_day+1,int(p.due_day)):
 		return false
 	if not _good_family(s,defs,p.item_id,p.customer):
 		return false
@@ -186,7 +186,7 @@ static func apply(s:Dictionary,defs:Dictionary,kind:String,p:Dictionary,action:S
 		if not rows.pawns.has(id) or rows.pawns[id].status!="pledged":
 			return "pawn_not_held"
 		var t:Dictionary=pol.pawns[id]
-		if day>int(t.due_day) or (s.calendar.has("queue") and not s.calendar.queue.active.is_empty()) or not _funds(s,t.customer,"player",t.repayment):
+		if day!=int(t.repayment_day) or (s.calendar.has("queue") and not s.calendar.queue.active.is_empty()) or not _funds(s,t.customer,"player",t.repayment):
 			return "pawn_redeem_funds_or_time"
 		var original:Dictionary=rows.pawns[id].original
 		if not Objects.destination_accessible(s,original.inventory,t.customer,t.customer):
@@ -264,7 +264,9 @@ static func view(s:Dictionary)->Dictionary:
 			continue
 		output.pawns[id]={"status":c.pawns[id].status,"customer":t.customer,
 			"item_id":t.item_id,"principal":t.principal.duplicate(true),
-			"repayment":t.repayment.duplicate(true),"due_day":t.due_day}
+			"repayment":t.repayment.duplicate(true),"repayment_day":t.repayment_day,
+			"repayment_offered":day==int(t.repayment_day) and c.pawns[id].status=="pledged",
+			"due_day":t.due_day}
 	for id:String in c.orders:
 		var t:Dictionary=_policy(s).orders[id]
 		if day<int(t.offer_day):

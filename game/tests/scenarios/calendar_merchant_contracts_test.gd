@@ -41,7 +41,7 @@ func fixture()->Dictionary:
 		p.visit_days[name]=["watch_a","watch_b"] if day==1 else []
 	p["merchant_contracts"]={"version":1,"escrow_actor":"order_escrow",
 		"pawns":{"pawn_a":{"customer":"seller","visit_id":"watch_a","item_id":"W001",
-			"principal":money(40),"repayment":money(45),"due_day":2,
+			"principal":money(40),"repayment":money(45),"repayment_day":2,"due_day":2,
 			"placement":{"inventory":"player_grid","x":0,"y":0,"rotated":false}}},
 		"orders":{"order_a":{"customer":"order_buyer","def_id":"fictional_watch_p2",
 			"price":money(100),"offer_day":1,"due_day":2}}}
@@ -92,19 +92,15 @@ func _initialize()->void:
 			and state.wallets.seller.VKC==50,"custody/loan ledger reality "+suf)
 		check(not cmd(s,"merchant_pawn_accept","duplicate_loan_"+suf,{"contract_id":"pawn_a"}).get("ok",false)
 			and s.snapshot()==state,"one pledge, no duplicate disbursement "+suf)
-	check(cmd(redeemed,"merchant_pawn_redeem","redeem_a",{"contract_id":"pawn_a"}).get("ok",false),
-		"repayment by actual borrower wallet returns original item")
-	var a:Dictionary=redeemed.snapshot()
-	check(a.items.W001.owner_id=="seller" and a.items.W001.custodian_id=="seller" and a.items.W001.status=="stock"
-		and a.items.W001.inventory=="seller_grid" and a.wallets.player.VKC==185
-		and a.wallets.seller.VKC==5,"repayment transfers 45, loan 40, fee 5")
-	check(redeemed.calendar_view().merchant_contracts.pawns.pawn_a.status=="redeemed",
-		"shop office contract projection exposes redeem status")
+	var before_early:Dictionary=redeemed.snapshot()
+	check(not cmd(redeemed,"merchant_pawn_redeem","early_repay",{"contract_id":"pawn_a"}).get("ok",false)
+		and redeemed.snapshot()==before_early,
+		"player cannot debit a borrower before authored repayment offer")
 	check(cmd(redeemed,"merchant_order_accept","escrow_order",{"contract_id":"order_a"}).get("ok",false),
 		"real buyer funds segregated escrow once")
-	a=redeemed.snapshot()
+	var a:Dictionary=redeemed.snapshot()
 	check(a.wallets.order_buyer.VKC==50 and a.wallets.order_escrow.VKC==100
-		and a.wallets.player.VKC==185,"no phantom prepaid sales revenue")
+		and a.wallets.player.VKC==140,"no phantom prepaid sales revenue")
 	check(not cmd(redeemed,"merchant_order_accept","second_order",{"contract_id":"order_a"}).get("ok",false)
 		and redeemed.snapshot()==a,"duplicate order cannot collect twice")
 	check(cmd(redeemed,"merchant_order_deliver","deliver_real",{"contract_id":"order_a",
@@ -112,17 +108,33 @@ func _initialize()->void:
 			"rotated":false}}).get("ok",false),"real owned item fulfils actual funded order")
 	a=redeemed.snapshot()
 	check(a.items.SELL01.owner_id=="order_buyer" and a.items.SELL01.custodian_id=="order_buyer"
-		and a.items.SELL01.inventory=="order_buyer_grid" and a.wallets.player.VKC==285
+		and a.items.SELL01.inventory=="order_buyer_grid" and a.wallets.player.VKC==240
 		and a.wallets.order_escrow.VKC==0,"physical shipment and escrow settlement conserve money")
 	check(not cmd(redeemed,"merchant_order_deliver","double_sell",{"contract_id":"order_a",
 		"item_id":"SELL01","placement":{"inventory":"order_buyer_grid","x":0,"y":0,
 			"rotated":false}}).get("ok",false) and redeemed.snapshot()==a,
 		"same shipment cannot be invoiced twice")
+	check(cmd(redeemed,"calendar_close","redeem_d1_close").get("ok",false)
+		and cmd(redeemed,"calendar_morning","redeem_d2_open").get("ok",false),
+		"customer offers repayment on the authored second-day window")
+	check(redeemed.calendar_view().merchant_contracts.pawns.pawn_a.repayment_offered,
+		"only actual customer redemption day is an actionable offer")
+	check(cmd(redeemed,"merchant_pawn_redeem","redeem_a",{"contract_id":"pawn_a"}).get("ok",false),
+		"repayment by customer in agreed window returns original item")
+	a=redeemed.snapshot()
+	check(a.items.W001.owner_id=="seller" and a.items.W001.custodian_id=="seller"
+		and a.items.W001.status=="stock" and a.items.W001.inventory=="seller_grid"
+		and a.wallets.player.VKC==270 and a.wallets.seller.VKC==5,
+		"repayment transfers 45 after actual D1 operating cost")
+	check(redeemed.calendar_view().merchant_contracts.pawns.pawn_a.status=="redeemed",
+		"office contract projection exposes final redeem status")
 	var cold:RefCounted=open(f)
-	check(cold!=null and cold.restore(a) and cold.snapshot()==a,"pawn/order replay survives cold restore")
+	check(cold!=null and cold.restore(a) and cold.snapshot()==a,
+		"pawn/order and customer redemption replay survive cold restore")
 	var forged:Dictionary=a.duplicate(true)
 	forged.calendar.merchant_contracts.events[0].amount.VKC+=1
-	check(not cold.restore(forged) and cold.snapshot()==a,"counterfeit contract ledger rejected")
+	check(not cold.restore(forged) and cold.snapshot()==a,
+		"counterfeit contract ledger rejected")
 	check(cmd(cancelled,"merchant_order_accept","escrow_cancel",{"contract_id":"order_a"}).get("ok",false)
 		and cmd(cancelled,"merchant_order_cancel","refund_cancel",{"contract_id":"order_a"}).get("ok",false),
 		"order cancellation refunds exact original buyer")
