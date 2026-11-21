@@ -263,7 +263,7 @@ static func view(state: Dictionary) -> Dictionary:
 			pending_visits += 1
 	var contract_view: Dictionary = Contract.view(state)
 	for actor: String in a.contacts:
-		contacts.append({"actor_id": actor, "contact_id": a.contacts[actor].contact_id, "callable": can_contact(a, actor)})
+		contacts.append({"actor_id": actor, "contact_id": a.contacts[actor].contact_id, "acquired_day": int(a.contacts[actor].acquired_day), "callable": can_contact(a, actor)})
 	contacts.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return x.actor_id < y.actor_id)
 	return {
 		"day": a.day, "phase": a.phase, "active": row,
