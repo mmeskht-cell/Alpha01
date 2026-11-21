@@ -43,9 +43,9 @@ static func seed() -> Dictionary:
 
 static func _visit_context(state: Dictionary) -> Dictionary:
 	var a: Dictionary = state.alpha_shop
-	if a.profile.get("content_version") not in ["b2-cards-pilot-1","b2-cards-commission-1"] or a.phase != "CUSTOMER_ACTIVE" or not state.visits.has(a.active):
+	if a.profile.get("content_version") not in ["b2-cards-pilot-1","b2-cards-commission-1","b2-cards-commission-named-1"] or a.phase != "CUSTOMER_ACTIVE" or not state.visits.has(a.active):
 		return {}
-	if a.has("commissions") and Commission.is_return_visit(a.active):
+	if a.has("commissions") and Commission.is_return_visit(a.active, str(a.profile.get("commission_profile_id", ""))):
 		return {}
 	var visit: Dictionary = state.visits[a.active]
 	if visit.scope.completed or visit.prices.size() != 1 or (visit.seller != "player" and not visit.allow_inspection):
