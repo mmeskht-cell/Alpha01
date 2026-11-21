@@ -1,0 +1,106 @@
+extends SceneTree
+## Independent true-window probe of the new B2 counter with real mouse clicks,
+## preserved screen render at 1280x720 and 1920x1080. The price input value
+## is assigned as UI text; the buttons are exercised via actual pointer events.
+const Scene = preload("res://scenes/app/alpha_b2_cards.tscn")
+var host: Control
+var out: String
+var checks: int = 0
+var failures: int = 0
+
+func _initialize() -> void:
+	run.call_deferred()
+
+func check(ok: bool, label: String) -> bool:
+	checks += 1
+	if not ok:
+		failures += 1
+		printerr("FAIL: ",label)
+	return ok
+
+func frames() -> void:
+	await process_frame
+	await process_frame
+	await process_frame
+
+func capture(name: String, expected: Vector2i) -> void:
+	await frames()
+	await RenderingServer.frame_post_draw
+	var image: Image = root.get_texture().get_image()
+	if not check(image != null and not image.is_empty(), "screenshot exists " + name):
+		return
+	check(image.get_size() == expected and image.save_png(out.path_join(name+".png")) == OK,"real image at "+str(expected)+" "+name)
+
+func click(id: String) -> bool:
+	var button := host.find_child(id,true,false) as Button
+	if not check(button != null and button.is_visible_in_tree() and not button.disabled,"interactive button "+id):
+		return false
+	var ancestor: Node = button.get_parent()
+	while ancestor != null:
+		if ancestor is ScrollContainer:
+			ancestor.ensure_control_visible(button)
+		ancestor = ancestor.get_parent()
+	await frames()
+	var point: Vector2 = button.get_global_transform_with_canvas() * (button.size*0.5)
+	if not check(root.get_visible_rect().has_point(point),"pointer within screen "+id):
+		return false
+	for down: bool in [true,false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.pressed = down
+		event.button_mask = MOUSE_BUTTON_MASK_LEFT if down else 0
+		event.position = point
+		event.global_position = point
+		root.push_input(event,true)
+	await frames()
+	return true
+
+func offer(amount: int) -> bool:
+	var input := host.find_child("b2_price_input",true,false) as LineEdit
+	if not check(input != null,"editable current quote input"):
+		return false
+	input.text = str(amount)
+	return await click("b2_offer")
+
+func run() -> void:
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	if args.size() != 1:
+		quit(2)
+		return
+	out = args[0]
+	root.size = Vector2i(1280,720)
+	host = Scene.instantiate()
+	host.save_directory_override = "user://zt_rebuild/b2_cards_window_"+str(Time.get_ticks_usec())
+	root.add_child(host)
+	await frames()
+	if not check(host.session != null and not host._blocked,"B2 card scene boots"):
+		quit(1)
+		return
+	await capture("b2-cards-intro-720p",Vector2i(1280,720))
+	for key: String in ["intro_skip","alpha_open","alpha_next_customer","alpha_ack_entry"]:
+		if not await click(key):
+			quit(1)
+			return
+	await capture("b2-cards-inspection-720p",Vector2i(1280,720))
+	if not await click("b2_inspect_wear_detail") or not await click("b2_card_wear_detail") or not await offer(95):
+		quit(1)
+		return
+	check(host.session.alpha_view().appraisal.accepted.get("amount",0) == 95, "real click accepted supported purchase price")
+	await capture("b2-cards-agreement-720p",Vector2i(1280,720))
+	for key: String in ["b2_trade","alpha_ack_exit","b2_display_R001","alpha_next_customer","alpha_ack_entry"]:
+		if not await click(key):
+			quit(1)
+			return
+	check(host.session.snapshot().items.R001.inventory == "storefront_grid","shelf contains actual item")
+	root.size = Vector2i(1920,1080)
+	await frames()
+	await capture("b2-cards-buyer-1080p",Vector2i(1920,1080))
+	if not await click("b2_inspect_function_detail") or not await click("b2_card_function_detail") or not await offer(175) or not await click("b2_trade"):
+		quit(1)
+		return
+	check(host.session.snapshot().wallets.player.VKC == 260 and host.session.snapshot().ledger.size() == 2,"full two-sided economic loop from real mouse clicks")
+	await capture("b2-cards-sale-1080p",Vector2i(1920,1080))
+	host.queue_free()
+	await frames()
+	print("ALPHA_B2_CARDS_WINDOW: ",checks," checks, ",failures," failures")
+	quit(0 if failures == 0 else 1)

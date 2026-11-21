@@ -148,6 +148,10 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 			var approved: Dictionary = config().negotiation_terms.get(context.visit_id,{})
 			if not approved.is_empty() and p.amount == approved.improved_amount and approved.required_slot in row.selected:
 				accepted = true
+			# An agreement is not valid if its actual buyer cannot afford it.
+			# _transfer separately revalidates the wallet on final settlement.
+			if accepted and state.wallets[visit.buyer][currency] < p.amount:
+				accepted = false
 			var revealed: Array = []
 			for slot: String in row.selected:
 				if row.observed.has(slot):
