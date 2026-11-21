@@ -82,5 +82,29 @@ func _initialize()->void:
 	check(runtime.open(path),"actual production save/load adapter opens isolated 42-day slot")
 	if runtime.localization!=null:
 		runtime.close()
+	# A fresh, unassisted playthrough of the actual shipping-content seed:
+	# all future NPC appointments, local events, finance deadlines and
+	# checkpoint capacity remain consistent even without profitable choices.
+	var long:=Seed.fresh()
+	check(long!=null,"independent real production D1 start for long replay")
+	if long!=null:
+		var reached:bool=true
+		for day:int in range(1,43):
+			var before:int=Clock.day_index(int(long.snapshot().game_minutes))
+			if before!=day or not command(long,"calendar_close") or not command(long,"calendar_morning"):
+				reached=false
+				break
+		check(reached and long.calendar_view().complete and long.snapshot().game_minutes==60480,
+			"real product-authoring seed covers D1 through D42 without external stock or timers")
+		var product_end:Dictionary=long.snapshot()
+		var total_bytes:int=JSON.stringify(product_end).to_utf8_buffer().size()
+		print("ALPHA42_PRODUCTION_42DAY_BYTES: ",total_bytes)
+		check(total_bytes<1048576 and product_end.items.size()<=128
+			and product_end.wallets.size()<=64,
+			"real 209-appointment production route stays under bounded active item/wallet/1MiB capacity")
+		var copied:=Session.new()
+		check(copied.initialize(f.defs,f.state,false,false,f.profile)
+			and copied.restore(product_end) and copied.snapshot()==product_end,
+			"real 42-day user-world journal, NPC memory and all missed options cold replay")
 	print("ALPHA42_PRODUCTION_RUNTIME: ",checked," checks, ",failed," failures")
 	quit(0 if failed==0 else 1)
