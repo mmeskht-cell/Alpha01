@@ -540,13 +540,13 @@ func _alpha_playtest()->void:
 					break
 				var v:Dictionary=r.view()
 				var visit:String=v.visits.active
-				var purchase:bool=visit in ["visit_g01","visit_g02_buy","battery_buy","battery_sale"] or (route=="repair" and visit in ["electronics_buy","electronics_sale"])
+				var purchase:bool=visit in ["visit_g01","visit_g02_buy","battery_buy","battery_sale","electronics_buy","electronics_sale"]
 				if visit=="alpha_field_tool_buy":
-					check(day==6 and v.wallet.VKC==170,"D6 valid-earned cash before competing acquisitions")
+					check(day==6 and v.wallet.VKC==205,"D6 valid-earned cash before competing acquisitions")
 					purchase=route=="speculate"
 				elif visit=="civil_receiver_buy":
 					if route=="speculate":
-						check(not v.trade_can_pay and v.wallet.VKC==25,"field tool crowds out receiver purchase")
+						check(not v.trade_can_pay and v.wallet.VKC==60,"field tool crowds out receiver purchase")
 						var denied:Dictionary=v.trade.duplicate(true)
 						denied.erase("label")
 						denied.erase("placement")
@@ -597,7 +597,7 @@ func _alpha_playtest()->void:
 		var final:Dictionary=r.snapshot()
 		outcomes[route]=final.wallets.player.VKC
 		check(r.view().complete and (final.items.TL06A.owner_id=="G10" if route=="speculate" else final.items.CR06.owner_id=="G07"),"D7 authored buyer receives selected asset "+route)
-		check(outcomes[route]==(190 if route=="speculate" else 235),"actual alpha ledger "+route+" cash="+str(outcomes[route]))
+		check(outcomes[route]==(225 if route=="speculate" else 235),"actual alpha ledger "+route+" cash="+str(outcomes[route]))
 		r.close()
 		var resumed:=Runtime.new()
 		check(resumed.open(directory,true,true,3) and not resumed.blocked and resumed.snapshot()==final,"exact alpha save/reopen "+route)
