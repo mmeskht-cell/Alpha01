@@ -5,6 +5,7 @@ const Watch=preload("res://tests/fixtures/p2_watch_state.gd")
 const Context=preload("res://tests/fixtures/gate0_c_state.gd")
 const Session=preload("res://src/domain/game_session.gd")
 const Market=preload("res://src/domain/regional_market_flow.gd")
+const Population=preload("res://src/domain/npc_population.gd")
 const Rules=preload("res://src/domain/value_rules.gd")
 const Repo=preload("res://src/persistence/save_repository.gd")
 var checks:int=0
@@ -60,6 +61,9 @@ func fixture()->Dictionary:
 		"events":{"market_d2":{"day":2,"region":"market_quarter","topic":"civilian_supply",
 			"without_player":"strained","with_player":"limited",
 			"cause_visit":"watch_a","source":"local_market_notice"}},"gates":{}}
+	profile["npc_population"]={"version":1,"seed":582,"actors":{
+		"seller":{"kind":"scavenger","region":"market_quarter"},
+		"collector":{"kind":"civilian","region":"market_quarter"}}}
 	profile["market_flow"]={"version":1,"flow_step":5,"max_flow_delta":10,
 		"buyers":{"collector":{"categories":["civilian_goods"],"reserve":20}},
 		"entries":{"watch_a":terms("watch_a","W001"),
@@ -91,6 +95,9 @@ func branch(c:Dictionary,paid:bool)->Dictionary:
 	if not cmd(s,"calendar_next_visit","visit_a").get("ok",false):
 		return {}
 	var admission:Dictionary=s.calendar_view().regional_market
+	var guest:Dictionary=s.calendar_view().get("npc_visitor",{})
+	if guest.get("actor_id")!="seller" or guest.has("private_trait") or guest.has("wallet") or guest.get("returning",true):
+		return {}
 	if admission.get("active_offer",{}).get("amount")!=90:
 		return {}
 	var outcome:Dictionary=cmd(s,"trade","settled_a",trade_payload("watch_a","W001","seller","player",90,"player_grid")) if paid else cmd(s,"calendar_decline_visit","refused_a",{"visit_id":"watch_a"})
@@ -101,6 +108,18 @@ func branch(c:Dictionary,paid:bool)->Dictionary:
 func _initialize()->void:
 	var c:Dictionary=fixture()
 	check(not c.is_empty(),"authored market and schedule seed")
+	var personae:Dictionary=Population.seed(c.initial,c.profile)
+	check(personae.get("actors",{}).size()==2 and personae.actors.seller.actor_id=="seller","bounded seeded real customer identities")
+	check(Population.seed(c.initial,c.profile)==personae,"seed deterministic across repeated creation")
+	var changed:Dictionary=c.profile.duplicate(true)
+	changed.npc_population.seed=583
+	check(Population.seed(c.initial,changed).actors.seller.generation_id!=personae.actors.seller.generation_id,"campaign seed gives a distinct generation identity")
+	var invalid_npc:Dictionary=c.profile.duplicate(true)
+	invalid_npc.npc_population.actors.seller.region="old_quarter"
+	check(Population.seed(c.initial,invalid_npc).is_empty(),"no phantom actor outside authored market")
+	invalid_npc=c.profile.duplicate(true)
+	invalid_npc.npc_population.actors["new_wallet"]={"kind":"civilian","region":"market_quarter"}
+	check(Population.seed(c.initial,invalid_npc).is_empty(),"no procedurally minted money or wallet")
 	if c.is_empty():
 		quit(1)
 		return
@@ -128,6 +147,8 @@ func _initialize()->void:
 	var va:Dictionary=a.calendar_view()
 	var vb:Dictionary=b.calendar_view()
 	check(va.visits.active=="watch_b" and vb.visits.active=="watch_c","NPC continuity is not retroactively invented")
+	check(va.npc_visitor.actor_id=="seller" and va.npc_visitor.alias==personae.actors.seller.alias and va.npc_visitor.returning,"real trade returns the SAME generated persona")
+	check(vb.npc_visitor.actor_id=="seller" and not vb.npc_visitor.returning,"declined alternative has no invented paid relationship")
 	check(va.regional_market.active_offer.amount==75 and vb.regional_market.active_offer.amount==100,"authored status plus previous paid flow reprices actual visit")
 	check(va.visits.terms.prices.W002.VKC==75 and vb.visits.terms.prices.W002.VKC==100,"market quote frozen in real transaction authority")
 	var before:Dictionary=a.snapshot()
@@ -143,12 +164,16 @@ func _initialize()->void:
 	check(cmd(a,"calendar_next_visit","day3_buy_back").get("ok",false),"real funded collector requests acquired item")
 	var quote:Dictionary=a.calendar_view().regional_market.active_offer
 	check(quote.amount==105 and quote.item_id=="W001","next day net stock flow reprices collector demand")
+	check(a.calendar_view().npc_visitor.actor_id=="collector" and a.calendar_view().npc_visitor.alias==personae.actors.collector.alias,"third day different finite buyer has own stable persona")
 	check(cmd(a,"trade","resold",trade_payload("buy_back","W001","player","collector",105,"collector_grid")).get("ok",false),"collector's finite budget pays actual price")
 	check(a.snapshot().wallets.collector.VKC==25 and a.snapshot().items.W001.owner_id=="collector","collector reserve and actual item custody preserved")
 	check(not a.calendar_view().regional_market.has("active_offer"),"completed market quote no longer leaks")
 	var saved:Dictionary=a.snapshot()
 	var cold:=Session.new()
 	check(cold.initialize(c.defs,c.initial,false,false,c.profile) and cold.restore(saved) and cold.snapshot()==saved,"all dynamic prices and events replay exactly")
+	var changed_persona:Dictionary=saved.duplicate(true)
+	changed_persona.calendar.npc_population.actors.seller.alias="FORGED"
+	check(not cold.restore(changed_persona) and cold.snapshot()==saved,"generated identity cannot be changed by forged save")
 	var tampered:Dictionary=saved.duplicate(true)
 	tampered.visits.buy_back.prices.W001.VKC=110
 	check(not cold.restore(tampered) and cold.snapshot()==saved,"forged settled market price denied on restore")

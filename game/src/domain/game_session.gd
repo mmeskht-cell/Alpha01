@@ -30,6 +30,7 @@ const VisitObservation = preload("res://src/domain/visit_appraisal_observation.g
 const AppraisalRetention=preload("res://src/domain/appraisal_history_retention.gd")
 const RegionalWorld=preload("res://src/domain/regional_world_state.gd")
 const NpcContinuity=preload("res://src/domain/npc_continuity.gd")
+const NpcPopulation=preload("res://src/domain/npc_population.gd")
 const RegionalMarket=preload("res://src/domain/regional_market_flow.gd")
 const VisitAssessment = preload("res://src/domain/visit_appraisal_assessment.gd")
 const VisitDeck = preload("res://src/domain/visit_negotiation_deck.gd")
@@ -400,6 +401,10 @@ func calendar_view(basic_visit:String="") -> Dictionary:
 		result["world_regions"]=RegionalWorld.view(_state)
 	if _state.calendar.profile.has("market_flow"):
 		result["regional_market"]=RegionalMarket.view(_state)
+	if _state.calendar.has("npc_population"):
+		var persona:Dictionary=NpcPopulation.active_view(_state)
+		if not persona.is_empty():
+			result["npc_visitor"]=persona
 	if _state.calendar.profile.has("npc_continuity") and result.get("visits",{}).has("active") and not str(result.visits.active).is_empty():
 		var terms:Dictionary=result.visits.terms
 		var actor:String=str(terms.get("seller","")) if terms.get("buyer")=="player" else str(terms.get("buyer",terms.get("customer","")))
@@ -421,6 +426,8 @@ func _calendar_valid(state: Dictionary) -> bool:
 		keys.append("reaction")
 	if _calendar_seed.calendar.has("regional_world"):
 		keys.append("regional_world")
+	if _calendar_seed.calendar.has("npc_population"):
+		keys.append("npc_population")
 	if _calendar_seed.calendar.has("medicine"):
 		keys.append("medicine")
 	if _calendar_seed.calendar.has("queue"):
