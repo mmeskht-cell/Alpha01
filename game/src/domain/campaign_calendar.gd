@@ -223,7 +223,7 @@ static func apply(s: Dictionary, kind: String, payload: Dictionary, action: Stri
 			if not contract_error.is_empty():
 				return contract_error
 			if c.has("merchant_contracts"):
-				Merchant.close(s,action)
+				Merchant.close(s,defs,action)
 			s.phase = "workshop"
 		"calendar_morning":
 			if s.phase != "workshop" or int(s.game_minutes) % Clock.DAY_MINUTES != Clock.BUSINESS_MINUTES:
