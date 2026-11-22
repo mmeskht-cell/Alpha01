@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "profiles": {
+    "b2_commission_pilot_1": "commission_pilot_1.json",
+    "b2_commission_named_parity_1": "commission_named_parity_1.json",
+    "b2_commission_q08_capacity_1": "commission_q08_capacity_1.json"
+  }
+}

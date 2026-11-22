@@ -4,17 +4,39 @@ extends RefCounted
 ## is a real GameSession._transfer with a source-bound authored return visit.
 const Rules = preload("res://src/domain/value_rules.gd")
 const Objects = preload("res://src/domain/object_schema.gd")
-const PATH: String = "res://data/alpha_b2/commission_pilot_1.json"
-const NAMED_PATH: String = "res://data/alpha_b2/commission_named_parity_1.json"
+const PROFILE_DIRECTORY: String = "res://data/alpha_b2/"
+const PROFILE_REGISTRY: String = "res://data/alpha_b2/commission_profiles_1.json"
 const DEFAULT_PROFILE: String = "b2_commission_pilot_1"
 const NAMED_PROFILE: String = "b2_commission_named_parity_1"
 const ACTIONS: Array = ["alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver"]
 
-## Profile-bound allowlist; old save's authored config bytes remain untouched.
-static func config(profile_id: String = DEFAULT_PROFILE) -> Dictionary:
-	var path: String = PATH if profile_id == DEFAULT_PROFILE else (NAMED_PATH if profile_id == NAMED_PROFILE else "")
-	if path.is_empty():
+## Data-only, strictly confined registry. Existing published IDs stay pinned
+## to their original files, so changing this index cannot silently substitute
+## a different authored economy for a restored pilot save.
+static func profiles() -> Dictionary:
+	var record: Variant = JSON.parse_string(FileAccess.get_file_as_string(PROFILE_REGISTRY))
+	if not Rules.keys(record, ["version", "profiles"]) or record.version != 1 or not record.profiles is Dictionary:
 		return {}
+	var entries: Dictionary = record.profiles
+	if entries.size() < 2 or entries.size() > 16:
+		return {}
+	if entries.get(DEFAULT_PROFILE, "") != "commission_pilot_1.json" or entries.get(NAMED_PROFILE, "") != "commission_named_parity_1.json":
+		return {}
+	for id: Variant in entries:
+		var filename: Variant = entries[id]
+		if not Rules.identifier(id) or not filename is String:
+			return {}
+		if filename != filename.get_file() or not filename.begins_with("commission_") or not filename.ends_with("_1.json") or filename.contains("..") or not Rules.identifier(filename):
+			return {}
+	return entries
+
+static func config(profile_id: String = DEFAULT_PROFILE) -> Dictionary:
+	if not Rules.identifier(profile_id):
+		return {}
+	var entries: Dictionary = profiles()
+	if not entries.has(profile_id):
+		return {}
+	var path: String = PROFILE_DIRECTORY + str(entries[profile_id])
 	var value: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
 	if not Rules.keys(value, ["version", "profile_id", "requests"]) or value.version != 1 or value.profile_id != profile_id or not value.requests is Array:
 		return {}
@@ -26,11 +48,19 @@ static func _profile_id(state: Dictionary) -> String:
 	return str(state.alpha_shop.profile.get("commission_profile_id", "")) if state.has("alpha_shop") else ""
 
 static func profile_valid(profile: Dictionary, state: Dictionary) -> bool:
-	var c: Dictionary = config(str(profile.get("commission_profile_id", "")))
-	if c.is_empty() or profile.get("commission_profile_id") != c.profile_id or not profile.has("days"):
+	return profile_valid_with_config(profile, state, config(str(profile.get("commission_profile_id", ""))))
+
+## Pure shape/authority check also exercised against malformed Q08 fixture
+## copies. The runtime path always supplies a registry-validated config.
+static func profile_valid_with_config(profile: Dictionary, state: Dictionary, c: Dictionary) -> bool:
+	if not Rules.keys(c, ["version", "profile_id", "requests"]) or c.version != 1 or not c.requests is Array or c.requests.is_empty() or c.requests.size() > 16:
+		return false
+	if profile.get("commission_profile_id") != c.profile_id or not profile.has("days") or not profile.days is Array:
 		return false
 	var ids: Dictionary = {}
+	var offer_visits: Dictionary = {}
 	var return_visits: Dictionary = {}
+	var source_items: Dictionary = {}
 	for r: Variant in c.requests:
 		var shape: Array = ["request_id","actor_id","offer_visit_id","return_visit_id","offer_day","due_day","target_def_id","return_item_id","require_functional","price","text_key"]
 		# Strict exact-key validation also applies to the two optional
@@ -42,7 +72,7 @@ static func profile_valid(profile: Dictionary, state: Dictionary) -> bool:
 		for key: String in ["request_id","actor_id","offer_visit_id","return_visit_id","target_def_id","return_item_id","text_key"]:
 			if not Rules.identifier(r[key]):
 				return false
-		if ids.has(r.request_id) or return_visits.has(r.return_visit_id) or r.offer_visit_id == r.return_visit_id or not Rules.integer(r.offer_day, 1, profile.days.size()) or not Rules.integer(r.due_day, int(r.offer_day) + 1, profile.days.size()):
+		if ids.has(r.request_id) or offer_visits.has(r.offer_visit_id) or return_visits.has(r.return_visit_id) or source_items.has(r.return_item_id) or return_visits.has(r.offer_visit_id) or offer_visits.has(r.return_visit_id) or r.offer_visit_id == r.return_visit_id or not Rules.integer(r.offer_day, 1, profile.days.size()) or not Rules.integer(r.due_day, int(r.offer_day) + 1, profile.days.size()):
 			return false
 		if not r.require_functional is bool or not Objects.money(r.price, false) or int(r.price.VKC) + int(r.price.USD) <= 0 or (int(r.price.VKC) > 0 and int(r.price.USD) > 0):
 			return false
@@ -66,7 +96,9 @@ static func profile_valid(profile: Dictionary, state: Dictionary) -> bool:
 		if not offer or not returned:
 			return false
 		ids[r.request_id] = true
+		offer_visits[r.offer_visit_id] = true
 		return_visits[r.return_visit_id] = true
+		source_items[r.return_item_id] = true
 	return true
 
 static func seed(profile_id: String = DEFAULT_PROFILE) -> Dictionary:
