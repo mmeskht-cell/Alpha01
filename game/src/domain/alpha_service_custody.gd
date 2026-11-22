@@ -6,13 +6,15 @@ const Rules = preload("res://src/domain/value_rules.gd")
 const Objects = preload("res://src/domain/object_schema.gd")
 const PATH: String = "res://data/alpha_b2/service_custody_pilot_1.json"
 const PROFILE_ID: String = "b2_service_custody_pilot_1"
+const RECOVERY_PROFILE_ID: String = "b2_service_custody_recovery_2"
+const RECOVERY_PATH: String = "res://data/alpha_b2/service_custody_recovery_2.json"
 const ACTIONS: Array = ["alpha_service_accept","alpha_service_decline","alpha_service_repair","alpha_service_deliver","alpha_service_return_unpaid"]
 
 static func config(profile_id: String = PROFILE_ID) -> Dictionary:
-	if profile_id != PROFILE_ID:
+	if profile_id not in [PROFILE_ID, RECOVERY_PROFILE_ID]:
 		return {}
-	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(PATH))
-	if not Rules.keys(data,["version","profile_id","jobs"]) or data.version != 1 or data.profile_id != PROFILE_ID or not data.jobs is Array or data.jobs.size() != 1:
+	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(RECOVERY_PATH if profile_id == RECOVERY_PROFILE_ID else PATH))
+	if not Rules.keys(data,["version","profile_id","jobs"]) or data.version != 1 or data.profile_id != profile_id or not data.jobs is Array or data.jobs.size() != 1:
 		return {}
 	return data
 
@@ -22,7 +24,13 @@ static func profile_valid(profile: Dictionary, state: Dictionary) -> bool:
 		return false
 	var ids: Dictionary = {}
 	for job: Dictionary in cfg.jobs:
-		if not Rules.keys(job,["job_id","actor_id","offer_visit_id","return_visit_id","offer_day","due_day","item_id","fee","text_key"]):
+		var required: Array = ["job_id","actor_id","offer_visit_id","return_visit_id","offer_day","due_day","item_id","fee","text_key"]
+		var recovery: bool = str(profile.service_profile_id) == RECOVERY_PROFILE_ID
+		if recovery:
+			required.append_array(["recovery_visit_id","recovery_day"])
+		if not Rules.keys(job,required):
+			return false
+		if recovery and (not Rules.identifier(job.recovery_visit_id) or not Rules.integer(job.recovery_day,int(job.due_day)+1,profile.days.size()) or job.recovery_visit_id in [job.offer_visit_id,job.return_visit_id]):
 			return false
 		for key: String in ["job_id","actor_id","offer_visit_id","return_visit_id","item_id","text_key"]:
 			if not Rules.identifier(job[key]):
@@ -46,6 +54,13 @@ static func profile_valid(profile: Dictionary, state: Dictionary) -> bool:
 				returned = true
 		if not offered or not returned:
 			return false
+		if recovery:
+			var recovery_found: bool = false
+			for row: Dictionary in profile.days[int(job.recovery_day)-1]:
+				if row.id == job.recovery_visit_id and row.actor_id == job.actor_id and row.kind == "regular":
+					recovery_found = true
+			if not recovery_found or state.visits.has(job.recovery_visit_id):
+				return false
 		ids[job.job_id] = true
 	return true
 
@@ -60,7 +75,7 @@ static func _job(state: Dictionary, job_id: String) -> Dictionary:
 
 static func is_return_visit(visit_id: String, profile_id: String) -> bool:
 	for row: Dictionary in config(profile_id).get("jobs",[]):
-		if row.return_visit_id == visit_id:
+		if row.return_visit_id == visit_id or (row.has("recovery_visit_id") and row.recovery_visit_id == visit_id):
 			return true
 	return false
 
@@ -72,12 +87,20 @@ static func seed(profile_id: String) -> Dictionary:
 
 static func current(state: Dictionary, row: Dictionary, returning: bool = false) -> bool:
 	var a: Dictionary = state.alpha_shop
-	return a.phase == "CUSTOMER_ACTIVE" and a.day == (row.due_day if returning else row.offer_day) and a.active == (row.return_visit_id if returning else row.offer_visit_id)
+	if a.phase != "CUSTOMER_ACTIVE":
+		return false
+	if not returning:
+		return a.day == row.offer_day and a.active == row.offer_visit_id
+	if a.day == row.due_day and a.active == row.return_visit_id:
+		return true
+	return row.has("recovery_visit_id") and a.day == row.recovery_day and a.active == row.recovery_visit_id and state.alpha_shop.services.jobs[row.job_id].status == "overdue_custody"
 
 static func scheduled(state: Dictionary, visit_id: String) -> bool:
 	for row: Dictionary in config(_id(state)).get("jobs",[]):
 		if row.return_visit_id == visit_id:
 			return state.alpha_shop.services.jobs[row.job_id].status in ["accepted","repaired"]
+		if row.has("recovery_visit_id") and row.recovery_visit_id == visit_id:
+			return state.alpha_shop.services.jobs[row.job_id].status == "overdue_custody"
 	return true
 
 static func on_entry(state: Dictionary, action_id: String) -> void:
@@ -153,10 +176,10 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 		job.status = "accepted"
 		job.accepted_action = command.action_id
 		return ""
-	if not current(state,row,true) or job.status not in ["accepted","repaired"] or item.owner_id != row.actor_id or item.custodian_id != "player" or item.status != "custody_service" or not item.service_permission or not item.reservation_id.is_empty():
+	if not current(state,row,true) or job.status not in ["accepted","repaired","overdue_custody"] or item.owner_id != row.actor_id or item.custodian_id != "player" or item.status != "custody_service" or not item.service_permission or not item.reservation_id.is_empty():
 		return "alpha_service_return_permission"
 	var paid: bool = command.type == "alpha_service_deliver"
-	if paid and (job.status != "repaired" or not item.functional or not item.restored):
+	if paid and (job.work_action.is_empty() or not item.functional or not item.restored):
 		return "alpha_service_unfinished"
 	var fee: Dictionary = Rules.normalized(row.fee.duplicate(true))
 	if paid:
@@ -197,10 +220,10 @@ static func view(state: Dictionary) -> Dictionary:
 		result.entries.append({
 			"job_id":row.job_id,"actor_id":row.actor_id,"item_id":row.item_id,
 			"status":job.status,"fee":Rules.normalized(row.fee.duplicate(true)),
-			"due_day":row.due_day,"text_key":row.text_key,"def_id":item.def_id,
+			"due_day":row.due_day,"recovery_day":int(row.get("recovery_day",0)),"text_key":row.text_key,"def_id":item.def_id,
 			"can_accept":job.status=="offered" and current(state,row),
 			"can_repair":job.status=="accepted" and state.alpha_shop.phase=="EVENING_WORK",
-			"can_deliver":job.status=="repaired" and current(state,row,true),
-			"can_return":job.status in ["accepted","repaired"] and current(state,row,true)
+			"can_deliver":job.status in ["repaired","overdue_custody"] and not str(job.work_action).is_empty() and item.functional and item.restored and current(state,row,true),
+			"can_return":job.status in ["accepted","repaired","overdue_custody"] and current(state,row,true)
 		})
 	return result

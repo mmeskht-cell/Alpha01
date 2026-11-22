@@ -4,6 +4,7 @@ extends SceneTree
 const Scene = preload("res://scenes/app/alpha_b2_commission.tscn")
 const NamedScene = preload("res://scenes/app/alpha_b2_named_commission.tscn")
 const ServiceScene = preload("res://scenes/app/alpha_b2_service.tscn")
+const RecoveryScene = preload("res://scenes/app/alpha_b2_service_recovery.tscn")
 var host: Control
 var path: String
 var checks: int=0
@@ -150,6 +151,9 @@ func run() -> void:
 	if not await run_service_counter():
 		quit(1)
 		return
+	if not await run_recovery_counter():
+		quit(1)
+		return
 	print("ALPHA_B2_COMMISSION_WINDOW: ",checks," checks, ",failures," failures")
 	quit(0 if failures==0 else 1)
 
@@ -280,6 +284,51 @@ func run_service_counter() -> bool:
 	root.size=Vector2i(1920,1080)
 	await frames()
 	await shot("service-g02-returned-1080p",Vector2i(1920,1080))
+	host.queue_free()
+	await frames()
+	return true
+
+## D2 missed custody is not a fee or an automatic return. The same G02 actor
+## really revisits in a conditional D3 slot in a separate new-save profile.
+func run_recovery_counter() -> bool:
+	root.size = Vector2i(1280,720)
+	host = RecoveryScene.instantiate()
+	host.save_directory_override = "user://zt_rebuild/b2_recovery_window_" + str(Time.get_ticks_usec())
+	root.add_child(host)
+	await frames()
+	if not check(host.session != null and not host._blocked and host._slot() == "alpha_b2_service_custody_recovery_v2","separate v2 pilot boots and keeps v1 save untouched"):
+		return false
+	for action: String in ["intro_skip","alpha_open","alpha_next_customer","alpha_ack_entry","alpha_finish_customer","alpha_ack_exit","alpha_next_customer","alpha_ack_entry","b2_service_accept","alpha_finish_customer","alpha_ack_exit","alpha_close","alpha_settle","b2_service_repair","alpha_next_day","alpha_prepare_day","alpha_open"]:
+		if not await click(action):
+			return false
+	check(host.session.alpha_view().day == 2 and host.session.alpha_view().remaining == 6,"D2 keeps one original customer recovery chance")
+	for action: String in ["alpha_close","alpha_settle"]:
+		if not await click(action):
+			return false
+	var overdue: Dictionary = host.session.snapshot()
+	check(overdue.items.W001.owner_id == "G02" and overdue.items.W001.custodian_id == "player" and overdue.alpha_shop.services.jobs.service_w001.status == "overdue_custody" and overdue.wallets.player.VKC == 170,"D2 no-show is customer property held after actual ten VKC repair")
+	await shot("service-overdue-720p",Vector2i(1280,720))
+	for action: String in ["alpha_next_day","alpha_prepare_day","alpha_open"]:
+		if not await click(action):
+			return false
+	for actor: String in ["G08","G09","G10","G11","G02"]:
+		if not await click("alpha_next_customer") or not await click("alpha_ack_entry"):
+			return false
+		check(host.session.alpha_view().active.actor_id == actor,"original D3 actor before genuine recovery "+actor)
+		if actor != "G02":
+			if not await click("alpha_finish_customer") or not await click("alpha_ack_exit"):
+				return false
+	var pickup: Dictionary = host.session.alpha_view()
+	var speech := host.find_child("alpha_speech",true,false) as Label
+	check(pickup.services.entries[0].can_deliver and speech != null and speech.text.contains("지난번"),"late customer explicitly asks for same repaired item")
+	await shot("service-recovery-g02-720p",Vector2i(1280,720))
+	root.size = Vector2i(1920,1080)
+	await shot("service-recovery-g02-1080p",Vector2i(1920,1080))
+	if not await click("b2_service_deliver"):
+		return false
+	var final: Dictionary = host.session.snapshot()
+	check(final.items.W001.owner_id == "G02" and final.items.W001.custodian_id == "G02" and final.wallets.player.VKC == 200 and final.alpha_shop.services.settlements.size() == 1,"late physical return and exactly one real fee")
+	await shot("service-recovery-returned-1080p",Vector2i(1920,1080))
 	host.queue_free()
 	await frames()
 	return true

@@ -84,7 +84,7 @@ for test in tests:
     if test == 'scenarios/alpha_b2_commission_test':
         commands.extend(command + ['--', part] for part in ('happy', 'declined', 'expired', 'bypass'))
     elif test == 'scenarios/alpha_b2_service_custody_test':
-        commands.extend(command + ['--', part] for part in ('happy', 'declined', 'unpaid', 'overdue'))
+        commands.extend(command + ['--', part] for part in ('happy', 'declined', 'unpaid', 'overdue', 'recovery'))
     elif test == 'scenarios/alpha_b1_contract_boundary_test':
         # Four bounded source-authored obligation paths; isolate each failure.
         commands.extend(command + ['--', part] for part in ('missed', 'unpaid', 'extension', 'paid'))

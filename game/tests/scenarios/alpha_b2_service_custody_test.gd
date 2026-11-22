@@ -2,6 +2,7 @@ extends SceneTree
 ## B2 service commission: actual W001 stays owned by G02 throughout. Only
 ## custody, permitted restoration, fee and physical original-grid return move.
 const Seed = preload("res://src/content/alpha_b2_service_seed.gd")
+const RecoverySeed = preload("res://src/content/alpha_b2_service_recovery_seed.gd")
 const Named = preload("res://src/content/alpha_b2_named_commission_seed.gd")
 const Session = preload("res://src/domain/game_session.gd")
 const Repo = preload("res://src/persistence/save_repository.gd")
@@ -20,6 +21,14 @@ func fresh() -> RefCounted:
 	var s := Session.new()
 	if data.is_empty() or not s.initialize(data.defs,data.state,false,false,{},data.alpha_profile):
 		printerr("B2_SERVICE_INIT: ",s.initialization_error() if not data.is_empty() else "source")
+		return null
+	return s
+
+func recovery_fresh() -> RefCounted:
+	var data: Dictionary = RecoverySeed.content()
+	var s := Session.new()
+	if data.is_empty() or not s.initialize(data.defs,data.state,false,false,{},data.alpha_profile):
+		printerr("B2_RECOVERY_INIT: ",s.initialization_error() if not data.is_empty() else "source")
 		return null
 	return s
 
@@ -157,9 +166,60 @@ func overdue() -> void:
 	check(state.alpha_shop.services.settlements.is_empty() and state.wallets.player.VKC==180,"no fake fee or automatic loss")
 	check(deny(s,"alpha_display",{"item_id":"W001","x":0,"y":0,"rotated":false}),"overdue custody never becomes shop inventory")
 
+func recovery() -> void:
+	var source: Dictionary = RecoverySeed.content()
+	var old: Dictionary = Seed.content()
+	if not check(not source.is_empty() and not old.is_empty(),"separate recovery pilot source exists"):
+		return
+	check(source.state == old.state and source.alpha_profile.days[0] == old.alpha_profile.days[0] and source.alpha_profile.days[1] == old.alpha_profile.days[1],"v2 preserves initial funds, item and first two days")
+	var s: RefCounted = recovery_fresh()
+	if not check(s != null,"v2 service source initializes independently"):
+		return
+	if not check(g02_offer(s) and go(s,"alpha_service_accept",{"job_id":"service_w001"}) and evening(s),"D1 original consent still required"):
+		return
+	check(go(s,"alpha_service_repair",{"job_id":"service_w001","item_id":"W001"}),"D1 actual restoration for later recovery")
+	if not check(day2(s),"D2 opened with original pickup opportunity"):
+		return
+	check(s.alpha_view().remaining == 6,"D2 preserved original five plus G02 pickup")
+	check(go(s,"alpha_close") and go(s,"alpha_settle"),"D2 missed pickup stays in actual service custody")
+	var overdue: Dictionary = s.snapshot()
+	check(overdue.alpha_shop.services.jobs.service_w001.status == "overdue_custody" and overdue.items.W001.custodian_id == "player" and overdue.items.W001.owner_id == "G02" and overdue.wallets.player.VKC == 170,"missed pickup preserves customer title and actual repair cost")
+	check(overdue.alpha_shop.services.settlements.is_empty(),"no unearned fee for missed appointment")
+	var db := Repo.new("user://zt_rebuild/b2_recovery_"+str(Time.get_ticks_usec()))
+	check(db.save_session(s,"recovery").ok,"overdue property persisted")
+	var cold: RefCounted = recovery_fresh()
+	check(cold != null and db.load_session(cold,"recovery").ok and cold.snapshot() == overdue,"overdue title and expenses cold replay")
+	if not check(go(s,"alpha_next_day") and go(s,"alpha_prepare_day") and go(s,"alpha_open"),"D3 opens after due date"):
+		return
+	check(s.alpha_view().remaining == source.alpha_profile.days[2].size(),"D3 has exactly one conditional finite recovery visit")
+	var found: bool = false
+	for i: int in range(source.alpha_profile.days[2].size()):
+		if not go(s,"alpha_next_customer") or not go(s,"alpha_ack_entry"):
+			return
+		if s.alpha_view().active.actor_id == "G02":
+			found = true
+			break
+		if not leave(s):
+			return
+	if not check(found,"real G02 reappears in D3 slot"):
+		return
+	check(s.alpha_view().services.entries[0].can_deliver,"D3 paid pickup is authorized for previously repaired W001")
+	check(deny(s,"alpha_service_deliver",{"job_id":"forged"}),"forged recovery invoice rejected")
+	check(go(s,"alpha_service_deliver",{"job_id":"service_w001"}),"D3 paid return executes same actual object and wallet transfer")
+	var after: Dictionary = s.snapshot()
+	check(after.items.W001.owner_id == "G02" and after.items.W001.custodian_id == "G02" and after.items.W001.inventory == "G02_grid" and after.items.W001.functional,"returned original physical W001 and ownership")
+	check(after.wallets.player.VKC == 200 and after.alpha_shop.services.settlements.size() == 1 and after.ledger.is_empty(),"late fee charged once; no counterfeit retail ledger")
+	check(deny(s,"alpha_service_deliver",{"job_id":"service_w001"}),"late return cannot charge twice")
+	check(db.save_session(s,"recovery").ok,"late return saved")
+	var after_cold: RefCounted = recovery_fresh()
+	check(after_cold != null and db.load_session(after_cold,"recovery").ok and after_cold.snapshot() == after,"late return cold replay exact")
+	var tamper: Dictionary = after.duplicate(true)
+	tamper.alpha_shop.services.settlements[0].paid.VKC = 300
+	check(not s.restore(tamper) and s.snapshot() == after,"tampered late fee rejected")
+
 func _initialize() -> void:
 	var args: PackedStringArray=OS.get_cmdline_user_args()
-	if args.size()!=1 or args[0] not in ["happy","declined","unpaid","overdue"]:
+	if args.size()!=1 or args[0] not in ["happy","declined","unpaid","overdue","recovery"]:
 		quit(2)
 		return
 	match args[0]:
@@ -167,5 +227,6 @@ func _initialize() -> void:
 		"declined": declined()
 		"unpaid": unpaid()
 		"overdue": overdue()
+		"recovery": recovery()
 	print("ALPHA_B2_SERVICE_CHECKS part=",args[0]," checks=",checks," failures=",failures)
 	quit(0 if failures==0 else 1)

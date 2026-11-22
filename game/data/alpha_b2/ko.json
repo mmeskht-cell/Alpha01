@@ -104,6 +104,14 @@
     "b2.sheet.private.empty": "아직 확인한 단서가 없습니다. 가격 제안은 가능합니다.",
     "b2.sheet.offer.title": "3 · 가격 제안과 거래",
     "b2.sheet.offer.note": "공개할 단서를 선택한 뒤 금액을 제안하세요. 상대가 수락해야 물건이 이동합니다.",
-    "b2.sheet.offer.revealed": "공개 %d건"
+    "b2.sheet.offer.revealed": "공개 %d건",
+    "b2.service.recovery.note": "미수령 수탁품입니다. D%d에 고객이 다시 방문할 때까지 실제 보관을 유지합니다.",
+    "b2.service.recovery.pickup": "지난번 찾지 못한 %s를 다시 받으러 왔습니다.",
+    "b2.service.recovery.unpaid": "지난번 맡긴 물품을 찾아가겠습니다. 정비 전이면 공임은 지불하지 않겠습니다.",
+    "b2.inspect.surface.hint": "외관·표식·기능 부위를 눌러 조사합니다. 검사 내용은 공개할 카드를 선택하기 전까지 개인 기록입니다.",
+    "b2.inspect.surface.surface": "외관·재질",
+    "b2.inspect.surface.markings": "각인·표식",
+    "b2.inspect.surface.operation": "작동·기능",
+    "b2.offer.history.title": "실제로 공개한 단서"
   }
 }

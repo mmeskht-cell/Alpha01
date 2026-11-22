@@ -6,6 +6,7 @@ const CardSeed = preload("res://src/content/alpha_b2_cards_seed.gd")
 const CommissionSeed = preload("res://src/content/alpha_b2_commission_seed.gd")
 const NamedCommissionSeed = preload("res://src/content/alpha_b2_named_commission_seed.gd")
 const ServiceSeed = preload("res://src/content/alpha_b2_service_seed.gd")
+const RecoverySeed = preload("res://src/content/alpha_b2_service_recovery_seed.gd")
 const B2_KO_PATH = "res://data/alpha_b2/ko.json"
 const Session = preload("res://src/domain/game_session.gd")
 const Alpha = preload("res://src/domain/alpha_shop_cycle.gd")
@@ -19,6 +20,7 @@ const SAVE_SLOT = "alpha_b1_profile_v3"
 @export var b2_commission_mode: bool = false
 @export var b2_named_commission_mode: bool = false
 @export var b2_service_mode: bool = false
+@export var b2_recovery_mode: bool = false
 var session: RefCounted
 var _repo: RefCounted
 var _strings: Dictionary = {}
@@ -44,7 +46,7 @@ func _ready() -> void:
 		var b2_locale: Variant = JSON.parse_string(FileAccess.get_file_as_string(B2_KO_PATH))
 		if b2_locale is Dictionary and b2_locale.get("strings") is Dictionary:
 			_strings.merge(b2_locale.strings, true)
-	var source: Dictionary = ServiceSeed.content() if b2_service_mode else (NamedCommissionSeed.content() if b2_named_commission_mode else (CommissionSeed.content() if b2_commission_mode else (CardSeed.content() if b2_interactive_mode else (B2Seed.content() if b2_mode else Seed.content()))))
+	var source: Dictionary = RecoverySeed.content() if b2_recovery_mode else (ServiceSeed.content() if b2_service_mode else (NamedCommissionSeed.content() if b2_named_commission_mode else (CommissionSeed.content() if b2_commission_mode else (CardSeed.content() if b2_interactive_mode else (B2Seed.content() if b2_mode else Seed.content())))))
 	if source.is_empty():
 		_blocked = true
 		_message = "B1 콘텐츠를 읽지 못했습니다."
@@ -54,7 +56,7 @@ func _ready() -> void:
 			_blocked = true
 			_message = "세션 초기화 오류: " + session.initialization_error()
 		else:
-			var location: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b2_service" if b2_service_mode else ("user://zt_rebuild/alpha_b2_named_commission" if b2_named_commission_mode else ("user://zt_rebuild/alpha_b2_commission" if b2_commission_mode else ("user://zt_rebuild/alpha_b2_cards" if b2_interactive_mode else ("user://zt_rebuild/alpha_b2" if b2_mode else "user://zt_rebuild/alpha_b1")))))
+			var location: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b2_service_recovery" if b2_recovery_mode else ("user://zt_rebuild/alpha_b2_service" if b2_service_mode else ("user://zt_rebuild/alpha_b2_named_commission" if b2_named_commission_mode else ("user://zt_rebuild/alpha_b2_commission" if b2_commission_mode else ("user://zt_rebuild/alpha_b2_cards" if b2_interactive_mode else ("user://zt_rebuild/alpha_b2" if b2_mode else "user://zt_rebuild/alpha_b1"))))))
 			_repo = Repo.new(location)
 			var loaded: Dictionary = _repo.load_session(session, _slot())
 			if loaded.get("ok", false):
@@ -65,12 +67,12 @@ func _ready() -> void:
 	refresh()
 
 func _slot() -> String:
-	return "alpha_b2_service_custody_pilot_v1" if b2_service_mode else ("alpha_b2_named_commission_parity_v1" if b2_named_commission_mode else ("alpha_b2_commission_pilot_v1" if b2_commission_mode else ("alpha_b2_cards_pilot_v1" if b2_interactive_mode else ("alpha_b2_trade_slice_v2" if b2_mode else SAVE_SLOT))))
+	return "alpha_b2_service_custody_recovery_v2" if b2_recovery_mode else ("alpha_b2_service_custody_pilot_v1" if b2_service_mode else ("alpha_b2_named_commission_parity_v1" if b2_named_commission_mode else ("alpha_b2_commission_pilot_v1" if b2_commission_mode else ("alpha_b2_cards_pilot_v1" if b2_interactive_mode else ("alpha_b2_trade_slice_v2" if b2_mode else SAVE_SLOT)))))
 
 func _text(key: String) -> String:
 	return str(_strings.get(key, key))
 
-func _button(parent: VBoxContainer, name: String, title: String, callback: Callable) -> Button:
+func _button(parent: Control, name: String, title: String, callback: Callable) -> Button:
 	var control := Button.new()
 	control.name = name
 	control.text = title
@@ -173,6 +175,8 @@ func _add_b2_service_actions(actions: VBoxContainer, v: Dictionary) -> void:
 		label.text = _text("b2.service.receipt") % [
 			_text("b2.item." + str(entry.def_id)), int(entry.due_day),
 			int(entry.fee.VKC), _text("b2.service.status." + str(entry.status))]
+		if entry.status == "overdue_custody" and int(entry.recovery_day) > 0:
+			label.text += "\n" + (_text("b2.service.recovery.note") % int(entry.recovery_day))
 		actions.add_child(label)
 		var job_id: String = str(entry.job_id)
 		if entry.can_accept:
@@ -412,7 +416,9 @@ func refresh() -> void:
 						if entry.can_accept:
 							speech.text = _text("b2.service.offer")
 						elif entry.can_deliver:
-							speech.text = _text("b2.service.pickup") % _text("b2.item." + str(entry.def_id))
+							speech.text = (_text("b2.service.recovery.pickup") if entry.status == "overdue_custody" else _text("b2.service.pickup")) % _text("b2.item." + str(entry.def_id))
+						elif entry.can_return and entry.status == "overdue_custody":
+							speech.text = _text("b2.service.recovery.unpaid")
 						elif entry.can_return:
 							speech.text = _text("b2.service.unfinished")
 						break
@@ -643,10 +649,37 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 		var done := Label.new()
 		done.text = _text("b2.sheet.inspect.done")
 		inspect.add_child(done)
+	# A single inspectable item surface: each marked hotspot invokes the
+	# existing source-bound inspection command. No result is disclosed by a
+	# click; the physical card must still be deliberately selected later.
+	var surface := PanelContainer.new()
+	surface.name = "b2_item_surface"
+	surface.custom_minimum_size = Vector2(0,152)
+	inspect.add_child(surface)
+	var surface_inner := VBoxContainer.new()
+	surface_inner.add_theme_constant_override("separation",6)
+	surface.add_child(surface_inner)
+	var object_name := Label.new()
+	object_name.name = "b2_item_surface_title"
+	object_name.text = "▣  " + _text("b2.item." + str(a.def_id))
+	object_name.add_theme_font_size_override("font_size",25)
+	surface_inner.add_child(object_name)
+	var instruction := Label.new()
+	instruction.text = _text("b2.inspect.surface.hint")
+	instruction.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	surface_inner.add_child(instruction)
+	var hotspots := GridContainer.new()
+	hotspots.name = "b2_item_hotspots"
+	hotspots.columns = 2
+	surface_inner.add_child(hotspots)
 	for tool: Dictionary in a.tools:
 		var slot: String = str(tool.id)
-		_button(inspect,"b2_inspect_" + slot,_text("b2.inspect.action") + " · " + _text(str(tool.text_key)),
+		var zone: String = "operation" if slot.contains("function") else ("markings" if slot in ["identity","casing_detail","batch_detail"] else "surface")
+		var label: String = _text("b2.inspect.surface." + zone) + " · " + _text(str(tool.text_key))
+		var marker := _button(hotspots,"b2_inspect_" + slot,label,
 			func() -> void: _submit("alpha_inspect",{"slot":slot}))
+		marker.custom_minimum_size = Vector2(180,44)
+		marker.tooltip_text = _text(str(tool.text_key))
 	var sheet := _b2_work_section(actions,"b2_private_sheet",_text("b2.sheet.private.title"),_text("b2.sheet.private.note"))
 	if a.cards.is_empty():
 		var empty := Label.new()
@@ -664,6 +697,15 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 		response.text = _text("b2.offer." + str(offer.response)) + " · " + str(offer.amount) + " " + str(offer.currency) + " · " + (_text("b2.sheet.offer.revealed") % offer.public_cards.size())
 		response.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		bargain.add_child(response)
+		if not offer.public_cards.is_empty():
+			var disclosed := Label.new()
+			disclosed.name = "b2_offer_public_receipt"
+			disclosed.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			var public_details: PackedStringArray = []
+			for fact: Dictionary in offer.public_cards:
+				public_details.append(_text("b2.inspect." + str(fact.slot)))
+			disclosed.text = _text("b2.offer.history.title") + " · " + ", ".join(public_details)
+			bargain.add_child(disclosed)
 	if not a.accepted.is_empty():
 		var amount: int = int(a.accepted.amount)
 		var visit_id: String = str(v.active.id)

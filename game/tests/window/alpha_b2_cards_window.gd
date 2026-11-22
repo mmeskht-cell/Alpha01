@@ -94,6 +94,9 @@ func run() -> void:
 	var private_sheet := host.find_child("b2_private_sheet",true,false) as PanelContainer
 	var offer_sheet := host.find_child("b2_price_sheet",true,false) as PanelContainer
 	check(inspection_sheet!=null and private_sheet!=null and offer_sheet!=null,"one scroll surface has inspect, private card and offer sections")
+	var item_surface := host.find_child("b2_item_surface",true,false) as PanelContainer
+	var item_hotspots := host.find_child("b2_item_hotspots",true,false) as GridContainer
+	check(item_surface!=null and item_hotspots!=null and item_surface.is_visible_in_tree(),"physical item surface has interactive inspection regions, not only a text list")
 	if inspection_sheet!=null and private_sheet!=null and offer_sheet!=null:
 		check(inspection_sheet.get_global_rect().position.y < private_sheet.get_global_rect().position.y and private_sheet.get_global_rect().position.y < offer_sheet.get_global_rect().position.y,"inspection and card selection precede price submission visually")
 	var private_heading := host.find_child("b2_private_sheet_title",true,false) as Label
@@ -107,6 +110,8 @@ func run() -> void:
 	check(negotiated_speech != null and negotiated_speech.text.contains("95 VKC") and negotiated_speech.text.contains("1건"), "same customer speaks price and only one disclosed fact after real mouse offer")
 	var response := host.find_child("b2_last_response",true,false) as Label
 	check(response!=null and response.text.contains("공개 1건"),"post-offer visible receipt states only one shared fact")
+	var disclosed := host.find_child("b2_offer_public_receipt",true,false) as Label
+	check(disclosed!=null and disclosed.text.contains("외관 마모") and not disclosed.text.contains("기능 검사"),"public receipt exposes chosen card only, never private unread facts")
 	var evidence := host.find_child("b2_board_evidence",true,false) as Label
 	check(evidence!=null and evidence.text.contains("공개 선택 1건"),"read-only side notebook shows only one explicitly disclosed card")
 	await capture("b2-cards-agreement-720p",Vector2i(1280,720))
