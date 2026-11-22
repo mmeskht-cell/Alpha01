@@ -33,6 +33,9 @@ var _message: String = ""
 var _contact_focus: String = "" # UI-only selection; never persisted or billed.
 var _b2_zoomed: bool = false # UI-only larger view of the already-loaded external item image.
 var _b2_zoom_item: String = ""
+var _b2_view_context: String = "" # UI-only visit/item identity.
+var _b2_price_draft: String = "" # Not persisted or publicly offered.
+var _b2_refresh_epoch: int = 0
 
 func _ready() -> void:
 	# The UI asset pipeline prepares an exact hash-pinned OFL CJK font.
@@ -360,7 +363,36 @@ func _submit(kind: String, payload: Dictionary = {}) -> void:
 			_blocked = true
 	refresh()
 
+func _restore_b2_scroll(previous_y: int, epoch: int) -> void:
+	# Rebuilding a counter replaces the old scroll node. Keep the customer's
+	# work location when the visit and specimen did not change.
+	await get_tree().process_frame
+	if epoch != _b2_refresh_epoch or not is_inside_tree():
+		return
+	var scrolling := find_child("alpha_card_scroll",true,false) as ScrollContainer
+	if scrolling != null:
+		scrolling.scroll_vertical = previous_y
+
 func refresh() -> void:
+	var preserved_scroll: int = -1
+	var context: String = ""
+	if b2_interactive_mode and not _intro and not _blocked and session != null:
+		var present: Dictionary = Alpha.view(session.snapshot())
+		var active: Dictionary = present.get("active",{})
+		var appraisal: Dictionary = present.get("appraisal",{})
+		if str(present.get("phase","")) == "CUSTOMER_ACTIVE" and not active.is_empty() and not appraisal.is_empty():
+			context = str(active.get("id","")) + "|" + str(appraisal.get("item_id",""))
+	if not context.is_empty() and context == _b2_view_context:
+		var prior_scroll := find_child("alpha_card_scroll",true,false) as ScrollContainer
+		var prior_price := find_child("b2_price_input",true,false) as LineEdit
+		if prior_scroll != null:
+			preserved_scroll = prior_scroll.scroll_vertical
+		if prior_price != null:
+			_b2_price_draft = prior_price.text
+	else:
+		_b2_price_draft = ""
+	_b2_view_context = context
+	_b2_refresh_epoch += 1
 	for child: Node in get_children():
 		remove_child(child)
 		child.queue_free()
@@ -561,6 +593,8 @@ func refresh() -> void:
 		var message := Label.new()
 		message.text = _message
 		outer.add_child(message)
+	if preserved_scroll >= 0:
+		call_deferred("_restore_b2_scroll",preserved_scroll,_b2_refresh_epoch)
 
 
 ## A bounded B2 first trade slice, using the physical inventory grid rather
@@ -889,7 +923,7 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 	var currency: String = "VKC" if int(price.VKC) > 0 else "USD"
 	var price_entry := LineEdit.new()
 	price_entry.name = "b2_price_input"
-	price_entry.text = str(price[currency])
+	price_entry.text = _b2_price_draft if not _b2_price_draft.is_empty() else str(price[currency])
 	price_entry.placeholder_text = _text("b2.price.placeholder")
 	price_entry.custom_minimum_size = Vector2(240, 42)
 	bargain.add_child(price_entry)

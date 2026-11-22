@@ -36,12 +36,28 @@ func _run() -> void:
 	check(host.find_child("b2_jump_b2_private_sheet",true,false)!=null and host.find_child("b2_jump_b2_price_sheet",true,false)!=null,"same counter exposes direct card/price navigation without moving money")
 	var normal_art := host.find_child("b2_item_art",true,false) as TextureRect
 	check(normal_art != null and normal_art.custom_minimum_size.y == 144.0,"native source image starts at readable nonzoom size")
+	var scroller := host.find_child("alpha_card_scroll",true,false) as ScrollContainer
+	var price_draft := host.find_child("b2_price_input",true,false) as LineEdit
+	if scroller != null:
+		scroller.scroll_vertical = 80
+	if price_draft != null:
+		price_draft.text = "93"
+	await process_frame
+	var retained_y: int = scroller.scroll_vertical if scroller != null else 0
+	check(retained_y > 0,"B2 work pane is scrollable before an inspection action")
 	check(press("b2_zoom_toggle"),"source art zoom available without new appraisal command")
+	await process_frame
+	await process_frame
+	var after_zoom := host.find_child("alpha_card_scroll",true,false) as ScrollContainer
+	var after_draft := host.find_child("b2_price_input",true,false) as LineEdit
+	check(after_zoom != null and abs(after_zoom.scroll_vertical-retained_y) <= 2 and after_draft != null and after_draft.text == "93","zoom refresh retains visit scroll and unsubmitted quote")
 	var zoomed_art := host.find_child("b2_item_art",true,false) as TextureRect
 	check(zoomed_art != null and zoomed_art.custom_minimum_size.y == 260.0,"actual same image rendered larger, not a fake inspection result")
 	check(press("b2_zoom_toggle"),"unzoom restores original layout")
 	check(host.session.alpha_view().appraisal.cards.is_empty(),"pure UI zoom leaves private evidence untouched")
 	check(press("b2_inspect_wear_detail"),"inspect existing sample from UI")
+	var after_inspection := host.find_child("b2_price_input",true,false) as LineEdit
+	check(after_inspection != null and after_inspection.text == "93","inspection cannot clear an unsubmitted quote")
 	var evidence_card := host.find_child("b2_card_wear_detail",true,false) as Button
 	check(evidence_card!=null and evidence_card.text.contains("상점 측 협상 근거"),"verified wear meaning for purchase is explicitly labelled")
 	check(press("b2_card_wear_detail"),"choose one optional public fact")

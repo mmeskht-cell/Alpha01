@@ -108,6 +108,9 @@ func run() -> void:
 	var private_heading := host.find_child("b2_private_sheet_title",true,false) as Label
 	check(private_heading!=null and private_heading.text.contains("개인 감정표"),"cards clearly marked private before choosing public disclosure")
 	await capture("b2-cards-inspection-720p",Vector2i(1280,720))
+	var draft_before_zoom := host.find_child("b2_price_input",true,false) as LineEdit
+	if draft_before_zoom != null:
+		draft_before_zoom.text = "93"
 	var zoom_btn := host.find_child("b2_zoom_toggle",true,false) as Button
 	check(zoom_btn!=null,"real item image has direct enlargement control")
 	if not await click("b2_zoom_toggle"):
@@ -120,6 +123,8 @@ func run() -> void:
 		quit(1)
 		return
 	check((host.find_child("b2_item_art",true,false) as TextureRect).custom_minimum_size.y==144.0,"unzoom restores base image before evidence submission")
+	var draft_after_zoom := host.find_child("b2_price_input",true,false) as LineEdit
+	check(draft_after_zoom != null and draft_after_zoom.text == "93","pointer zoom/unzoom retains unsubmitted price")
 	# Zoom/unzoom calls host.refresh(), replacing the entire control tree.
 	# Never test a stale scroller captured before those re-entrant rebuilds.
 	scroller = host.find_child("alpha_card_scroll",true,false) as ScrollContainer
