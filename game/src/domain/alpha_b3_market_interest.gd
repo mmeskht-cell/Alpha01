@@ -5,12 +5,21 @@ extends RefCounted
 const Rules = preload("res://src/domain/value_rules.gd")
 const FILE: String = "res://data/alpha_b3/market_interest_m1.json"
 const CONTENT_VERSION: String = "b3-finite-market-m1"
+const CONTENT_VERSION_M2: String = "b3-finite-market-m2"
+const VERSIONS: Array = [CONTENT_VERSION, CONTENT_VERSION_M2]
+const M2_FILE: String = "res://data/alpha_b3/market_interest_m2.json"
 
-static func config() -> Dictionary:
-	var raw: Variant=JSON.parse_string(FileAccess.get_file_as_string(FILE))
-	if not Rules.keys(raw,["version","offers"]) or raw.version!=1 or not raw.offers is Array:
+static func config(version: String = CONTENT_VERSION) -> Dictionary:
+	if version not in VERSIONS:
 		return {}
-	if raw.offers.size()!=1:
+	var path: String=M2_FILE if version==CONTENT_VERSION_M2 else FILE
+	var expected_version: int=2 if version==CONTENT_VERSION_M2 else 1
+	var raw: Variant=JSON.parse_string(FileAccess.get_file_as_string(path))
+	if not Rules.keys(raw,["version","offers"]) or raw.version!=expected_version or not raw.offers is Array:
+		return {}
+	if raw.offers.is_empty() or raw.offers.size()>16:
+		return {}
+	if version==CONTENT_VERSION and raw.offers.size()!=1:
 		return {}
 	return raw
 
@@ -29,6 +38,10 @@ static func _valid_offer(row: Variant, state: Dictionary, profile: Dictionary, m
 		return false
 	var price: Dictionary=quoted.prices[row.item_id]
 	if int(price.get("VKC",0))+int(price.get("USD",0))<=0:
+		return false
+	# In a finite authored schedule an initially insolvent actor is not a
+	# credible buyer. Runtime eligibility rechecks real remaining funds.
+	if int(state.wallets[row.actor_id].get("VKC",0))<int(price.VKC) or int(state.wallets[row.actor_id].get("USD",0))<int(price.USD):
 		return false
 	if row.day>profile.days.size() or profile.days[int(row.day)-1].size()>=10:
 		return false if not materialized else _visit_check(row,state,profile,price)
@@ -49,8 +62,8 @@ static func _visit_check(row: Dictionary, state: Dictionary, profile: Dictionary
 
 ## Build a *different* content-bound profile. It only adds a dated purchase
 ## opportunity quoting an already-written economic amount.
-static func extend(source: Dictionary) -> Dictionary:
-	var c: Dictionary=config()
+static func extend(source: Dictionary, version: String = CONTENT_VERSION) -> Dictionary:
+	var c: Dictionary=config(version)
 	if c.is_empty() or not source.has("alpha_profile") or not source.has("state"):
 		return {}
 	var next: Dictionary=source.duplicate(true)
@@ -71,14 +84,14 @@ static func extend(source: Dictionary) -> Dictionary:
 			"id":offer.visit_id,"actor_id":offer.actor_id,"kind":"regular",
 			"purpose_key":offer.purpose_key,"contact_offer":false
 		})
-	next.alpha_profile.content_version=CONTENT_VERSION
+	next.alpha_profile.content_version=version
 	next.alpha_profile["market_interest"]=c.duplicate(true)
 	return next
 
 static func profile_valid(profile: Dictionary, state: Dictionary) -> bool:
-	if profile.get("content_version")!=CONTENT_VERSION or not profile.has("market_interest"):
+	if profile.get("content_version") not in VERSIONS or not profile.has("market_interest"):
 		return false
-	var c: Dictionary=config()
+	var c: Dictionary=config(str(profile.content_version))
 	if c.is_empty() or Rules.canonical(profile.market_interest)!=Rules.canonical(c):
 		return false
 	for offer: Dictionary in c.offers:

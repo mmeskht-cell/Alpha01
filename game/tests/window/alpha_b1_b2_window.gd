@@ -3,6 +3,7 @@ extends SceneTree
 const B1 = preload("res://scenes/app/alpha_b1.tscn")
 const B2 = preload("res://scenes/app/alpha_b2_trade_slice.tscn")
 const B2Entry = preload("res://src/presentation/b2_launch_route.gd")
+const B3Entry = preload("res://src/presentation/b3_launch_route.gd")
 var host: Control
 var out: String
 var checks: int = 0
@@ -268,4 +269,34 @@ func run() -> void:
 		and host.find_child("b2_price_input",true,false)!=null,
 		"B3 physical counter still supports original actual-item appraisal/offer")
 	await capture("alpha-b3-market-m1-g01-720p",Vector2i(1280,720))
+	# M2 adds multiple finite demand events but remains an independent
+	# opt-in source, so its main UI must not silently inherit M1 saves.
+	host.queue_free()
+	await frames()
+	var b3_m2_scene: PackedScene=load(B3Entry.M2_SCENE_PATH) as PackedScene
+	if not check(b3_m2_scene!=null,"B3-M2 separate multi-demand scene resolves"):
+		await finish()
+		return
+	if not await install(b3_m2_scene,"b3_market_m2"):
+		await finish()
+		return
+	var m2_title := host.find_child("alpha_heading",true,false) as Label
+	check(not host._blocked and host.b3_market_m2_mode
+		and host._slot()=="alpha_b3_market_m2_v1"
+		and host.session.snapshot().alpha_shop.profile.content_version=="b3-finite-market-m2"
+		and host.session.snapshot().wallets.G08.VKC==165
+		and m2_title!=null
+		and m2_title.text=="EXIT NOT INCLUDED · 다중 시장 수요 B3 시험",
+		"B3-M2 native counter shows distinct Korean title and real existing G08 wallet")
+	await capture("alpha-b3-market-m2-intro-720p",Vector2i(1280,720))
+	if not (await click("intro_skip","DAY_PREP")
+			and await click("alpha_open","OPEN_IDLE")
+			and await click("alpha_next_customer","CUSTOMER_ENTER")
+			and await click("alpha_ack_entry","CUSTOMER_ACTIVE")):
+		await finish()
+		return
+	check(host.session.alpha_view().active.actor_id=="G01"
+		and host.find_child("b2_price_input",true,false)!=null,
+		"M2 retains the same physical appraisal counter for its first genuine seller")
+	await capture("alpha-b3-market-m2-g01-720p",Vector2i(1280,720))
 	await finish()
