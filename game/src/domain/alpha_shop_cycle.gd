@@ -6,10 +6,11 @@ const Cards = preload("res://src/domain/alpha_card_trade.gd")
 const Commission = preload("res://src/domain/alpha_commission.gd")
 const ServiceCustody = preload("res://src/domain/alpha_service_custody.gd")
 const B3Interest = preload("res://src/domain/alpha_b3_market_interest.gd")
+const B3Fx = preload("res://src/domain/alpha_b3_fx.gd")
 const Story = preload("res://src/domain/alpha_story_projection.gd")
 const Grid = preload("res://src/domain/grid_primitives.gd")
 const Objects = preload("res://src/domain/object_schema.gd")
-const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid"]
+const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid", "alpha_fx_trade"]
 const PHASES: Array = ["DAY_PREP", "OPEN_IDLE", "CUSTOMER_ENTER", "CUSTOMER_ACTIVE", "CUSTOMER_EXIT", "CLOSE_SETTLE", "EVENING_WORK", "NEXT_DAY", "COMPLETE"]
 
 static func profile_valid(profile: Variant, state: Dictionary) -> bool:
@@ -24,6 +25,8 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 		keys.append("service_profile_id")
 	if profile is Dictionary and profile.get("content_version") in B3Interest.VERSIONS:
 		keys.append("market_interest")
+	if profile is Dictionary and profile.get("content_version")==B3Fx.VERSION:
+		keys.append("fx_profile")
 	if not Rules.keys(profile, keys) or profile.id != "alpha_b1_v1" or not Rules.identifier(profile.content_version):
 		return false
 	if not profile.days is Array or profile.days.is_empty() or profile.days.size() > 42 or not profile.unavailable_actors is Array:
@@ -67,6 +70,8 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 		return false
 	if profile.get("content_version") in B3Interest.VERSIONS and not B3Interest.profile_valid(profile,state):
 		return false
+	if profile.get("content_version")==B3Fx.VERSION and not B3Fx.profile_valid(profile,state):
+		return false
 	return true
 
 static func seed(state: Dictionary, profile: Dictionary) -> Dictionary:
@@ -79,7 +84,7 @@ static func seed(state: Dictionary, profile: Dictionary) -> Dictionary:
 		"day": 1, "phase": "DAY_PREP", "cursor": 0, "active": "",
 		"outcomes": {}, "settled_days": [], "contacts": {}, "commands": []
 	}
-	if profile.content_version in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1", "b2-cards-commission-named-1", "b2-cards-commission-service-1", "b2-cards-commission-service-recovery-2", "b2-cards-commission-service-multi-3", B3Interest.CONTENT_VERSION, B3Interest.CONTENT_VERSION_M2]:
+	if profile.content_version in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1", "b2-cards-commission-named-1", "b2-cards-commission-service-1", "b2-cards-commission-service-recovery-2", "b2-cards-commission-service-multi-3", B3Interest.CONTENT_VERSION, B3Interest.CONTENT_VERSION_M2, B3Fx.VERSION]:
 		next.alpha_shop["displayed"] = []
 	if profile.has("contracts"):
 		next.alpha_shop["contracts"] = Contract.seed(profile)
@@ -89,6 +94,8 @@ static func seed(state: Dictionary, profile: Dictionary) -> Dictionary:
 		next.alpha_shop["commissions"] = Commission.seed(str(profile.commission_profile_id))
 	if profile.has("service_profile_id"):
 		next.alpha_shop["services"] = ServiceCustody.seed(str(profile.service_profile_id))
+	if profile.get("content_version")==B3Fx.VERSION:
+		next.alpha_shop["fx"] = B3Fx.seed()
 	return Rules.normalized(next)
 
 static func active_row(a: Dictionary) -> Dictionary:
@@ -154,7 +161,7 @@ static func npc_context(state: Dictionary) -> Dictionary:
 ## located in the actual, non-custody inventory. Never infer listing from price.
 static func display_gate(state: Dictionary, p: Dictionary, withdraw: bool = false) -> String:
 	var a: Dictionary = state.alpha_shop
-	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1", "b2-cards-commission-named-1", "b2-cards-commission-service-1", "b2-cards-commission-service-recovery-2", "b2-cards-commission-service-multi-3", B3Interest.CONTENT_VERSION, B3Interest.CONTENT_VERSION_M2] or not Rules.keys(p, ["item_id", "x", "y", "rotated"]):
+	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1", "b2-cards-commission-named-1", "b2-cards-commission-service-1", "b2-cards-commission-service-recovery-2", "b2-cards-commission-service-multi-3", B3Interest.CONTENT_VERSION, B3Interest.CONTENT_VERSION_M2, B3Fx.VERSION] or not Rules.keys(p, ["item_id", "x", "y", "rotated"]):
 		return "alpha_b2_display_shape"
 	if a.phase not in ["OPEN_IDLE", "EVENING_WORK"] or not Rules.identifier(p.item_id):
 		return "alpha_display_phase"
@@ -215,7 +222,7 @@ static func after_display(state: Dictionary, item_id: String, withdraw: bool = f
 static func trade_gate(state: Dictionary, p: Dictionary) -> String:
 	var a: Dictionary = state.alpha_shop
 	var row: Dictionary = active_row(a)
-	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1", "b2-cards-commission-named-1", "b2-cards-commission-service-1", "b2-cards-commission-service-recovery-2", "b2-cards-commission-service-multi-3", B3Interest.CONTENT_VERSION, B3Interest.CONTENT_VERSION_M2] or a.phase != "CUSTOMER_ACTIVE" or row.is_empty():
+	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1", "b2-cards-commission-named-1", "b2-cards-commission-service-1", "b2-cards-commission-service-recovery-2", "b2-cards-commission-service-multi-3", B3Interest.CONTENT_VERSION, B3Interest.CONTENT_VERSION_M2, B3Fx.VERSION] or a.phase != "CUSTOMER_ACTIVE" or row.is_empty():
 		return "alpha_trade_phase"
 	if not Rules.keys(p, ["visit_id", "item_id", "seller", "buyer", "currency", "amount", "inventory", "x", "y", "rotated"]) or p.visit_id != row.id or not state.visits.has(row.id):
 		return "alpha_trade_visit"
@@ -255,6 +262,8 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 		return Commission.apply(state, command) if a.has("commissions") else "alpha_commission_unavailable"
 	if kind in ServiceCustody.ACTIONS:
 		return ServiceCustody.apply(state, command) if a.has("services") else "alpha_service_unavailable"
+	if kind=="alpha_fx_trade":
+		return B3Fx.apply(state,command) if a.has("fx") else "alpha_fx_unavailable"
 	if kind != "alpha_exchange_contact" and not p.is_empty():
 		return "alpha_payload"
 	match kind:
@@ -388,6 +397,7 @@ static func view(state: Dictionary) -> Dictionary:
 		"npc_context": npc_context(state),
 		"commissions": Commission.view(state) if a.has("commissions") else {"entries":[]},
 		"services": ServiceCustody.view(state) if a.has("services") else {"entries":[]},
+		"fx": B3Fx.view(state) if a.has("fx") else {},
 		"contracts": contract_view.contracts, "news": contract_view.news,
 		"story": Story.view(state)
 	}

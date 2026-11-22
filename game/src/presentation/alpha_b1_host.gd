@@ -10,6 +10,7 @@ const RecoverySeed = preload("res://src/content/alpha_b2_service_recovery_seed.g
 const MultiServiceSeed = preload("res://src/content/alpha_b2_service_multi_seed.gd")
 const B3MarketSeed = preload("res://src/content/alpha_b3_market_seed.gd")
 const B3MarketM2Seed = preload("res://src/content/alpha_b3_market_m2_seed.gd")
+const B3FxSeed = preload("res://src/content/alpha_b3_fx_seed.gd")
 const B2_KO_PATH = "res://data/alpha_b2/ko.json"
 const B3_KO_PATH = "res://data/alpha_b3/ko.json"
 const Session = preload("res://src/domain/game_session.gd")
@@ -29,6 +30,7 @@ const SAVE_SLOT = "alpha_b1_profile_v3"
 @export var b2_multi_service_mode: bool = false
 @export var b3_market_mode: bool = false
 @export var b3_market_m2_mode: bool = false
+@export var b3_fx_mode: bool = false
 var session: RefCounted
 var _repo: RefCounted
 var _strings: Dictionary = {}
@@ -59,11 +61,11 @@ func _ready() -> void:
 		var b2_locale: Variant = JSON.parse_string(FileAccess.get_file_as_string(B2_KO_PATH))
 		if b2_locale is Dictionary and b2_locale.get("strings") is Dictionary:
 			_strings.merge(b2_locale.strings, true)
-	if b3_market_mode or b3_market_m2_mode:
+	if b3_market_mode or b3_market_m2_mode or b3_fx_mode:
 		var b3_locale: Variant=JSON.parse_string(FileAccess.get_file_as_string(B3_KO_PATH))
 		if b3_locale is Dictionary and b3_locale.get("strings") is Dictionary:
 			_strings.merge(b3_locale.strings,true)
-	var source: Dictionary = B3MarketM2Seed.content() if b3_market_m2_mode else (B3MarketSeed.content() if b3_market_mode else (MultiServiceSeed.content() if b2_multi_service_mode else (RecoverySeed.content() if b2_recovery_mode else (ServiceSeed.content() if b2_service_mode else (NamedCommissionSeed.content() if b2_named_commission_mode else (CommissionSeed.content() if b2_commission_mode else (CardSeed.content() if b2_interactive_mode else (B2Seed.content() if b2_mode else Seed.content()))))))))
+	var source: Dictionary = B3FxSeed.content() if b3_fx_mode else (B3MarketM2Seed.content() if b3_market_m2_mode else (B3MarketSeed.content() if b3_market_mode else (MultiServiceSeed.content() if b2_multi_service_mode else (RecoverySeed.content() if b2_recovery_mode else (ServiceSeed.content() if b2_service_mode else (NamedCommissionSeed.content() if b2_named_commission_mode else (CommissionSeed.content() if b2_commission_mode else (CardSeed.content() if b2_interactive_mode else (B2Seed.content() if b2_mode else Seed.content())))))))))
 	if source.is_empty():
 		_blocked = true
 		_message = "B1 콘텐츠를 읽지 못했습니다."
@@ -73,7 +75,7 @@ func _ready() -> void:
 			_blocked = true
 			_message = "세션 초기화 오류: " + session.initialization_error()
 		else:
-			var location: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b3_market_m2" if b3_market_m2_mode else ("user://zt_rebuild/alpha_b3_market_m1" if b3_market_mode else ("user://zt_rebuild/alpha_b2_service_multi" if b2_multi_service_mode else ("user://zt_rebuild/alpha_b2_service_recovery" if b2_recovery_mode else ("user://zt_rebuild/alpha_b2_service" if b2_service_mode else ("user://zt_rebuild/alpha_b2_named_commission" if b2_named_commission_mode else ("user://zt_rebuild/alpha_b2_commission" if b2_commission_mode else ("user://zt_rebuild/alpha_b2_cards" if b2_interactive_mode else ("user://zt_rebuild/alpha_b2" if b2_mode else "user://zt_rebuild/alpha_b1")))))))))
+			var location: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b3_fx_m3" if b3_fx_mode else ("user://zt_rebuild/alpha_b3_market_m2" if b3_market_m2_mode else ("user://zt_rebuild/alpha_b3_market_m1" if b3_market_mode else ("user://zt_rebuild/alpha_b2_service_multi" if b2_multi_service_mode else ("user://zt_rebuild/alpha_b2_service_recovery" if b2_recovery_mode else ("user://zt_rebuild/alpha_b2_service" if b2_service_mode else ("user://zt_rebuild/alpha_b2_named_commission" if b2_named_commission_mode else ("user://zt_rebuild/alpha_b2_commission" if b2_commission_mode else ("user://zt_rebuild/alpha_b2_cards" if b2_interactive_mode else ("user://zt_rebuild/alpha_b2" if b2_mode else "user://zt_rebuild/alpha_b1"))))))))))
 			_repo = Repo.new(location)
 			var loaded: Dictionary = _repo.load_session(session, _slot())
 			if loaded.get("ok", false):
@@ -84,7 +86,7 @@ func _ready() -> void:
 	refresh()
 
 func _slot() -> String:
-	return "alpha_b3_market_m2_v1" if b3_market_m2_mode else ("alpha_b3_market_m1_v1" if b3_market_mode else ("alpha_b2_service_custody_multi_v3" if b2_multi_service_mode else ("alpha_b2_service_custody_recovery_v2" if b2_recovery_mode else ("alpha_b2_service_custody_pilot_v1" if b2_service_mode else ("alpha_b2_named_commission_parity_v1" if b2_named_commission_mode else ("alpha_b2_commission_pilot_v1" if b2_commission_mode else ("alpha_b2_cards_pilot_v1" if b2_interactive_mode else ("alpha_b2_trade_slice_v2" if b2_mode else SAVE_SLOT))))))))
+	return "alpha_b3_fx_m3_v1" if b3_fx_mode else ("alpha_b3_market_m2_v1" if b3_market_m2_mode else ("alpha_b3_market_m1_v1" if b3_market_mode else ("alpha_b2_service_custody_multi_v3" if b2_multi_service_mode else ("alpha_b2_service_custody_recovery_v2" if b2_recovery_mode else ("alpha_b2_service_custody_pilot_v1" if b2_service_mode else ("alpha_b2_named_commission_parity_v1" if b2_named_commission_mode else ("alpha_b2_commission_pilot_v1" if b2_commission_mode else ("alpha_b2_cards_pilot_v1" if b2_interactive_mode else ("alpha_b2_trade_slice_v2" if b2_mode else SAVE_SLOT)))))))))
 
 func _text(key: String) -> String:
 	return str(_strings.get(key, key))
@@ -458,11 +460,11 @@ func refresh() -> void:
 	outer.add_child(title_row)
 	var title := Label.new()
 	title.name = "alpha_heading"
-	title.text = _text("b3.menu.title.m2") if b3_market_m2_mode else (_text("b3.menu.title") if b3_market_mode else _text("alpha.heading"))
+	title.text = _text("b3.fx.title") if b3_fx_mode else (_text("b3.menu.title.m2") if b3_market_m2_mode else (_text("b3.menu.title") if b3_market_mode else _text("alpha.heading")))
 	title.add_theme_font_size_override("font_size", 27 if b2_interactive_mode else 31)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_row.add_child(title)
-	if b2_multi_service_mode or b3_market_mode or b3_market_m2_mode:
+	if b2_multi_service_mode or b3_market_mode or b3_market_m2_mode or b3_fx_mode:
 		# Opt-in pilot only. Keep the title route in the fixed header so it
 		# remains usable before the intro, during a visit and after a load error.
 		var back := _button(title_row, "b2_return_title", _text("b2.nav.return_title"), _return_to_title)
@@ -626,6 +628,8 @@ func refresh() -> void:
 				_add_b2_commission_actions(actions, v)
 			if b2_service_mode:
 				_add_b2_service_actions(actions, v)
+			if b3_fx_mode:
+				_add_b3_fx_actions(actions, v)
 			if bool(v.can_exchange):
 				_button(actions, "alpha_exchange_contact", _text("alpha.button.exchange"), func() -> void: _submit("alpha_exchange_contact", {"actor_id": row.actor_id, "accepted": true}))
 			# Interactive B2 keeps this essential action anchored in the fixed
@@ -727,6 +731,23 @@ func _add_b2_trade_action(actions: VBoxContainer, v: Dictionary) -> void:
 
 ## Contract actions are short responses in the same counter, never an
 ## unrelated quest/options window. Money moves only after explicit pay click.
+func _add_b3_fx_actions(actions: VBoxContainer, v: Dictionary) -> void:
+	var offer: Dictionary=v.get("fx",{})
+	if offer.is_empty() or not bool(offer.get("at_counter",false)):
+		return
+	var row:=Label.new()
+	row.name="b3_fx_quote"
+	row.text=_text("b3.fx.offer") % [int(offer.give_amount),str(offer.give_currency),int(offer.receive_amount),str(offer.receive_currency)]
+	row.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+	actions.add_child(row)
+	if bool(offer.can_exchange):
+		_button(actions,"b3_fx_accept",_text("b3.fx.accept"),func() -> void: _submit("alpha_fx_trade",{"quote_id":str(offer.quote_id)}))
+	else:
+		var status:=Label.new()
+		status.name="b3_fx_status"
+		status.text=_text("b3.fx.settled") if bool(offer.settled) else _text("b3.fx.unfunded")
+		actions.add_child(status)
+
 func _add_contract_actions(actions: VBoxContainer, v: Dictionary) -> void:
 	for id: String in v.contracts:
 		var offer: Dictionary = v.contracts[id]
@@ -784,6 +805,8 @@ func _b2_work_section(actions: VBoxContainer, id: String, heading: String, note:
 func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 	var a: Dictionary = v.appraisal
 	if a.is_empty():
+		if b3_fx_mode and not v.active.is_empty() and str(v.active.id)=="alpha_b3_fx_broker_d7":
+			return
 		# An accepted commission, existing RAD-1 contract or entrusted
 		# repair item is not a shelf sale; don't show a false "no item" warning.
 		if not v.active.is_empty():

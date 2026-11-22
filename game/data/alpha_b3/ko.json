@@ -9,6 +9,12 @@
     "b3.market.interest.tool": "쓸 만한 공구를 찾고 있습니다. 진열된 물건을 보여주세요.",
     "b3.market.interest.gear": "장비를 살 수 있는지 확인하고 싶습니다.",
     "b3.market.interest.electronics": "작동 가능한 전자제품 재고가 있습니까?",
-    "b3.market.interest.hygiene": "위생용품이 남아 있다면 구매하겠습니다."
+    "b3.market.interest.hygiene": "위생용품이 남아 있다면 구매하겠습니다.",
+    "b3.fx.title": "EXIT NOT INCLUDED · 환전·시장 B3 시험",
+    "b3.fx.visit": "지역 환전상입니다. 표시된 금액으로 환전할 수 있습니다.",
+    "b3.fx.offer": "환전 견적: %d %s 지급 / %d %s 수령",
+    "b3.fx.accept": "표시된 견적으로 환전",
+    "b3.fx.settled": "환전이 이미 완료됐습니다.",
+    "b3.fx.unfunded": "환전에 필요한 현금이 부족합니다."
   }
 }

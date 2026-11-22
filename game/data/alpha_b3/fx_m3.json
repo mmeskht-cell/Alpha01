@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "source_profile": "alpha42_mechanics",
+  "visit_id": "alpha_b3_fx_broker_d7",
+  "day": 7,
+  "quote_id": "alpha_broker_quote",
+  "counterparty": "alpha_broker",
+  "give_currency": "VKC",
+  "give_amount": 30,
+  "receive_currency": "USD",
+  "receive_amount": 1
+}

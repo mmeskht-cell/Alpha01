@@ -301,4 +301,57 @@ func run() -> void:
 		and host.find_child("b2_price_input",true,false)!=null,
 		"M2 retains the same physical appraisal counter for its first genuine seller")
 	await capture("alpha-b3-market-m2-g01-720p",Vector2i(1280,720))
+	# The FX broker is an actual source-authored person at the SAME shop
+	# counter, not a separate virtual money market minigame.
+	host.queue_free()
+	await frames()
+	var fx_scene: PackedScene=load(B3Entry.M3_SCENE_PATH) as PackedScene
+	if not check(fx_scene!=null,"B3-M3 funded FX scene resolves"):
+		await finish()
+		return
+	if not await install(fx_scene,"b3_fx_m3"):
+		await finish()
+		return
+	var fx_title:=host.find_child("alpha_heading",true,false) as Label
+	check(not host._blocked and host.b3_fx_mode
+		and host._slot()=="alpha_b3_fx_m3_v1"
+		and host.session.snapshot().wallets.alpha_broker=={"VKC":100,"USD":5}
+		and fx_title!=null and fx_title.text=="EXIT NOT INCLUDED · 환전·시장 B3 시험",
+		"B3-M3 Korean title, separate save and actual 42-day-source broker liquidity")
+	await capture("alpha-b3-fx-m3-intro-720p",Vector2i(1280,720))
+	# Fast-forward only through *real shop commands*. There are no phantom
+	# visitor settlements or automatic transfers on idle days.
+	host.intro_skip()
+	for day: int in range(1,7):
+		host._submit("alpha_open")
+		host._submit("alpha_close")
+		host._submit("alpha_settle")
+		host._submit("alpha_next_day")
+		host._submit("alpha_prepare_day")
+	host._submit("alpha_open")
+	check(host.session.alpha_view().day==7 and host.session.alpha_view().remaining==1,
+		"true source-bound D7 visit schedule leaves one funded broker")
+	host._submit("alpha_next_customer")
+	host._submit("alpha_ack_entry")
+	var fx_quote:=host.find_child("b3_fx_quote",true,false) as Label
+	var fx_accept:=host.find_child("b3_fx_accept",true,false) as Button
+	check(host.session.alpha_view().active.id=="alpha_b3_fx_broker_d7"
+		and fx_quote!=null and fx_quote.text.contains("30 VKC")
+		and fx_quote.text.contains("1 USD")
+		and fx_accept!=null and not fx_accept.disabled,
+		"physical D7 counter presents the exact authenticated two-currency quote")
+	await capture("alpha-b3-fx-m3-broker-720p",Vector2i(1280,720))
+	if fx_accept!=null:
+		var scrolling:=host.find_child("alpha_card_scroll",true,false) as ScrollContainer
+		if scrolling!=null:
+			scrolling.ensure_control_visible(fx_accept)
+			await frames()
+		if not await click("b3_fx_accept","CUSTOMER_ACTIVE"):
+			await finish()
+			return
+		var paid: Dictionary=host.session.snapshot()
+		check(paid.wallets.player.VKC==150 and paid.wallets.player.USD==1
+			and paid.wallets.alpha_broker.VKC==130 and paid.wallets.alpha_broker.USD==4
+			and host.find_child("b3_fx_accept",true,false)==null,
+			"native mouse FX transfers exactly 30 VKC for 1 USD once")
 	await finish()

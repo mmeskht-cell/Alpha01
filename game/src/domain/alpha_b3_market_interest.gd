@@ -6,14 +6,15 @@ const Rules = preload("res://src/domain/value_rules.gd")
 const FILE: String = "res://data/alpha_b3/market_interest_m1.json"
 const CONTENT_VERSION: String = "b3-finite-market-m1"
 const CONTENT_VERSION_M2: String = "b3-finite-market-m2"
-const VERSIONS: Array = [CONTENT_VERSION, CONTENT_VERSION_M2]
+const CONTENT_VERSION_M3: String = "b3-finite-market-fx-m3"
+const VERSIONS: Array = [CONTENT_VERSION, CONTENT_VERSION_M2, CONTENT_VERSION_M3]
 const M2_FILE: String = "res://data/alpha_b3/market_interest_m2.json"
 
 static func config(version: String = CONTENT_VERSION) -> Dictionary:
 	if version not in VERSIONS:
 		return {}
-	var path: String=M2_FILE if version==CONTENT_VERSION_M2 else FILE
-	var expected_version: int=2 if version==CONTENT_VERSION_M2 else 1
+	var path: String=M2_FILE if version in [CONTENT_VERSION_M2,CONTENT_VERSION_M3] else FILE
+	var expected_version: int=2 if version in [CONTENT_VERSION_M2,CONTENT_VERSION_M3] else 1
 	var raw: Variant=JSON.parse_string(FileAccess.get_file_as_string(path))
 	if not Rules.keys(raw,["version","offers"]) or raw.version!=expected_version or not raw.offers is Array:
 		return {}
