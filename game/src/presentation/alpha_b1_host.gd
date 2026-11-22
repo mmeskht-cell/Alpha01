@@ -455,7 +455,8 @@ func refresh() -> void:
 	title_row.add_theme_constant_override("separation", 10)
 	outer.add_child(title_row)
 	var title := Label.new()
-	title.text = _text("alpha.heading")
+	title.name = "alpha_heading"
+	title.text = _text("b3.menu.title") if b3_market_mode else _text("alpha.heading")
 	title.add_theme_font_size_override("font_size", 27 if b2_interactive_mode else 31)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_row.add_child(title)

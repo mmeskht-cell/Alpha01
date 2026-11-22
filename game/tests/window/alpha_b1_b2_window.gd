@@ -254,6 +254,9 @@ func run() -> void:
 	check(host.b3_market_mode and host._slot()=="alpha_b3_market_m1_v1"
 		and not host._blocked and host.session.snapshot().items.R001.owner_id=="G01",
 		"B3 starts a separate seeded economy and never inherits the B2 test save")
+	var b3_title := host.find_child("alpha_heading",true,false) as Label
+	check(b3_title!=null and b3_title.text=="EXIT NOT INCLUDED · 시장 수요 B3 시험",
+		"B3 visual heading identifies its own market profile, not the older B2 pilot")
 	await capture("alpha-b3-market-m1-intro-720p",Vector2i(1280,720))
 	if not (await click("intro_skip","DAY_PREP")
 			and await click("alpha_open","OPEN_IDLE")
