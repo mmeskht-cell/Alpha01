@@ -274,8 +274,10 @@ func _jump_b2_section(target_name: String) -> void:
 func _jump_b2_section_apply(target_name: String) -> void:
 	var scroller := find_child("alpha_card_scroll", true, false) as ScrollContainer
 	var target := find_child(target_name, true, false) as Control
-	if scroller != null and target != null and scroller.is_ancestor_of(target):
-		scroller.ensure_control_visible(target)
+	if scroller != null and target != null:
+		# The target is a panel in the left work pane. A relative global
+		# offset works even when the ScrollContainer focus helper declines
+		# to scroll a nested PanelContainer.
 		var delta: float = target.get_global_rect().position.y - scroller.get_global_rect().position.y
 		scroller.scroll_vertical = maxi(0,scroller.scroll_vertical + int(delta) - 8)
 
