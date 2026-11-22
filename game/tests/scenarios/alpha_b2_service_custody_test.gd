@@ -5,9 +5,6 @@ const Seed = preload("res://src/content/alpha_b2_service_seed.gd")
 const Named = preload("res://src/content/alpha_b2_named_commission_seed.gd")
 const Session = preload("res://src/domain/game_session.gd")
 const Repo = preload("res://src/persistence/save_repository.gd")
-const Rules = preload("res://src/domain/value_rules.gd")
-const Objects = preload("res://src/domain/object_schema.gd")
-const Component = preload("res://src/domain/component_appraisal.gd")
 var checks: int = 0
 var failures: int = 0
 
@@ -91,37 +88,6 @@ func happy() -> void:
 	check(s.alpha_view().services.entries[0].can_repair,"actual owned-repair workflow exposes evening action")
 	check(deny(s,"alpha_service_repair",{"job_id":"service_w001","item_id":"R001"}),"cannot restore someone else's item under service permission")
 	if not check(go(s,"alpha_service_repair",{"job_id":"service_w001","item_id":"W001"}),"existing restore primitive repairs actual W001 with work cost"):
-		printerr("B2_SERVICE_VALIDATION_GUARD=",s._validation_error)
-		var diagnostic: Dictionary = s.snapshot()
-		var action: Dictionary = command(s,"alpha_service_repair",{"job_id":"service_w001","item_id":"W001"})
-		var failed: String = s._apply_alpha(diagnostic,action)
-		if failed.is_empty():
-			diagnostic.revision += 1
-			diagnostic.receipts[action.action_id] = {"fingerprint":Rules.canonical(action),"result":{"ok":true,"revision":diagnostic.revision}}
-			diagnostic.alpha_shop.commands.append(Rules.normalized(action))
-			var evt: Dictionary = diagnostic.object_events.back()
-			var rt: String = s._receipt_type(diagnostic,evt.event_id)
-			printerr("B2_SERVICE_HISTORY_DETAIL type=",evt.type," receipt_type=",rt," event_revision=",evt.revision,
-				" receipt_revision=",s._receipt_revision(diagnostic,evt.event_id),
-				" events=",diagnostic.object_events.size()," ids=",s._ids_valid(diagnostic,evt.item_ids),
-				" money_basis=",Objects.money(evt.basis)," money_expense=",Objects.money(evt.expenses,false),
-				" component=",Component.valid_hypotheses(diagnostic)," history=",s._history_valid(diagnostic),
-				" evt=",evt)
-			printerr("B2_SERVICE_HISTORY_GUARD1 event_keys=",Rules.keys(evt,["event_id","revision","type","item_ids","basis","expenses"]),
-				" identity=",Rules.identifier(evt.event_id),
-				" expected_type=","restore_item" if rt=="alpha_service_repair" else rt,
-				" type_ok=",evt.type==("restore_item" if rt=="alpha_service_repair" else rt))
-			var linked: Dictionary = {}
-			for event: Dictionary in diagnostic.object_events:
-				linked[event.event_id]=event
-			for table: Dictionary in [diagnostic.receipts,diagnostic.receipt_archive]:
-				for rid: String in table:
-					var kind: String = s._receipt_type(diagnostic,rid)
-					if kind in ["detach","attach","discard","restore_item","alpha_service_repair","replace_component","clean_exterior"]:
-						printerr("B2_SERVICE_HISTORY_REQUIRED_EVENT id=",rid," type=",kind," linked=",linked.has(rid))
-			printerr("B2_SERVICE_HISTORY_EXTRA tombstones=",diagnostic.tombstones.size()," knowledge=",diagnostic.knowledge.size()," archive=",diagnostic.receipt_archive.size())
-		else:
-			printerr("B2_SERVICE_DIAG_APPLY_FAILED=",failed)
 		return
 	var repaired: Dictionary=s.snapshot()
 	check(repaired.wallets.player.VKC==initial.wallets.player.VKC-10 and repaired.items.W001.owner_id=="G02","workshop charges existing 10 VKC cost but never transfers ownership")
