@@ -106,12 +106,20 @@ static func _last_public_offer(a: Dictionary, visit_id: String) -> Dictionary:
 		return {}
 	var offer: Dictionary = offers[offers.size() - 1]
 	var public_slots: Array = []
+	var known_slots: Array = []
+	# The current proposal's cards are not the same as all facts the customer
+	# has already heard. Removing a card from a later proposal must not cause
+	# NPC amnesia. Never derive knowledge from observed/selected private data.
+	for prior_offer: Dictionary in offers:
+		for revealed: Dictionary in prior_offer.revealed:
+			var slot: String = str(revealed.slot)
+			if slot not in known_slots:
+				known_slots.append(slot)
 	for revealed: Dictionary in offer.revealed:
-		# Only public, already spoken facts. No private observation values or
-		# agreement rules cross the customer-facing DTO boundary.
 		public_slots.append(str(revealed.slot))
 	return {"amount": int(offer.amount), "currency": str(offer.currency),
-		"response": str(offer.response), "disclosed_count": public_slots.size(), "public_slots": public_slots}
+		"response": str(offer.response), "disclosed_count": public_slots.size(),
+		"public_slots": public_slots, "known_slots": known_slots}
 
 static func npc_context(state: Dictionary) -> Dictionary:
 	if not state.has("alpha_shop"):

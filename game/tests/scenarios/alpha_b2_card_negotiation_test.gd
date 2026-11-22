@@ -40,6 +40,61 @@ func trade_payload(visit: String, seller: String, buyer: String, amount: int, de
 	return {"visit_id":visit,"item_id":"R001","seller":seller,"buyer":buyer,
 		"currency":"VKC","amount":amount,"inventory":destination,"x":x,"y":y,"rotated":false}
 
+## Separate source-authored offer path: evidence can be removed from the NEXT
+## proposal but it is not erased from what this customer was already told.
+## No pricing formulas or persisted authority schema are changed.
+func public_memory_regression() -> void:
+	var other: RefCounted = fresh()
+	if not check_and_continue(other != null,"memory probe loads independent existing seed"):
+		return
+	if not check_and_continue(go(other,"alpha_open") and go(other,"alpha_next_customer") and go(other,"alpha_ack_entry"),"memory probe G01 original visitor"):
+		return
+	check(go(other,"alpha_inspect",{"slot":"identity"}) and go(other,"alpha_inspect",{"slot":"wear_detail"}),"private identity and measured wear recorded")
+	var initial: Dictionary = other.alpha_view().npc_context
+	check(initial.current_offer.is_empty() and initial.prior.is_empty(),"mere observation cannot give customer evidence memory")
+	check(go(other,"alpha_card_toggle",{"slot":"wear_detail","selected":true}) and go(other,"alpha_price_offer",{"amount":94}),"G01 hears wear argument in a deliberately declined 94 offer")
+	var first: Dictionary = other.alpha_view().npc_context.current_offer
+	check(first.response == "declined" and first.public_slots == ["wear_detail"] and first.known_slots == ["wear_detail"] and first.disclosed_count == 1 and not first.has("value"),"public memory contains only revealed wear, not privately observed identity or value")
+	check(go(other,"alpha_card_toggle",{"slot":"wear_detail","selected":false}) and go(other,"alpha_price_offer",{"amount":95}),"same G01 receives a new offer without re-disclosing wear")
+	var after: Dictionary = other.alpha_view().npc_context.current_offer
+	check(after.response == "declined" and after.disclosed_count == 0 and after.public_slots.is_empty() and after.known_slots == ["wear_detail"],"new offer has zero disclosed cards but NPC still knows earlier wear")
+	var observed: Dictionary = other.alpha_view().appraisal
+	var private_identity: bool = false
+	var known_wear: bool = false
+	for card: Dictionary in observed.cards:
+		if card.slot == "identity":
+			private_identity = not card.ever_disclosed and not card.selected
+		if card.slot == "wear_detail":
+			known_wear = card.ever_disclosed and not card.selected
+	check(private_identity and known_wear,"drawer differentiates truly private evidence from already disclosed but now unselected card")
+	var current: Dictionary = other.snapshot()
+	check(current.alpha_shop.appraisal.visits.visit_g01.offers[0].revealed.size() == 1 and current.alpha_shop.appraisal.visits.visit_g01.offers[1].revealed.is_empty(),"first public evidence kept immutable in offer history")
+	check(other.alpha_view().npc_context == after_context(other) and other.snapshot() == current,"public knowledge projections are strictly read-only")
+	var store_memory := Repo.new("user://zt_rebuild/b2_public_memory_" + str(Time.get_ticks_usec()))
+	check(store_memory.save_session(other,"memory").ok,"cold-save both distinct public offers")
+	var restored: RefCounted = fresh()
+	check(restored != null and store_memory.load_session(restored,"memory").ok and restored.snapshot() == current and restored.alpha_view().npc_context == other.alpha_view().npc_context,"cold replay preserves previous public evidence and private identity")
+	check(deny(other,"alpha_price_offer",{"amount":95}),"identical offer retry cannot rewrite memory")
+	check(go(other,"alpha_finish_customer") and go(other,"alpha_ack_exit") and go(other,"alpha_next_customer") and go(other,"alpha_ack_entry"),"another actual customer appears")
+	var g02: Dictionary = other.alpha_view().npc_context
+	check(g02.current_offer.is_empty() and g02.prior.is_empty(),"G02 cannot learn G01's public or private evidence")
+	check(go(other,"alpha_finish_customer") and go(other,"alpha_ack_exit") and go(other,"alpha_close") and go(other,"alpha_settle") and go(other,"alpha_next_day") and go(other,"alpha_prepare_day"),"D1 visit state carried into D2")
+	for day: int in [2,3]:
+		check(go(other,"alpha_open") and go(other,"alpha_close") and go(other,"alpha_settle") and go(other,"alpha_next_day") and go(other,"alpha_prepare_day"),"move untouched memory past D" + str(day))
+	check(go(other,"alpha_open") and go(other,"alpha_next_customer") and go(other,"alpha_ack_entry"),"D4 unrelated actor enters")
+	check(other.alpha_view().active.actor_id == "G12" and other.alpha_view().npc_context.prior.is_empty(),"unrelated G12 sees no G01 evidence")
+	check(go(other,"alpha_finish_customer") and go(other,"alpha_ack_exit") and go(other,"alpha_next_customer") and go(other,"alpha_ack_entry"),"D4 G01 returns")
+	var returning: Dictionary = other.alpha_view().npc_context
+	check(other.alpha_view().active.actor_id == "G01" and returning.prior.offer.disclosed_count == 0 and returning.prior.offer.public_slots.is_empty() and returning.prior.offer.known_slots == ["wear_detail"],"G01 remembers first disclosed fact across days despite last quote sharing no card")
+	check(not returning.prior.offer.has("observed") and not returning.prior.offer.has("value"),"returning memory never contains hidden evidence or thresholds")
+
+func check_and_continue(ok: bool, name: String) -> bool:
+	check(ok,name)
+	return ok
+
+func after_context(s: RefCounted) -> Dictionary:
+	return s.alpha_view().npc_context
+
 func _initialize() -> void:
 	var s: RefCounted = fresh()
 	check(s != null, "independent B2 data-only card profile")
@@ -147,5 +202,6 @@ func _initialize() -> void:
 	check(store.save_session(s,"cards").ok,"D4 repeat visitor saved without new memory schema")
 	var resumed: RefCounted = fresh()
 	check(resumed != null and store.load_session(resumed,"cards").ok and resumed.snapshot() == untouched and resumed.alpha_view().npc_context == remembered, "D4 customer memory derives identically after cold restart")
+	public_memory_regression()
 	print("ALPHA_B2_CARD_NEGOTIATION_CHECKS=",checks," failures=",failures)
 	quit(0 if failures == 0 else 1)

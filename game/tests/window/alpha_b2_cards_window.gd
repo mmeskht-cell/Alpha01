@@ -169,5 +169,33 @@ func run() -> void:
 	await capture("b2-cards-return-g01-720p",Vector2i(1280,720))
 	host.queue_free()
 	await frames()
+	# Alternative same-customer negotiation: removing a disclosed card must not
+	# make the next rebuttal or drawer falsely label it private again.
+	host = Scene.instantiate()
+	host.save_directory_override = "user://zt_rebuild/b2_cards_public_memory_window_" + str(Time.get_ticks_usec())
+	root.add_child(host)
+	await frames()
+	if not check(host.session != null and not host._blocked,"public memory scenario boots without old save state"):
+		quit(1)
+		return
+	for id: String in ["intro_skip","alpha_open","alpha_next_customer","alpha_ack_entry","b2_inspect_identity","b2_inspect_wear_detail","b2_card_wear_detail"]:
+		if not await click(id):
+			quit(1)
+			return
+	if not await offer(94) or not await click("b2_card_wear_detail"):
+		quit(1)
+		return
+	var known_card := host.find_child("b2_card_wear_detail",true,false) as Button
+	var private_card := host.find_child("b2_card_identity",true,false) as Button
+	check(known_card != null and known_card.text.contains("공개 이력") and private_card != null and not private_card.text.contains("공개 이력"),"de-selected card stays public while never-shared identity stays private")
+	if not await offer(95):
+		quit(1)
+		return
+	var remembered_speech := host.find_child("alpha_speech",true,false) as Label
+	check(remembered_speech != null and remembered_speech.text.contains("기억합니다") and remembered_speech.text.contains("외관 마모"),"real second-price mouse quote prompts remembered disclosed-fact rebuttal")
+	check(host.session.alpha_view().npc_context.current_offer.known_slots == ["wear_detail"] and host.session.alpha_view().npc_context.current_offer.public_slots.is_empty(),"rendered rebuttal faithfully shows full public knowledge vs zero newly disclosed cards")
+	await capture("b2-cards-public-memory-720p",Vector2i(1280,720))
+	host.queue_free()
+	await frames()
 	print("ALPHA_B2_CARDS_WINDOW: ",checks," checks, ",failures," failures")
 	quit(0 if failures == 0 else 1)

@@ -196,10 +196,17 @@ static func view(state: Dictionary) -> Dictionary:
 		if not row.observed.has(tool.id):
 			options.append(tool)
 	var cards: Array = []
+	var previously_shared: Array = []
+	for offer: Dictionary in row.offers:
+		for fact: Dictionary in offer.revealed:
+			var public_slot: String = str(fact.slot)
+			if public_slot not in previously_shared:
+				previously_shared.append(public_slot)
 	for slot: String in row.observed:
 		var observation: Dictionary = row.observed[slot]
 		cards.append({"slot":slot,"text_key":"b2.inspect." + slot,"value":str(observation.value),
-			"kind":observation.kind,"selected":slot in row.selected})
+			"kind":observation.kind,"selected":slot in row.selected,
+			"ever_disclosed":slot in previously_shared})
 	var history: Array = []
 	for offer: Dictionary in row.offers:
 		history.append({"amount":offer.amount,"currency":offer.currency,

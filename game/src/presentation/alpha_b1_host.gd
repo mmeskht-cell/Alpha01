@@ -205,6 +205,9 @@ func _b2_npc_line(view: Dictionary) -> String:
 	if not offer.is_empty():
 		if str(offer.response) == "declined":
 			if int(offer.disclosed_count) == 0:
+				var known_slots: Array = offer.get("known_slots",[])
+				if not known_slots.is_empty():
+					return _text("b2.npc.rebuttal.remembered") % [_text("b2.inspect." + str(known_slots[0])), int(offer.amount), str(offer.currency)]
 				return _text("b2.npc.rebuttal.no_evidence") % [int(offer.amount), str(offer.currency)]
 			var public_slots: Array = offer.get("public_slots",[])
 			if not public_slots.is_empty():
@@ -725,7 +728,14 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 	for card: Dictionary in a.cards:
 		var slot: String = str(card.slot)
 		var selected: bool = bool(card.selected)
-		_button(sheet,"b2_card_" + slot,("☑ " if selected else "□ ") + _text(str(card.text_key)) + " · " + str(card.value),
+		var card_label: String = ("☑ " if selected else "□ ") + _text(str(card.text_key)) + " · " + str(card.value)
+		# A deselected card only changes the NEXT proposal. Previously
+		# disclosed information cannot be put back into a private drawer.
+		if bool(card.ever_disclosed):
+			card_label += " · " + _text("b2.card.already_public")
+		elif selected:
+			card_label += " · " + _text("b2.card.will_disclose")
+		_button(sheet,"b2_card_" + slot,card_label,
 			func() -> void: _submit("alpha_card_toggle",{"slot":slot,"selected":not selected}))
 	var bargain := _b2_work_section(actions,"b2_price_sheet",_text("b2.sheet.offer.title"),_text("b2.sheet.offer.note"))
 	for offer: Dictionary in a.offers:

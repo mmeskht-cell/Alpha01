@@ -51,5 +51,31 @@ func _run() -> void:
 	check(host.session.snapshot().wallets.player.VKC == 260 and host.session.snapshot().ledger.size() == 2,"real two-way settlement from UI")
 	host.queue_free()
 	await process_frame
+	# Independent original G01 alternative path; a public argument remains
+	# known after the player unticks its card for the next rejected proposal.
+	host = Scene.instantiate()
+	host.save_directory_override = "user://zt_rebuild/b2_cards_memory_host_" + str(Time.get_ticks_usec())
+	root.add_child(host)
+	await process_frame
+	check(host.session != null and not host._blocked,"new evidence memory counter boots with original source")
+	check(press("intro_skip") and press("alpha_open") and press("alpha_next_customer") and press("alpha_ack_entry"),"G01 revisits isolated click path")
+	check(press("b2_inspect_identity") and press("b2_inspect_wear_detail") and press("b2_card_wear_detail"),"one private observation and one disclosed wear choice")
+	var first_quote := host.find_child("b2_price_input",true,false) as LineEdit
+	if first_quote != null:
+		first_quote.text = "94"
+	check(press("b2_offer"),"first public evidence-bearing offer declined")
+	check(press("b2_card_wear_detail"),"exclude old public evidence from NEXT offer only")
+	var known_label := host.find_child("b2_card_wear_detail",true,false) as Button
+	var still_private := host.find_child("b2_card_identity",true,false) as Button
+	check(known_label != null and known_label.text.contains("공개 이력") and still_private != null and not still_private.text.contains("공개 이력"),"drawer distinguishes previously public and still-private facts")
+	var second_quote := host.find_child("b2_price_input",true,false) as LineEdit
+	if second_quote != null:
+		second_quote.text = "95"
+	check(press("b2_offer"),"second quote sends zero new disclosure")
+	var speaker := host.find_child("alpha_speech",true,false) as Label
+	check(speaker != null and speaker.text.contains("기억합니다") and speaker.text.contains("외관 마모"),"customer's natural rebuttal remembers actually disclosed wear")
+	check(host.session.snapshot().wallets.player.VKC == 180 and host.session.snapshot().ledger.is_empty(),"rebuttal creates no fictional money or trade")
+	host.queue_free()
+	await process_frame
 	print("ALPHA_B2_CARDS_HOST_CHECKS=",checks," failures=",failures)
 	quit(0 if failures==0 else 1)
