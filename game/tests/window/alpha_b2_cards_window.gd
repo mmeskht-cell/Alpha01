@@ -82,6 +82,8 @@ func run() -> void:
 		if not await click(key):
 			quit(1)
 			return
+	var customer_panel := host.find_child("alpha_counter",true,false) as PanelContainer
+	check(customer_panel != null and customer_panel.custom_minimum_size.y == 112.0,"B2 live counter reserves less blank vertical space for item inspection")
 	var work_area := host.find_child("alpha_work_area",true,false) as HBoxContainer
 	var scroller := host.find_child("alpha_card_scroll",true,false) as ScrollContainer
 	var board := host.find_child("alpha_shop_board",true,false) as PanelContainer
@@ -101,7 +103,7 @@ func run() -> void:
 	var card_direction := host.find_child("b2_card_direction",true,false) as Label
 	check(item_art != null and item_art.texture != null and item_art.is_visible_in_tree(),"real pre-existing item image is presented without inferred hidden qualities")
 	if item_art != null:
-		check(item_art.get_global_rect().end.y <= 720.0 and item_art.get_global_rect().position.y >= 0.0,"source-bound item art is fully in the first 720p viewport without hidden scrolling")
+		check(item_art.get_global_rect().end.y <= 680.0 and item_art.get_global_rect().position.y >= 0.0,"720p source art is fully visible with bottom margin before scrolling")
 	check(card_direction != null and card_direction.text.contains("매입"),"buyer-side explanatory direction distinguishes source and destination without hidden math")
 	if inspection_sheet!=null and private_sheet!=null and offer_sheet!=null:
 		check(inspection_sheet.get_global_rect().position.y < private_sheet.get_global_rect().position.y and private_sheet.get_global_rect().position.y < offer_sheet.get_global_rect().position.y,"inspection and card selection precede price submission visually")

@@ -32,6 +32,8 @@ func _run() -> void:
 		quit(1)
 		return
 	check(press("intro_skip") and press("alpha_open") and press("alpha_next_customer") and press("alpha_ack_entry"),"first one-counter visit")
+	var customer_panel := host.find_child("alpha_counter",true,false) as PanelContainer
+	check(customer_panel != null and customer_panel.custom_minimum_size.y == 112.0,"B2 customer speech area uses a compact minimum without changing legacy scene")
 	check(host.find_child("b2_current_item",true,false) != null,"visible real item without extra screen")
 	check(host.find_child("b2_jump_b2_private_sheet",true,false)!=null and host.find_child("b2_jump_b2_price_sheet",true,false)!=null,"same counter exposes direct card/price navigation without moving money")
 	var normal_art := host.find_child("b2_item_art",true,false) as TextureRect

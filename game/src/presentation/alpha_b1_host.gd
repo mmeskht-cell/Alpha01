@@ -445,7 +445,9 @@ func refresh() -> void:
 	outer.add_child(top)
 	var counter := PanelContainer.new()
 	counter.name = "alpha_counter"
-	counter.custom_minimum_size = Vector2(0, 152 if b2_interactive_mode else 210)
+	# Keep the NPC speech readable while reclaiming unused 720p vertical space
+	# for the actual physical object. Other (legacy) profiles stay unchanged.
+	counter.custom_minimum_size = Vector2(0, 112 if b2_interactive_mode else 210)
 	outer.add_child(counter)
 	var bubble := VBoxContainer.new()
 	bubble.add_theme_constant_override("separation", 9 if b2_interactive_mode else 14)
