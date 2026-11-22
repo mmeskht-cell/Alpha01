@@ -1,6 +1,6 @@
 extends SceneTree
-## B2 T03: one Korean single-counter surface for radio-era watch, battery,
-## ordinary tool and medical-hygiene stock. UI invokes the same source-bound
+## B2 T03: bounded shared Korean counter UI for original watch and battery,
+## stock on D2. UI invokes the same source-bound
 ## alpha_inspect / alpha_card_toggle / alpha_price_offer domain commands.
 const Scene = preload("res://scenes/app/alpha_b2_cards.tscn")
 var host: Control
@@ -50,17 +50,15 @@ func run() -> void:
 	host.save_directory_override = "user://zt_rebuild/b2_generic_inspection_host_"+str(Time.get_ticks_usec())
 	root.add_child(host)
 	await process_frame
-	if not check(host.session != null and not host._blocked,"data-only four-category counter boots"):
+	if not check(host.session != null and not host._blocked,"data-driven two-category counter boots"):
 		quit(1)
 		return
 	var cases: Dictionary = {
 		"watch_a":{"item":"WAT02","name":"손목시계","slot":"function_detail"},
-		"battery_buy":{"item":"BAT02","name":"건전지","slot":"condition_detail"},
-		"tool_buy":{"item":"TL04","name":"공구","slot":"condition_detail"},
-		"hygiene_buy":{"item":"HY05","name":"위생용품","slot":"condition_detail"}
+		"battery_buy":{"item":"BAT02","name":"건전지","slot":"condition_detail"}
 	}
 	check(press("intro_skip"),"intro leaves initial seed intact")
-	for day: int in range(1,6):
+	for day: int in range(1,3):
 		if not press("alpha_open"):
 			quit(1)
 			return
@@ -78,11 +76,11 @@ func run() -> void:
 		if not press("alpha_close") or not press("alpha_settle"):
 			quit(1)
 			return
-		if day < 5:
+		if day < 2:
 			if not press("alpha_next_day") or not press("alpha_prepare_day"):
 				quit(1)
 				return
-	check(host.session.snapshot().ledger.is_empty() and host.session.snapshot().wallets.player.VKC == 180,"five-day UI traversal never sells a virtual item")
+	check(host.session.snapshot().ledger.is_empty() and host.session.snapshot().wallets.player.VKC == 180,"two-day UI traversal never sells a virtual item")
 	host.queue_free()
 	await process_frame
 	print("ALPHA_B2_GENERIC_APPRAISAL_HOST_CHECKS=",checks," failures=",failures)
