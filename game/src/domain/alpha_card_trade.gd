@@ -371,12 +371,12 @@ static func view(state: Dictionary) -> Dictionary:
 	var public: Dictionary = public_history(row)
 	for slot: String in row.observed:
 		var observation: Dictionary = row.observed[slot]
-		var signal: String = _value_signal(slot, observation.value)
-		var helps_shop: bool = (signal == "negative" and context.visit.buyer=="player") or (signal == "positive" and context.visit.seller=="player")
-		var effect: String = "unknown" if signal in ["unknown","neutral"] else ("helps" if helps_shop else "hurts")
+		var value_signal: String = _value_signal(slot, observation.value)
+		var helps_shop: bool = (value_signal == "negative" and context.visit.buyer=="player") or (value_signal == "positive" and context.visit.seller=="player")
+		var effect: String = "unknown" if value_signal in ["unknown","neutral"] else ("helps" if helps_shop else "hurts")
 		cards.append({"slot":slot,"text_key":"b2.inspect." + slot,"value":str(observation.value),
 			"kind":observation.kind,"selected":slot in row.selected,
-			"value_signal":signal,"shop_effect":effect,
+			"value_signal":value_signal,"shop_effect":effect,
 			"ever_disclosed":slot in public.known_slots,
 			"public_active":slot in public.active_slots})
 	var history: Array = []
