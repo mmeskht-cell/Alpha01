@@ -259,6 +259,9 @@ func run_service_counter() -> bool:
 	check(stock!=null and stock.text.contains("보유 0"),"borrowed stock excluded from player's owned inventory notebook")
 	var custody_note := host.find_child("b2_board_custody",true,false) as Label
 	check(custody_note!=null and custody_note.is_visible_in_tree() and custody_note.text.contains("고객 소유") and custody_note.text.contains("1건"),"720p customer custody is explicitly labeled as non-retail stock")
+	var owner_row := host.find_child("b2_board_custody_W001",true,false) as Label
+	check(owner_row!=null and owner_row.is_visible_in_tree() and owner_row.text.contains("G02")
+		and owner_row.text.contains("판매 불가"),"720p counter notebook distinguishes the actual service customer's legal title")
 	for action: String in ["alpha_finish_customer","alpha_ack_exit","alpha_close","alpha_settle"]:
 		if not await click(action):
 			return false

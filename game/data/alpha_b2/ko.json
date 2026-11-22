@@ -69,6 +69,7 @@
     "b2.board.reserved": "의뢰 예약",
     "b2.board.protected": "보호 보관 · 일반 판매 불가",
     "b2.board.custody": "고객 소유 수탁품 %d건 · 상점 재고 아님",
+    "b2.board.custody_item": "· %s · %s 소유 · 판매 불가",
     "b2.board.displayed": "매대 진열",
     "b2.board.stored": "보관 중",
     "b2.board.more": "외 %d개는 장부에서 확인",

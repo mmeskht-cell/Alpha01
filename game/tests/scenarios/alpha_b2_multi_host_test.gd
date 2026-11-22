@@ -38,6 +38,9 @@ func _run() -> void:
 	check(host.session.snapshot().items.W001.owner_id == "G02" and host.session.snapshot().items.W001.custodian_id == "player","first customer's title retained")
 	var first_custody := host.find_child("b2_board_custody",true,false) as Label
 	check(first_custody!=null and first_custody.text.contains("1건") and first_custody.text.contains("상점 재고 아님"),"same counter notebook separates first customer custody from shop stock")
+	var first_entry := host.find_child("b2_board_custody_W001",true,false) as Label
+	check(first_entry!=null and first_entry.text.contains("G02") and first_entry.text.contains("판매 불가")
+		and host.find_child("b2_board_custody_W002S",true,false)==null,"notebook names actual first owner without inventing an unaccepted second object")
 	for action: String in ["alpha_finish_customer","alpha_ack_exit","alpha_close","alpha_settle","b2_service_repair","alpha_next_day","alpha_prepare_day","alpha_open"]:
 		if not press(action):
 			quit(1)
@@ -56,6 +59,10 @@ func _run() -> void:
 	check(held.wallets.player.VKC == 170 and held.ledger.is_empty(),"second acceptance does not create cash or retail sale")
 	var both_custody := host.find_child("b2_board_custody",true,false) as Label
 	check(both_custody!=null and both_custody.text.contains("2건"),"second separately owned custody item is counted without becoming storefront inventory")
+	var owner_one := host.find_child("b2_board_custody_W001",true,false) as Label
+	var owner_two := host.find_child("b2_board_custody_W002S",true,false) as Label
+	check(owner_one!=null and owner_two!=null and owner_one.text.contains("G02") and owner_two.text.contains("G04")
+		and owner_one.text.contains("판매 불가") and owner_two.text.contains("판매 불가"),"separate customer owner rows remain attached to the two real held objects")
 	check(host.find_child("b2_display_W001",true,false)==null and host.find_child("b2_display_W002S",true,false)==null,"customer property never receives player-shelf listing buttons")
 	for action: String in ["alpha_finish_customer","alpha_ack_exit","alpha_close","alpha_settle","b2_service_repair"]:
 		if not press(action):

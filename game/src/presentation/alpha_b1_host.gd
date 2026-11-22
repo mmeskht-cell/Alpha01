@@ -152,12 +152,14 @@ func _add_b2_shop_board(panel: PanelContainer, view: Dictionary) -> void:
 	var displayed: int = 0
 	var reserved: int = 0
 	var customer_custody: int = 0
+	var custody_ids: Array[String] = []
 	for id: String in current.items:
 		var item: Dictionary = current.items[id]
 		# The shop may physically hold a customer's serviced/pawned object,
 		# but legal title never becomes ordinary sellable shop stock.
 		if item.owner_id != "player" and item.custodian_id == "player" and item.status in ["custody_service", "custody_pawn"] and item.parent_id.is_empty():
 			customer_custody += 1
+			custody_ids.append(str(id))
 		if item.owner_id != "player" or item.custodian_id != "player" or item.status != "stock" or not item.parent_id.is_empty():
 			continue
 		owned.append(item)
@@ -168,6 +170,11 @@ func _add_b2_shop_board(panel: PanelContainer, view: Dictionary) -> void:
 	_board_line(body, "b2_board_stock", _text("b2.board.stock") % [owned.size(), displayed, reserved], true)
 	if customer_custody > 0:
 		_board_line(body, "b2_board_custody", _text("b2.board.custody") % customer_custody)
+		custody_ids.sort()
+		for custody_id: String in custody_ids:
+			var held_item: Dictionary = current.items[custody_id]
+			_board_line(body, "b2_board_custody_" + custody_id,
+				_text("b2.board.custody_item") % [_text("b2.item." + str(held_item.def_id)), _actor_label(str(held_item.owner_id))])
 	var count: int = 0
 	for item: Dictionary in owned:
 		if count >= 4:
