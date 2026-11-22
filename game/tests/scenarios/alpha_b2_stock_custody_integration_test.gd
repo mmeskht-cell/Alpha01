@@ -101,13 +101,19 @@ func _initialize() -> void:
 		and held.items.W001.inventory=="service_grid" and held.items.W002S.inventory=="service_grid"
 		and held.items.W001.y != held.items.W002S.y and held.alpha_shop.displayed==["R001"],
 		"two customer assets in distinct custody slots coexist with the real listed shop radio")
-	check(find(s.alpha_shelf_options().display,"W001").is_empty() and find(s.alpha_shelf_options().display,"W002S").is_empty()
-		and find(s.alpha_shelf_options().withdraw,"R001").item_id=="R001",
-		"read-only shelf options exclude two entrusted assets but retain owner-stock withdrawal")
+	check(s.alpha_shelf_options().display.is_empty() and s.alpha_shelf_options().withdraw.is_empty(),
+		"customer-active counter cannot offer shelf manipulation while G04 is speaking")
+	if not check(leave(s),"G04 actually departs before any shelf management action"):
+		quit(1)
+		return
+	var after_visit_options: Dictionary=s.alpha_shelf_options()
+	check(find(after_visit_options.display,"W001").is_empty() and find(after_visit_options.display,"W002S").is_empty()
+		and not find(after_visit_options.withdraw,"R001").is_empty(),
+		"after G04 departs, seller-owned radio remains removable but customer assets never become displayable")
 	check(deny(s,"alpha_display",{"item_id":"W002S","x":2,"y":0,"rotated":false})
 		and deny(s,"alpha_withdraw_display",{"item_id":"W001","x":0,"y":0,"rotated":false}),
 		"direct display/withdraw commands cannot steal customer-held goods")
-	if not check(leave(s) and next_open(s) and next_open(s),"D2 and D3 settle unattended returns without silent title transfer; D4 open"):
+	if not check(next_open(s) and next_open(s),"D2 and D3 settle unattended returns without silent title transfer; D4 open"):
 		quit(1)
 		return
 	var overdue: Dictionary=s.snapshot()
