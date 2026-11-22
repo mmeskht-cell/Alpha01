@@ -14,6 +14,7 @@ const Alpha = preload("res://src/domain/alpha_shop_cycle.gd")
 const Repo = preload("res://src/persistence/save_repository.gd")
 const ThemeSource = preload("res://src/presentation/ui_theme.gd")
 const KO_PATH = "res://data/alpha_b1/ko.json"
+const B2Entry = preload("res://src/presentation/b2_launch_route.gd")
 const SAVE_SLOT = "alpha_b1_profile_v3"
 @export var save_directory_override: String = ""
 @export var b2_mode: bool = false
@@ -373,6 +374,13 @@ func intro_skip() -> void:
 	_intro = false
 	refresh()
 
+## Returning to title never settles a visitor, changes a command revision or
+## migrates a legacy save. All successful shop commands save synchronously.
+func _return_to_title() -> void:
+	if not b2_multi_service_mode or not is_inside_tree():
+		return
+	get_tree().change_scene_to_file(B2Entry.TITLE_SCENE_PATH)
+
 func _submit(kind: String, payload: Dictionary = {}) -> void:
 	if _intro or _blocked:
 		return
@@ -436,10 +444,19 @@ func refresh() -> void:
 	var outer := VBoxContainer.new()
 	outer.add_theme_constant_override("separation", 12 if b2_interactive_mode else 16)
 	margin.add_child(outer)
+	var title_row := HBoxContainer.new()
+	title_row.add_theme_constant_override("separation", 10)
+	outer.add_child(title_row)
 	var title := Label.new()
 	title.text = _text("alpha.heading")
 	title.add_theme_font_size_override("font_size", 27 if b2_interactive_mode else 31)
-	outer.add_child(title)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_row.add_child(title)
+	if b2_multi_service_mode:
+		# Opt-in pilot only. Keep the title route in the fixed header so it
+		# remains usable before the intro, during a visit and after a load error.
+		var back := _button(title_row, "b2_return_title", _text("b2.nav.return_title"), _return_to_title)
+		back.custom_minimum_size = Vector2(208, 40)
 	if _blocked:
 		var blocked := Label.new()
 		blocked.text = _message

@@ -53,6 +53,27 @@ func click(name: String, phase: String) -> bool:
 		return check(not host._intro and host.session.snapshot().revision == before, "skip intro without state effect")
 	return check(host.session.snapshot().revision == before + 1 and host.session.snapshot().alpha_shop.phase == phase, "pointer advances " + name + " to " + phase)
 
+## Navigation pointers do not issue a shop command or increment the revision.
+func click_navigation(scene: Control, button_id: String) -> bool:
+	var button := scene.find_child(button_id,true,false) as Button
+	if not check(button != null and button.is_visible_in_tree() and not button.disabled,
+			"navigation control visible " + button_id):
+		return false
+	var point: Vector2=button.get_global_transform_with_canvas() * (button.size * 0.5)
+	if not check(root.get_visible_rect().has_point(point),
+			"navigation pointer within 720p " + button_id):
+		return false
+	for down: bool in [true,false]:
+		var event := InputEventMouseButton.new()
+		event.button_index=MOUSE_BUTTON_LEFT
+		event.pressed=down
+		event.button_mask=MOUSE_BUTTON_MASK_LEFT if down else 0
+		event.position=point
+		event.global_position=point
+		root.push_input(event,true)
+	await frames()
+	return true
+
 func install(scene: PackedScene, name: String) -> bool:
 	host = scene.instantiate()
 	host.save_directory_override = "user://zt_rebuild/window_" + name + "_" + str(Time.get_ticks_usec())
@@ -178,4 +199,44 @@ func run() -> void:
 	check(host.session.alpha_view().active.actor_id=="G02" and host.find_child("b2_service_accept",true,false)!=null,
 		"same unified 720p counter exposes G02's actual service offer")
 	await capture("alpha-b2-unified-g02-service-720p",Vector2i(1280,720))
+	# The real B2 pilot must be able to leave via visible mouse input and
+	# recover its actual title menu. Returning is pure navigation: no grant,
+	# settlement or offscreen second shop command.
+	var saved: Dictionary=host.session.snapshot()
+	var isolated_root: String=host._repo._root
+	current_scene=host
+	if not await click_navigation(host,"b2_return_title"):
+		await finish()
+		return
+	var title := current_scene as Control
+	if not check(title != null and title.name=="MainMenu"
+			and title.find_child("menu_new",true,false)!=null
+			and title.find_child("menu_continue",true,false)!=null
+			and title.find_child("menu_b2_unified",true,false)!=null,
+			"title restores legacy New Game/Continue and unified B2 entry"):
+		await finish()
+		return
+	await capture("alpha-b2-unified-return-title-720p",Vector2i(1280,720))
+	if not await click_navigation(title,"menu_b2_unified"):
+		await finish()
+		return
+	host=current_scene as Control
+	if not check(host != null and host.b2_multi_service_mode
+			and host.session != null and not host._blocked
+			and host._slot()=="alpha_b2_service_custody_multi_v3",
+			"mouse re-entry from title opens exact unified B2 non-legacy profile"):
+		await finish()
+		return
+	check(host._repo._root != isolated_root and not host._repo._root.is_empty(),
+		"title re-entry never imports the earlier window test's isolated A/B save directory")
+	# Even after real scene exit, the prior shop's actual saved state can be
+	# cold restored byte-for-byte from its original isolated A/B generation.
+	var source_copy: Control=unified.instantiate()
+	source_copy.save_directory_override=isolated_root
+	root.add_child(source_copy)
+	await frames()
+	check(not source_copy._blocked and source_copy.session != null
+		and source_copy.session.snapshot()==saved,
+		"real title navigation preserves prior opt-in session and its saved economy exactly")
+	source_copy.queue_free()
 	await finish()

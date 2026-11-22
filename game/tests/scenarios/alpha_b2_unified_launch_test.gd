@@ -18,9 +18,10 @@ func _initialize() -> void:
 	_run.call_deferred()
 
 func _run() -> void:
-	if not check(ResourceLoader.exists(Entry.SCENE_PATH) and
-			Entry.SCENE_PATH == "res://scenes/app/alpha_b2_service_multi.tscn",
-			"shared B2 menu target resolves to existing verified multi-service scene"):
+	if not check(ResourceLoader.exists(Entry.SCENE_PATH) and ResourceLoader.exists(Entry.TITLE_SCENE_PATH)
+			and Entry.SCENE_PATH == "res://scenes/app/alpha_b2_service_multi.tscn"
+			and Entry.TITLE_SCENE_PATH == "res://scenes/app/main_menu.tscn",
+			"shared B2 entry and title-return paths resolve to exact existing scenes"):
 		quit(1)
 		return
 	var path: String = "user://zt_rebuild/b2_launch_boundary_" + str(Time.get_ticks_usec())
@@ -49,6 +50,8 @@ func _run() -> void:
 			and host.b2_mode and host.b2_interactive_mode and host.b2_commission_mode
 			and host.b2_named_commission_mode and host.b2_service_mode and host.b2_multi_service_mode,
 			"unified scene opens fresh with all real B2 authorities, not loaded cards save"):
+	check(host.find_child("b2_return_title",true,false)!=null,
+		"same B2 unified scene exposes a non-transactional exit even during introduction")
 		quit(1)
 		return
 	check(host._slot()=="alpha_b2_service_custody_multi_v3"
@@ -85,6 +88,9 @@ func _run() -> void:
 	check(resumed.session!=null and not resumed._blocked and not resumed._intro
 		and resumed.session.snapshot()==live,
 		"unified entry resumes the exact same saved session without reset")
+	check(resumed.find_child("b2_return_title",true,false)!=null
+		and resumed._slot()=="alpha_b2_service_custody_multi_v3",
+		"cold-resumed B2 entry retains title navigation and exact historic save profile")
 	resumed.queue_free()
 	await process_frame
 	var old: Control=Cards.instantiate()

@@ -63,6 +63,7 @@
     "b2.npc.previous.delivered": "지난 의뢰의 물품 인도와 정산을 마쳤지요.",
     "b2.npc.exit.traded": "거래가 끝났습니다. 다음에 다시 들르겠습니다.",
     "b2.npc.exit.delivered": "약속한 물품을 받았습니다. 정산도 마쳤습니다.",
+    "b2.nav.return_title": "타이틀 화면으로",
     "b2.board.title": "상점 현황 · 실제 장부",
     "b2.board.cash": "보유 현금   %d VKC / %d USD",
     "b2.board.stock": "보유 %d · 진열 %d · 예약 %d",
