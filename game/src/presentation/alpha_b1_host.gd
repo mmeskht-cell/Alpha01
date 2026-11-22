@@ -59,7 +59,7 @@ func _ready() -> void:
 		var b2_locale: Variant = JSON.parse_string(FileAccess.get_file_as_string(B2_KO_PATH))
 		if b2_locale is Dictionary and b2_locale.get("strings") is Dictionary:
 			_strings.merge(b2_locale.strings, true)
-	if b3_market_mode:
+	if b3_market_mode or b3_market_m2_mode:
 		var b3_locale: Variant=JSON.parse_string(FileAccess.get_file_as_string(B3_KO_PATH))
 		if b3_locale is Dictionary and b3_locale.get("strings") is Dictionary:
 			_strings.merge(b3_locale.strings,true)

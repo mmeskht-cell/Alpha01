@@ -284,10 +284,12 @@ func run() -> void:
 	check(not host._blocked and host.b3_market_m2_mode
 		and host._slot()=="alpha_b3_market_m2_v1"
 		and host.session.snapshot().alpha_shop.profile.content_version=="b3-finite-market-m2"
-		and host.session.snapshot().wallets.G08.VKC==165
-		and m2_title!=null
-		and m2_title.text=="EXIT NOT INCLUDED · 다중 시장 수요 B3 시험",
-		"B3-M2 native counter shows distinct Korean title and real existing G08 wallet")
+		and host.session.snapshot().wallets.G08.VKC==165,
+		"B3-M2 uses only its source-bound actor wallet and separate save profile")
+	check(m2_title!=null and m2_title.text=="EXIT NOT INCLUDED · 다중 시장 수요 B3 시험",
+		"B3-M2 native Korean heading is translated, not the raw localization key")
+	check(str(host._strings.get("b3.market.interest.watch","")).contains("시계"),
+		"B3-M2 customer-item demand dialogue is actually loaded from the Korean pack")
 	await capture("alpha-b3-market-m2-intro-720p",Vector2i(1280,720))
 	if not (await click("intro_skip","DAY_PREP")
 			and await click("alpha_open","OPEN_IDLE")
