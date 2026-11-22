@@ -2,6 +2,7 @@ extends SceneTree
 ## New alpha: real viewport, pixels and mouse-input route. No synthetic UI signals.
 const B1 = preload("res://scenes/app/alpha_b1.tscn")
 const B2 = preload("res://scenes/app/alpha_b2_trade_slice.tscn")
+const B2Entry = preload("res://src/presentation/b2_launch_route.gd")
 var host: Control
 var out: String
 var checks: int = 0
@@ -142,4 +143,35 @@ func run() -> void:
 		return
 	check(host.session.snapshot().ledger.size() == 2 and host.session.snapshot().wallets.player.VKC == 250, "two paid ledger transfers, no fictional money")
 	await capture("alpha-b2-evening-1080p", Vector2i(1920, 1080))
+	# Newly exposed opt-in menu entry uses the exact same multi-service B2
+	# scene as the shared-counter integration test, never the legacy New Game.
+	host.queue_free()
+	await frames()
+	root.size = Vector2i(1280, 720)
+	if not check(ResourceLoader.exists(B2Entry.SCENE_PATH), "B2 unified entry route points to existing scene"):
+		await finish()
+		return
+	var unified: PackedScene = load(B2Entry.SCENE_PATH) as PackedScene
+	if not check(unified != null, "B2 unified menu route resolves a packed scene"):
+		await finish()
+		return
+	if not await install(unified, "b2_unified"):
+		await finish()
+		return
+	check(host._slot()=="alpha_b2_service_custody_multi_v3"
+		and host.b2_interactive_mode and host.b2_commission_mode and host.b2_multi_service_mode,
+		"B2 unified entry starts its independent multi-authority profile")
+	await capture("alpha-b2-unified-intro-720p",Vector2i(1280,720))
+	if not await click("intro_skip","DAY_PREP") or not await click("alpha_open","OPEN_IDLE") 			or not await click("alpha_next_customer","CUSTOMER_ENTER") or not await click("alpha_ack_entry","CUSTOMER_ACTIVE"):
+		await finish()
+		return
+	check(host.session.alpha_view().active.actor_id=="G01" and host.find_child("b2_price_input",true,false)!=null,
+		"unified entry has the real first customer's appraisal and price controls")
+	await capture("alpha-b2-unified-g01-720p",Vector2i(1280,720))
+	if not await click("alpha_finish_customer","CUSTOMER_EXIT") or not await click("alpha_ack_exit","OPEN_IDLE") 			or not await click("alpha_next_customer","CUSTOMER_ENTER") or not await click("alpha_ack_entry","CUSTOMER_ACTIVE"):
+		await finish()
+		return
+	check(host.session.alpha_view().active.actor_id=="G02" and host.find_child("b2_service_accept",true,false)!=null,
+		"same unified 720p counter exposes G02's actual service offer")
+	await capture("alpha-b2-unified-g02-service-720p",Vector2i(1280,720))
 	await finish()
