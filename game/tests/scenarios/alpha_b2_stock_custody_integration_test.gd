@@ -150,6 +150,22 @@ func _initialize() -> void:
 	check(reserved.items.TL04.reservation_id=="tool_for_g03" and reserved.items.TL04.inventory=="player_stock"
 		and reserved.items.R001.inventory=="storefront_grid" and reserved.items.W001.custodian_id=="player"
 		and reserved.items.W002S.custodian_id=="player","one reserved, one listed, two customer-held physical goods coexist without copies")
+	# Save while all four authority classes still coexist, not only after
+	# cancellation has already removed the reservation.
+	var four_way_store:=Repo.new("user://zt_rebuild/b2_fourway_reserved_"+str(Time.get_ticks_usec()))
+	check(four_way_store.save_session(s,"reserved").ok,
+		"physical shelf, live reservation and two customer custody objects save together")
+	var four_way_cold: RefCounted=new_session()
+	check(four_way_cold!=null and four_way_store.load_session(four_way_cold,"reserved").ok
+		and four_way_cold.snapshot()==reserved,
+		"cold restored four-way state retains identical title, custody, reservation, ledger and shelf")
+	check(four_way_cold!=null and four_way_cold.alpha_shelf_options()==s.alpha_shelf_options(),
+		"cold restored four-way state projects exactly the same legal shelf actions")
+	check(four_way_cold!=null
+		and deny(four_way_cold,"alpha_display",{"item_id":"TL04","x":2,"y":0,"rotated":false})
+		and deny(four_way_cold,"alpha_display",{"item_id":"W001","x":1,"y":0,"rotated":false})
+		and deny(four_way_cold,"alpha_display",{"item_id":"W002S","x":2,"y":0,"rotated":false}),
+		"reloaded authority rejects reserved and both customer-owned objects without mutation")
 	check(find(s.alpha_shelf_options().display,"TL04").is_empty()
 		and not find(s.alpha_shelf_options().withdraw,"R001").is_empty(),
 		"reserved contract stock is removed from public display options but unrelated radio remains removable")
