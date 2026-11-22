@@ -540,6 +540,8 @@ func _alpha_valid(state: Dictionary) -> bool:
 		expected_alpha_keys.append("commissions")
 	if _alpha_seed.alpha_shop.has("services"):
 		expected_alpha_keys.append("services")
+	if _alpha_seed.alpha_shop.has("fx"):
+		expected_alpha_keys.append("fx")
 	if not Rules.keys(a, expected_alpha_keys):
 		return false
 	if a.version != 1 or a.profile != _alpha_seed.alpha_shop.profile or a.binding != _alpha_seed.alpha_shop.binding or not a.commands is Array or a.commands.size() != state.revision:
