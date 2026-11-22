@@ -1,0 +1,108 @@
+name: B2 Windows source-backed trial
+on:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/b2-windows-trial.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  b2-windows:
+    runs-on: windows-2022
+    timeout-minutes: 25
+    steps:
+      - name: Checkout exact public CI mirror
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Download pinned Godot Windows runtime
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $url = 'https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_win64.exe.zip'
+          $archive = Join-Path $env:RUNNER_TEMP 'godot_4.7.2_windows.zip'
+          Invoke-WebRequest -Uri $url -OutFile $archive
+          $expected = '731980f9608d61333e5baf54a2ef17210acc7a538446c0cb9969f002aca1e953'
+          $actual = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $expected) { throw "Godot SHA256 mismatch $actual" }
+          $engineDir = Join-Path $env:RUNNER_TEMP 'godot-win'
+          Expand-Archive -Path $archive -DestinationPath $engineDir -Force
+          $exe = Get-ChildItem $engineDir -Filter 'Godot_v4.7.2-stable_win64_console.exe' -Recurse | Select-Object -First 1
+          if ($null -eq $exe) { throw 'Pinned engine missing' }
+          "GODOT_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $gui = Get-ChildItem $engineDir -Filter 'Godot_v4.7.2-stable_win64.exe' -Recurse | Select-Object -First 1
+          if ($null -eq $gui) { throw 'GUI engine missing' }
+          "GODOT_GUI_EXE=$($gui.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          & $exe.FullName --version
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned console engine version failed' }
+      - name: Prepare B2 assets and import source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python game/tools/prepare_runtime_assets.py
+          if ($LASTEXITCODE -ne 0) { throw 'B2 runtime assets missing' }
+          python game/tools/localization.py
+          if ($LASTEXITCODE -ne 0) { throw 'B2 localization invalid' }
+          & $env:GODOT_EXE --headless --editor --path game --import 2>&1 | Tee-Object -FilePath b2-win-import.log
+          if ($LASTEXITCODE -ne 0) { throw 'B2 Windows import failed' }
+          if (Select-String -Path b2-win-import.log -Pattern 'SCRIPT ERROR:|^ERROR:|^FAIL:' -Quiet) { throw 'B2 import diagnostics' }
+      - name: Verify B2 customer title, late recovery and price disclosure on Windows
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & $env:GODOT_EXE --headless --path game --script res://tests/scenarios/alpha_b2_service_custody_test.gd -- recovery 2>&1 | Tee-Object -FilePath b2-win-recovery.log
+          if ($LASTEXITCODE -ne 0) { throw 'B2 Windows recovery failed' }
+          if (-not (Select-String -Path b2-win-recovery.log -Pattern 'ALPHA_B2_SERVICE_CHECKS part=recovery checks=[0-9]+ failures=0' -Quiet)) { throw 'Recovery acceptance evidence absent' }
+          & $env:GODOT_EXE --headless --path game --script res://tests/scenarios/alpha_b2_card_negotiation_test.gd 2>&1 | Tee-Object -FilePath b2-win-cards.log
+          if ($LASTEXITCODE -ne 0) { throw 'B2 Windows card test failed' }
+          if (-not (Select-String -Path b2-win-cards.log -Pattern 'ALPHA_B2_CARD_NEGOTIATION_CHECKS=[0-9]+ failures=0' -Quiet)) { throw 'B2 price/disclosure evidence absent' }
+          & $env:GODOT_EXE --headless --path game res://scenes/app/alpha_b2_service_recovery.tscn --quit-after 6 2>&1 | Tee-Object -FilePath b2-win-scene.log
+          if ($LASTEXITCODE -ne 0) { throw 'B2 Windows trial scene failed to boot' }
+          foreach ($log in @('b2-win-recovery.log','b2-win-cards.log','b2-win-scene.log')) {
+            if (Select-String -Path $log -Pattern 'SCRIPT ERROR:|^ERROR:|^FAIL:' -Quiet) { throw "B2 runtime errors in $log" }
+          }
+      - name: Package portable B2 mouse-and-keyboard play candidate
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:RUNNER_TEMP 'Exit-Not-Included-B2-Windows-Trial'
+          New-Item -ItemType Directory -Path $root -Force | Out-Null
+          Copy-Item $env:GODOT_GUI_EXE (Join-Path $root 'Godot_v4.7.2-stable_win64.exe')
+          Copy-Item game (Join-Path $root 'game') -Recurse
+          foreach ($folder in @('editor','shader_cache')) {
+            $cache = Join-Path $root ('game/.godot/' + $folder)
+            if (Test-Path $cache) { Remove-Item $cache -Recurse -Force }
+          }
+          $nl = [Environment]::NewLine
+          $launcher = '@echo off' + $nl + 'cd /d "%~dp0"' + $nl + '"%~dp0Godot_v4.7.2-stable_win64.exe" --path "%~dp0game" res://scenes/app/alpha_b2_service_recovery.tscn' + $nl
+          [IO.File]::WriteAllText((Join-Path $root 'Launch B2 Trial.cmd'),$launcher,[Text.Encoding]::ASCII)
+          $notes = @(
+            'EXIT NOT INCLUDED - B2 LIMITED WINDOWS PLAYTEST',
+            'This is an isolated developer trial of one customer custody scenario, NOT the completed 7-day alpha.',
+            'Launch: double-click Launch B2 Trial.cmd. Keyboard/mouse only; Korean primary.',
+            'To test D3 recovery: D1 G01 leave, G02 accept custody; close shop, settle, repair W001 in evening.',
+            'D2: open, intentionally close before G02 pickup; settle. D3: open, skip/finish normal customers, wait for G02.',
+            'Confirm original W001 returns to G02 with 30 VKC fee charged once and no shop ownership of the item.',
+            'Also try declining the request and an unrepaired return in a separate new save path.',
+            'This Windows CI tests import and headless commands; it cannot validate human intuitiveness, touch, or fun.',
+            "Exact public CI mirror source: $env:GITHUB_SHA",
+            'Please record screenshot, steps, confusion, screen resolution and whether texts/buttons were readable.'
+          ) -join $nl
+          [IO.File]::WriteAllText((Join-Path $root 'README_B2_TRIAL.txt'),$notes,(New-Object System.Text.UTF8Encoding($false)))
+          Compress-Archive -Path (Join-Path $root '*') -DestinationPath (Join-Path $env:GITHUB_WORKSPACE 'EXIT_NOT_INCLUDED_B2_Windows_Trial.zip') -Force
+          $zip = Get-Item 'EXIT_NOT_INCLUDED_B2_Windows_Trial.zip'
+          Write-Host "B2_WINDOWS_PORTABLE_OK bytes=$($zip.Length) sha=$env:GITHUB_SHA"
+      - name: Upload B2 Windows trial and evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: b2-windows-trial
+          path: |
+            EXIT_NOT_INCLUDED_B2_Windows_Trial.zip
+            b2-win-import.log
+            b2-win-recovery.log
+            b2-win-cards.log
+            b2-win-scene.log
+          if-no-files-found: warn
+          retention-days: 3
