@@ -158,6 +158,9 @@ func run() -> void:
 	if not await run_recovery_counter():
 		quit(1)
 		return
+	if not await run_remote_fallback_counter():
+		quit(1)
+		return
 	print("ALPHA_B2_COMMISSION_WINDOW: ",checks," checks, ",failures," failures")
 	quit(0 if failures==0 else 1)
 
@@ -337,6 +340,47 @@ func run_recovery_counter() -> bool:
 	var final: Dictionary = host.session.snapshot()
 	check(final.items.W001.owner_id == "G02" and final.items.W001.custodian_id == "G02" and final.wallets.player.VKC == 200 and final.alpha_shop.services.settlements.size() == 1,"late physical return and exactly one real fee")
 	await shot("service-recovery-returned-1080p",Vector2i(1920,1080))
+	host.queue_free()
+	await frames()
+	return true
+
+
+## Source-authored radio substitutes use the existing same-counter notebook,
+## without forcing an extra Jack/Tan visit into the finite original schedule.
+func run_remote_fallback_counter() -> bool:
+	root.size=Vector2i(1280,720)
+	host=Scene.instantiate()
+	host.save_directory_override="user://zt_rebuild/b2_remote_fallback_"+str(Time.get_ticks_usec())
+	root.add_child(host)
+	await frames()
+	if not check(host.session != null and not host._blocked,"remote fallback original B2 counter boots"):
+		return false
+	for action: String in ["intro_skip","alpha_open","alpha_close","alpha_settle",
+		"alpha_next_day","alpha_prepare_day","alpha_open"]:
+		if not await click(action):
+			return false
+	var sora := host.find_child("b2_story_remote_S02_SORA_REMOTE",true,false) as Label
+	check(sora!=null and sora.is_visible_in_tree() and sora.text.contains("소라")
+		and sora.text.contains("아직 확인되지"),"720p S02 Sora market radio is visible but never claims confirmed demand")
+	check(host.find_child("b2_story_remote_S04_NAEL_REMOTE",true,false)==null,
+		"S04 Nael cannot arrive early during D2")
+	var d2: Dictionary=host.session.snapshot()
+	check(not d2.wallets.has("sora") and d2.alpha_shop.day==2 and d2.ledger.is_empty(),
+		"authored remote radio generates no market wallet, cash transfer or visit")
+	await shot("commission-s02-sora-radio-720p",Vector2i(1280,720))
+	for next_day: int in range(3,8):
+		for action: String in ["alpha_close","alpha_settle","alpha_next_day","alpha_prepare_day","alpha_open"]:
+			if not await click(action):
+				return false
+	check(host.session.alpha_view().day==7 and host.find_child("b2_story_remote_S02_SORA_REMOTE",true,false)==null,
+		"S02 market bulletin not duplicated on S04 day")
+	var nael := host.find_child("b2_story_remote_S04_NAEL_REMOTE",true,false) as Label
+	check(nael!=null and nael.is_visible_in_tree() and nael.text.contains("나엘")
+		and nael.text.contains("아직 확인되지") and nael.text.contains("약속할 수 없습니다"),
+		"720p S04 unconfirmed Nael communication does not promise an approved transfer")
+	check(not host.session.snapshot().wallets.has("tan") and not host.session.snapshot().wallets.has("nael"),
+		"named radio senders are not synthetic shop visitors or buyers")
+	await shot("commission-s04-nael-radio-720p",Vector2i(1280,720))
 	host.queue_free()
 	await frames()
 	return true

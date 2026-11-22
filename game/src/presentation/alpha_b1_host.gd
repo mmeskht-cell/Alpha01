@@ -132,6 +132,10 @@ func _add_b2_shop_board(panel: PanelContainer, view: Dictionary) -> void:
 	var story_key: String = str(view.get("story", {}).get("fact_key", ""))
 	if not story_key.is_empty():
 		_board_line(body, "b2_story_contract_fact", _text(story_key))
+	# Unvisited authored fallback messages use the same read-only notebook.
+	# No extra queue entry, separate quest UI, contact permission, or payment.
+	for notice: Dictionary in view.get("story", {}).get("notices", []):
+		_board_line(body, "b2_story_remote_" + str(notice.id), _text(str(notice.text_key)))
 	body.add_child(HSeparator.new())
 	# At night the chosen consensual contact belongs in the readable right
 	# dossier, not in a clipped scroll row beneath unrelated action buttons.

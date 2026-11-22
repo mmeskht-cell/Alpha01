@@ -27,6 +27,24 @@
       "contract_id": "rad1_first",
       "status": "defaulted",
       "text_key": "b2.story.s03.default"
+    },
+    {
+      "id": "S02_SORA_REMOTE",
+      "kind": "remote_fallback",
+      "day": 2,
+      "source_id": "sora",
+      "channel": "radio",
+      "absent_actor": "jack",
+      "text_key": "b2.story.s02.sora_remote"
+    },
+    {
+      "id": "S04_NAEL_REMOTE",
+      "kind": "remote_fallback",
+      "day": 7,
+      "source_id": "nael",
+      "channel": "radio",
+      "absent_actor": "tan",
+      "text_key": "b2.story.s04.nael_remote"
     }
   ]
 }

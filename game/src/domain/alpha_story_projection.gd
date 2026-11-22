@@ -1,12 +1,12 @@
 extends RefCounted
-## Read-only source-bound representative S01/S03 dialogue. This is not
+## Read-only source-bound S01/S03 dialogue and S02/S04 fallback radio. Not
 ## STORY_EVENT_SPEC's 26-slot campaign engine, a quest, or a new NPC visit.
 const Rules = preload("res://src/domain/value_rules.gd")
 const PATH: String = "res://data/alpha_b2/story_source_beats_1.json"
 
 static func config() -> Dictionary:
 	var value: Variant = JSON.parse_string(FileAccess.get_file_as_string(PATH))
-	if not Rules.keys(value, ["version","beats"]) or value.version != 1 or not value.beats is Array or value.beats.size() != 3:
+	if not Rules.keys(value, ["version","beats"]) or value.version != 1 or not value.beats is Array or value.beats.size() != 5:
 		return {}
 	var ids: Dictionary = {}
 	for entry: Variant in value.beats:
@@ -18,6 +18,8 @@ static func config() -> Dictionary:
 				fields.append_array(["day","visit_id","actor_id","item_id"])
 			"contract_fact":
 				fields.append_array(["first_day","last_day","contract_id","status"])
+			"remote_fallback":
+				fields.append_array(["day","source_id","channel","absent_actor"])
 			_:
 				return {}
 		if not Rules.keys(entry, fields) or not Rules.identifier(entry.id) or ids.has(entry.id) or not Rules.identifier(entry.text_key):
@@ -26,13 +28,26 @@ static func config() -> Dictionary:
 		if entry.kind == "customer_open":
 			if not Rules.integer(entry.day, 1, 42) or not Rules.identifier(entry.visit_id) or not Rules.identifier(entry.actor_id) or not Rules.identifier(entry.item_id):
 				return {}
-		else:
+		elif entry.kind == "contract_fact":
 			if not Rules.integer(entry.first_day, 1, 42) or not Rules.integer(entry.last_day, int(entry.first_day), 42) or not Rules.identifier(entry.contract_id) or entry.status not in ["paid", "defaulted"]:
+				return {}
+		else:
+			# Author-approved *non-visitor* fallback, never a minted NPC,
+			# verified evacuation, contract offer or radio trade transaction.
+			if not Rules.integer(entry.day, 1, 42) or entry.channel != "radio":
+				return {}
+			if entry.id == "S02_SORA_REMOTE":
+				if entry.day != 2 or entry.source_id != "sora" or entry.absent_actor != "jack":
+					return {}
+			elif entry.id == "S04_NAEL_REMOTE":
+				if entry.day != 7 or entry.source_id != "nael" or entry.absent_actor != "tan":
+					return {}
+			else:
 				return {}
 	return value
 
 static func view(state: Dictionary) -> Dictionary:
-	var result: Dictionary = {"speech_key":"","fact_key":""}
+	var result: Dictionary = {"speech_key":"","fact_key":"","notices":[]}
 	if not state.has("alpha_shop"):
 		return result
 	var a: Dictionary = state.alpha_shop
@@ -56,6 +71,20 @@ static func view(state: Dictionary) -> Dictionary:
 			var item: Dictionary = state.items.get(beat.item_id,{})
 			if not visit.is_empty() and not item.is_empty() and visit.seller == beat.actor_id and visit.buyer == "player" and visit.scope.kind == "ordinary" and visit.scope.purpose == "purchase" and not visit.scope.completed and visit.prices.has(beat.item_id) and item.owner_id == beat.actor_id:
 				result.speech_key = beat.text_key
+		elif beat.kind == "remote_fallback":
+			# Only after the shop was actually opened on the authored day.
+			# The authored incoming radio notice is not a customer, proof of
+			# a market transaction, or an approved exit schedule.
+			if a.day != beat.day or a.phase not in ["OPEN_IDLE","EVENING_WORK"]:
+				continue
+			var present: bool = false
+			for visitor: Dictionary in a.profile.days[int(a.day) - 1]:
+				if str(visitor.get("actor_id", "")) == str(beat.absent_actor):
+					present = true
+					break
+			if not present:
+				result.notices.append({"id":beat.id,"text_key":beat.text_key,
+					"source_id":beat.source_id,"channel":beat.channel})
 		elif beat.kind == "contract_fact":
 			# Contract consequence is a shop record, never spoken by an absent
 			# supplier. Existing GameSession payment/delivery is authoritative.
