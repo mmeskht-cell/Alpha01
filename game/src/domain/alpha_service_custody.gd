@@ -8,13 +8,16 @@ const PATH: String = "res://data/alpha_b2/service_custody_pilot_1.json"
 const PROFILE_ID: String = "b2_service_custody_pilot_1"
 const RECOVERY_PROFILE_ID: String = "b2_service_custody_recovery_2"
 const RECOVERY_PATH: String = "res://data/alpha_b2/service_custody_recovery_2.json"
+const MULTI_PROFILE_ID: String = "b2_service_custody_multi_3"
+const MULTI_PATH: String = "res://data/alpha_b2/service_custody_multi_3.json"
 const ACTIONS: Array = ["alpha_service_accept","alpha_service_decline","alpha_service_repair","alpha_service_deliver","alpha_service_return_unpaid"]
 
 static func config(profile_id: String = PROFILE_ID) -> Dictionary:
-	if profile_id not in [PROFILE_ID, RECOVERY_PROFILE_ID]:
+	if profile_id not in [PROFILE_ID, RECOVERY_PROFILE_ID, MULTI_PROFILE_ID]:
 		return {}
-	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(RECOVERY_PATH if profile_id == RECOVERY_PROFILE_ID else PATH))
-	if not Rules.keys(data,["version","profile_id","jobs"]) or data.version != 1 or data.profile_id != profile_id or not data.jobs is Array or data.jobs.size() != 1:
+	var source: String = MULTI_PATH if profile_id == MULTI_PROFILE_ID else (RECOVERY_PATH if profile_id == RECOVERY_PROFILE_ID else PATH)
+	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(source))
+	if not Rules.keys(data,["version","profile_id","jobs"]) or data.version != 1 or data.profile_id != profile_id or not data.jobs is Array or data.jobs.is_empty() or data.jobs.size() > 3:
 		return {}
 	return data
 
@@ -23,9 +26,11 @@ static func profile_valid(profile: Dictionary, state: Dictionary) -> bool:
 	if cfg.is_empty() or not profile.has("days") or not state.inventories.has("service_grid") or state.inventories.service_grid.owner_id != "player":
 		return false
 	var ids: Dictionary = {}
+	var item_ids: Dictionary = {}
+	var custody_slots: Dictionary = {}
 	for job: Dictionary in cfg.jobs:
 		var required: Array = ["job_id","actor_id","offer_visit_id","return_visit_id","offer_day","due_day","item_id","fee","text_key"]
-		var recovery: bool = str(profile.service_profile_id) == RECOVERY_PROFILE_ID
+		var recovery: bool = str(profile.service_profile_id) in [RECOVERY_PROFILE_ID,MULTI_PROFILE_ID]
 		if recovery:
 			required.append_array(["recovery_visit_id","recovery_day"])
 		if not Rules.keys(job,required):
@@ -35,7 +40,7 @@ static func profile_valid(profile: Dictionary, state: Dictionary) -> bool:
 		for key: String in ["job_id","actor_id","offer_visit_id","return_visit_id","item_id","text_key"]:
 			if not Rules.identifier(job[key]):
 				return false
-		if ids.has(job.job_id) or job.offer_visit_id == job.return_visit_id or not Rules.integer(job.offer_day,1,profile.days.size()) or not Rules.integer(job.due_day,int(job.offer_day)+1,profile.days.size()) or not Objects.money(job.fee,false):
+		if ids.has(job.job_id) or item_ids.has(job.item_id) or job.offer_visit_id == job.return_visit_id or not Rules.integer(job.offer_day,1,profile.days.size()) or not Rules.integer(job.due_day,int(job.offer_day)+1,profile.days.size()) or not Objects.money(job.fee,false):
 			return false
 		if int(job.fee.VKC)+int(job.fee.USD) <= 0 or (int(job.fee.VKC)>0 and int(job.fee.USD)>0):
 			return false
@@ -54,6 +59,14 @@ static func profile_valid(profile: Dictionary, state: Dictionary) -> bool:
 				returned = true
 		if not offered or not returned:
 			return false
+		if str(profile.service_profile_id) == MULTI_PROFILE_ID:
+			var placement: Variant = job.get("placement",{})
+			if not Rules.keys(placement,["inventory","x","y","rotated"]) or placement.inventory != "service_grid" or placement.rotated != false or not Rules.integer(placement.x,0,int(state.inventories.service_grid.width)-1) or not Rules.integer(placement.y,0,int(state.inventories.service_grid.height)-1):
+				return false
+			var slot: String = str(placement.x) + ":" + str(placement.y)
+			if custody_slots.has(slot):
+				return false
+			custody_slots[slot] = true
 		if recovery:
 			var recovery_found: bool = false
 			for row: Dictionary in profile.days[int(job.recovery_day)-1]:
@@ -62,6 +75,7 @@ static func profile_valid(profile: Dictionary, state: Dictionary) -> bool:
 			if not recovery_found or state.visits.has(job.recovery_visit_id):
 				return false
 		ids[job.job_id] = true
+		item_ids[job.item_id] = true
 	return true
 
 static func _id(state: Dictionary) -> String:
@@ -168,10 +182,11 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 		item.custodian_id = "player"
 		item.status = "custody_service"
 		item.service_permission = true
-		item.inventory = "service_grid"
-		item.x = 0
-		item.y = 0
-		item.rotated = false
+		var placement: Dictionary = row.get("placement",{"inventory":"service_grid","x":0,"y":0,"rotated":false})
+		item.inventory = str(placement.inventory)
+		item.x = int(placement.x)
+		item.y = int(placement.y)
+		item.rotated = bool(placement.rotated)
 		item.version += 1
 		job.status = "accepted"
 		job.accepted_action = command.action_id

@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "profile_id": "b2_service_custody_multi_3",
+  "jobs": [
+    {
+      "job_id": "service_w001",
+      "actor_id": "G02",
+      "offer_visit_id": "visit_g02_buy",
+      "return_visit_id": "alpha_service_g02_return_d2",
+      "recovery_visit_id": "alpha_service_g02_recovery_d3",
+      "offer_day": 1,
+      "due_day": 2,
+      "recovery_day": 3,
+      "item_id": "W001",
+      "fee": {
+        "VKC": 30,
+        "USD": 0
+      },
+      "text_key": "b2.service.w001",
+      "placement": {
+        "inventory": "service_grid",
+        "x": 0,
+        "y": 0,
+        "rotated": false
+      }
+    },
+    {
+      "job_id": "service_w002s",
+      "actor_id": "G04",
+      "offer_visit_id": "watch_a",
+      "return_visit_id": "alpha_service_g04_return_d3",
+      "recovery_visit_id": "alpha_service_g04_recovery_d5",
+      "offer_day": 2,
+      "due_day": 3,
+      "recovery_day": 5,
+      "item_id": "W002S",
+      "fee": {
+        "VKC": 40,
+        "USD": 0
+      },
+      "text_key": "b2.service.w002s",
+      "placement": {
+        "inventory": "service_grid",
+        "x": 0,
+        "y": 1,
+        "rotated": false
+      }
+    }
+  ]
+}

@@ -54,12 +54,17 @@ jobs:
           & $env:GODOT_EXE --headless --path game --script res://tests/scenarios/alpha_b2_service_custody_test.gd -- recovery 2>&1 | Tee-Object -FilePath b2-win-recovery.log
           if ($LASTEXITCODE -ne 0) { throw 'B2 Windows recovery failed' }
           if (-not (Select-String -Path b2-win-recovery.log -Pattern 'ALPHA_B2_SERVICE_CHECKS part=recovery checks=[0-9]+ failures=0' -Quiet)) { throw 'Recovery acceptance evidence absent' }
+          & $env:GODOT_EXE --headless --path game --script res://tests/scenarios/alpha_b2_service_custody_test.gd -- multi 2>&1 | Tee-Object -FilePath b2-win-multi.log
+          if ($LASTEXITCODE -ne 0) { throw 'B2 two-owner custody on Windows failed' }
+          if (-not (Select-String -Path b2-win-multi.log -Pattern 'ALPHA_B2_SERVICE_CHECKS part=multi checks=[0-9]+ failures=0' -Quiet)) { throw 'Two-owner receipt evidence absent' }
           & $env:GODOT_EXE --headless --path game --script res://tests/scenarios/alpha_b2_card_negotiation_test.gd 2>&1 | Tee-Object -FilePath b2-win-cards.log
           if ($LASTEXITCODE -ne 0) { throw 'B2 Windows card test failed' }
           if (-not (Select-String -Path b2-win-cards.log -Pattern 'ALPHA_B2_CARD_NEGOTIATION_CHECKS=[0-9]+ failures=0' -Quiet)) { throw 'B2 price/disclosure evidence absent' }
           & $env:GODOT_EXE --headless --path game res://scenes/app/alpha_b2_service_recovery.tscn --quit-after 6 2>&1 | Tee-Object -FilePath b2-win-scene.log
           if ($LASTEXITCODE -ne 0) { throw 'B2 Windows trial scene failed to boot' }
-          foreach ($log in @('b2-win-recovery.log','b2-win-cards.log','b2-win-scene.log')) {
+          & $env:GODOT_EXE --headless --path game res://scenes/app/alpha_b2_service_multi.tscn --quit-after 6 2>&1 | Tee-Object -FilePath b2-win-multi-scene.log
+          if ($LASTEXITCODE -ne 0) { throw 'B2 Windows two-owner scene failed to boot' }
+          foreach ($log in @('b2-win-recovery.log','b2-win-multi.log','b2-win-cards.log','b2-win-scene.log','b2-win-multi-scene.log')) {
             if (Select-String -Path $log -Pattern 'SCRIPT ERROR:|^ERROR:|^FAIL:' -Quiet) { throw "B2 runtime errors in $log" }
           }
       - name: Package portable B2 mouse-and-keyboard play candidate
@@ -77,14 +82,20 @@ jobs:
           $nl = [Environment]::NewLine
           $launcher = '@echo off' + $nl + 'cd /d "%~dp0"' + $nl + '"%~dp0Godot_v4.7.2-stable_win64.exe" --path "%~dp0game" res://scenes/app/alpha_b2_service_recovery.tscn' + $nl
           [IO.File]::WriteAllText((Join-Path $root 'Launch B2 Trial.cmd'),$launcher,[Text.Encoding]::ASCII)
+          $multi_launcher = '@echo off' + $nl + 'cd /d "%~dp0"' + $nl + '"%~dp0Godot_v4.7.2-stable_win64.exe" --path "%~dp0game" res://scenes/app/alpha_b2_service_multi.tscn' + $nl
+          [IO.File]::WriteAllText((Join-Path $root 'Launch B2 Multi Trial.cmd'),$multi_launcher,[Text.Encoding]::ASCII)
           $notes = @(
             'EXIT NOT INCLUDED - B2 LIMITED WINDOWS PLAYTEST',
             'This is an isolated developer trial of one customer custody scenario, NOT the completed 7-day alpha.',
-            'Launch: double-click Launch B2 Trial.cmd. Keyboard/mouse only; Korean primary.',
+            'Launch B2 Trial.cmd: original G02 one-owner recovery scenario.',
+            'Launch B2 Multi Trial.cmd: G02 and G04 real 2-item custody scenario.',
+            'Keyboard/mouse only; Korean primary.',
             'To test D3 recovery: D1 G01 leave, G02 accept custody; close shop, settle, repair W001 in evening.',
             'D2: open, intentionally close before G02 pickup; settle. D3: open, skip/finish normal customers, wait for G02.',
             'Confirm original W001 returns to G02 with 30 VKC fee charged once and no shop ownership of the item.',
             'Also try declining the request and an unrepaired return in a separate new save path.',
+            'In Multi Trial, D1 G02 consent and restore, D2 G04 accept without serving G02 pickup, restore G04 at night.',
+            'D3 G02 returns first, then G04. Both original customer items and finite fees are independent.',
             'This Windows CI tests import and headless commands; it cannot validate human intuitiveness, touch, or fun.',
             "Exact public CI mirror source: $env:GITHUB_SHA",
             'Please record screenshot, steps, confusion, screen resolution and whether texts/buttons were readable.'
@@ -102,8 +113,10 @@ jobs:
             EXIT_NOT_INCLUDED_B2_Windows_Trial.zip
             b2-win-import.log
             b2-win-recovery.log
+            b2-win-multi.log
             b2-win-cards.log
             b2-win-scene.log
+            b2-win-multi-scene.log
           if-no-files-found: warn
           retention-days: 3
 # B2 art first viewport QA checkpoint: source-bound image before inspection text.

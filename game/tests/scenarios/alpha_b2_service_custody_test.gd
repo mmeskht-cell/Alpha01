@@ -3,6 +3,7 @@ extends SceneTree
 ## custody, permitted restoration, fee and physical original-grid return move.
 const Seed = preload("res://src/content/alpha_b2_service_seed.gd")
 const RecoverySeed = preload("res://src/content/alpha_b2_service_recovery_seed.gd")
+const MultiSeed = preload("res://src/content/alpha_b2_service_multi_seed.gd")
 const Named = preload("res://src/content/alpha_b2_named_commission_seed.gd")
 const Session = preload("res://src/domain/game_session.gd")
 const Repo = preload("res://src/persistence/save_repository.gd")
@@ -29,6 +30,14 @@ func recovery_fresh() -> RefCounted:
 	var s := Session.new()
 	if data.is_empty() or not s.initialize(data.defs,data.state,false,false,{},data.alpha_profile):
 		printerr("B2_RECOVERY_INIT: ",s.initialization_error() if not data.is_empty() else "source")
+		return null
+	return s
+
+func multi_fresh() -> RefCounted:
+	var data: Dictionary = MultiSeed.content()
+	var s := Session.new()
+	if data.is_empty() or not s.initialize(data.defs,data.state,false,false,{},data.alpha_profile):
+		printerr("B2_MULTI_INIT: ",s.initialization_error() if not data.is_empty() else "source")
 		return null
 	return s
 
@@ -217,9 +226,95 @@ func recovery() -> void:
 	tamper.alpha_shop.services.settlements[0].paid.VKC = 300
 	check(not s.restore(tamper) and s.snapshot() == after,"tampered late fee rejected")
 
+## Two different civilian owners keep independent titles, work-cost events,
+## custody slots, real fee wallets and appointments in ONE save/authority.
+func service_entry(view: Dictionary, job_id: String) -> Dictionary:
+	for entry: Dictionary in view.services.entries:
+		if entry.job_id == job_id:
+			return entry
+	return {}
+
+func multi() -> void:
+	var source: Dictionary = MultiSeed.content()
+	var original: Dictionary = RecoverySeed.content()
+	if not check(not source.is_empty() and not original.is_empty(),"multi profile reuses prior recovery source"):
+		return
+	check(source.state == original.state and source.state.items.W002S.owner_id == "G04" and source.state.items.W001.owner_id == "G02" and source.state.wallets == original.state.wallets,"two real customer items and existing finite wallets, no mint")
+	check(source.alpha_profile.days[0] == original.alpha_profile.days[0] and source.alpha_profile.days[1] == original.alpha_profile.days[1],"old first two day appointments unchanged")
+	var s: RefCounted = multi_fresh()
+	if not check(s != null,"two-customer authority initializes with a separate slot"):
+		return
+	var before: Dictionary = s.snapshot()
+	if not check(g02_offer(s) and go(s,"alpha_service_accept",{"job_id":"service_w001"}) and evening(s),"D1 G02 gives explicit custody"):
+		return
+	check(go(s,"alpha_service_repair",{"job_id":"service_w001","item_id":"W001"}),"G02 actual ten VKC restoration in D1 evening")
+	if not check(day2(s) and active(s,"G03") and leave(s) and active(s,"G04"),"D2 G04 visits ordinary counter while G02 equipment stays held"):
+		return
+	var g04_offer: Dictionary = s.alpha_view()
+	check(not service_entry(g04_offer,"service_w002s").is_empty() and service_entry(g04_offer,"service_w002s").can_accept,"G04 own W002S service is proposed on existing actual D2 visit")
+	check(deny(s,"alpha_service_accept",{"job_id":"service_w001"}),"cannot accept G02 job under G04 authority")
+	check(go(s,"alpha_service_accept",{"job_id":"service_w002s"}),"second customer consents to distinct physical custody")
+	var held: Dictionary = s.snapshot()
+	check(held.items.W001.owner_id == "G02" and held.items.W002S.owner_id == "G04" and held.items.W001.custodian_id == "player" and held.items.W002S.custodian_id == "player","both objects kept customer-owned in real custody")
+	check(held.items.W001.inventory == "service_grid" and held.items.W002S.inventory == "service_grid" and held.items.W001.y == 0 and held.items.W002S.y == 1,"two separate existing grid rows, not overlapping virtual slots")
+	check(held.wallets.player.VKC == 170 and held.ledger.is_empty(),"two custody acceptances provide no phantom fee")
+	check(deny(s,"alpha_display",{"item_id":"W002S","x":0,"y":0,"rotated":false}),"second customer's entrusted equipment cannot be listed")
+	if not check(leave(s) and go(s,"alpha_close") and go(s,"alpha_settle"),"D2 missed G02 collection while G04 stays in custody"):
+		return
+	check(s.snapshot().alpha_shop.services.jobs.service_w001.status == "overdue_custody" and s.snapshot().alpha_shop.services.jobs.service_w002s.status == "accepted","independent late-vs-current service statuses")
+	check(go(s,"alpha_service_repair",{"job_id":"service_w002s","item_id":"W002S"}),"G04 real D2 evening restoration costs another ten VKC")
+	var repaired: Dictionary = s.snapshot()
+	check(repaired.wallets.player.VKC == 160 and repaired.items.W001.functional and repaired.items.W002S.functional and repaired.items.W001.owner_id == "G02" and repaired.items.W002S.owner_id == "G04","two actual restoration charges, same physical goods")
+	check(repaired.object_events.size() == before.object_events.size()+2,"two separate real restoration events")
+	var db := Repo.new("user://zt_rebuild/b2_multi_custody_"+str(Time.get_ticks_usec()))
+	check(db.save_session(s,"multi").ok,"two live customer-owned service items cold-saved")
+	var cold: RefCounted = multi_fresh()
+	check(cold != null and db.load_session(cold,"multi").ok and cold.snapshot() == repaired,"both owner/custodian/statuses and expenses cold replay")
+	if not check(go(s,"alpha_next_day") and go(s,"alpha_prepare_day") and go(s,"alpha_open"),"D3 opens after original two bounded appointment dates"):
+		return
+	check(s.alpha_view().remaining == source.alpha_profile.days[2].size(),"two appointments count as real finite D3 visits")
+	for actor: String in ["G08","G09","G10","G11","G02","G04"]:
+		if not check(active(s,actor),"D3 real visitor "+actor):
+			return
+		if actor in ["G02","G04"]:
+			var job_id: String = "service_w001" if actor == "G02" else "service_w002s"
+			var item_id: String = "W001" if actor == "G02" else "W002S"
+			check(not service_entry(s.alpha_view(),job_id).is_empty() and service_entry(s.alpha_view(),job_id).can_deliver and not service_entry(s.alpha_view(),"service_w002s" if actor == "G02" else "service_w001").can_deliver,"actual "+actor+" may collect only their own restored item")
+			check(deny(s,"alpha_service_deliver",{"job_id":"forged"}),"fake multi-customer invoice rejected")
+			check(go(s,"alpha_service_deliver",{"job_id":job_id}),"named original object "+item_id+" returned to "+actor+" and paid once")
+			check(s.snapshot().items[item_id].owner_id == actor and s.snapshot().items[item_id].custodian_id == actor and s.snapshot().items[item_id].inventory == actor+"_grid","physical title and original grid restored for "+actor)
+			check(deny(s,"alpha_service_deliver",{"job_id":job_id}),"duplicate fee denied for "+actor)
+			if not go(s,"alpha_ack_exit"):
+				return
+		elif not leave(s):
+			return
+	var after: Dictionary = s.snapshot()
+	check(after.wallets.player.VKC == 230 and after.alpha_shop.services.settlements.size() == 2 and after.ledger.is_empty(),"two real fees 30+40 minus two ten-cost jobs, no virtual retail entries")
+	check(after.wallets.G02.VKC == before.wallets.G02.VKC-30 and after.wallets.G04.VKC == before.wallets.G04.VKC-40,"each customer's finite actual cash debited only for own repair")
+	check(after.items.size() == before.items.size() and after.alpha_shop.services.jobs.service_w001.status == "delivered" and after.alpha_shop.services.jobs.service_w002s.status == "delivered","no equipment duplication, independent settlements complete")
+	check(db.save_session(s,"multi").ok,"two-job settlement save committed")
+	var delivered: RefCounted = multi_fresh()
+	check(delivered != null and db.load_session(delivered,"multi").ok and delivered.snapshot() == after,"full two-fee snapshot cold replay exact")
+	var tamper: Dictionary = after.duplicate(true)
+	tamper.alpha_shop.services.settlements[1].paid.VKC = 400
+	check(not s.restore(tamper) and s.snapshot() == after,"cross-customer forged fee cannot replay")
+	# Separate refusal branch: neither rejected job may steal a future
+	# appointment slot, manufacture a customer or create a service fee.
+	var declined_multi: RefCounted = multi_fresh()
+	if not check(declined_multi != null and g02_offer(declined_multi),"independent refusal sequence enters G02 D1"):
+		return
+	check(go(declined_multi,"alpha_service_decline",{"job_id":"service_w001"}) and evening(declined_multi) and day2(declined_multi),"G02 declined; D2 still opens")
+	if not check(active(declined_multi,"G03") and leave(declined_multi) and active(declined_multi,"G04"),"G04 original D2 visit available without G02 appointment"):
+		return
+	check(go(declined_multi,"alpha_service_decline",{"job_id":"service_w002s"}) and leave(declined_multi) and go(declined_multi,"alpha_close") and go(declined_multi,"alpha_settle"),"second refusal creates no held item")
+	check(go(declined_multi,"alpha_next_day") and go(declined_multi,"alpha_prepare_day") and go(declined_multi,"alpha_open"),"D3 after both declines")
+	var untouched_multi: Dictionary = declined_multi.snapshot()
+	check(declined_multi.alpha_view().remaining == 4 and untouched_multi.wallets.player.VKC == 180,"both unaccepted return appointments excluded from finite D3 capacity")
+	check(untouched_multi.items.W001.custodian_id == "G02" and untouched_multi.items.W002S.custodian_id == "G04" and untouched_multi.alpha_shop.services.settlements.is_empty(),"declining both jobs preserves titles and zero fees")
+
 func _initialize() -> void:
 	var args: PackedStringArray=OS.get_cmdline_user_args()
-	if args.size()!=1 or args[0] not in ["happy","declined","unpaid","overdue","recovery"]:
+	if args.size()!=1 or args[0] not in ["happy","declined","unpaid","overdue","recovery","multi"]:
 		quit(2)
 		return
 	match args[0]:
@@ -228,5 +323,6 @@ func _initialize() -> void:
 		"unpaid": unpaid()
 		"overdue": overdue()
 		"recovery": recovery()
+		"multi": multi()
 	print("ALPHA_B2_SERVICE_CHECKS part=",args[0]," checks=",checks," failures=",failures)
 	quit(0 if failures==0 else 1)
