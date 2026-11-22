@@ -120,3 +120,4 @@ jobs:
           if-no-files-found: warn
           retention-days: 3
 # B2 art first viewport QA checkpoint: source-bound image before inspection text.
+# Schema fix checkpoint: multi job placement is part of strict profile validation.

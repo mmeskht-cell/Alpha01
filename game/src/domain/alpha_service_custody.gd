@@ -33,6 +33,8 @@ static func profile_valid(profile: Dictionary, state: Dictionary) -> bool:
 		var recovery: bool = str(profile.service_profile_id) in [RECOVERY_PROFILE_ID,MULTI_PROFILE_ID]
 		if recovery:
 			required.append_array(["recovery_visit_id","recovery_day"])
+		if str(profile.service_profile_id) == MULTI_PROFILE_ID:
+			required.append("placement")
 		if not Rules.keys(job,required):
 			return false
 		if recovery and (not Rules.identifier(job.recovery_visit_id) or not Rules.integer(job.recovery_day,int(job.due_day)+1,profile.days.size()) or job.recovery_visit_id in [job.offer_visit_id,job.return_visit_id]):
