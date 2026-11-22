@@ -9,6 +9,22 @@
     {
       "def_id": "fictional_watch_p2",
       "path": "res://data/campaign/gate2/watch_inspection_profile.json"
+    },
+    {
+      "def_id": "fictional_watch_p2",
+      "path": "res://data/alpha_b2/inspection_live_stock_1.json"
+    },
+    {
+      "def_id": "battery",
+      "path": "res://data/alpha_b2/inspection_live_stock_1.json"
+    },
+    {
+      "def_id": "demo_tool",
+      "path": "res://data/alpha_b2/inspection_live_stock_1.json"
+    },
+    {
+      "def_id": "demo_hygiene",
+      "path": "res://data/alpha_b2/inspection_live_stock_1.json"
     }
   ],
   "negotiation_terms": {

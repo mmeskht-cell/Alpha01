@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "profiles": {
+    "fictional_watch_p2": {
+      "tools": [
+        {
+          "id": "function_detail",
+          "target": "whole_function",
+          "reading_kind": "item_field"
+        }
+      ]
+    },
+    "battery": {
+      "tools": [
+        {
+          "id": "condition_detail",
+          "target": "usable_state",
+          "reading_kind": "item_field"
+        }
+      ]
+    },
+    "demo_tool": {
+      "tools": [
+        {
+          "id": "condition_detail",
+          "target": "usable_state",
+          "reading_kind": "item_field"
+        }
+      ]
+    },
+    "demo_hygiene": {
+      "tools": [
+        {
+          "id": "condition_detail",
+          "target": "usable_state",
+          "reading_kind": "item_field"
+        }
+      ]
+    }
+  },
+  "specimens": {
+    "WAT02": {
+      "def_id": "fictional_watch_p2",
+      "provenance": "p2_watch_a",
+      "readings": {
+        "function_detail": {
+          "source_field": "functional"
+        }
+      }
+    },
+    "BAT02": {
+      "def_id": "battery",
+      "provenance": "demo_BAT02",
+      "readings": {
+        "condition_detail": {
+          "source_field": "functional"
+        }
+      }
+    },
+    "TL04": {
+      "def_id": "demo_tool",
+      "provenance": "demo_TL04",
+      "readings": {
+        "condition_detail": {
+          "source_field": "functional"
+        }
+      }
+    },
+    "HY05": {
+      "def_id": "demo_hygiene",
+      "provenance": "demo_HY05",
+      "readings": {
+        "condition_detail": {
+          "source_field": "functional"
+        }
+      }
+    }
+  }
+}

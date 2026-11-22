@@ -716,7 +716,7 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 	surface_inner.add_child(hotspots)
 	for tool: Dictionary in a.tools:
 		var slot: String = str(tool.id)
-		var zone: String = "operation" if slot.contains("function") else ("markings" if slot in ["identity","casing_detail","batch_detail"] else "surface")
+		var zone: String = "operation" if slot.contains("function") else ("condition" if slot.contains("condition") else ("markings" if slot in ["identity","casing_detail","batch_detail"] else "surface"))
 		var label: String = _text("b2.inspect.surface." + zone) + " · " + _text(str(tool.text_key))
 		var marker := _button(hotspots,"b2_inspect_" + slot,label,
 			func() -> void: _submit("alpha_inspect",{"slot":slot}))
@@ -730,7 +730,10 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 	for card: Dictionary in a.cards:
 		var slot: String = str(card.slot)
 		var selected: bool = bool(card.selected)
-		var card_label: String = ("☑ " if selected else "□ ") + _text(str(card.text_key)) + " · " + str(card.value)
+		var plain_value: String = str(card.value)
+		var value_key: String = "b2.value." + plain_value
+		var visible_value: String = _text(value_key) if _strings.has(value_key) else plain_value
+		var card_label: String = ("☑ " if selected else "□ ") + _text(str(card.text_key)) + " · " + visible_value
 		# A deselected card only changes the NEXT proposal. Previously
 		# disclosed information cannot be put back into a private drawer.
 		if bool(card.ever_disclosed):

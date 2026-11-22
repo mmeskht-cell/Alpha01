@@ -167,6 +167,20 @@ func run() -> void:
 	check(host.find_child("alpha_contract_rad1_first",true,false)==null,"ordinary repeat customer's counter hides unrelated named supplier contract")
 	root.size = Vector2i(1280,720)
 	await capture("b2-cards-return-g01-720p",Vector2i(1280,720))
+	# The return-visitor context also sells a real TL04 tool. It uses the
+	# same inspection/card/offer surface, not a product-specific popup.
+	var tool_view: Dictionary = host.session.alpha_view()
+	check(tool_view.appraisal.item_id == "TL04" and tool_view.appraisal.def_id == "demo_tool","D4 original seller now has a generic provenance-bound tool")
+	if not await click("b2_inspect_condition_detail"):
+		quit(1)
+		return
+	var tool_card := host.find_child("b2_card_condition_detail",true,false) as Button
+	check(tool_card != null and tool_card.text.contains("사용 가능") and not tool_card.text.contains("공개 이력"),"one actual tool condition starts privately in Korean")
+	if not await click("b2_card_condition_detail") or not await offer(1):
+		quit(1)
+		return
+	check(host.session.alpha_view().npc_context.current_offer.public_slots == ["condition_detail"] and host.session.snapshot().ledger.size() == 2,"only explicitly published tool evidence is heard; no third trade")
+	await capture("b2-cards-generic-tool-720p",Vector2i(1280,720))
 	host.queue_free()
 	await frames()
 	# Alternative same-customer negotiation: removing a disclosed card must not

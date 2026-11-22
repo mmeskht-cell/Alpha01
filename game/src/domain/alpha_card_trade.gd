@@ -34,7 +34,7 @@ static func profile_valid(data: Dictionary, state: Dictionary) -> bool:
 		if (actor_seller and int(term.improved_amount) >= original) or (not actor_seller and int(term.improved_amount) <= original):
 			return false
 	for src: Variant in c.specimen_sources:
-		if not Rules.keys(src, ["def_id", "path"]) or not Rules.identifier(src.def_id) or not src.path is String or not src.path.begins_with("res://data/campaign/gate2/"):
+		if not Rules.keys(src, ["def_id", "path"]) or not Rules.identifier(src.def_id) or not src.path is String or not (src.path.begins_with("res://data/campaign/gate2/") or src.path == "res://data/alpha_b2/inspection_live_stock_1.json"):
 			return false
 	return true
 
@@ -57,6 +57,19 @@ static func _visit_context(state: Dictionary) -> Dictionary:
 		return {}
 	return {"visit_id": a.active, "item_id": item_id, "item": state.items[item_id], "visit": visit}
 
+## Item-sourced tools are authored for a specific definition+provenance.
+## A field read is permitted only after the matching inspect action; no
+## uninspected truth crosses to the UI or to the counterparty. No generic
+## property-path access, reflection or client-supplied slot->field mapping.
+static func _inspected_value(item: Dictionary, reading: Variant) -> Variant:
+	if reading is Dictionary:
+		if not Rules.keys(reading, ["source_field"]) or reading.source_field != "functional":
+			return null
+		return "serviceable" if item.functional else "inoperable"
+	if reading is String or reading is int or reading is float or reading is bool:
+		return Rules.normalized(reading)
+	return null
+
 static func _tool_rows(state: Dictionary, item_id: String) -> Array:
 	var c: Dictionary = config()
 	if c.is_empty() or not state.items.has(item_id):
@@ -74,6 +87,8 @@ static func _tool_rows(state: Dictionary, item_id: String) -> Array:
 			continue
 		for tool: Variant in document.profiles[item.def_id].get("tools", []):
 			if not tool is Dictionary or not Rules.identifier(tool.get("id")) or not specimen.readings.has(tool.id):
+				continue
+			if _inspected_value(item, specimen.readings[tool.id]) == null:
 				continue
 			options.append({"id":tool.id,"text_key":"b2.inspect." + str(tool.id),"kind":"fact"})
 	return options
@@ -93,7 +108,10 @@ static func _reading(state: Dictionary, item_id: String, slot: String) -> Dictio
 			continue
 		for tool: Dictionary in document.profiles[item.def_id].get("tools", []):
 			if tool.id == slot:
-				return {"slot":slot,"value":Rules.normalized(specimen.readings[slot]),"kind":"fact","version":item.field_versions.duplicate(true)}
+				var inspected: Variant = _inspected_value(item,specimen.readings[slot])
+				if inspected == null:
+					return {}
+				return {"slot":slot,"value":inspected,"kind":"fact","version":item.field_versions.duplicate(true)}
 	return {}
 
 static func _row(state: Dictionary, context: Dictionary) -> Dictionary:
