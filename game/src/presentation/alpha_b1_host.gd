@@ -203,6 +203,12 @@ func _b2_npc_line(view: Dictionary) -> String:
 		return ""
 	var offer: Dictionary = context.get("current_offer", {})
 	if not offer.is_empty():
+		if str(offer.response) == "declined":
+			if int(offer.disclosed_count) == 0:
+				return _text("b2.npc.rebuttal.no_evidence") % [int(offer.amount), str(offer.currency)]
+			var public_slots: Array = offer.get("public_slots",[])
+			if not public_slots.is_empty():
+				return _text("b2.npc.rebuttal.evidence") % [_text("b2.inspect." + str(public_slots[0])), int(offer.amount), str(offer.currency)]
 		var response_key: String = "b2.npc.offer." + str(offer.response)
 		return (_text(response_key) % [int(offer.amount), str(offer.currency), int(offer.disclosed_count)]) if _strings.has(response_key) else ""
 	var previous: Dictionary = context.get("prior", {})
@@ -644,6 +650,11 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 	item.text = _text("b2.we_buy" if a.we_buy else "b2.we_sell") + " · " + _text("b2.item." + str(a.def_id))
 	item.add_theme_font_size_override("font_size", 20)
 	actions.add_child(item)
+	var direction := Label.new()
+	direction.name = "b2_card_direction"
+	direction.text = _text("b2.offer.direction.buy" if a.we_buy else "b2.offer.direction.sell")
+	direction.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	actions.add_child(direction)
 	var inspect := _b2_work_section(actions,"b2_inspection_sheet",_text("b2.sheet.inspect.title"),_text("b2.sheet.inspect.note"))
 	if a.tools.is_empty():
 		var done := Label.new()
@@ -668,6 +679,29 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 	instruction.text = _text("b2.inspect.surface.hint")
 	instruction.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	surface_inner.add_child(instruction)
+	# Art shows only the generic external silhouette, never private readings,
+	# hidden condition or counterparty acceptance thresholds.
+	var preview_assets: Dictionary = {
+		"portable_radio":"res://assets/art/items/radio_face_probe_a.svg",
+		"fictional_watch_p2":"res://assets/art/items/watch_wat02_native_pilot.svg",
+		"battery":"res://assets/art/items/battery_counter_pilot.svg",
+		"demo_tool":"res://assets/art/items/tool_counter_pilot.svg",
+		"demo_hygiene":"res://assets/art/items/hygiene_counter_pilot.svg",
+		"demo_electronics":"res://assets/art/items/electronics_counter_pilot.svg",
+		"fictional_gear":"res://assets/art/items/fictional_gear_pilot.svg",
+		"demo_service_10":"res://assets/art/items/fictional_gear_pilot.svg",
+		"demo_service_5":"res://assets/art/items/fictional_gear_pilot.svg"
+	}
+	var preview_path: String = str(preview_assets.get(str(a.def_id), ""))
+	if not preview_path.is_empty() and ResourceLoader.exists(preview_path):
+		var thumbnail := TextureRect.new()
+		thumbnail.name = "b2_item_art"
+		thumbnail.texture = ResourceLoader.load(preview_path) as Texture2D
+		thumbnail.custom_minimum_size = Vector2(0,158)
+		thumbnail.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		thumbnail.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		thumbnail.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		surface_inner.add_child(thumbnail)
 	var hotspots := GridContainer.new()
 	hotspots.name = "b2_item_hotspots"
 	hotspots.columns = 2

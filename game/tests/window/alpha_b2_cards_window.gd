@@ -97,6 +97,10 @@ func run() -> void:
 	var item_surface := host.find_child("b2_item_surface",true,false) as PanelContainer
 	var item_hotspots := host.find_child("b2_item_hotspots",true,false) as GridContainer
 	check(item_surface!=null and item_hotspots!=null and item_surface.is_visible_in_tree(),"physical item surface has interactive inspection regions, not only a text list")
+	var item_art := host.find_child("b2_item_art",true,false) as TextureRect
+	var card_direction := host.find_child("b2_card_direction",true,false) as Label
+	check(item_art != null and item_art.texture != null and item_art.is_visible_in_tree(),"real pre-existing item image is presented without inferred hidden qualities")
+	check(card_direction != null and card_direction.text.contains("매입"),"buyer-side explanatory direction distinguishes source and destination without hidden math")
 	if inspection_sheet!=null and private_sheet!=null and offer_sheet!=null:
 		check(inspection_sheet.get_global_rect().position.y < private_sheet.get_global_rect().position.y and private_sheet.get_global_rect().position.y < offer_sheet.get_global_rect().position.y,"inspection and card selection precede price submission visually")
 	var private_heading := host.find_child("b2_private_sheet_title",true,false) as Label
@@ -120,6 +124,8 @@ func run() -> void:
 			quit(1)
 			return
 	check(host.session.snapshot().items.R001.inventory == "storefront_grid","shelf contains actual item")
+	var sell_direction := host.find_child("b2_card_direction",true,false) as Label
+	check(sell_direction != null and sell_direction.text.contains("판매"),"same art/cards/counter spells out sell-side economic role")
 	var stocked := host.find_child("b2_board_stock",true,false) as Label
 	check(stocked!=null and stocked.text.contains("진열 1"),"right-side notebook follows actual physical shelf state")
 	root.size = Vector2i(1920,1080)

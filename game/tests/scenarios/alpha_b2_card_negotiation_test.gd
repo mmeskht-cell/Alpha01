@@ -63,6 +63,7 @@ func _initialize() -> void:
 	check(rejected.alpha_shop.appraisal.visits.visit_g01.offers[0].response == "declined" and rejected.visits.visit_g01.prices.R001.VKC == 100, "no automatic card price or economy change on refusal")
 	var denied_public: Dictionary = s.alpha_view().npc_context.current_offer
 	check(denied_public.response == "declined" and denied_public.amount == 95 and denied_public.disclosed_count == 0 and not denied_public.has("observed") and not denied_public.has("value"), "NPC only knows publicly proposed price and zero revealed facts")
+	check(denied_public.public_slots.is_empty(),"bargaining rebuttal does not leak hidden, privately inspected wear")
 	check(go(s,"alpha_card_toggle",{"slot":"wear_detail","selected":true}), "deliberate disclosure rather than automatic publication")
 	check(s.alpha_view().appraisal.cards[0].selected, "selected drawer distinct from private facts")
 	check(go(s,"alpha_price_offer",{"amount":95}), "evidence-bearing second offer accepted")
@@ -70,6 +71,7 @@ func _initialize() -> void:
 	check(accepted.alpha_shop.appraisal.visits.visit_g01.accepted.amount == 95 and accepted.visits.visit_g01.prices.R001.VKC == 95, "agreed price bound to visit, no payment before confirmation")
 	var accepted_public: Dictionary = s.alpha_view().npc_context.current_offer
 	check(accepted_public.response == "accepted" and accepted_public.amount == 95 and accepted_public.disclosed_count == 1, "NPC reacts to an agreed quote with one actually disclosed card")
+	check(accepted_public.public_slots == ["wear_detail"] and not accepted_public.has("observed"),"rebuttal has actual public card identity, no secret knowledge")
 	check(accepted.wallets == start.wallets and accepted.ledger.is_empty(), "offer is not transfer")
 	check(accepted.alpha_shop.appraisal.visits.visit_g01.offers[0].revealed.is_empty() and accepted.alpha_shop.appraisal.visits.visit_g01.offers[1].revealed.size() == 1, "undisclosed fact not leaked retroactively")
 	check(deny(s,"alpha_price_offer",{"amount":94}) and deny(s,"alpha_card_toggle",{"slot":"wear_detail","selected":false}), "no new offer or revision after accepted")

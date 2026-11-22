@@ -105,8 +105,13 @@ static func _last_public_offer(a: Dictionary, visit_id: String) -> Dictionary:
 	if offers.is_empty():
 		return {}
 	var offer: Dictionary = offers[offers.size() - 1]
+	var public_slots: Array = []
+	for revealed: Dictionary in offer.revealed:
+		# Only public, already spoken facts. No private observation values or
+		# agreement rules cross the customer-facing DTO boundary.
+		public_slots.append(str(revealed.slot))
 	return {"amount": int(offer.amount), "currency": str(offer.currency),
-		"response": str(offer.response), "disclosed_count": offer.revealed.size()}
+		"response": str(offer.response), "disclosed_count": public_slots.size(), "public_slots": public_slots}
 
 static func npc_context(state: Dictionary) -> Dictionary:
 	if not state.has("alpha_shop"):
