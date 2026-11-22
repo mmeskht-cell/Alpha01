@@ -257,6 +257,8 @@ func run_service_counter() -> bool:
 	check(held.items.W001.owner_id=="G02" and held.items.W001.custodian_id=="player" and held.items.W001.status=="custody_service" and held.items.W001.inventory=="service_grid","actual customer property entrusted; player does not own it")
 	var stock := host.find_child("b2_board_stock",true,false) as Label
 	check(stock!=null and stock.text.contains("보유 0"),"borrowed stock excluded from player's owned inventory notebook")
+	var custody_note := host.find_child("b2_board_custody",true,false) as Label
+	check(custody_note!=null and custody_note.is_visible_in_tree() and custody_note.text.contains("고객 소유") and custody_note.text.contains("1건"),"720p customer custody is explicitly labeled as non-retail stock")
 	for action: String in ["alpha_finish_customer","alpha_ack_exit","alpha_close","alpha_settle"]:
 		if not await click(action):
 			return false
@@ -289,6 +291,7 @@ func run_service_counter() -> bool:
 	var returned: Dictionary=host.session.snapshot()
 	check(returned.items.W001.owner_id=="G02" and returned.items.W001.custodian_id=="G02" and returned.items.W001.inventory=="G02_grid" and returned.wallets.player.VKC==200,"same item physically returned; 30 fee minus 10 real work cost")
 	check(returned.alpha_shop.services.settlements.size()==1 and returned.ledger.is_empty(),"one service-fee settlement without a fabricated retail trade")
+	check(host.find_child("b2_board_custody",true,false)==null,"real physical return removes the customer custody tally from shop notebook")
 	root.size=Vector2i(1920,1080)
 	await frames()
 	await shot("service-g02-returned-1080p",Vector2i(1920,1080))

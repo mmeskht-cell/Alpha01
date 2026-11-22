@@ -151,8 +151,13 @@ func _add_b2_shop_board(panel: PanelContainer, view: Dictionary) -> void:
 	var owned: Array = []
 	var displayed: int = 0
 	var reserved: int = 0
+	var customer_custody: int = 0
 	for id: String in current.items:
 		var item: Dictionary = current.items[id]
+		# The shop may physically hold a customer's serviced/pawned object,
+		# but legal title never becomes ordinary sellable shop stock.
+		if item.owner_id != "player" and item.custodian_id == "player" and item.status in ["custody_service", "custody_pawn"] and item.parent_id.is_empty():
+			customer_custody += 1
 		if item.owner_id != "player" or item.custodian_id != "player" or item.status != "stock" or not item.parent_id.is_empty():
 			continue
 		owned.append(item)
@@ -161,11 +166,13 @@ func _add_b2_shop_board(panel: PanelContainer, view: Dictionary) -> void:
 		if not str(item.reservation_id).is_empty():
 			reserved += 1
 	_board_line(body, "b2_board_stock", _text("b2.board.stock") % [owned.size(), displayed, reserved], true)
+	if customer_custody > 0:
+		_board_line(body, "b2_board_custody", _text("b2.board.custody") % customer_custody)
 	var count: int = 0
 	for item: Dictionary in owned:
 		if count >= 4:
 			break
-		var location_key: String = "b2.board.reserved" if not str(item.reservation_id).is_empty() else ("b2.board.displayed" if item.inventory == "storefront_grid" else "b2.board.stored")
+		var location_key: String = "b2.board.reserved" if not str(item.reservation_id).is_empty() else ("b2.board.protected" if item.protected else ("b2.board.displayed" if item.inventory == "storefront_grid" else "b2.board.stored"))
 		_board_line(body, "b2_board_item_" + str(count), "• " + _text("b2.item." + str(item.def_id)) + " · " + _text(location_key))
 		count += 1
 	if owned.size() > count:
