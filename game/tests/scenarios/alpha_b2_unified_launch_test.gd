@@ -50,10 +50,10 @@ func _run() -> void:
 			and host.b2_mode and host.b2_interactive_mode and host.b2_commission_mode
 			and host.b2_named_commission_mode and host.b2_service_mode and host.b2_multi_service_mode,
 			"unified scene opens fresh with all real B2 authorities, not loaded cards save"):
-	check(host.find_child("b2_return_title",true,false)!=null,
-		"same B2 unified scene exposes a non-transactional exit even during introduction")
 		quit(1)
 		return
+	check(host.find_child("b2_return_title",true,false)!=null,
+		"same B2 unified scene exposes a non-transactional exit even during introduction")
 	check(host._slot()=="alpha_b2_service_custody_multi_v3"
 		and host._slot()!="alpha_b2_cards_pilot_v1" and host._slot()!="alpha_b2_commission_pilot_v1",
 		"unified save slot is separate from earlier cards and commission profiles")
