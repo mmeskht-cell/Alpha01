@@ -255,9 +255,10 @@ func run() -> void:
 		and not host._blocked and host.session.snapshot().items.R001.owner_id=="G01",
 		"B3 starts a separate seeded economy and never inherits the B2 test save")
 	await capture("alpha-b3-market-m1-intro-720p",Vector2i(1280,720))
-	if not await click("intro_skip","DAY_PREP") or not await click("alpha_open","OPEN_IDLE")
-			or not await click("alpha_next_customer","CUSTOMER_ENTER")
-			or not await click("alpha_ack_entry","CUSTOMER_ACTIVE"):
+	if not (await click("intro_skip","DAY_PREP")
+			and await click("alpha_open","OPEN_IDLE")
+			and await click("alpha_next_customer","CUSTOMER_ENTER")
+			and await click("alpha_ack_entry","CUSTOMER_ACTIVE")):
 		await finish()
 		return
 	check(host.session.alpha_view().active.actor_id=="G01"

@@ -158,12 +158,15 @@ func _initialize() -> void:
 			"player without R001 cannot attract market buyer or receive cash")
 		var seen: Array=[]
 		for i in range(10):
+			if int(no_goods.alpha_view().remaining)==0:
+				break
 			if not go(no_goods,"alpha_next_customer"):
 				break
 			var id: String=str(no_goods.alpha_view().active.id)
 			seen.append(id)
-			if not go(no_goods,"alpha_ack_entry") or not go(no_goods,"alpha_finish_customer")
-					or not go(no_goods,"alpha_ack_exit"):
+			if not (go(no_goods,"alpha_ack_entry")
+					and go(no_goods,"alpha_finish_customer")
+					and go(no_goods,"alpha_ack_exit")):
 				break
 		check(BUYER_VISIT not in seen and no_goods.snapshot().wallets==starting.wallets
 			and no_goods.snapshot().ledger.is_empty(),
