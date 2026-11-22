@@ -273,6 +273,8 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 		"alpha_close":
 			if a.phase != "OPEN_IDLE":
 				return "alpha_customer_active"
+			if a.has("commissions") and not Commission.pending_pickup(state).is_empty():
+				return "alpha_commission_pickup_pending"
 			for i: int in range(int(a.cursor), a.profile.days[int(a.day) - 1].size()):
 				var row: Dictionary = a.profile.days[int(a.day) - 1][i]
 				if (not a.has("commissions") or Commission.scheduled(state, row.id)) and (not a.has("services") or ServiceCustody.scheduled(state, row.id)):
@@ -336,6 +338,7 @@ static func view(state: Dictionary) -> Dictionary:
 		"contacts": contacts, "contact_exchanged": not row.is_empty() and a.contacts.has(row.actor_id),
 		"can_exchange": a.phase == "CUSTOMER_ACTIVE" and not row.is_empty() and row.contact_offer and not a.contacts.has(row.actor_id),
 		"settled": int(a.day) in a.settled_days,
+		"pickup_pending": Commission.pending_pickup(state) if a.has("commissions") else "",
 		"displayed_items": a.get("displayed", []).duplicate(),
 		"appraisal": Cards.view(state) if a.has("appraisal") else {},
 		"npc_context": npc_context(state),

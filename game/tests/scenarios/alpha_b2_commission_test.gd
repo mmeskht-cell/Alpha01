@@ -171,7 +171,13 @@ func expired() -> void:
 	if not check(next_actor(s)=="G12" and leave(s) and next_actor(s)=="G01" and buy_tool(s),"actually sourced tool before contract deadline"):
 		return
 	check(go(s,"alpha_commission_reserve",{"request_id":REQUEST,"item_id":"TL04"}),"hold existing item without issuing refund or fee")
-	check(go(s,"alpha_close") and go(s,"alpha_settle"),"early D4 close forfeits scheduled pickup once")
+	var before_close: Dictionary=s.snapshot()
+	check(s.alpha_view().pickup_pending == REQUEST,"the pending visit is derived from the existing accepted contract")
+	check(deny(s,"alpha_close"),"early close cannot silently skip accepted customer's reserved pickup")
+	check(s.snapshot()==before_close,"rejected early close preserves cursor, physical reservation, wallets and receipts")
+	check(next_actor(s)=="G04" and leave(s) and next_actor(s)=="G03","existing customers remain reachable after blocked close")
+	check(leave(s),"real returning customer explicitly leaves without collection")
+	check(go(s,"alpha_close") and go(s,"alpha_settle"),"unfulfilled actual pickup expires at normal due-day settlement")
 	var after: Dictionary=s.snapshot()
 	check(after.alpha_shop.commissions.entries[REQUEST].status=="expired" and after.items.TL04.reservation_id.is_empty(),"deadline releases real reservation")
 	check(after.wallets.player.VKC == 120 and after.items.TL04.owner_id=="player" and after.alpha_shop.commissions.settlements.is_empty(),"expiry neither invents money nor confiscates owned stock")
@@ -181,6 +187,17 @@ func expired() -> void:
 	check(db.save_session(s,"commission").ok,"expired reservation persists safely")
 	var cold: RefCounted=fresh()
 	check(cold != null and db.load_session(cold,"commission").ok and cold.snapshot()==s.snapshot(),"expiry and physical release cold restore")
+	# Deliberate cancellation is a separate legal way to close the same day.
+	# It must never silently turn the promised pickup into a paid delivery.
+	var cancelled: RefCounted=fresh()
+	if not check(cancelled != null and start_g03(cancelled) and go(cancelled,"alpha_commission_accept",{"request_id":REQUEST}) and to_day4(cancelled),"explicit cancellation branch retains finite original profile"):
+		return
+	check(deny(cancelled,"alpha_close"),"even an unprepared accepted request protects its real return visit")
+	var before_cancel: Dictionary=cancelled.snapshot()
+	check(go(cancelled,"alpha_commission_cancel",{"request_id":REQUEST}),"player explicitly cancels the unprepared obligation before closing")
+	check(cancelled.snapshot().wallets == before_cancel.wallets and cancelled.snapshot().ledger == before_cancel.ledger,"cancellation creates no fee, payout, or fabricated goods")
+	check(cancelled.alpha_view().pickup_pending.is_empty() and go(cancelled,"alpha_close") and go(cancelled,"alpha_settle"),"explicit cancellation releases closing gate and skips absent pickup")
+	check(cancelled.snapshot().alpha_shop.commissions.entries[REQUEST].status=="cancelled" and cancelled.snapshot().alpha_shop.commissions.settlements.is_empty(),"cancelled request never turns into a paid ghost transaction")
 
 func bypass() -> void:
 	var s: RefCounted=fresh()

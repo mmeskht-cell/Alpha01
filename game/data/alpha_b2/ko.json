@@ -49,6 +49,7 @@
     "b2.commission.reserve": "실물 지정·검수·예약",
     "b2.commission.deliver": "약속한 고객에게 인도·정산",
     "b2.commission.cancel": "의뢰 취소",
+    "b2.commission.pickup_pending": "오늘 약속한 의뢰 물품 수령 손님이 남아 있습니다. 먼저 응대하거나 의뢰를 취소해야 영업을 마감할 수 있습니다.",
     "b2.npc.offer.accepted": "%d %s 제안에 동의합니다. 공개한 단서 %d건을 확인했습니다.",
     "b2.npc.offer.declined": "%d %s에는 동의하기 어렵습니다. 공개된 단서 %d건을 확인했습니다.",
     "b2.npc.previous.traded": "지난번 %d %s 제안에 합의했고 거래도 마쳤지요.",

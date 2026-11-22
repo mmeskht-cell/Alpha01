@@ -206,6 +206,10 @@ func run_named_counter() -> bool:
 	if not await click("b2_commission_reserve_HY05"):
 		return false
 	check(host.session.snapshot().items.HY05.reservation_id=="hygiene_for_ian","real physical item reserved for named actor")
+	var close_control := host.find_child("alpha_close",true,false) as Button
+	var pickup_note := host.find_child("b2_commission_pickup_reminder",true,false) as Label
+	check(close_control!=null and close_control.disabled and pickup_note!=null and pickup_note.is_visible_in_tree(),"real 720p named pickup cannot be skipped by closing before Ian arrives")
+	await shot("named-ian-pickup-pending-720p",Vector2i(1280,720))
 	if not await click("alpha_next_customer") or not await click("alpha_ack_entry"):
 		return false
 	var ready: Dictionary = host.session.alpha_view()

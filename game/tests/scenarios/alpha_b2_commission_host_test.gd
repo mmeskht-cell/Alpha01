@@ -114,6 +114,11 @@ func run() -> void:
 	check(host.session.snapshot().items.TL04.reservation_id=="tool_for_g03","reservation locks physical stock")
 	var reserved_book := host.find_child("b2_board_stock",true,false) as Label
 	check(reserved_book!=null and reserved_book.text.contains("예약 1"),"physical item reservation is reflected on stock notebook")
+	var close_blocked := host.find_child("alpha_close",true,false) as Button
+	var pickup_reminder := host.find_child("b2_commission_pickup_reminder",true,false) as Label
+	check(close_blocked!=null and close_blocked.disabled and pickup_reminder!=null and pickup_reminder.text.contains("손님"),"early close visibly blocked while accepted G03 pickup remains on today's queue")
+	var before_close: Dictionary=host.session.snapshot()
+	check(not host.session.execute({"action_id":"blocked_close_"+str(before_close.revision+1),"expected_revision":before_close.revision,"type":"alpha_close","payload":{}}).ok and host.session.snapshot()==before_close,"UI guard is also enforced by GameSession authority without state mutation")
 	if not enter() or not exit_customer() or not enter():
 		quit(1)
 		return

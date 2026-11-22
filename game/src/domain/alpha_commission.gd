@@ -130,6 +130,27 @@ static func on_settle(state: Dictionary, action_id: String) -> void:
 			entry.status = "expired"
 			entry.end_action = action_id
 
+## An accepted pickup is a real, still-unserved visit. Closing the shop
+## before its authored appointment would expire the contract without giving
+## the customer the promised chance to arrive. Closing becomes possible
+## again after serving the visit or explicitly cancelling the obligation.
+## No visit is created or extended here; this only protects the finite slot.
+static func pending_pickup(state: Dictionary) -> String:
+	var a: Dictionary = state.get("alpha_shop", {})
+	if a.is_empty() or not a.has("commissions") or a.phase != "OPEN_IDLE":
+		return ""
+	var day: int = int(a.day)
+	for r: Dictionary in config(_profile_id(state)).get("requests", []):
+		if int(r.due_day) != day:
+			continue
+		var entry: Dictionary = a.commissions.entries.get(r.request_id, {})
+		if str(entry.get("status", "")) not in ["accepted", "ready"]:
+			continue
+		for i: int in range(int(a.cursor), a.profile.days[day - 1].size()):
+			if str(a.profile.days[day - 1][i].id) == str(r.return_visit_id):
+				return str(r.request_id)
+	return ""
+
 static func reserve_gate(state: Dictionary, r: Dictionary, item_id: String) -> String:
 	var a: Dictionary = state.alpha_shop
 	if a.phase not in ["OPEN_IDLE","EVENING_WORK"] or a.day > r.due_day or not state.items.has(item_id):

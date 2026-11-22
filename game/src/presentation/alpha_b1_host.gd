@@ -550,7 +550,15 @@ func refresh() -> void:
 				_add_b2_service_actions(actions, v)
 			if int(v.remaining) > 0:
 				_button(actions, "alpha_next_customer", _text("alpha.button.next"), func() -> void: _submit("alpha_next_customer"))
-			_button(actions, "alpha_close", _text("alpha.button.close"), func() -> void: _submit("alpha_close"))
+			var pickup_pending: bool = b2_commission_mode and not str(v.get("pickup_pending","")).is_empty()
+			if pickup_pending:
+				var reminder := Label.new()
+				reminder.name = "b2_commission_pickup_reminder"
+				reminder.text = _text("b2.commission.pickup_pending")
+				reminder.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				actions.add_child(reminder)
+			var close_button := _button(actions, "alpha_close", _text("alpha.button.close"), func() -> void: _submit("alpha_close"))
+			close_button.disabled = pickup_pending
 		"CUSTOMER_ENTER":
 			_button(actions, "alpha_ack_entry", _text("alpha.button.enter"), func() -> void: _submit("alpha_ack_entry"))
 		"CUSTOMER_ACTIVE":
