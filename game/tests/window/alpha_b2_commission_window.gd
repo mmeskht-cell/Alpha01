@@ -81,6 +81,10 @@ func run() -> void:
 			if not await click(id):
 				quit(1)
 				return
+			if i == 0 and id == "alpha_ack_entry":
+				var opening := host.find_child("alpha_speech",true,false) as Label
+				check(opening != null and opening.text.contains("여기, 물건 삽니까?"),"S01 G01 existing radio visit uses authored conditional dialogue in unified counter")
+				await shot("commission-source-s01-g01-720p",Vector2i(1280,720))
 			if i == 0 and id == "alpha_ack_entry" and not await click("alpha_exchange_contact"):
 				quit(1)
 				return

@@ -5,6 +5,7 @@ const Contract = preload("res://src/domain/alpha_dated_contract.gd")
 const Cards = preload("res://src/domain/alpha_card_trade.gd")
 const Commission = preload("res://src/domain/alpha_commission.gd")
 const ServiceCustody = preload("res://src/domain/alpha_service_custody.gd")
+const Story = preload("res://src/domain/alpha_story_projection.gd")
 const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid"]
 const PHASES: Array = ["DAY_PREP", "OPEN_IDLE", "CUSTOMER_ENTER", "CUSTOMER_ACTIVE", "CUSTOMER_EXIT", "CLOSE_SETTLE", "EVENING_WORK", "NEXT_DAY", "COMPLETE"]
 
@@ -344,5 +345,6 @@ static func view(state: Dictionary) -> Dictionary:
 		"npc_context": npc_context(state),
 		"commissions": Commission.view(state) if a.has("commissions") else {"entries":[]},
 		"services": ServiceCustody.view(state) if a.has("services") else {"entries":[]},
-		"contracts": contract_view.contracts, "news": contract_view.news
+		"contracts": contract_view.contracts, "news": contract_view.news,
+		"story": Story.view(state)
 	}

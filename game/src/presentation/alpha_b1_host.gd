@@ -127,6 +127,11 @@ func _add_b2_shop_board(panel: PanelContainer, view: Dictionary) -> void:
 			fast.custom_minimum_size = Vector2(84,36)
 	var cash: Dictionary = current.wallets.get("player", {})
 	_board_line(body, "b2_board_cash", _text("b2.board.cash") % [int(cash.get("VKC", 0)), int(cash.get("USD", 0))])
+	# A contract fact belongs in the existing shop dossier, never a
+	# fictitious visitor speech or mutable quest panel.
+	var story_key: String = str(view.get("story", {}).get("fact_key", ""))
+	if not story_key.is_empty():
+		_board_line(body, "b2_story_contract_fact", _text(story_key))
 	body.add_child(HSeparator.new())
 	# At night the chosen consensual contact belongs in the readable right
 	# dossier, not in a clipped scroll row beneath unrelated action buttons.
@@ -473,6 +478,9 @@ func refresh() -> void:
 			var public_reply: String = _b2_npc_line(v)
 			if not public_reply.is_empty():
 				speech.text = public_reply
+			elif not str(v.get("story", {}).get("speech_key", "")).is_empty():
+				# Preserve existing NPC negotiation/contract/commission precedence.
+				speech.text = _text(str(v.story.speech_key))
 			# Named suppliers explain their actual existing contract instead
 			# of repeating an empty generic line. Their specialized RAD-1 payment
 			# authority remains untouched and is never called a normal item order.

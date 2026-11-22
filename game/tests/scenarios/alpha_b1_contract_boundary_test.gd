@@ -5,6 +5,7 @@ const B1 = preload("res://src/content/alpha_b1_seed.gd")
 const B2 = preload("res://src/content/alpha_b2_seed.gd")
 const Session = preload("res://src/domain/game_session.gd")
 const Repo = preload("res://src/persistence/save_repository.gd")
+const Story = preload("res://src/domain/alpha_story_projection.gd")
 var checks: int = 0
 var failures: int = 0
 
@@ -107,9 +108,12 @@ func run_unpaid() -> void:
 			check(deny(unpaid,"alpha_contract_pay",terms()), "cannot pay 300 from 180 VKC")
 		check(go(unpaid,"alpha_settle"), "settle day " + str(day))
 	check(unpaid.snapshot().alpha_shop.contracts.rows.rad1_first.status == "defaulted", "D4 close defaults once")
+	var before_story: Dictionary = unpaid.snapshot()
+	check(Story.view(before_story).fact_key == "b2.story.s03.default" and unpaid.snapshot() == before_story, "S03 default notice follows real D4 settlement without mutating contract")
 	check(unpaid.snapshot().receipt_archive.size() > 0, "alpha commands compact into archived receipts after 32")
 	check(unpaid.snapshot().wallets.player.VKC == 180 and unpaid.snapshot().alpha_shop.contracts.settlements.is_empty(), "unpaid branch never mints or deducts money")
 	check(prepare(unpaid) and short_day(unpaid) and prepare(unpaid), "D5 then D6 factual publication")
+	check(Story.view(unpaid.snapshot()).fact_key.is_empty(), "S03 D4-D5 notice never impersonates D6 news")
 	check(unpaid.snapshot().alpha_shop.contracts.facts.has("rad1_defaulted"), "D6 default news only from actual default")
 	var before_archive_retry: Dictionary = unpaid.snapshot()
 	check(unpaid.execute(before_archive_retry.alpha_shop.commands[0]).ok and unpaid.snapshot() == before_archive_retry, "archived alpha action idempotent replay")
@@ -150,7 +154,7 @@ func run_paid() -> void:
 	if paid == null:
 		quit(1)
 		return
-	check(next_visitor(paid) == "G01" and trade(paid,"visit_g01","R001","G01","player",100), "purchase real R001")
+	check(next_visitor(paid) == "G01" and Story.view(paid.snapshot()).speech_key == "b2.story.s01.g01" and trade(paid,"visit_g01","R001","G01","player",100), "S01 greeting bound to real G01 and R001")
 	check(go(paid,"alpha_display",{"item_id":"R001","x":0,"y":0,"rotated":false}), "R001 physical listing")
 	check(next_visitor(paid) == "G02" and trade(paid,"visit_g02_buy","R001","player","G02",170), "real G02 display purchase")
 	check(next_visitor(paid) == "G03" and depart(paid), "unserved wholesale does not mint cash")
@@ -170,10 +174,12 @@ func run_paid() -> void:
 	check(go(paid,"alpha_contract_pay",terms()), "real 300 VKC supplier transfer")
 	var settled: Dictionary = paid.snapshot()
 	check(settled.wallets.player.VKC == 10 and settled.wallets.marcus.VKC == 300 and settled.alpha_shop.contracts.settlements.size() == 1, "money conservation and exactly one payment")
+	check(Story.view(settled).fact_key == "b2.story.s03.paid" and paid.snapshot() == settled, "S03 paid-but-not-delivered notice derives from actual 300 VKC transfer")
 	check(deny(paid,"alpha_contract_pay",terms()) and deny(paid,"alpha_contract_extend",terms()), "no repeat payment or extension after paid")
 	check(go(paid,"alpha_settle") and paid.snapshot().alpha_shop.contracts.rows.rad1_first.status == "paid", "paid status survives D4")
 	check(prepare(paid) and short_day(paid), "D5 delivery settlement")
 	check(paid.snapshot().alpha_shop.contracts.rows.rad1_first.status == "delivered" and paid.snapshot().alpha_shop.contracts.settlements.size() == 2, "authored D5 external supply event, no free item")
+	check(Story.view(paid.snapshot()).fact_key.is_empty(), "S03 paid reservation notice disappears upon actual D5 delivery")
 	check(not paid.snapshot().items.has("rad1_supply_1") and paid.snapshot().wallets.player.VKC == 10, "delivery is external service, not invented stock")
 	check(prepare(paid) and paid.snapshot().alpha_shop.contracts.facts.has("rad1_delivered"), "D6 story fact published from actual D5 event")
 	check(not paid.snapshot().alpha_shop.contracts.facts.has("rad1_defaulted"), "paid contract cannot emit default branch")

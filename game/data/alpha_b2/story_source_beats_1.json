@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "beats": [
+    {
+      "id": "S01_G01_OPEN",
+      "kind": "customer_open",
+      "day": 1,
+      "visit_id": "visit_g01",
+      "actor_id": "G01",
+      "item_id": "R001",
+      "text_key": "b2.story.s01.g01"
+    },
+    {
+      "id": "S03_RAD1_PAID",
+      "kind": "contract_fact",
+      "first_day": 4,
+      "last_day": 5,
+      "contract_id": "rad1_first",
+      "status": "paid",
+      "text_key": "b2.story.s03.paid"
+    },
+    {
+      "id": "S03_RAD1_DEFAULT",
+      "kind": "contract_fact",
+      "first_day": 4,
+      "last_day": 5,
+      "contract_id": "rad1_first",
+      "status": "defaulted",
+      "text_key": "b2.story.s03.default"
+    }
+  ]
+}
