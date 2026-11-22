@@ -123,7 +123,8 @@ func run() -> void:
 	if not await click("b2_jump_b2_price_sheet"):
 		quit(1)
 		return
-	check(scroller!=null and scroller.scroll_vertical > 0,"direct price-section navigation scrolls real work pane")
+	var price_section := host.find_child("b2_price_sheet",true,false) as PanelContainer
+	check(scroller!=null and scroller.scroll_vertical > 0 and price_section!=null and price_section.get_global_rect().position.y < scroller.get_global_rect().end.y,"real pointer jump brings the actual price work area into the viewport")
 	if not await click("b2_jump_b2_inspection_sheet"):
 		quit(1)
 		return

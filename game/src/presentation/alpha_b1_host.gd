@@ -266,10 +266,18 @@ func _choose_evening_contact(actor_id: String) -> void:
 
 ## Navigation changes only the viewport, never a priced offer or appraisal.
 func _jump_b2_section(target_name: String) -> void:
+	# Wait until the navigation-button mouse event is fully processed before
+	# repositioning the sibling ScrollContainer. The direct offset handles
+	# layouts where ensure_control_visible alone left the scroll at zero.
+	call_deferred("_jump_b2_section_apply",target_name)
+
+func _jump_b2_section_apply(target_name: String) -> void:
 	var scroller := find_child("alpha_card_scroll", true, false) as ScrollContainer
 	var target := find_child(target_name, true, false) as Control
 	if scroller != null and target != null and scroller.is_ancestor_of(target):
 		scroller.ensure_control_visible(target)
+		var delta: float = target.get_global_rect().position.y - scroller.get_global_rect().position.y
+		scroller.scroll_vertical = maxi(0,scroller.scroll_vertical + int(delta) - 8)
 
 func _show_evening_contact_preview() -> void:
 	# A rebuilt counter resets the scrolling position. Ensure the details
