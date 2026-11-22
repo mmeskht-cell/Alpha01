@@ -42,7 +42,7 @@ func sample(visit_id: String, item_id: String, expected_item_label: String, slot
 	check(press("b2_offer"),"ordinary price submitted without a per-product page "+item_id)
 	var public: Dictionary = host.session.alpha_view().npc_context.current_offer
 	check(public.public_slots == [slot] and public.response == "declined","only chosen source-grounded fact reached counterparty "+item_id)
-	var old := host.session.snapshot()
+	var old: Dictionary = host.session.snapshot()
 	check(old.ledger.is_empty() and old.wallets.player.VKC == 180,"ordinary card offer cannot mint money "+item_id)
 
 func run() -> void:
