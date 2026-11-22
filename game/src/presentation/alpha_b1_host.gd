@@ -697,11 +697,14 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 		var thumbnail := TextureRect.new()
 		thumbnail.name = "b2_item_art"
 		thumbnail.texture = ResourceLoader.load(preview_path) as Texture2D
-		thumbnail.custom_minimum_size = Vector2(0,158)
+		thumbnail.custom_minimum_size = Vector2(0,144)
 		thumbnail.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		thumbnail.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		thumbnail.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		surface_inner.add_child(thumbnail)
+		# The item, not text-heavy inspection instructions, occupies the first
+		# viewport. All actual tools remain within the same scrollable surface.
+		surface_inner.move_child(thumbnail,0)
 	var hotspots := GridContainer.new()
 	hotspots.name = "b2_item_hotspots"
 	hotspots.columns = 2

@@ -100,6 +100,8 @@ func run() -> void:
 	var item_art := host.find_child("b2_item_art",true,false) as TextureRect
 	var card_direction := host.find_child("b2_card_direction",true,false) as Label
 	check(item_art != null and item_art.texture != null and item_art.is_visible_in_tree(),"real pre-existing item image is presented without inferred hidden qualities")
+	if item_art != null:
+		check(item_art.get_global_rect().end.y <= 720.0 and item_art.get_global_rect().position.y >= 0.0,"source-bound item art is fully in the first 720p viewport without hidden scrolling")
 	check(card_direction != null and card_direction.text.contains("매입"),"buyer-side explanatory direction distinguishes source and destination without hidden math")
 	if inspection_sheet!=null and private_sheet!=null and offer_sheet!=null:
 		check(inspection_sheet.get_global_rect().position.y < private_sheet.get_global_rect().position.y and private_sheet.get_global_rect().position.y < offer_sheet.get_global_rect().position.y,"inspection and card selection precede price submission visually")

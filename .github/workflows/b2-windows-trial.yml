@@ -106,3 +106,4 @@ jobs:
             b2-win-scene.log
           if-no-files-found: warn
           retention-days: 3
+# B2 art first viewport QA checkpoint: source-bound image before inspection text.
