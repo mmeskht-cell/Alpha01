@@ -627,12 +627,22 @@ func _add_b2_display_action(actions: VBoxContainer, v: Dictionary) -> void:
 			displayed_names.append(_text("b2.item." + str(stock.items[displayed_id].def_id)))
 	label.text = _text("b2.shelf") + ": " + ", ".join(displayed_names)
 	actions.add_child(label)
-	for item_id: String in stock.items:
-		var item: Dictionary = stock.items[item_id]
-		if item.owner_id == "player" and item.custodian_id == "player" and item.inventory == "player_stock" and item.status == "stock" and not item.protected and item.reservation_id.is_empty() and item.parent_id.is_empty():
-			_button(actions, "b2_display_" + item_id, _text("b2.display") + " · " + _text("b2.item." + str(item.def_id)),
-				func() -> void: _submit("alpha_display", {"item_id": item_id, "x": 0, "y": 0, "rotated": false}))
-			break
+	var options: Dictionary = session.alpha_shelf_options()
+	for option: Dictionary in options.withdraw:
+		_add_b2_shelf_button(actions, option, true)
+	for option: Dictionary in options.display:
+		_add_b2_shelf_button(actions, option, false)
+
+## Each call owns its own immutable click payload, not a loop variable that
+## can be retargeted by the next item or a subsequent UI refresh.
+func _add_b2_shelf_button(actions: VBoxContainer, option: Dictionary, withdraw: bool) -> void:
+	var item_id: String = str(option.item_id)
+	var command_type: String = "alpha_withdraw_display" if withdraw else "alpha_display"
+	var payload: Dictionary = {"item_id":item_id,"x":option.x,"y":option.y,"rotated":option.rotated}
+	var caption: String = ("b2.withdraw" if withdraw else "b2.display")
+	_button(actions, ("b2_withdraw_" if withdraw else "b2_display_") + item_id,
+		_text(caption) + " · " + _text("b2.item." + str(option.def_id)),
+		func() -> void: _submit(command_type,payload))
 
 func _add_b2_trade_action(actions: VBoxContainer, v: Dictionary) -> void:
 	var visit_id: String = str(v.active.get("id", ""))

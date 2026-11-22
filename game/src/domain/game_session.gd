@@ -519,6 +519,11 @@ func calendar_view(basic_visit:String="") -> Dictionary:
 func alpha_view() -> Dictionary:
 	return AlphaShop.view(_state) if _alpha_mode and not _state.is_empty() else {}
 
+## Read-only item placement hints; actual player actions must still run
+## through _apply_alpha and _move on a validated candidate.
+func alpha_shelf_options() -> Dictionary:
+	return AlphaShop.shelf_options(_state,_definitions) if _alpha_mode and not _state.is_empty() else {"display":[],"withdraw":[]}
+
 ## Full immutable seed replay for B1 commands, independent of the legacy calendar.
 func _alpha_valid(state: Dictionary) -> bool:
 	if not state.get("alpha_shop") is Dictionary or _alpha_seed.is_empty():

@@ -37,6 +37,10 @@ func run() -> void:
 		quit(1)
 		return
 	check(host.session.snapshot().items.R001.inventory == "storefront_grid", "real item moved onto shelf")
+	var listed: Dictionary=host.session.snapshot()
+	check(click("b2_withdraw_R001") and host.session.snapshot().items.R001.inventory=="player_stock","same shelf UI can withdraw an owned listed item using actual inventory")
+	check(host.session.snapshot().ledger==listed.ledger and host.session.snapshot().wallets==listed.wallets,"shelf withdrawal is not a paid trade")
+	check(click("b2_display_R001") and host.session.snapshot().items.R001.inventory=="storefront_grid","re-display the original item from real free stock")
 	if not click("alpha_next_customer") or not click("alpha_ack_entry") or not click("b2_trade"):
 		quit(1)
 		return

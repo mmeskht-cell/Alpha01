@@ -6,6 +6,8 @@ const Cards = preload("res://src/domain/alpha_card_trade.gd")
 const Commission = preload("res://src/domain/alpha_commission.gd")
 const ServiceCustody = preload("res://src/domain/alpha_service_custody.gd")
 const Story = preload("res://src/domain/alpha_story_projection.gd")
+const Grid = preload("res://src/domain/grid_primitives.gd")
+const Objects = preload("res://src/domain/object_schema.gd")
 const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid"]
 const PHASES: Array = ["DAY_PREP", "OPEN_IDLE", "CUSTOMER_ENTER", "CUSTOMER_ACTIVE", "CUSTOMER_EXIT", "CLOSE_SETTLE", "EVENING_WORK", "NEXT_DAY", "COMPLETE"]
 
@@ -162,6 +164,42 @@ static func display_gate(state: Dictionary, p: Dictionary, withdraw: bool = fals
 	if withdraw:
 		return "" if listed and item.inventory == "storefront_grid" else "alpha_not_displayed"
 	return "" if not listed and item.inventory == "player_stock" else "alpha_already_displayed"
+
+## Source-only shelf placement preview: reveal every free owned item, never
+## an NPC's private property. The existing GameSession move, geometry,
+## ownership, reservation and replay gates remain the sole authority.
+## A physical placement is recomputed from current contents on each refresh.
+static func shelf_options(state: Dictionary, defs: Dictionary) -> Dictionary:
+	var options: Dictionary = {"display": [], "withdraw": []}
+	if not state.has("alpha_shop") or not state.alpha_shop.has("displayed") or state.alpha_shop.phase not in ["OPEN_IDLE","EVENING_WORK"]:
+		return options
+	var ids: Array = state.items.keys()
+	ids.sort()
+	for item_id: String in ids:
+		var item: Dictionary = state.items[item_id]
+		if item.owner_id != "player" or item.custodian_id != "player" or item.status != "stock" or item.protected or not item.reservation_id.is_empty() or not item.parent_id.is_empty():
+			continue
+		var outgoing: bool = item.inventory == "storefront_grid" and item_id in state.alpha_shop.displayed
+		var incoming: bool = item.inventory == "player_stock" and item_id not in state.alpha_shop.displayed
+		if not (outgoing or incoming):
+			continue
+		var target: String = "player_stock" if outgoing else "storefront_grid"
+		if not state.inventories.has(target):
+			continue
+		var target_grid: Dictionary = state.inventories[target]
+		var placements: Array = []
+		for other_id: String in state.items:
+			var other: Dictionary = state.items[other_id]
+			if other_id == item_id or other.inventory != target or not other.parent_id.is_empty():
+				continue
+			var footprint: Array = Objects.footprint(state,defs,other_id)
+			placements.append({"item_id":other_id,"x":other.x,"y":other.y,"rotated":other.rotated,"width":footprint[0],"height":footprint[1]})
+		var size: Array = Objects.footprint(state,defs,item_id)
+		var fit: Dictionary = Grid.first_fit(target_grid.width,target_grid.height,placements,{"item_id":item_id,"width":size[0],"height":size[1],"rotated":item.rotated})
+		if fit.get("ok",false):
+			var option: Dictionary = {"item_id":item_id,"def_id":item.def_id,"x":fit.x,"y":fit.y,"rotated":fit.rotated}
+			options["withdraw" if outgoing else "display"].append(option)
+	return options
 
 static func after_display(state: Dictionary, item_id: String, withdraw: bool = false) -> void:
 	if withdraw:

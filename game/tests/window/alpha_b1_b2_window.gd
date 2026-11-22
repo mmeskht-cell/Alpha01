@@ -125,6 +125,11 @@ func run() -> void:
 		await finish()
 		return
 	check(host.session.snapshot().items.R001.inventory == "storefront_grid", "physical shelf owns purchased item")
+	var shelf_basis: Dictionary=host.session.snapshot()
+	if not await click("b2_withdraw_R001","OPEN_IDLE") or not await click("b2_display_R001","OPEN_IDLE"):
+		await finish()
+		return
+	check(host.session.snapshot().items.R001.inventory=="storefront_grid" and host.session.snapshot().ledger==shelf_basis.ledger and host.session.snapshot().wallets==shelf_basis.wallets,"real pointer withdrawal and replacement preserve exact money and trade receipts")
 	await capture("alpha-b2-shelf-720p", Vector2i(1280, 720))
 	if not await click("alpha_next_customer", "CUSTOMER_ENTER") or not await click("alpha_ack_entry", "CUSTOMER_ACTIVE"):
 		await finish()
