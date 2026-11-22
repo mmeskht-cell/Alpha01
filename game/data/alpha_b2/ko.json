@@ -124,6 +124,20 @@
     "b2.inspect.condition_detail": "사용 가능 상태 검사",
     "b2.inspect.surface.condition": "상태",
     "b2.value.serviceable": "사용 가능",
-    "b2.value.inoperable": "사용 불가"
+    "b2.value.inoperable": "사용 불가",
+    "b2.claim.g01_usage": "최근까지 정상적으로 사용했습니다. 제 기억에는 문제가 없었습니다.",
+    "b2.claim.g06_check": "가져오기 전에는 쓸 수 있는 상태였습니다.",
+    "b2.evidence.customer_claim": "고객 주장 · 아직 사실 확인 전",
+    "b2.evidence.verified_fact": "확인된 사실",
+    "b2.evidence.private_guess": "개인 추정 · 고객에게 공개되지 않음",
+    "b2.evidence.no_promise": "가격 제안은 품질 확약이 아닙니다. 현재 확약 기록은 없습니다.",
+    "b2.hypothesis.choose": "추정",
+    "b2.hypothesis.unknown": "판단 보류",
+    "b2.hypothesis.serviceable": "작동 가능으로 추정",
+    "b2.hypothesis.inoperable": "작동 불가로 추정",
+    "b2.hypothesis.clear": "개인 추정 지우기",
+    "b2.statement.withdraw": "공개 발언 철회",
+    "b2.statement.reaffirm": "공개 발언 재확인",
+    "b2.npc.rebuttal.withdrawn": "앞서 말씀하신 %s 단서는 철회하셨군요. 이전 발언은 기억합니다. %d %s에는 동의하기 어렵습니다."
   }
 }

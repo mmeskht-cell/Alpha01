@@ -8,9 +8,10 @@ const Rules = preload("res://src/domain/value_rules.gd")
 const Objects = preload("res://src/domain/object_schema.gd")
 const Commission = preload("res://src/domain/alpha_commission.gd")
 const CONFIG_PATH: String = "res://data/alpha_b2/cards_pilot_1.json"
+const CLAIMS_PATH: String = "res://data/alpha_b2/customer_claims_1.json"
 const MAX_OFFERS: int = 3
 const MAX_OBSERVATIONS: int = 8
-const ACTIONS: Array = ["alpha_inspect", "alpha_card_toggle", "alpha_price_offer"]
+const ACTIONS: Array = ["alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm"]
 
 static func config() -> Dictionary:
 	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_PATH))
@@ -20,10 +21,35 @@ static func config() -> Dictionary:
 		return {}
 	return data
 
+## Claims are authored as customer self-report, never verified item facts.
+## A customer cannot supply an unscripted claim in the command payload.
+static func _claims() -> Dictionary:
+	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(CLAIMS_PATH))
+	if not Rules.keys(data,["version","claims"]) or data.version != 1 or not data.claims is Array or data.claims.size() > 12:
+		return {}
+	var seen: Dictionary = {}
+	for entry: Variant in data.claims:
+		if not Rules.keys(entry,["visit_id","actor_id","item_id","text_key"]):
+			return {}
+		for key: String in ["visit_id","actor_id","item_id","text_key"]:
+			if not Rules.identifier(entry[key]):
+				return {}
+		if seen.has(entry.visit_id):
+			return {}
+		seen[entry.visit_id] = true
+	return data
+
 static func profile_valid(data: Dictionary, state: Dictionary) -> bool:
 	var c: Dictionary = config()
-	if c.is_empty() or data.get("appraisal_id") != c.profile_id or not data.has("days"):
+	var claims: Dictionary = _claims()
+	if c.is_empty() or claims.is_empty() or data.get("appraisal_id") != c.profile_id or not data.has("days"):
 		return false
+	for statement: Dictionary in claims.claims:
+		var visit: Dictionary = state.visits.get(statement.visit_id,{})
+		if visit.is_empty() or visit.seller != statement.actor_id or not visit.prices.has(statement.item_id):
+			return false
+		if not state.items.has(statement.item_id) or state.items[statement.item_id].owner_id != statement.actor_id:
+			return false
 	for id: String in c.negotiation_terms:
 		var term: Variant = c.negotiation_terms[id]
 		if not state.visits.has(id) or not Rules.keys(term, ["improved_amount", "required_slot"]) or not Rules.integer(term.improved_amount, 1) or not Rules.identifier(term.required_slot):
@@ -118,6 +144,43 @@ static func _row(state: Dictionary, context: Dictionary) -> Dictionary:
 	var a: Dictionary = state.alpha_shop
 	return a.appraisal.visits.get(context.visit_id, {"item_id": context.item_id,"observed":{},"selected":[],"offers":[],"accepted":{}}).duplicate(true)
 
+## Reconstruct the current public standing from immutable proposal facts and
+## explicit subsequent statements. "Heard before" never means "still endorsed".
+## offer_count is the bounded causal ordering key; no clocks or new save root.
+static func public_history(row: Dictionary) -> Dictionary:
+	var ever: Array = []
+	var active: Array = []
+	var actions: Array = row.get("statements",[])
+	var offers: Array = row.get("offers",[])
+	for i: int in range(offers.size()):
+		for fact: Dictionary in offers[i].revealed:
+			var slot: String = str(fact.slot)
+			if slot not in ever:
+				ever.append(slot)
+			if slot not in active:
+				active.append(slot)
+		for record: Dictionary in actions:
+			if int(record.after_offer) != i + 1:
+				continue
+			var slot: String = str(record.slot)
+			if record.kind == "withdraw":
+				active.erase(slot)
+			elif record.kind == "reaffirm" and slot in ever and slot not in active:
+				active.append(slot)
+	var withdrawn: Array = []
+	for slot: String in ever:
+		if slot not in active:
+			withdrawn.append(slot)
+	return {"known_slots":ever,"active_slots":active,"withdrawn_slots":withdrawn}
+
+static func _source_offer_action(row: Dictionary, slot: String) -> String:
+	var result: String = ""
+	for offer: Dictionary in row.get("offers",[]):
+		for fact: Dictionary in offer.revealed:
+			if str(fact.slot) == slot:
+				result = str(offer.action_id)
+	return result
+
 static func apply(state: Dictionary, command: Dictionary) -> String:
 	var context: Dictionary = _visit_context(state)
 	if context.is_empty():
@@ -152,6 +215,51 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 			if p.selected:
 				row.selected.append(p.slot)
 			else:
+				row.selected.erase(p.slot)
+		"alpha_hypothesis":
+			# Explicitly provisional and private. Never put guesses inside
+			# row.observed, selected fact cards, NPC DTO or customer receipts.
+			if not Rules.keys(p,["slot","judgment"]) or not Rules.identifier(p.slot) or p.judgment not in ["serviceable","inoperable","unknown"]:
+				return "alpha_hypothesis_shape"
+			var guess_allowed: bool = false
+			for option: Dictionary in _tool_rows(state,context.item_id):
+				if option.id == p.slot and p.slot in ["function_detail","condition_detail"]:
+					guess_allowed = true
+			if not guess_allowed:
+				return "alpha_hypothesis_slot"
+			var hypotheses: Dictionary = row.get("hypotheses",{})
+			if str(hypotheses.get(p.slot,"unknown")) == p.judgment:
+				return "alpha_hypothesis_unchanged"
+			if p.judgment == "unknown":
+				hypotheses.erase(p.slot)
+			else:
+				hypotheses[p.slot] = p.judgment
+			if hypotheses.is_empty():
+				row.erase("hypotheses")
+			else:
+				row["hypotheses"] = hypotheses
+		"alpha_statement_retract", "alpha_statement_reaffirm":
+			if not Rules.keys(p,["slot"]) or not Rules.identifier(p.slot) or not row.observed.has(p.slot):
+				return "alpha_statement_shape"
+			var public: Dictionary = public_history(row)
+			var currently_public: bool = p.slot in public.active_slots
+			var has_been_public: bool = p.slot in public.known_slots
+			if not has_been_public or (command.type == "alpha_statement_retract" and not currently_public) or (command.type == "alpha_statement_reaffirm" and currently_public):
+				return "alpha_statement_status"
+			var source_offer: String = _source_offer_action(row,p.slot)
+			if source_offer.is_empty():
+				return "alpha_statement_origin"
+			var statement_actions: Array = row.get("statements",[])
+			if statement_actions.size() >= 8:
+				return "alpha_statement_limit"
+			statement_actions.append({"action_id":command.action_id,
+				"kind":"withdraw" if command.type == "alpha_statement_retract" else "reaffirm",
+				"slot":p.slot,"source_offer_action_id":source_offer,
+				"after_offer":row.offers.size()})
+			row["statements"] = statement_actions
+			if command.type == "alpha_statement_retract":
+				# Withdrawing a statement never erases what the customer heard,
+				# and it must not silently re-publish on the next price offer.
 				row.selected.erase(p.slot)
 		"alpha_price_offer":
 			if not Rules.keys(p,["amount"]) or not Rules.integer(p.amount,1) or row.offers.size() >= MAX_OFFERS:
@@ -214,21 +322,28 @@ static func view(state: Dictionary) -> Dictionary:
 		if not row.observed.has(tool.id):
 			options.append(tool)
 	var cards: Array = []
-	var previously_shared: Array = []
-	for offer: Dictionary in row.offers:
-		for fact: Dictionary in offer.revealed:
-			var public_slot: String = str(fact.slot)
-			if public_slot not in previously_shared:
-				previously_shared.append(public_slot)
+	var public: Dictionary = public_history(row)
 	for slot: String in row.observed:
 		var observation: Dictionary = row.observed[slot]
 		cards.append({"slot":slot,"text_key":"b2.inspect." + slot,"value":str(observation.value),
 			"kind":observation.kind,"selected":slot in row.selected,
-			"ever_disclosed":slot in previously_shared})
+			"ever_disclosed":slot in public.known_slots,
+			"public_active":slot in public.active_slots})
 	var history: Array = []
 	for offer: Dictionary in row.offers:
 		history.append({"amount":offer.amount,"currency":offer.currency,
 			"response":offer.response,"public_cards":offer.revealed.duplicate(true)})
+	var hypotheses: Array = []
+	for tool: Dictionary in _tool_rows(state,context.item_id):
+		if str(tool.id) in ["function_detail","condition_detail"]:
+			hypotheses.append({"slot":str(tool.id),"kind":"hypothesis",
+				"judgment":str(row.get("hypotheses",{}).get(tool.id,"unknown"))})
+	var claims: Array = []
+	for statement: Dictionary in _claims().get("claims",[]):
+		if statement.visit_id == context.visit_id and statement.actor_id == context.visit.seller and statement.item_id == context.item_id:
+			claims.append({"kind":"customer_claim","text_key":str(statement.text_key)})
 	return {"item_id":context.item_id,"def_id":context.item.def_id,"we_buy":context.visit.buyer=="player",
-		"tools": options,"cards":cards,"offers":history,
+		"tools": options,"cards":cards,"offers":history,"hypotheses":hypotheses,
+		"customer_claims":claims,"statements":row.get("statements",[]).duplicate(true),
+		"commitments":[],"public_standing":public,
 		"accepted":row.accepted.duplicate(true)}

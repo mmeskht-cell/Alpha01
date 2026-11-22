@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "claims": [
+    {
+      "visit_id": "visit_g01",
+      "actor_id": "G01",
+      "item_id": "R001",
+      "text_key": "b2.claim.g01_usage"
+    },
+    {
+      "visit_id": "battery_buy",
+      "actor_id": "G06",
+      "item_id": "BAT02",
+      "text_key": "b2.claim.g06_check"
+    }
+  ]
+}

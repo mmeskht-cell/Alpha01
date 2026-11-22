@@ -209,7 +209,12 @@ func _b2_npc_line(view: Dictionary) -> String:
 			if int(offer.disclosed_count) == 0:
 				var known_slots: Array = offer.get("known_slots",[])
 				if not known_slots.is_empty():
-					return _text("b2.npc.rebuttal.remembered") % [_text("b2.inspect." + str(known_slots[0])), int(offer.amount), str(offer.currency)]
+					var current_public: Array = offer.get("active_slots",[])
+					var withdrawn: Array = offer.get("withdrawn_slots",[])
+					if current_public.is_empty() and not withdrawn.is_empty():
+						return _text("b2.npc.rebuttal.withdrawn") % [_text("b2.inspect." + str(withdrawn[0])), int(offer.amount), str(offer.currency)]
+					if not current_public.is_empty():
+						return _text("b2.npc.rebuttal.remembered") % [_text("b2.inspect." + str(current_public[0])), int(offer.amount), str(offer.currency)]
 				return _text("b2.npc.rebuttal.no_evidence") % [int(offer.amount), str(offer.currency)]
 			var public_slots: Array = offer.get("public_slots",[])
 			if not public_slots.is_empty():
@@ -660,6 +665,12 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 	direction.text = _text("b2.offer.direction.buy" if a.we_buy else "b2.offer.direction.sell")
 	direction.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	actions.add_child(direction)
+	for claim: Dictionary in a.customer_claims:
+		var customer_words := Label.new()
+		customer_words.name = "b2_customer_claim"
+		customer_words.text = _text("b2.evidence.customer_claim") + " · " + _text(str(claim.text_key))
+		customer_words.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		actions.add_child(customer_words)
 	var inspect := _b2_work_section(actions,"b2_inspection_sheet",_text("b2.sheet.inspect.title"),_text("b2.sheet.inspect.note"))
 	if a.tools.is_empty():
 		var done := Label.new()
@@ -722,6 +733,27 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 			func() -> void: _submit("alpha_inspect",{"slot":slot}))
 		marker.custom_minimum_size = Vector2(180,44)
 		marker.tooltip_text = _text(str(tool.text_key))
+	# Guesses are entirely optional and deliberately separate from inspected
+	# fact cards. Guessing never presents a fact or changes negotiation terms.
+	for guess: Dictionary in a.hypotheses:
+		var slot: String = str(guess.slot)
+		var current_guess: String = str(guess.judgment)
+		var guess_status := Label.new()
+		guess_status.name = "b2_hypothesis_status_" + slot
+		guess_status.text = _text("b2.evidence.private_guess") + " · " + _text("b2.inspect." + slot) + " · " + _text("b2.hypothesis." + current_guess)
+		guess_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		inspect.add_child(guess_status)
+		var options := HBoxContainer.new()
+		inspect.add_child(options)
+		for value: String in ["serviceable","inoperable"]:
+			var judgment: String = value
+			var choice := _button(options,"b2_guess_" + slot + "_" + judgment,_text("b2.hypothesis.choose") + " · " + _text("b2.value." + judgment),
+				func() -> void: _submit("alpha_hypothesis",{"slot":slot,"judgment":judgment}))
+			choice.disabled = current_guess == judgment
+			choice.custom_minimum_size = Vector2(130,42)
+		if current_guess != "unknown":
+			_button(inspect,"b2_guess_clear_" + slot,_text("b2.hypothesis.clear"),
+				func() -> void: _submit("alpha_hypothesis",{"slot":slot,"judgment":"unknown"}))
 	var sheet := _b2_work_section(actions,"b2_private_sheet",_text("b2.sheet.private.title"),_text("b2.sheet.private.note"))
 	if a.cards.is_empty():
 		var empty := Label.new()
@@ -733,7 +765,7 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 		var plain_value: String = str(card.value)
 		var value_key: String = "b2.value." + plain_value
 		var visible_value: String = _text(value_key) if _strings.has(value_key) else plain_value
-		var card_label: String = ("☑ " if selected else "□ ") + _text(str(card.text_key)) + " · " + visible_value
+		var card_label: String = ("☑ " if selected else "□ ") + _text("b2.evidence.verified_fact") + " · " + _text(str(card.text_key)) + " · " + visible_value
 		# A deselected card only changes the NEXT proposal. Previously
 		# disclosed information cannot be put back into a private drawer.
 		if bool(card.ever_disclosed):
@@ -742,7 +774,25 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 			card_label += " · " + _text("b2.card.will_disclose")
 		_button(sheet,"b2_card_" + slot,card_label,
 			func() -> void: _submit("alpha_card_toggle",{"slot":slot,"selected":not selected}))
+		if bool(card.ever_disclosed):
+			if bool(card.public_active):
+				_button(sheet,"b2_statement_retract_" + slot,_text("b2.statement.withdraw") + " · " + _text(str(card.text_key)),
+					func() -> void: _submit("alpha_statement_retract",{"slot":slot}))
+			else:
+				_button(sheet,"b2_statement_reaffirm_" + slot,_text("b2.statement.reaffirm") + " · " + _text(str(card.text_key)),
+					func() -> void: _submit("alpha_statement_reaffirm",{"slot":slot}))
 	var bargain := _b2_work_section(actions,"b2_price_sheet",_text("b2.sheet.offer.title"),_text("b2.sheet.offer.note"))
+	var promise_note := Label.new()
+	promise_note.name = "b2_no_quality_promise"
+	promise_note.text = _text("b2.evidence.no_promise")
+	promise_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	bargain.add_child(promise_note)
+	for statement: Dictionary in a.statements:
+		var amendment := Label.new()
+		amendment.name = "b2_statement_history_" + str(statement.action_id)
+		amendment.text = _text("b2.statement." + str(statement.kind)) + " · " + _text("b2.inspect." + str(statement.slot))
+		amendment.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		bargain.add_child(amendment)
 	for offer: Dictionary in a.offers:
 		var response := Label.new()
 		response.name = "b2_last_response"

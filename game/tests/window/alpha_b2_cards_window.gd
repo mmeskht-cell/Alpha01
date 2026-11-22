@@ -208,6 +208,20 @@ func run() -> void:
 	var remembered_speech := host.find_child("alpha_speech",true,false) as Label
 	check(remembered_speech != null and remembered_speech.text.contains("기억합니다") and remembered_speech.text.contains("외관 마모"),"real second-price mouse quote prompts remembered disclosed-fact rebuttal")
 	check(host.session.alpha_view().npc_context.current_offer.known_slots == ["wear_detail"] and host.session.alpha_view().npc_context.current_offer.public_slots.is_empty(),"rendered rebuttal faithfully shows full public knowledge vs zero newly disclosed cards")
+	var customer_claim := host.find_child("b2_customer_claim",true,false) as Label
+	check(customer_claim != null and customer_claim.text.contains("고객 주장"),"actual counter separates unverified seller words from verified physical evidence")
+	if not await click("b2_statement_retract_wear_detail"):
+		quit(1)
+		return
+	var corrected_offer: Dictionary = host.session.alpha_view().npc_context.current_offer
+	var correction_speech := host.find_child("alpha_speech",true,false) as Label
+	check(corrected_offer.known_slots == ["wear_detail"] and corrected_offer.withdrawn_slots == ["wear_detail"] and corrected_offer.active_slots.is_empty(),"physical mouse withdrawal preserves customer recollection but changes public standing")
+	check(correction_speech != null and correction_speech.text.contains("철회"),"NPC dialogue reacts to voluntary disclosure correction")
+	await capture("b2-cards-public-withdrawal-720p",Vector2i(1280,720))
+	if not await click("b2_statement_reaffirm_wear_detail"):
+		quit(1)
+		return
+	check(host.session.alpha_view().npc_context.current_offer.active_slots == ["wear_detail"] and host.session.snapshot().alpha_shop.appraisal.visits.visit_g01.statements.size() == 2,"same real mouse drawer reaffirms without making another economic offer")
 	await capture("b2-cards-public-memory-720p",Vector2i(1280,720))
 	host.queue_free()
 	await frames()

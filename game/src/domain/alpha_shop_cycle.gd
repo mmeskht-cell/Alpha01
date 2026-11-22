@@ -5,7 +5,7 @@ const Contract = preload("res://src/domain/alpha_dated_contract.gd")
 const Cards = preload("res://src/domain/alpha_card_trade.gd")
 const Commission = preload("res://src/domain/alpha_commission.gd")
 const ServiceCustody = preload("res://src/domain/alpha_service_custody.gd")
-const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid"]
+const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid"]
 const PHASES: Array = ["DAY_PREP", "OPEN_IDLE", "CUSTOMER_ENTER", "CUSTOMER_ACTIVE", "CUSTOMER_EXIT", "CLOSE_SETTLE", "EVENING_WORK", "NEXT_DAY", "COMPLETE"]
 
 static func profile_valid(profile: Variant, state: Dictionary) -> bool:
@@ -106,20 +106,15 @@ static func _last_public_offer(a: Dictionary, visit_id: String) -> Dictionary:
 		return {}
 	var offer: Dictionary = offers[offers.size() - 1]
 	var public_slots: Array = []
-	var known_slots: Array = []
-	# The current proposal's cards are not the same as all facts the customer
-	# has already heard. Removing a card from a later proposal must not cause
-	# NPC amnesia. Never derive knowledge from observed/selected private data.
-	for prior_offer: Dictionary in offers:
-		for revealed: Dictionary in prior_offer.revealed:
-			var slot: String = str(revealed.slot)
-			if slot not in known_slots:
-				known_slots.append(slot)
 	for revealed: Dictionary in offer.revealed:
 		public_slots.append(str(revealed.slot))
+	var standing: Dictionary = Cards.public_history(notes)
+	# Historical knowledge persists even after explicit retraction. Only
+	# statements actually submitted at this visitor's counter are projected.
 	return {"amount": int(offer.amount), "currency": str(offer.currency),
 		"response": str(offer.response), "disclosed_count": public_slots.size(),
-		"public_slots": public_slots, "known_slots": known_slots}
+		"public_slots": public_slots, "known_slots": standing.known_slots,
+		"active_slots": standing.active_slots, "withdrawn_slots": standing.withdrawn_slots}
 
 static func npc_context(state: Dictionary) -> Dictionary:
 	if not state.has("alpha_shop"):

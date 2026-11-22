@@ -59,6 +59,11 @@ func _run() -> void:
 	await process_frame
 	check(host.session != null and not host._blocked,"new evidence memory counter boots with original source")
 	check(press("intro_skip") and press("alpha_open") and press("alpha_next_customer") and press("alpha_ack_entry"),"G01 revisits isolated click path")
+	var claim := host.find_child("b2_customer_claim",true,false) as Label
+	var no_promise := host.find_child("b2_no_quality_promise",true,false) as Label
+	check(claim!=null and claim.text.contains("고객 주장") and no_promise!=null and no_promise.text.contains("확약"),"customer self-report and absence of quality guarantee visible without new page")
+	check(press("b2_guess_function_detail_inoperable"),"incorrect provisional function guess is an optional private counter action")
+	check(host.session.alpha_view().appraisal.hypotheses[0].judgment=="inoperable" and host.session.alpha_view().npc_context.current_offer.is_empty(),"customer never hears guessed function state")
 	check(press("b2_inspect_identity") and press("b2_inspect_wear_detail") and press("b2_card_wear_detail"),"one private observation and one disclosed wear choice")
 	var first_quote := host.find_child("b2_price_input",true,false) as LineEdit
 	if first_quote != null:
@@ -74,6 +79,12 @@ func _run() -> void:
 	check(press("b2_offer"),"second quote sends zero new disclosure")
 	var speaker := host.find_child("alpha_speech",true,false) as Label
 	check(speaker != null and speaker.text.contains("기억합니다") and speaker.text.contains("외관 마모"),"customer's natural rebuttal remembers actually disclosed wear")
+	check(press("b2_statement_retract_wear_detail"),"player corrects public evidence on same card drawer")
+	var after_withdraw: Dictionary = host.session.alpha_view().npc_context.current_offer
+	var withdrawal_line := host.find_child("alpha_speech",true,false) as Label
+	check(after_withdraw.known_slots==["wear_detail"] and after_withdraw.withdrawn_slots==["wear_detail"] and withdrawal_line!=null and withdrawal_line.text.contains("철회"),"customer remembers statement and recognizes retraction without secret inference")
+	check(press("b2_statement_reaffirm_wear_detail"),"previous public fact explicitly reaffirmed on same drawer")
+	check(host.session.alpha_view().npc_context.current_offer.active_slots==["wear_detail"] and host.session.snapshot().alpha_shop.appraisal.visits.visit_g01.statements.size()==2,"correction history is source-backed and no offer re-submitted")
 	check(host.session.snapshot().wallets.player.VKC == 180 and host.session.snapshot().ledger.is_empty(),"rebuttal creates no fictional money or trade")
 	host.queue_free()
 	await process_frame
