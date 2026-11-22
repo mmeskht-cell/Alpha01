@@ -127,6 +127,12 @@ func _add_b2_shop_board(panel: PanelContainer, view: Dictionary) -> void:
 			fast.custom_minimum_size = Vector2(84,36)
 	var cash: Dictionary = current.wallets.get("player", {})
 	_board_line(body, "b2_board_cash", _text("b2.board.cash") % [int(cash.get("VKC", 0)), int(cash.get("USD", 0))])
+	# A customer visit must be finishable without scrolling through the whole
+	# left-hand inspection/card sheet on the actual 720p counter.
+	if view.phase == "CUSTOMER_ACTIVE":
+		var finish := _button(body, "alpha_finish_customer", _text("alpha.button.leave"),
+			func() -> void: _submit("alpha_finish_customer"))
+		finish.custom_minimum_size = Vector2(0, 46)
 	# A contract fact belongs in the existing shop dossier, never a
 	# fictitious visitor speech or mutable quest panel.
 	var story_key: String = str(view.get("story", {}).get("fact_key", ""))
@@ -595,7 +601,10 @@ func refresh() -> void:
 				_add_b2_service_actions(actions, v)
 			if bool(v.can_exchange):
 				_button(actions, "alpha_exchange_contact", _text("alpha.button.exchange"), func() -> void: _submit("alpha_exchange_contact", {"actor_id": row.actor_id, "accepted": true}))
-			_button(actions, "alpha_finish_customer", _text("alpha.button.leave"), func() -> void: _submit("alpha_finish_customer"))
+			# Interactive B2 keeps this essential action anchored in the fixed
+			# right-hand shop notebook; older B1 controls remain unchanged.
+			if not b2_interactive_mode:
+				_button(actions, "alpha_finish_customer", _text("alpha.button.leave"), func() -> void: _submit("alpha_finish_customer"))
 		"CUSTOMER_EXIT":
 			_button(actions, "alpha_ack_exit", _text("alpha.button.exit"), func() -> void: _submit("alpha_ack_exit"))
 		"CLOSE_SETTLE":

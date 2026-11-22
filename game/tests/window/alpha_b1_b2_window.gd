@@ -167,6 +167,10 @@ func run() -> void:
 		return
 	check(host.session.alpha_view().active.actor_id=="G01" and host.find_child("b2_price_input",true,false)!=null,
 		"unified entry has the real first customer's appraisal and price controls")
+	var sticky_finish := host.find_child("alpha_finish_customer",true,false) as Button
+	var right_board := host.find_child("alpha_shop_board",true,false) as PanelContainer
+	check(sticky_finish!=null and right_board!=null and right_board.is_ancestor_of(sticky_finish),
+		"B2 finish control is anchored in the permanent right-hand notebook, not buried in card scrolling")
 	await capture("alpha-b2-unified-g01-720p",Vector2i(1280,720))
 	if not await click("alpha_finish_customer","CUSTOMER_EXIT") or not await click("alpha_ack_exit","OPEN_IDLE") 			or not await click("alpha_next_customer","CUSTOMER_ENTER") or not await click("alpha_ack_entry","CUSTOMER_ACTIVE"):
 		await finish()
