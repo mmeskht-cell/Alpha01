@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "offers": [
+    {
+      "visit_id": "alpha_b3_g09_radio_d2",
+      "actor_id": "G09",
+      "day": 2,
+      "item_id": "R001",
+      "quote_source_visit_id": "radio_recovery",
+      "purpose_key": "b3.market.interest.radio"
+    }
+  ]
+}

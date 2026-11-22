@@ -239,4 +239,29 @@ func run() -> void:
 		and source_copy.session.snapshot()==saved,
 		"real title navigation preserves prior opt-in session and its saved economy exactly")
 	source_copy.queue_free()
+	await frames()
+	# B3 is a separate opt-in scene. Its first real seller is presented in
+	# the same tested physical counter; no default New Game migration.
+	host.queue_free()
+	await frames()
+	var b3_scene: PackedScene=load("res://scenes/app/alpha_b3_market_m1.tscn") as PackedScene
+	if not check(b3_scene!=null,"B3 finite market pilot has a real Godot scene"):
+		await finish()
+		return
+	if not await install(b3_scene,"b3_market"):
+		await finish()
+		return
+	check(host.b3_market_mode and host._slot()=="alpha_b3_market_m1_v1"
+		and not host._blocked and host.session.snapshot().items.R001.owner_id=="G01",
+		"B3 starts a separate seeded economy and never inherits the B2 test save")
+	await capture("alpha-b3-market-m1-intro-720p",Vector2i(1280,720))
+	if not await click("intro_skip","DAY_PREP") or not await click("alpha_open","OPEN_IDLE")
+			or not await click("alpha_next_customer","CUSTOMER_ENTER")
+			or not await click("alpha_ack_entry","CUSTOMER_ACTIVE"):
+		await finish()
+		return
+	check(host.session.alpha_view().active.actor_id=="G01"
+		and host.find_child("b2_price_input",true,false)!=null,
+		"B3 physical counter still supports original actual-item appraisal/offer")
+	await capture("alpha-b3-market-m1-g01-720p",Vector2i(1280,720))
 	await finish()

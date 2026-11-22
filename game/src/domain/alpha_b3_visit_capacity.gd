@@ -35,11 +35,15 @@ static func audit(source: Dictionary) -> Dictionary:
 			var actor_id: String=str(row.actor_id)
 			var is_commission_return: bool=profile.has("commission_profile_id") and Commission.is_return_visit(id,str(profile.commission_profile_id))
 			var is_service_return: bool=profile.has("service_profile_id") and Service.is_return_visit(id,str(profile.service_profile_id))
+			var is_market_buyer: bool=false
+			for offer: Dictionary in profile.get("market_interest",{}).get("offers",[]):
+				if offer.visit_id==id:
+					is_market_buyer=true
 			# Returning appointments require earlier acceptance and an actual
 			# customer revisit. The authored slot alone is not a real visitor.
-			if is_commission_return or is_service_return:
+			if is_commission_return or is_service_return or is_market_buyer:
 				conditional+=1
-				witnesses.append({"visit_id":id,"actor_id":actor_id,"kind":"conditional_return"})
+				witnesses.append({"visit_id":id,"actor_id":actor_id,"kind":"conditional_buyer" if is_market_buyer else "conditional_return"})
 				continue
 			var kind: String="transaction" if state.visits.has(id) else "named_contact"
 			guaranteed+=1

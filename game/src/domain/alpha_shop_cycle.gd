@@ -5,6 +5,7 @@ const Contract = preload("res://src/domain/alpha_dated_contract.gd")
 const Cards = preload("res://src/domain/alpha_card_trade.gd")
 const Commission = preload("res://src/domain/alpha_commission.gd")
 const ServiceCustody = preload("res://src/domain/alpha_service_custody.gd")
+const B3Interest = preload("res://src/domain/alpha_b3_market_interest.gd")
 const Story = preload("res://src/domain/alpha_story_projection.gd")
 const Grid = preload("res://src/domain/grid_primitives.gd")
 const Objects = preload("res://src/domain/object_schema.gd")
@@ -21,6 +22,8 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 		keys.append("commission_profile_id")
 	if profile is Dictionary and profile.has("service_profile_id"):
 		keys.append("service_profile_id")
+	if profile is Dictionary and profile.get("content_version") == B3Interest.CONTENT_VERSION:
+		keys.append("market_interest")
 	if not Rules.keys(profile, keys) or profile.id != "alpha_b1_v1" or not Rules.identifier(profile.content_version):
 		return false
 	if not profile.days is Array or profile.days.is_empty() or profile.days.size() > 42 or not profile.unavailable_actors is Array:
@@ -62,6 +65,8 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 		return false
 	if profile.has("service_profile_id") and not ServiceCustody.profile_valid(profile, state):
 		return false
+	if profile.get("content_version") == B3Interest.CONTENT_VERSION and not B3Interest.profile_valid(profile,state):
+		return false
 	return true
 
 static func seed(state: Dictionary, profile: Dictionary) -> Dictionary:
@@ -74,7 +79,7 @@ static func seed(state: Dictionary, profile: Dictionary) -> Dictionary:
 		"day": 1, "phase": "DAY_PREP", "cursor": 0, "active": "",
 		"outcomes": {}, "settled_days": [], "contacts": {}, "commands": []
 	}
-	if profile.content_version in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1", "b2-cards-commission-named-1", "b2-cards-commission-service-1", "b2-cards-commission-service-recovery-2", "b2-cards-commission-service-multi-3"]:
+	if profile.content_version in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1", "b2-cards-commission-named-1", "b2-cards-commission-service-1", "b2-cards-commission-service-recovery-2", "b2-cards-commission-service-multi-3", B3Interest.CONTENT_VERSION]:
 		next.alpha_shop["displayed"] = []
 	if profile.has("contracts"):
 		next.alpha_shop["contracts"] = Contract.seed(profile)
@@ -149,7 +154,7 @@ static func npc_context(state: Dictionary) -> Dictionary:
 ## located in the actual, non-custody inventory. Never infer listing from price.
 static func display_gate(state: Dictionary, p: Dictionary, withdraw: bool = false) -> String:
 	var a: Dictionary = state.alpha_shop
-	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1", "b2-cards-commission-named-1", "b2-cards-commission-service-1", "b2-cards-commission-service-recovery-2", "b2-cards-commission-service-multi-3"] or not Rules.keys(p, ["item_id", "x", "y", "rotated"]):
+	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1", "b2-cards-commission-named-1", "b2-cards-commission-service-1", "b2-cards-commission-service-recovery-2", "b2-cards-commission-service-multi-3", B3Interest.CONTENT_VERSION] or not Rules.keys(p, ["item_id", "x", "y", "rotated"]):
 		return "alpha_b2_display_shape"
 	if a.phase not in ["OPEN_IDLE", "EVENING_WORK"] or not Rules.identifier(p.item_id):
 		return "alpha_display_phase"
@@ -210,7 +215,7 @@ static func after_display(state: Dictionary, item_id: String, withdraw: bool = f
 static func trade_gate(state: Dictionary, p: Dictionary) -> String:
 	var a: Dictionary = state.alpha_shop
 	var row: Dictionary = active_row(a)
-	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1", "b2-cards-commission-named-1", "b2-cards-commission-service-1", "b2-cards-commission-service-recovery-2", "b2-cards-commission-service-multi-3"] or a.phase != "CUSTOMER_ACTIVE" or row.is_empty():
+	if a.profile.content_version not in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1", "b2-cards-commission-named-1", "b2-cards-commission-service-1", "b2-cards-commission-service-recovery-2", "b2-cards-commission-service-multi-3", B3Interest.CONTENT_VERSION] or a.phase != "CUSTOMER_ACTIVE" or row.is_empty():
 		return "alpha_trade_phase"
 	if not Rules.keys(p, ["visit_id", "item_id", "seller", "buyer", "currency", "amount", "inventory", "x", "y", "rotated"]) or p.visit_id != row.id or not state.visits.has(row.id):
 		return "alpha_trade_visit"
@@ -262,7 +267,7 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 				return "alpha_no_next_customer"
 			var offered: Array = a.profile.days[int(a.day) - 1]
 			var cursor: int = int(a.cursor)
-			while cursor < offered.size() and ((a.has("commissions") and not Commission.scheduled(state, str(offered[cursor].id))) or (a.has("services") and not ServiceCustody.scheduled(state, str(offered[cursor].id)))):
+			while cursor < offered.size() and ((a.has("commissions") and not Commission.scheduled(state, str(offered[cursor].id))) or (a.has("services") and not ServiceCustody.scheduled(state, str(offered[cursor].id))) or not B3Interest.eligible(state,str(offered[cursor].id))):
 				cursor += 1
 			if cursor >= offered.size():
 				return "alpha_no_next_customer"
@@ -316,7 +321,7 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 				return "alpha_commission_pickup_pending"
 			for i: int in range(int(a.cursor), a.profile.days[int(a.day) - 1].size()):
 				var row: Dictionary = a.profile.days[int(a.day) - 1][i]
-				if (not a.has("commissions") or Commission.scheduled(state, row.id)) and (not a.has("services") or ServiceCustody.scheduled(state, row.id)):
+				if (not a.has("commissions") or Commission.scheduled(state, row.id)) and (not a.has("services") or ServiceCustody.scheduled(state, row.id)) and B3Interest.eligible(state,row.id):
 					a.outcomes[row.id] = "unserved"
 			a.cursor = a.profile.days[int(a.day) - 1].size()
 			if a.has("contracts"):
@@ -365,7 +370,7 @@ static func view(state: Dictionary) -> Dictionary:
 	var pending_visits: int = 0
 	for i: int in range(int(a.cursor), a.profile.days[int(a.day) - 1].size()):
 		var candidate: Dictionary = a.profile.days[int(a.day) - 1][i]
-		if (not a.has("commissions") or Commission.scheduled(state, candidate.id)) and (not a.has("services") or ServiceCustody.scheduled(state, candidate.id)):
+		if (not a.has("commissions") or Commission.scheduled(state, candidate.id)) and (not a.has("services") or ServiceCustody.scheduled(state, candidate.id)) and B3Interest.eligible(state,candidate.id):
 			pending_visits += 1
 	var contract_view: Dictionary = Contract.view(state)
 	for actor: String in a.contacts:
