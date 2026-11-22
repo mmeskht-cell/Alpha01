@@ -84,6 +84,17 @@ func _run() -> void:
 			if not press("b2_service_deliver") or not press("alpha_ack_exit"):
 				quit(1)
 				return
+			# Refresh must follow actual title return, not the earlier custody tally.
+			var remaining_custody := host.find_child("b2_board_custody",true,false) as Label
+			var held_g02 := host.find_child("b2_board_custody_W001",true,false) as Label
+			var held_g04 := host.find_child("b2_board_custody_W002S",true,false) as Label
+			if actor == "G02":
+				check(remaining_custody!=null and remaining_custody.text.contains("1건")
+					and held_g02==null and held_g04!=null and held_g04.text.contains("G04"),
+					"after G02 real return, only G04 customer title remains in shop notebook")
+			else:
+				check(remaining_custody==null and held_g02==null and held_g04==null,
+					"after both real returns, no customer property remains in shop notebook")
 		elif not press("alpha_finish_customer") or not press("alpha_ack_exit"):
 			quit(1)
 			return
