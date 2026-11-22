@@ -11,7 +11,7 @@ const CONFIG_PATH: String = "res://data/alpha_b2/cards_pilot_1.json"
 const CLAIMS_PATH: String = "res://data/alpha_b2/customer_claims_1.json"
 const MAX_OFFERS: int = 3
 const MAX_OBSERVATIONS: int = 8
-const ACTIONS: Array = ["alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm"]
+const ACTIONS: Array = ["alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge"]
 
 static func config() -> Dictionary:
 	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_PATH))
@@ -29,7 +29,12 @@ static func _claims() -> Dictionary:
 		return {}
 	var seen: Dictionary = {}
 	for entry: Variant in data.claims:
-		if not Rules.keys(entry,["visit_id","actor_id","item_id","text_key"]):
+		var required: Array = ["visit_id","actor_id","item_id","text_key"]
+		if entry.has("asserted_slot") or entry.has("asserted_value"):
+			required.append_array(["asserted_slot","asserted_value"])
+		if not Rules.keys(entry,required):
+			return {}
+		if entry.has("asserted_slot") and (not Rules.identifier(entry.asserted_slot) or entry.asserted_value not in ["serviceable","inoperable"]):
 			return {}
 		for key: String in ["visit_id","actor_id","item_id","text_key"]:
 			if not Rules.identifier(entry[key]):
@@ -173,6 +178,28 @@ static func public_history(row: Dictionary) -> Dictionary:
 			withdrawn.append(slot)
 	return {"known_slots":ever,"active_slots":active,"withdrawn_slots":withdrawn}
 
+## Direction is descriptive: the same source-backed item evidence has the
+## opposite bargaining implication when the shop buys vs sells. This never
+## changes a price, creates an offer, or calculates a hidden NPC threshold.
+static func _value_signal(slot: String, value: Variant) -> String:
+	if slot in ["function_detail","condition_detail"]:
+		if value == "serviceable":
+			return "positive"
+		if value == "inoperable":
+			return "negative"
+	if slot in ["wear_detail","display_damage_detail"] and (value is int or value is float):
+		return "negative" if float(value) > 0.0 else "neutral"
+	return "unknown"
+
+static func _claim_discrepancy(row: Dictionary, statement: Dictionary) -> String:
+	if not statement.has("asserted_slot"):
+		return "not_testable"
+	var slot: String = str(statement.asserted_slot)
+	if not row.observed.has(slot):
+		return "unverified"
+	var observed: Dictionary = row.observed[slot]
+	return "consistent" if observed.value == statement.asserted_value else "conflict"
+
 static func _source_offer_action(row: Dictionary, slot: String) -> String:
 	var result: String = ""
 	for offer: Dictionary in row.get("offers",[]):
@@ -261,6 +288,25 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 				# Withdrawing a statement never erases what the customer heard,
 				# and it must not silently re-publish on the next price offer.
 				row.selected.erase(p.slot)
+		"alpha_claim_challenge":
+			# A contradiction is not proof of intentional dishonesty. Only
+			# explicitly inspected, same-item, same-visit evidence can be
+			# raised with the speaking customer. No automatic trust penalty.
+			if not Rules.keys(p,["claim_key"]) or not Rules.identifier(p.claim_key):
+				return "alpha_claim_shape"
+			var claim: Dictionary = {}
+			for authored: Dictionary in _claims().get("claims",[]):
+				if authored.visit_id == p.claim_key and authored.visit_id == context.visit_id and authored.actor_id == context.visit.seller and authored.item_id == context.item_id:
+					claim = authored
+			if claim.is_empty() or _claim_discrepancy(row,claim) != "conflict":
+				return "alpha_claim_unverified"
+			if row.get("claim_challenges",[]).size() > 0:
+				return "alpha_claim_duplicate"
+			var checked: Dictionary = row.observed[claim.asserted_slot]
+			row["claim_challenges"] = [{"action_id":command.action_id,"claim_key":p.claim_key,
+				"item_id":context.item_id,"slot":claim.asserted_slot,
+				"seller_statement":claim.asserted_value,"verified_reading":checked.value,
+				"evidence_kind":checked.kind}]
 		"alpha_price_offer":
 			if not Rules.keys(p,["amount"]) or not Rules.integer(p.amount,1) or row.offers.size() >= MAX_OFFERS:
 				return "alpha_offer_shape_or_limit"
@@ -325,8 +371,12 @@ static func view(state: Dictionary) -> Dictionary:
 	var public: Dictionary = public_history(row)
 	for slot: String in row.observed:
 		var observation: Dictionary = row.observed[slot]
+		var signal: String = _value_signal(slot, observation.value)
+		var helps_shop: bool = (signal == "negative" and context.visit.buyer=="player") or (signal == "positive" and context.visit.seller=="player")
+		var effect: String = "unknown" if signal in ["unknown","neutral"] else ("helps" if helps_shop else "hurts")
 		cards.append({"slot":slot,"text_key":"b2.inspect." + slot,"value":str(observation.value),
 			"kind":observation.kind,"selected":slot in row.selected,
+			"value_signal":signal,"shop_effect":effect,
 			"ever_disclosed":slot in public.known_slots,
 			"public_active":slot in public.active_slots})
 	var history: Array = []
@@ -341,9 +391,18 @@ static func view(state: Dictionary) -> Dictionary:
 	var claims: Array = []
 	for statement: Dictionary in _claims().get("claims",[]):
 		if statement.visit_id == context.visit_id and statement.actor_id == context.visit.seller and statement.item_id == context.item_id:
-			claims.append({"kind":"customer_claim","text_key":str(statement.text_key)})
+			var discrepancy: String = _claim_discrepancy(row,statement)
+			var challenged: bool = false
+			for event: Dictionary in row.get("claim_challenges",[]):
+				if event.claim_key == statement.visit_id:
+					challenged = true
+			claims.append({"kind":"customer_claim","claim_key":str(statement.visit_id),
+				"text_key":str(statement.text_key),"check_status":discrepancy,
+				"can_challenge":discrepancy=="conflict" and not challenged,
+				"challenged":challenged})
 	return {"item_id":context.item_id,"def_id":context.item.def_id,"we_buy":context.visit.buyer=="player",
 		"tools": options,"cards":cards,"offers":history,"hypotheses":hypotheses,
 		"customer_claims":claims,"statements":row.get("statements",[]).duplicate(true),
+		"claim_challenges":row.get("claim_challenges",[]).duplicate(true),
 		"commitments":[],"public_standing":public,
 		"accepted":row.accepted.duplicate(true)}

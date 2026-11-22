@@ -59,8 +59,15 @@ func _initialize() -> void:
 	check(go(s,"alpha_inspect",{"slot":"function_detail"}),"actual provenance-bound function test after wrong guess")
 	guess_view=s.alpha_view()
 	check(guess_view.appraisal.cards[0].value=="serviceable" and guess_view.appraisal.hypotheses[0].judgment=="inoperable","verified fact and false guess remain separately visible to player")
+	check(guess_view.appraisal.cards[0].value_signal=="positive" and guess_view.appraisal.cards[0].shop_effect=="hurts","verified working function strengthens seller when player buys; no automatic price changes")
 	check(guess_view.npc_context.current_offer.is_empty() and guess_view.appraisal.cards[0].selected==false,"inspecting fact does not publish it or private error")
-	check(go(s,"alpha_inspect",{"slot":"wear_detail"}) and go(s,"alpha_price_offer",{"amount":94}),"first unsupported price offer leaves private readings unseen")
+	check(go(s,"alpha_inspect",{"slot":"wear_detail"}),"independently source-backed wear reading")
+	var wear_effect: String = ""
+	for card: Dictionary in s.alpha_view().appraisal.cards:
+		if card.slot=="wear_detail":
+			wear_effect=str(card.shop_effect)
+	check(wear_effect=="helps","observable wear favors shop as buyer, opposite of functional evidence")
+	check(go(s,"alpha_price_offer",{"amount":94}),"first unsupported price offer leaves private readings unseen")
 	var first: Dictionary=s.alpha_view().npc_context.current_offer
 	check(first.disclosed_count==0 and first.known_slots.is_empty() and not first.has("hypotheses") and not first.has("claim"),"NPC projection contains only spoken quote, no private hypothesis or unspoken readings")
 	check(deny(s,"alpha_statement_retract",{"slot":"wear_detail"}) and deny(s,"alpha_statement_reaffirm",{"slot":"wear_detail"}),"cannot amend facts that were never publicly disclosed")

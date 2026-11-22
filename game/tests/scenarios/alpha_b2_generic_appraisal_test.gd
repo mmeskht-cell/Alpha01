@@ -57,6 +57,18 @@ func visit_case(s: RefCounted, visit_id: String, item_id: String, kind: String, 
 	view = s.alpha_view()
 	check(view.appraisal.cards.size() == 1 and view.appraisal.cards[0].value == expected and view.appraisal.cards[0].kind == "fact","inspection reads actual authorized item state "+item_id)
 	check(view.npc_context.current_offer.is_empty() and view.appraisal.cards[0].selected == false,"observed condition remains private "+item_id)
+	if visit_id == "battery_buy":
+		check(view.appraisal.customer_claims.size()==1 and view.appraisal.customer_claims[0].kind=="customer_claim","one authored seller statement on original battery")
+		var claim: Dictionary = view.appraisal.customer_claims[0]
+		check(claim.check_status==("consistent" if expected=="serviceable" else "conflict"),"test-only true/false current condition compared with authored unverified seller explanation")
+		check(view.npc_context.current_challenges.is_empty() and s.snapshot().wallets == previous.wallets,"private inspection cannot publicly dispute or punish seller")
+		if expected == "inoperable":
+			check(claim.can_challenge and go(s,"alpha_claim_challenge",{"claim_key":"battery_buy"}),"actual inspected contradicting reading allows one explicit counter challenge")
+			var heard: Dictionary=s.alpha_view().npc_context
+			check(heard.current_challenges.size()==1 and heard.current_challenges[0].verified_reading=="inoperable" and heard.current_challenges[0].seller_statement=="serviceable","only deliberately challenged source-backed fact reaches this customer's speech")
+			check(deny(s,"alpha_claim_challenge",{"claim_key":"battery_buy"}),"repeat public challenge cannot farm dispute events")
+		else:
+			check(not claim.can_challenge and deny(s,"alpha_claim_challenge",{"claim_key":"battery_buy"}),"consistent evidence cannot fabricate an accusation")
 	check(s.snapshot().items[item_id] == previous.items[item_id] and s.snapshot().wallets == previous.wallets and s.snapshot().ledger == previous.ledger,"investigation does not modify item/title/currency "+item_id)
 	check(deny(s,"alpha_inspect",{"slot":slot}),"same condition cannot be farmed repeatedly "+item_id)
 	check(go(s,"alpha_card_toggle",{"slot":slot,"selected":true}),"player voluntarily shares inspected evidence "+item_id)

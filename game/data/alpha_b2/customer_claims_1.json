@@ -11,7 +11,9 @@
       "visit_id": "battery_buy",
       "actor_id": "G06",
       "item_id": "BAT02",
-      "text_key": "b2.claim.g06_check"
+      "text_key": "b2.claim.g06_current",
+      "asserted_slot": "condition_detail",
+      "asserted_value": "serviceable"
     }
   ]
 }

@@ -5,7 +5,7 @@ const Contract = preload("res://src/domain/alpha_dated_contract.gd")
 const Cards = preload("res://src/domain/alpha_card_trade.gd")
 const Commission = preload("res://src/domain/alpha_commission.gd")
 const ServiceCustody = preload("res://src/domain/alpha_service_custody.gd")
-const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid"]
+const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid"]
 const PHASES: Array = ["DAY_PREP", "OPEN_IDLE", "CUSTOMER_ENTER", "CUSTOMER_ACTIVE", "CUSTOMER_EXIT", "CLOSE_SETTLE", "EVENING_WORK", "NEXT_DAY", "COMPLETE"]
 
 static func profile_valid(profile: Variant, state: Dictionary) -> bool:
@@ -134,7 +134,12 @@ static func npc_context(state: Dictionary) -> Dictionary:
 			var offer: Dictionary = _last_public_offer(a, str(visit.id))
 			if not offer.is_empty() or outcome in ["traded", "commission_delivered", "service_delivered"]:
 				prior = {"outcome": outcome, "offer": offer}
+	# A challenge is spoken only after a direct opt-in command. Private
+	# observations or possible claim inconsistencies are not NPC knowledge.
+	var current_notes: Dictionary = a.get("appraisal",{}).get("visits",{}).get(str(current.id),{})
+	var challenges: Array = current_notes.get("claim_challenges",[]).duplicate(true)
 	return {"current_offer": _last_public_offer(a, str(current.id)),
+		"current_challenges":challenges,
 		"current_outcome": str(a.outcomes.get(current.id, "")), "prior": prior}
 
 ## B2 candidate only: every physical shelf item must be an owned free root

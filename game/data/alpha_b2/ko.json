@@ -138,6 +138,21 @@
     "b2.hypothesis.clear": "개인 추정 지우기",
     "b2.statement.withdraw": "공개 발언 철회",
     "b2.statement.reaffirm": "공개 발언 재확인",
-    "b2.npc.rebuttal.withdrawn": "앞서 말씀하신 %s 단서는 철회하셨군요. 이전 발언은 기억합니다. %d %s에는 동의하기 어렵습니다."
+    "b2.npc.rebuttal.withdrawn": "앞서 말씀하신 %s 단서는 철회하셨군요. 이전 발언은 기억합니다. %d %s에는 동의하기 어렵습니다.",
+    "b2.claim.g06_current": "지금도 사용 가능한 상태라고 알고 있습니다.",
+    "b2.claim.status.unverified": "검증 전 · 고객 설명만 확인됨",
+    "b2.claim.status.consistent": "검사 내용과 일치 · 고의나 보증을 뜻하지 않음",
+    "b2.claim.status.conflict": "검사 결과와 고객 설명이 다름 · 추가 확인 필요",
+    "b2.claim.status.challenged": "검사 결과를 고객에게 직접 제시함 · 확정적 기망 판정 아님",
+    "b2.claim.challenge": "검사 결과를 근거로 설명 요청",
+    "b2.claim.challenged": "검사 근거를 제시하고 설명을 요청했습니다.",
+    "b2.npc.claim.challenged": "%s 검사와 제 설명이 다르다고요? 확인하고 다시 말씀드리겠습니다.",
+    "b2.value.shop.helps": "상점 측 협상 근거",
+    "b2.value.shop.hurts": "상대 측 협상 근거",
+    "b2.nav.b2_inspection_sheet": "검사",
+    "b2.nav.b2_private_sheet": "감정표",
+    "b2.nav.b2_price_sheet": "가격",
+    "b2.inspect.zoom.in": "실물 이미지 확대",
+    "b2.inspect.zoom.out": "실물 이미지 원래 크기"
   }
 }

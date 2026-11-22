@@ -33,7 +33,17 @@ func _run() -> void:
 		return
 	check(press("intro_skip") and press("alpha_open") and press("alpha_next_customer") and press("alpha_ack_entry"),"first one-counter visit")
 	check(host.find_child("b2_current_item",true,false) != null,"visible real item without extra screen")
+	check(host.find_child("b2_jump_b2_private_sheet",true,false)!=null and host.find_child("b2_jump_b2_price_sheet",true,false)!=null,"same counter exposes direct card/price navigation without moving money")
+	var normal_art := host.find_child("b2_item_art",true,false) as TextureRect
+	check(normal_art != null and normal_art.custom_minimum_size.y == 144.0,"native source image starts at readable nonzoom size")
+	check(press("b2_zoom_toggle"),"source art zoom available without new appraisal command")
+	var zoomed_art := host.find_child("b2_item_art",true,false) as TextureRect
+	check(zoomed_art != null and zoomed_art.custom_minimum_size.y == 260.0,"actual same image rendered larger, not a fake inspection result")
+	check(press("b2_zoom_toggle"),"unzoom restores original layout")
+	check(host.session.alpha_view().appraisal.cards.is_empty(),"pure UI zoom leaves private evidence untouched")
 	check(press("b2_inspect_wear_detail"),"inspect existing sample from UI")
+	var evidence_card := host.find_child("b2_card_wear_detail",true,false) as Button
+	check(evidence_card!=null and evidence_card.text.contains("상점 측 협상 근거"),"verified wear meaning for purchase is explicitly labelled")
 	check(press("b2_card_wear_detail"),"choose one optional public fact")
 	var amount := host.find_child("b2_price_input",true,false) as LineEdit
 	check(amount != null,"single offer amount field")

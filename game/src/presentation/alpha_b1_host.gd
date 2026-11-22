@@ -31,6 +31,8 @@ var _intro_page: int = 0
 var _blocked: bool = false
 var _message: String = ""
 var _contact_focus: String = "" # UI-only selection; never persisted or billed.
+var _b2_zoomed: bool = false # UI-only larger view of the already-loaded external item image.
+var _b2_zoom_item: String = ""
 
 func _ready() -> void:
 	# The UI asset pipeline prepares an exact hash-pinned OFL CJK font.
@@ -110,6 +112,16 @@ func _add_b2_shop_board(panel: PanelContainer, view: Dictionary) -> void:
 	body.add_theme_constant_override("separation", 9)
 	inset.add_child(body)
 	_board_line(body, "b2_board_title", _text("b2.board.title"), true)
+	if view.phase == "CUSTOMER_ACTIVE" and not view.appraisal.is_empty():
+		var jumps := HBoxContainer.new()
+		jumps.name = "b2_quick_navigation"
+		jumps.add_theme_constant_override("separation",4)
+		body.add_child(jumps)
+		for target: String in ["b2_inspection_sheet","b2_private_sheet","b2_price_sheet"]:
+			var section: String = target
+			var fast := _button(jumps,"b2_jump_" + section,_text("b2.nav." + section),
+				func() -> void: _jump_b2_section(section))
+			fast.custom_minimum_size = Vector2(84,36)
 	var cash: Dictionary = current.wallets.get("player", {})
 	_board_line(body, "b2_board_cash", _text("b2.board.cash") % [int(cash.get("VKC", 0)), int(cash.get("USD", 0))])
 	body.add_child(HSeparator.new())
@@ -203,6 +215,10 @@ func _b2_npc_line(view: Dictionary) -> String:
 	var context: Dictionary = view.get("npc_context", {})
 	if context.is_empty():
 		return ""
+	var challenges: Array = context.get("current_challenges",[])
+	if not challenges.is_empty():
+		var latest: Dictionary = challenges[challenges.size()-1]
+		return _text("b2.npc.claim.challenged") % _text("b2.inspect." + str(latest.slot))
 	var offer: Dictionary = context.get("current_offer", {})
 	if not offer.is_empty():
 		if str(offer.response) == "declined":
@@ -247,6 +263,13 @@ func _choose_evening_contact(actor_id: String) -> void:
 			if not _contact_focus.is_empty():
 				call_deferred("_show_evening_contact_preview")
 			return
+
+## Navigation changes only the viewport, never a priced offer or appraisal.
+func _jump_b2_section(target_name: String) -> void:
+	var scroller := find_child("alpha_card_scroll", true, false) as ScrollContainer
+	var target := find_child(target_name, true, false) as Control
+	if scroller != null and target != null and scroller.is_ancestor_of(target):
+		scroller.ensure_control_visible(target)
 
 func _show_evening_contact_preview() -> void:
 	# A rebuilt counter resets the scrolling position. Ensure the details
@@ -665,12 +688,30 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 	direction.text = _text("b2.offer.direction.buy" if a.we_buy else "b2.offer.direction.sell")
 	direction.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	actions.add_child(direction)
+	if _b2_zoom_item != str(a.item_id):
+		_b2_zoom_item = str(a.item_id)
+		_b2_zoomed = false
 	for claim: Dictionary in a.customer_claims:
 		var customer_words := Label.new()
 		customer_words.name = "b2_customer_claim"
 		customer_words.text = _text("b2.evidence.customer_claim") + " · " + _text(str(claim.text_key))
 		customer_words.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		actions.add_child(customer_words)
+		if str(claim.check_status) != "not_testable":
+			var verification := Label.new()
+			verification.name = "b2_claim_status_" + str(claim.claim_key)
+			verification.text = _text("b2.claim.status." + str(claim.check_status))
+			verification.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			actions.add_child(verification)
+			if bool(claim.can_challenge):
+				var statement_id: String = str(claim.claim_key)
+				_button(actions,"b2_claim_challenge_" + statement_id,_text("b2.claim.challenge"),
+					func() -> void: _submit("alpha_claim_challenge",{"claim_key":statement_id}))
+			elif bool(claim.challenged):
+				var cited := Label.new()
+				cited.name = "b2_claim_public_challenge"
+				cited.text = _text("b2.claim.challenged")
+				actions.add_child(cited)
 	var inspect := _b2_work_section(actions,"b2_inspection_sheet",_text("b2.sheet.inspect.title"),_text("b2.sheet.inspect.note"))
 	if a.tools.is_empty():
 		var done := Label.new()
@@ -713,7 +754,7 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 		var thumbnail := TextureRect.new()
 		thumbnail.name = "b2_item_art"
 		thumbnail.texture = ResourceLoader.load(preview_path) as Texture2D
-		thumbnail.custom_minimum_size = Vector2(0,144)
+		thumbnail.custom_minimum_size = Vector2(0,260 if _b2_zoomed else 144)
 		thumbnail.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		thumbnail.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		thumbnail.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -721,6 +762,12 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 		# The item, not text-heavy inspection instructions, occupies the first
 		# viewport. All actual tools remain within the same scrollable surface.
 		surface_inner.move_child(thumbnail,0)
+		var zoom_button := _button(surface_inner,"b2_zoom_toggle",_text("b2.inspect.zoom.out" if _b2_zoomed else "b2.inspect.zoom.in"),
+			func() -> void:
+				_b2_zoomed = not _b2_zoomed
+				refresh()
+		)
+		zoom_button.custom_minimum_size = Vector2(150,36)
 	var hotspots := GridContainer.new()
 	hotspots.name = "b2_item_hotspots"
 	hotspots.columns = 2
@@ -766,6 +813,8 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 		var value_key: String = "b2.value." + plain_value
 		var visible_value: String = _text(value_key) if _strings.has(value_key) else plain_value
 		var card_label: String = ("☑ " if selected else "□ ") + _text("b2.evidence.verified_fact") + " · " + _text(str(card.text_key)) + " · " + visible_value
+		if str(card.shop_effect) in ["helps","hurts"]:
+			card_label += " · " + _text("b2.value.shop." + str(card.shop_effect))
 		# A deselected card only changes the NEXT proposal. Previously
 		# disclosed information cannot be put back into a private drawer.
 		if bool(card.ever_disclosed):

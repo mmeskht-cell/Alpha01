@@ -108,6 +108,25 @@ func run() -> void:
 	var private_heading := host.find_child("b2_private_sheet_title",true,false) as Label
 	check(private_heading!=null and private_heading.text.contains("개인 감정표"),"cards clearly marked private before choosing public disclosure")
 	await capture("b2-cards-inspection-720p",Vector2i(1280,720))
+	var zoom_btn := host.find_child("b2_zoom_toggle",true,false) as Button
+	check(zoom_btn!=null,"real item image has direct enlargement control")
+	if not await click("b2_zoom_toggle"):
+		quit(1)
+		return
+	var enlarged := host.find_child("b2_item_art",true,false) as TextureRect
+	check(enlarged!=null and enlarged.custom_minimum_size.y==260.0 and host.session.alpha_view().appraisal.cards.is_empty(),"native 720p pointer zoom enlarges same image, never uncovers uninspected truth")
+	await capture("b2-cards-item-enlarged-720p",Vector2i(1280,720))
+	if not await click("b2_zoom_toggle"):
+		quit(1)
+		return
+	check((host.find_child("b2_item_art",true,false) as TextureRect).custom_minimum_size.y==144.0,"unzoom restores base image before evidence submission")
+	if not await click("b2_jump_b2_price_sheet"):
+		quit(1)
+		return
+	check(scroller!=null and scroller.scroll_vertical > 0,"direct price-section navigation scrolls real work pane")
+	if not await click("b2_jump_b2_inspection_sheet"):
+		quit(1)
+		return
 	if not await click("b2_inspect_wear_detail") or not await click("b2_card_wear_detail") or not await offer(95):
 		quit(1)
 		return

@@ -150,6 +150,7 @@ func _initialize() -> void:
 	check(s.alpha_view().npc_context.prior.is_empty() and s.alpha_view().npc_context.current_offer.is_empty(), "other buyer cannot inherit G01 private or public dialogue memory")
 	check(go(s,"alpha_inspect",{"slot":"function_detail"}), "same item next visit has separate verified inspection")
 	check(s.alpha_view().appraisal.cards[0].value == "serviceable", "sample function reading derived from existing original specimen")
+	check(s.alpha_view().appraisal.cards[0].value_signal=="positive" and s.alpha_view().appraisal.cards[0].shop_effect=="helps","same working-function fact benefits the shop when SELLING, opposite G01 buy-side")
 	check(go(s,"alpha_price_offer",{"amount":201}), "unfunded buyer proposal does not create money")
 	check(s.snapshot().alpha_shop.appraisal.visits.visit_g02_buy.offers[0].response == "declined" and s.snapshot().wallets.G02.VKC == 200, "buyer money boundary preserved")
 	check(go(s,"alpha_price_offer",{"amount":175}), "higher sale price can be proposed even without card")
