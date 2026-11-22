@@ -120,6 +120,9 @@ func run() -> void:
 		quit(1)
 		return
 	check((host.find_child("b2_item_art",true,false) as TextureRect).custom_minimum_size.y==144.0,"unzoom restores base image before evidence submission")
+	# Zoom/unzoom calls host.refresh(), replacing the entire control tree.
+	# Never test a stale scroller captured before those re-entrant rebuilds.
+	scroller = host.find_child("alpha_card_scroll",true,false) as ScrollContainer
 	var nav_button := host.find_child("b2_jump_b2_price_sheet",true,false) as Button
 	var nav_event: Dictionary = {"hit":false}
 	if nav_button != null:
@@ -128,10 +131,6 @@ func run() -> void:
 		quit(1)
 		return
 	var price_section := host.find_child("b2_price_sheet",true,false) as PanelContainer
-	print("B2_NAV_DIAGNOSTIC pressed=",nav_event.hit," scroll=",scroller.scroll_vertical if scroller!=null else -1,
-		" price_y=",price_section.get_global_rect().position.y if price_section!=null else -1,
-		" viewport_end=",scroller.get_global_rect().end.y if scroller!=null else -1,
-		" max=",scroller.get_v_scroll_bar().max_value if scroller!=null else -1)
 	check(bool(nav_event.hit) and scroller!=null and scroller.scroll_vertical > 0 and price_section!=null and price_section.get_global_rect().position.y < scroller.get_global_rect().end.y,"actual button signal and pointer move must bring price form into visible work pane")
 	if not await click("b2_jump_b2_inspection_sheet"):
 		quit(1)
