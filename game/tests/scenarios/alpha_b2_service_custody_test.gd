@@ -107,6 +107,19 @@ func happy() -> void:
 				" money_basis=",Objects.money(evt.basis)," money_expense=",Objects.money(evt.expenses,false),
 				" component=",Component.valid_hypotheses(diagnostic)," history=",s._history_valid(diagnostic),
 				" evt=",evt)
+			printerr("B2_SERVICE_HISTORY_GUARD1 event_keys=",Rules.keys(evt,["event_id","revision","type","item_ids","basis","expenses"]),
+				" identity=",Rules.identifier(evt.event_id),
+				" expected_type=","restore_item" if rt=="alpha_service_repair" else rt,
+				" type_ok=",evt.type==("restore_item" if rt=="alpha_service_repair" else rt))
+			var linked: Dictionary = {}
+			for event: Dictionary in diagnostic.object_events:
+				linked[event.event_id]=event
+			for table: Dictionary in [diagnostic.receipts,diagnostic.receipt_archive]:
+				for rid: String in table:
+					var kind: String = s._receipt_type(diagnostic,rid)
+					if kind in ["detach","attach","discard","restore_item","alpha_service_repair","replace_component","clean_exterior"]:
+						printerr("B2_SERVICE_HISTORY_REQUIRED_EVENT id=",rid," type=",kind," linked=",linked.has(rid))
+			printerr("B2_SERVICE_HISTORY_EXTRA tombstones=",diagnostic.tombstones.size()," knowledge=",diagnostic.knowledge.size()," archive=",diagnostic.receipt_archive.size())
 		else:
 			printerr("B2_SERVICE_DIAG_APPLY_FAILED=",failed)
 		return
