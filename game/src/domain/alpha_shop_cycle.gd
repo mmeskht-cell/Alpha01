@@ -8,11 +8,12 @@ const ServiceCustody = preload("res://src/domain/alpha_service_custody.gd")
 const B3Interest = preload("res://src/domain/alpha_b3_market_interest.gd")
 const B3Fx = preload("res://src/domain/alpha_b3_fx.gd")
 const B3Currency = preload("res://src/domain/alpha_b3_currency_terms.gd")
+const Salvage = preload("res://src/domain/alpha_b3_outbound.gd")
 const B3Random = preload("res://src/domain/alpha_b3_visit_randomizer.gd")
 const Story = preload("res://src/domain/alpha_story_projection.gd")
 const Grid = preload("res://src/domain/grid_primitives.gd")
 const Objects = preload("res://src/domain/object_schema.gd")
-const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid", "alpha_fx_trade"]
+const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid", "alpha_fx_trade", "alpha_salvage_dispatch", "alpha_salvage_cancel"]
 const PHASES: Array = ["DAY_PREP", "OPEN_IDLE", "CUSTOMER_ENTER", "CUSTOMER_ACTIVE", "CUSTOMER_EXIT", "CLOSE_SETTLE", "EVENING_WORK", "NEXT_DAY", "COMPLETE"]
 
 static func profile_valid(profile: Variant, state: Dictionary) -> bool:
@@ -177,6 +178,9 @@ static func _draw_day(state: Dictionary) -> String:
 			mandatory = true
 		if a.has("services") and ServiceCustody.is_return_visit(id, str(a.profile.service_profile_id)) and admitted:
 			mandatory = true
+		for request: Dictionary in a.get("outbound", {}).values():
+			if admitted and request.status == "goods_offered" and request.visit_id == id:
+				mandatory = true
 		if mandatory:
 			locked.append(id)
 	var result: Dictionary = B3Random.plan(rows, availability, locked, int(a.profile.visit_random.seed), int(a.day))
@@ -337,6 +341,9 @@ static func trade_gate(state: Dictionary, p: Dictionary) -> String:
 static func after_trade(state: Dictionary, p: Dictionary) -> void:
 	var a: Dictionary = state.alpha_shop
 	a.outcomes[a.active] = "traded"
+	for request: Dictionary in a.get("outbound", {}).values():
+		if request.status == "goods_offered" and request.visit_id == a.active and request.item_id == p.item_id:
+			request.status = "received"
 	if p.item_id in a.displayed:
 		a.displayed.erase(p.item_id)
 	a.phase = "CUSTOMER_EXIT"
@@ -347,6 +354,13 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 	var kind: String = command.type
 	if kind not in ACTIONS:
 		return "alpha_command_unavailable"
+	if kind in ["alpha_salvage_dispatch", "alpha_salvage_cancel"]:
+		if a.profile.get("market_extension") != B3Interest.M7_MARKER or not Rules.keys(p, ["request_id"]) or not Rules.identifier(p.request_id):
+			return "salvage_request"
+		var terms: Dictionary = Salvage.CATALOG.get(p.request_id, {})
+		if terms.is_empty() or not can_contact(a, terms.actor_id):
+			return "salvage_no_agreement"
+		return Salvage.apply(state, str(p.request_id), terms, command)
 	if kind in Contract.ACTIONS:
 		return Contract.apply(state, command) if a.has("contracts") else "alpha_contract_unavailable"
 	if kind in Cards.ACTIONS:
@@ -407,6 +421,9 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 		"alpha_finish_customer":
 			if a.phase != "CUSTOMER_ACTIVE":
 				return "alpha_phase"
+			for request: Dictionary in a.get("outbound", {}).values():
+				if request.status == "goods_offered" and request.visit_id == a.active:
+					request.status = "declined"
 			if a.has("contracts"):
 				Contract.on_visit_end(state, command.action_id)
 			if a.has("commissions"):
@@ -430,6 +447,9 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 				var row: Dictionary = remaining_rows[i]
 				if _admissible(state, str(row.id)):
 					a.outcomes[row.id] = "unserved"
+			for request: Dictionary in a.get("outbound", {}).values():
+				if request.status == "goods_offered":
+					request.status = "missed"
 			a.cursor = remaining_rows.size()
 			if a.has("contracts"):
 				Contract.on_close(state, command.action_id)
@@ -471,6 +491,7 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 				a.random_visits.target = 0
 				a.random_visits.shortfall = 0
 			a.phase = "DAY_PREP"
+			Salvage.morning(state)
 	return ""
 
 static func view(state: Dictionary) -> Dictionary:
@@ -511,4 +532,55 @@ static func view(state: Dictionary) -> Dictionary:
 		# Daily target is internal planning metadata, not guaranteed attendance.
 		result["random_visits"] = {"planned": a.random_visits.plan.size() if int(a.random_visits.day) == int(a.day) else 0,
 			"seeded": int(a.random_visits.day) == int(a.day)}
+	if a.profile.get("market_extension") == B3Interest.M7_MARKER:
+		var arrived: int = 0
+		var eligible_now: int = 0
+		var protected_now: int = 0
+		var shortages: Dictionary = {}
+		var source: Array = a.profile.days[int(a.day) - 1]
+		for candidate: Dictionary in source:
+			var id: String = str(candidate.id)
+			if a.active == id or str(a.outcomes.get(id, "")) not in ["", "unserved"]:
+				arrived += 1
+			var reason: String = B3Interest.interest_status(state, id)
+			if reason not in ["ordinary", "eligible"]:
+				shortages[reason] = int(shortages.get(reason, 0)) + 1
+			if _admissible(state, id):
+				eligible_now += 1
+				if id in a.profile.visit_random.locked_ids or Commission.is_return_visit(id, str(a.profile.get("commission_profile_id", ""))) or ServiceCustody.is_return_visit(id, str(a.profile.get("service_profile_id", ""))):
+					protected_now += 1
+		if a.phase == "EVENING_WORK":
+			var options: Array = []
+			for id: String in Salvage.CATALOG:
+				var terms: Dictionary = Salvage.CATALOG[id]
+				if not can_contact(a, terms.actor_id):
+					continue
+				var request: Dictionary = a.get("outbound", {}).get(id, {})
+				if request.is_empty() and a.day == terms.offer_day:
+					options.append({"id":id, "actor":terms.actor_id, "label":terms.public_terms_key,
+						"command":"alpha_salvage_dispatch"})
+				elif request.get("status") in ["dispatched","delayed"] and terms.has("cancel_refund"):
+					options.append({"id":id, "actor":terms.actor_id, "label":terms.public_cancel_key,
+						"command":"alpha_salvage_cancel"})
+			result["outbound_options"] = options
+		if a.phase in ["CLOSE_SETTLE", "EVENING_WORK", "COMPLETE"]:
+			var flow: Dictionary = {"bought":0, "sold":0, "VKC":0, "USD":0}
+			for entry: Dictionary in state.ledger:
+				if int(entry.game_minutes / 1440) + 1 != int(a.day):
+					continue
+				var buying: bool = entry.from == "player"
+				if not buying and entry.to != "player":
+					continue
+				var side: String = "bought" if buying else "sold"
+				flow[side] += entry.root_ids.size()
+				for currency: String in ["VKC", "USD"]:
+					flow[currency] += int(entry.amounts[currency]) * (-1 if buying else 1)
+			result["local_trade_flow"] = flow
+		var trade: Dictionary = result.get("currency_terms", {}).get("trade", {})
+		var offer: Dictionary = result.npc_context.get("current_offer", {})
+		if trade.get("direction") == "pay" and not offer.is_empty() and offer.response == "accepted" and offer.currency == trade.currency:
+			result.currency_terms["can_pay_public_offer"] = int(state.wallets.player[offer.currency]) >= int(offer.amount)
+		result["attendance"] = {"source": source.size(), "eligible_now": eligible_now, "interest_shortages_now": shortages,
+			"protected_now": protected_now, "target": int(a.random_visits.target),
+			"planned": today_rows.size(), "arrived": arrived}
 	return result

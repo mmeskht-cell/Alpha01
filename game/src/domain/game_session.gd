@@ -544,6 +544,11 @@ func _alpha_valid(state: Dictionary) -> bool:
 		expected_alpha_keys.append("fx")
 	if _alpha_seed.alpha_shop.has("random_visits"):
 		expected_alpha_keys.append("random_visits")
+	# A signed outbound command may add this key only after dispatch. Older M7
+	# saves have no outbound field; preserve their exact seed/save shape.
+	# Deterministic command replay below still rejects forged or altered entries.
+	if _alpha_seed.alpha_shop.has("outbound") or a.has("outbound"):
+		expected_alpha_keys.append("outbound")
 	if not Rules.keys(a, expected_alpha_keys):
 		return false
 	if a.version != 1 or a.profile != _alpha_seed.alpha_shop.profile or a.binding != _alpha_seed.alpha_shop.binding or not a.commands is Array or a.commands.size() != state.revision:

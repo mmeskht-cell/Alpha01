@@ -36,6 +36,21 @@ static func view(state: Dictionary) -> Dictionary:
 					"direction": "pay" if str(visit.buyer) == "player" else "receive",
 					"scope": "current_counter"}
 
+	if a.profile.get("market_extension") == "b3_m7_finite_interest_1":
+		var actor: String = ""
+		for scheduled: Dictionary in a.profile.days[int(a.day) - 1]:
+			if scheduled.id == a.active:
+				actor = scheduled.actor_id
+				break
+		# Money direction in the trade ledger is payer -> payee.
+		for index: int in range(state.ledger.size() - 1, -1, -1):
+			var entry: Dictionary = state.ledger[index]
+			if actor not in [entry.from, entry.to] or "player" not in [entry.from, entry.to]:
+				continue
+			out["last_settlement"] = {"paid_by_player": entry.from == "player",
+				"amounts": entry.amounts.duplicate(true), "visit_id": entry.visit_id}
+			break
+
 	if a.has("fx"):
 		var quote: Dictionary = Fx.view(state)
 		if bool(quote.get("at_counter", false)):

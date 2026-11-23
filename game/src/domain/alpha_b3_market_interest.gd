@@ -143,21 +143,26 @@ static func profile_valid(profile: Dictionary, state: Dictionary) -> bool:
 			return false
 	return true
 
-static func eligible(state: Dictionary, visit_id: String) -> bool:
+static func interest_status(state: Dictionary, visit_id: String) -> String:
 	var a: Dictionary=state.alpha_shop
 	var policy: Dictionary=a.profile.get("market_interest",{})
 	if policy.is_empty():
-		return true
+		return "ordinary"
 	for offer: Dictionary in policy.get("offers",[]):
 		if offer.visit_id!=visit_id:
 			continue
 		if not state.visits.has(visit_id) or not state.items.has(offer.item_id):
-			return false
+			return "missing_source"
 		var visit: Dictionary=state.visits[visit_id]
 		var item: Dictionary=state.items[offer.item_id]
 		if visit.scope.completed or item.owner_id!="player" or item.custodian_id!="player" or item.inventory!="storefront_grid" or item.status!="stock" or item.protected or not item.parent_id.is_empty() or not item.reservation_id.is_empty() or offer.item_id not in a.get("displayed",[]):
-			return false
+			return "unavailable_stock"
 		var wallet: Dictionary=state.wallets.get(offer.actor_id,{})
 		var price: Dictionary=visit.prices[offer.item_id]
-		return int(wallet.get("VKC",0))>=int(price.VKC) and int(wallet.get("USD",0))>=int(price.USD)
-	return true
+		if int(wallet.get("VKC",0)) < int(price.VKC) or int(wallet.get("USD",0)) < int(price.USD):
+			return "insufficient_budget"
+		return "eligible"
+	return "ordinary"
+
+static func eligible(state: Dictionary, visit_id: String) -> bool:
+	return interest_status(state, visit_id) in ["ordinary", "eligible"]

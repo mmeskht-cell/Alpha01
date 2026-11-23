@@ -180,6 +180,11 @@ func _add_b2_shop_board(panel: PanelContainer, view: Dictionary) -> void:
 	_board_line(body, "b2_board_cash", _text("b2.board.cash") % [int(cash.get("VKC", 0)), int(cash.get("USD", 0))])
 	# Evidence, not a currency index: show only this visitor's signed
 	# denomination or actual one-off quote. Never imply all VKC is worthless.
+	if view.has("attendance") and view.phase in ["CLOSE_SETTLE", "EVENING_WORK", "COMPLETE"]:
+		_board_line(body, "b3_daily_attendance", _text("b3.board.arrivals") % int(view.attendance.arrived))
+	if view.has("local_trade_flow"):
+		var flow: Dictionary = view.local_trade_flow
+		_board_line(body, "b3_store_flow", _text("b3.board.flow") % [int(flow.bought), int(flow.sold), int(flow.VKC), int(flow.USD)])
 	if b3_fx_mode and view.phase == "CUSTOMER_ACTIVE":
 		var money_terms: Dictionary = view.get("currency_terms", {})
 		var current_trade: Dictionary = money_terms.get("trade", {})
@@ -187,6 +192,12 @@ func _add_b2_shop_board(panel: PanelContainer, view: Dictionary) -> void:
 		if not current_trade.is_empty():
 			_board_line(body, "b3_currency_bound_terms",
 				_text("b3.currency.trade_terms") % str(current_trade.currency))
+		if money_terms.has("can_pay_public_offer") and not money_terms.can_pay_public_offer:
+			_board_line(body, "b3_public_offer_funds", _text("b3.currency.insufficient") % str(current_trade.currency))
+		var last: Dictionary = money_terms.get("last_settlement", {})
+		if not last.is_empty():
+			var key: String = "b3.history.paid" if last.paid_by_player else "b3.history.received"
+			_board_line(body, "b3_actor_last_settlement", _text(key) % [int(last.amounts.VKC), int(last.amounts.USD)])
 		if not current_exchange.is_empty():
 			_board_line(body, "b3_currency_quote_scope", _text("b3.currency.quote_scope"))
 	# A customer visit must be finishable without scrolling through the whole
@@ -215,6 +226,10 @@ func _add_b2_shop_board(panel: PanelContainer, view: Dictionary) -> void:
 				detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 				detail.text = (_text("alpha.contacts.preview_title") % _actor_label(_contact_focus)) + "\n" + _text("alpha.contacts.preview_conditions")
 				preview.add_child(detail)
+				for option: Dictionary in view.get("outbound_options", []):
+					if option.actor == _contact_focus:
+						_button(body, "b3_request_" + str(option.id), _text(str(option.label)),
+							func() -> void: _submit(str(option.command), {"request_id":option.id}))
 				return
 	var owned: Array = []
 	var displayed: int = 0
