@@ -103,7 +103,22 @@ func campaign(route: String) -> bool:
 			return end.alpha_shop.week_pawn.status == "redeemed" and end.items.WAT02.custodian_id == "G04" and end.wallets.player.VKC == start.wallets.player.VKC + 5
 	return false
 
+# Each seven-day route runs in its own Godot process. Never remove a
+# route merely to meet the fixed-check budget: each owns a 45s timeout.
+const ROUTES: Array = ["return","empty","cancel","redeem","extend","forfeit","market","combined","shortage"]
+
+func done() -> void:
+	var argv: PackedStringArray = OS.get_cmdline_user_args()
+	var route: String = str(argv[0]) if argv.size() == 1 else "invalid"
+	print("ALPHA_B3_INTEGRATED_WEEK_PART ", route, ": ", checks, " checks, ", failures, " failures")
+	quit(0 if failures == 0 else 1)
+
 func _initialize() -> void:
-	for route: String in ["return","empty","cancel","redeem","extend","forfeit","market","combined","shortage"]:
-		check(campaign(route),"integrated first week: " + route)
+	var argv: PackedStringArray = OS.get_cmdline_user_args()
+	if argv.size() != 1 or str(argv[0]) not in ROUTES:
+		check(false, "exactly one supported first-week route argument is required")
+		done()
+		return
+	var route: String = str(argv[0])
+	check(campaign(route), "integrated first week: " + route)
 	done()

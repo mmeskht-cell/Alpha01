@@ -91,6 +91,11 @@ for test in tests:
     elif test == 'scenarios/gate2_demo_integration_test':
         # Identical four independent scenarios, one process and timeout per part.
         commands.extend(command + ['--', part] for part in demo_parts)
+    elif test == 'scenarios/alpha_b3_integrated_week_test':
+        # Nine unchanged seven-day paths, one bounded Godot process per route.
+        commands.extend(command + ['--', part] for part in (
+            'return', 'empty', 'cancel', 'redeem', 'extend',
+            'forfeit', 'market', 'combined', 'shortage'))
     else:
         commands.append(command)
 commands.append([engine, '--headless', '--path', str(root), 'res://scenes/app/demo7.tscn', '--quit-after', '3'])
@@ -127,6 +132,19 @@ for index, command in enumerate(commands, start=1):
         expected = f'GATE2_DEMO_INTEGRATION_PART {command[-1]}: '
         if not any(line.startswith(expected) and line.endswith(' checks, 0 failures') and line[len(expected):].split(' ', 1)[0].isdigit() and int(line[len(expected):].split(' ', 1)[0]) > 0 for line in output.splitlines()):
             print('FAIL: missing successful demo part marker', command[-1], flush=True)
+            failed = True
+    if any('alpha_b3_integrated_week_test.gd' in str(part) for part in command):
+        # The exit code alone does not prove the specified route ran.
+        expected = f'ALPHA_B3_INTEGRATED_WEEK_PART {command[-1]}: '
+        valid = any(
+            line.startswith(expected)
+            and line.endswith(' checks, 0 failures')
+            and line[len(expected):].split(' ', 1)[0].isdigit()
+            and int(line[len(expected):].split(' ', 1)[0]) > 0
+            for line in output.splitlines()
+        )
+        if not valid:
+            print('FAIL: missing successful B3 first-week route marker', command[-1], flush=True)
             failed = True
     record_step(index, command, output, result.returncode or (1 if failed else 0), 'failed' if failed else 'passed')
     if failed:
