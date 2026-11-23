@@ -8,11 +8,12 @@ const SLOT: String = "b3_m5_authority"
 var checks: int = 0
 var failures: int = 0
 
-func check(ok: bool, name: String) -> void:
+func check(ok: bool, name: String) -> bool:
 	checks += 1
 	if not ok:
 		failures += 1
 		printerr("FAIL: ", name)
+	return ok
 
 func fresh(seed: int) -> RefCounted:
 	var src: Dictionary = Source.content(seed)

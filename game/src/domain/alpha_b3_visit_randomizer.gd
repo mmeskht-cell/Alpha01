@@ -61,8 +61,38 @@ static func plan(rows: Array, eligible: Dictionary, locked_ids: Array, seed: int
 		if selected.size() >= target:
 			break
 		selected.append(entry.row.duplicate(true))
+	# Randomize nonstory order WITHIN authored story/appointment boundaries.
+	# A mandatory end-of-day introduction must not jump to first position
+	# merely because it was locked against omission.
+	var chosen: Dictionary = {}
+	for row: Dictionary in selected:
+		chosen[row.id] = true
+	var finalized: Array = []
+	var segment: Array = []
+	for row: Dictionary in rows:
+		if protected.has(row.id):
+			segment.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+				var left: int = _score(seed, day, str(a.id))
+				var right: int = _score(seed, day, str(b.id))
+				if left != right:
+					return left < right
+				return str(a.id) < str(b.id)
+			)
+			finalized.append_array(segment)
+			segment = []
+			finalized.append(row.duplicate(true))
+		elif chosen.has(row.id):
+			segment.append(row.duplicate(true))
+	segment.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		var left: int = _score(seed, day, str(a.id))
+		var right: int = _score(seed, day, str(b.id))
+		if left != right:
+			return left < right
+		return str(a.id) < str(b.id)
+	)
+	finalized.append_array(segment)
 
-	return {"ok": true, "day": day, "target": target, "visits": selected,
-		"actual": selected.size(), "shortfall": maxi(0, target - selected.size()),
+	return {"ok": true, "day": day, "target": target, "visits": finalized,
+		"actual": finalized.size(), "shortfall": maxi(0, target - finalized.size()),
 		"available": protected.size() + optional.size(),
 		"locked": protected.size()}

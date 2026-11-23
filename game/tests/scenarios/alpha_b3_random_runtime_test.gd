@@ -49,6 +49,8 @@ func _initialize() -> void:
 		and alternative.alpha_profile.visit_random.seed == 197
 		and not Source.content(0).has("alpha_profile"),
 		"seed variation is explicit and invalid seed rejected")
+	var high_seed: RefCounted = fresh(Source.content(2147483647))
+	check(high_seed != null, "the full supported 31-bit campaign seed range initializes")
 	var s: RefCounted = fresh(source)
 	var replay: RefCounted = fresh(source)
 	var legacy: RefCounted = fresh(original)

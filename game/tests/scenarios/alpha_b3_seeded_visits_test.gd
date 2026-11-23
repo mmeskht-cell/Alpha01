@@ -63,10 +63,28 @@ func _initialize() -> void:
 		check(underfilled.ok and int(underfilled.actual) == fixed.size()
 			and int(underfilled.shortfall) > 0,
 			"missing eligible customers cause honest underfill, never visitor minting")
+		if day == 1:
+			check(not p.visits.is_empty() and p.visits[p.visits.size()-1].id == "alpha_marcus_intro",
+				"the authored contract introduction stays after ordinary Day1 visitors")
 		if day == 2:
 			day_two = rows
 			day_two_flags = availability
 			day_two_fixed = fixed
+	var story_rows: Array = source.alpha_profile.days[4]
+	var story_flags: Dictionary = {}
+	var story_expected: int = -1
+	for i: int in range(story_rows.size()):
+		story_flags[story_rows[i].id] = true
+		if story_rows[i].id == "hygiene_sale":
+			story_expected = i
+	var story_draw: Dictionary = Randomizer.plan(story_rows, story_flags, ["hygiene_sale"], 101, 5)
+	var story_position: int = -1
+	for i: int in range(story_draw.get("visits", []).size()):
+		if story_draw.visits[i].id == "hygiene_sale":
+			story_position = i
+	check(story_draw.get("ok", false) and story_expected >= 0
+		and story_position == story_expected,
+		"narrative-linked economic visit retains authored Day5 position")
 	check(source == copy, "planner never mutates source wallets, items, offers or calendar")
 	check(not day_two.is_empty(), "real source includes multiple D2 potential visits")
 	var baseline: Dictionary = Randomizer.plan(day_two, day_two_flags, day_two_fixed, 101, 2)

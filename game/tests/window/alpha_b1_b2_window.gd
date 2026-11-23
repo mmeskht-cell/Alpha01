@@ -80,6 +80,8 @@ func install(scene: PackedScene, name: String) -> bool:
 	host.save_directory_override = "user://zt_rebuild/window_" + name + "_" + str(Time.get_ticks_usec())
 	root.add_child(host)
 	await frames()
+	if host.session == null or host._blocked:
+		printerr("ALPHA_WINDOW_BOOT_DIAGNOSTIC scene=", name, " reason=", host._message)
 	return check(host.session != null and not host._blocked, "new alpha scene boots " + name) and check(host.theme != null and host.theme.default_font != null and host.theme.default_font.has_char(0xD55C) and host.theme.default_font.has_char(0xAE00), "verified Korean UI font supports Hangul glyphs")
 
 func finish() -> void:
