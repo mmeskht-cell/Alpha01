@@ -397,4 +397,53 @@ func run() -> void:
 		"native cold restart reuses exact saved seed and committed visitor plan")
 	check(host.session.snapshot().alpha_shop.random_visits.plan==m5_open.alpha_shop.random_visits.plan,
 		"native screen load cannot reroll visitors or reorder the same day")
+	# M8: the M7 finite actual-buyer source is playable on the exact B2/M5
+	# counter, but its persisted seed, profile and A/B slot are isolated.
+	host.queue_free()
+	await frames()
+	var m7_scene: PackedScene=load(B3Entry.M7_SCENE_PATH) as PackedScene
+	if not check(m7_scene!=null,"B3-M7 standalone optional scene resolves"):
+		await finish()
+		return
+	if not await install(m7_scene,"b3_m7_interest"):
+		await finish()
+		return
+	var m7_root: String=host.save_directory_override
+	var m7_initial: Dictionary=host.session.snapshot()
+	check(host.b3_random_mode and host.b3_m7_mode
+		and host._slot()=="alpha_b3_m7_interest_v1"
+		and host._slot()!="alpha_b3_random_m5_v1" and m7_root!=seed_root,
+		"new M7 user-facing counter starts in an independent versioned A/B slot")
+	check(m7_initial.alpha_shop.profile.get("market_extension")=="b3_m7_finite_interest_1"
+		and m7_initial.alpha_shop.profile.market_interest.offers.size()==12
+		and m7_initial.alpha_shop.profile.days[4].size()==5,
+		"M7 optional scene has independently bound finite demand extension")
+	check(m7_initial.wallets==m5_before.wallets
+		and m7_initial.items==m5_before.items
+		and m7_initial.ledger==m5_before.ledger
+		and m7_initial.visits.size()==m5_before.visits.size()+4,
+		"M7 optional scene does not spawn extra goods or money to fill visitors")
+	check(FileAccess.file_exists(m7_root.path_join(host._slot()+".a.json")),
+		"real native M7 scene writes authoritative first-generation seed before any click")
+	await capture("alpha-b3-m7-finite-interest-intro-720p",Vector2i(1280,720))
+	if not (await click("intro_skip","DAY_PREP") and await click("alpha_open","OPEN_IDLE")):
+		await finish()
+		return
+	var m7_open: Dictionary=host.session.snapshot()
+	check(m7_open.alpha_shop.random_visits.day==1
+		and m7_open.alpha_shop.random_visits.plan.size()<=8
+		and "alpha_marcus_intro" in m7_open.alpha_shop.random_visits.plan,
+		"M7 real screen opens only actual source-bound visitors and preserves intro")
+	await capture("alpha-b3-m7-finite-interest-open-720p",Vector2i(1280,720))
+	host.queue_free()
+	await frames()
+	host=m7_scene.instantiate()
+	host.save_directory_override=m7_root
+	root.add_child(host)
+	await frames()
+	check(not host._blocked and host.session!=null
+		and host.session.snapshot()==m7_open and host._intro==false,
+		"M7 native cold restart preserves both optional source binding and drawn D1 plan")
+	check(host.session.snapshot().alpha_shop.random_visits.plan==m7_open.alpha_shop.random_visits.plan,
+		"native M7 opening cannot reroll visitor eligibility or order")
 	await finish()

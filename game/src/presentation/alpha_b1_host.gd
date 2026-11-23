@@ -12,6 +12,7 @@ const B3MarketSeed = preload("res://src/content/alpha_b3_market_seed.gd")
 const B3MarketM2Seed = preload("res://src/content/alpha_b3_market_m2_seed.gd")
 const B3FxSeed = preload("res://src/content/alpha_b3_fx_seed.gd")
 const B3RandomSeed = preload("res://src/content/alpha_b3_random_runtime_seed.gd")
+const B3M7Seed = preload("res://src/content/alpha_b3_m7_interest_seed.gd")
 const B3SeedAuthority = preload("res://src/content/alpha_b3_seed_authority.gd")
 const B2_KO_PATH = "res://data/alpha_b2/ko.json"
 const B3_KO_PATH = "res://data/alpha_b3/ko.json"
@@ -34,6 +35,7 @@ const SAVE_SLOT = "alpha_b1_profile_v3"
 @export var b3_market_m2_mode: bool = false
 @export var b3_fx_mode: bool = false
 @export var b3_random_mode: bool = false
+@export var b3_m7_mode: bool = false
 var session: RefCounted
 var _repo: RefCounted
 var _strings: Dictionary = {}
@@ -68,12 +70,18 @@ func _ready() -> void:
 		var b3_locale: Variant=JSON.parse_string(FileAccess.get_file_as_string(B3_KO_PATH))
 		if b3_locale is Dictionary and b3_locale.get("strings") is Dictionary:
 			_strings.merge(b3_locale.strings,true)
+	# A distinct versioned optional campaign must never silently occupy M5's slot.
+	if b3_m7_mode and not b3_random_mode:
+		_blocked = true
+		_message = "M7 구매 프로필은 저장 시드가 있는 방문 모드에서만 시작할 수 있습니다."
+		refresh()
+		return
 	# Before constructing a strict save-bound session, recover the exact seed
 	# from a checksum-valid existing A/B generation. New campaigns persist
 	# their first snapshot before any interaction or displayed random visitors.
 	var random_seed: int = 101
 	if b3_random_mode:
-		var random_dir: String = save_directory_override if not save_directory_override.is_empty() else "user://zt_rebuild/alpha_b3_random_m5"
+		var random_dir: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b3_m7_interest" if b3_m7_mode else "user://zt_rebuild/alpha_b3_random_m5")
 		var selected_seed: Dictionary = B3SeedAuthority.select_seed(random_dir, _slot())
 		if not selected_seed.get("ok", false):
 			_blocked = true
@@ -81,7 +89,11 @@ func _ready() -> void:
 			refresh()
 			return
 		random_seed = int(selected_seed.seed)
-	var source: Dictionary = B3RandomSeed.content(random_seed) if b3_random_mode else (B3FxSeed.content() if b3_fx_mode else (B3MarketM2Seed.content() if b3_market_m2_mode else (B3MarketSeed.content() if b3_market_mode else (MultiServiceSeed.content() if b2_multi_service_mode else (RecoverySeed.content() if b2_recovery_mode else (ServiceSeed.content() if b2_service_mode else (NamedCommissionSeed.content() if b2_named_commission_mode else (CommissionSeed.content() if b2_commission_mode else (CardSeed.content() if b2_interactive_mode else (B2Seed.content() if b2_mode else Seed.content()))))))))))
+	var source: Dictionary = {}
+	if b3_m7_mode:
+		source = B3M7Seed.content(random_seed)
+	else:
+		source = B3RandomSeed.content(random_seed) if b3_random_mode else (B3FxSeed.content() if b3_fx_mode else (B3MarketM2Seed.content() if b3_market_m2_mode else (B3MarketSeed.content() if b3_market_mode else (MultiServiceSeed.content() if b2_multi_service_mode else (RecoverySeed.content() if b2_recovery_mode else (ServiceSeed.content() if b2_service_mode else (NamedCommissionSeed.content() if b2_named_commission_mode else (CommissionSeed.content() if b2_commission_mode else (CardSeed.content() if b2_interactive_mode else (B2Seed.content() if b2_mode else Seed.content()))))))))))
 	if source.is_empty():
 		_blocked = true
 		_message = "B1 콘텐츠를 읽지 못했습니다."
@@ -93,7 +105,7 @@ func _ready() -> void:
 		else:
 			var location: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b3_fx_m3" if b3_fx_mode else ("user://zt_rebuild/alpha_b3_market_m2" if b3_market_m2_mode else ("user://zt_rebuild/alpha_b3_market_m1" if b3_market_mode else ("user://zt_rebuild/alpha_b2_service_multi" if b2_multi_service_mode else ("user://zt_rebuild/alpha_b2_service_recovery" if b2_recovery_mode else ("user://zt_rebuild/alpha_b2_service" if b2_service_mode else ("user://zt_rebuild/alpha_b2_named_commission" if b2_named_commission_mode else ("user://zt_rebuild/alpha_b2_commission" if b2_commission_mode else ("user://zt_rebuild/alpha_b2_cards" if b2_interactive_mode else ("user://zt_rebuild/alpha_b2" if b2_mode else "user://zt_rebuild/alpha_b1"))))))))))
 			if b3_random_mode:
-				location = save_directory_override if not save_directory_override.is_empty() else "user://zt_rebuild/alpha_b3_random_m5"
+				location = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b3_m7_interest" if b3_m7_mode else "user://zt_rebuild/alpha_b3_random_m5")
 			_repo = Repo.new(location)
 			var loaded: Dictionary = _repo.load_session(session, _slot())
 			if loaded.get("ok", false):
@@ -111,6 +123,8 @@ func _ready() -> void:
 	refresh()
 
 func _slot() -> String:
+	if b3_m7_mode:
+		return "alpha_b3_m7_interest_v1"
 	return "alpha_b3_random_m5_v1" if b3_random_mode else ("alpha_b3_fx_m3_v1" if b3_fx_mode else ("alpha_b3_market_m2_v1" if b3_market_m2_mode else ("alpha_b3_market_m1_v1" if b3_market_mode else ("alpha_b2_service_custody_multi_v3" if b2_multi_service_mode else ("alpha_b2_service_custody_recovery_v2" if b2_recovery_mode else ("alpha_b2_service_custody_pilot_v1" if b2_service_mode else ("alpha_b2_named_commission_parity_v1" if b2_named_commission_mode else ("alpha_b2_commission_pilot_v1" if b2_commission_mode else ("alpha_b2_cards_pilot_v1" if b2_interactive_mode else ("alpha_b2_trade_slice_v2" if b2_mode else SAVE_SLOT))))))))))
 
 func _text(key: String) -> String:
