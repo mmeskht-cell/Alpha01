@@ -1,10 +1,21 @@
 extends "res://tests/window/alpha_b1_b2_window.gd"
 const Spatial = preload("res://scenes/app/alpha_b3_week_candidate.tscn")
 
-func finish() -> void:
+## Godot Ogg playback decoders may still be owned by the audio mixer immediately
+## after stop(). Drain one bounded mixer interval before freeing each B3 host.
+## Keep the real soundtrack and the strict leak assertion unchanged.
+func release_host() -> void:
+	if not is_instance_valid(host):
+		return
+	if is_instance_valid(host.sound):
+		host.sound.shutdown_audio()
+		await create_timer(0.25).timeout
 	if is_instance_valid(host):
 		host.queue_free()
 	await frames()
+
+func finish() -> void:
+	await release_host()
 	print("B3_SPATIAL_WEEK_WINDOW: ", checks, " checks, ", failures, " failures")
 	# All nested await continuations must unwind before SceneTree teardown.
 	# Keep the CI leak detector strict: never suppress the engine warning.
@@ -32,8 +43,7 @@ func run() -> void:
 				await finish()
 				return
 		check(not host._intro and host.session.snapshot()==initial,"five beats preserve the exact opening")
-		host.queue_free()
-		await frames()
+		await release_host()
 		host = Spatial.instantiate()
 		host.save_directory_override = location
 		root.add_child(host)
@@ -79,8 +89,7 @@ func run() -> void:
 		await click("cell_0_0","OPEN_IDLE")
 		check(host.session.snapshot().items.R001.inventory=="storefront_grid","actual grid listing")
 		await capture("spatial_shelf_%d"%resolution.y,resolution)
-		host.queue_free()
-		await frames()
+		await release_host()
 	if await install(Spatial,"spatial_skip"):
 		var before: Dictionary = host.session.snapshot()
 		await click_navigation(host,"intro_next")

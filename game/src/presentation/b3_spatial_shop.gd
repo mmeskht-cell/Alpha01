@@ -21,6 +21,7 @@ var last_visit := ""
 var reduce_motion := false
 var last_cue := ""
 var pending_save := false
+var _leaving_title := false
 var hint := ""
 
 func _slot() -> String:
@@ -527,8 +528,17 @@ func _place_selection(target: Vector2i) -> void:
 		_submit("spatial_move",payload)
 
 func _return_to_title() -> void:
+	if _leaving_title:
+		return
+	_leaving_title = true
 	sound.remember_score_position()
-	get_tree().change_scene_to_file("res://scenes/app/main_menu.tscn")
+	# Ogg stream playback is retired by the audio mixer asynchronously.
+	# Stop while the scene is alive, then allow one bounded drain interval
+	# before changing scenes (Godot audio teardown / CI leak regression).
+	sound.shutdown_audio()
+	await get_tree().create_timer(0.25).timeout
+	if is_inside_tree():
+		get_tree().change_scene_to_file("res://scenes/app/main_menu.tscn")
 
 func _submit(kind: String,payload: Dictionary={}) -> void:
 	var before: int = session.snapshot().revision
