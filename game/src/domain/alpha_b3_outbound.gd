@@ -4,6 +4,12 @@ extends RefCounted
 ## and dated external evidence. Goods remain with their owner until counter trade.
 const Rules = preload("res://src/domain/value_rules.gd")
 const CATALOG: Dictionary = {}
+const WEEK_CATALOG = {"tool_search":{"actor_id":"G01","currency":"VKC","offer_day":1,
+	"advance":10,"cancel_refund":10,"public_terms_key":"week.dispatch","public_cancel_key":"week.cancel",
+	"events":{"3":{"status":"delayed"},"4":{"status":"goods_offered","visit_id":"tool_buy","item_id":"TL04"}}}}
+
+static func catalog(a: Dictionary) -> Dictionary:
+	return WEEK_CATALOG if a.profile.get("week_proposal") == "first_week_proposal_1" else CATALOG
 
 static func apply(state: Dictionary, id: String, terms: Dictionary, command: Dictionary) -> String:
 	var a: Dictionary = state.alpha_shop
@@ -49,12 +55,17 @@ static func morning(state: Dictionary) -> void:
 	var a: Dictionary = state.alpha_shop
 	for id: String in a.get("outbound", {}):
 		var row: Dictionary = a.outbound[id]
-		if not CATALOG.has(id):
+		var policies: Dictionary = catalog(a)
+		if not policies.has(id):
 			continue
 		if row.status not in ["dispatched", "delayed", "unreachable"]:
 			continue
-		var evidence: Dictionary = CATALOG[id].events.get(str(a.day), {})
+		var evidence: Dictionary = policies[id].events.get(str(a.day), {})
+		if evidence.get("status") == "goods_offered" and int(state.wallets[row.actor_id].VKC) < 60:
+			evidence = {"status":"empty"}
 		apply_evidence(state, row, evidence)
+		if evidence.get("status") == "goods_offered" and row.status != "goods_offered":
+			row.status = "empty"
 
 static func apply_evidence(state: Dictionary, row: Dictionary, evidence: Dictionary) -> void:
 	if row.status not in ["dispatched", "delayed", "unreachable"]:

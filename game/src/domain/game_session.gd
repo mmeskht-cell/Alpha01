@@ -47,6 +47,7 @@ const Opening = preload("res://src/domain/gate1_opening.gd")
 const DayOne = preload("res://src/domain/day_one.gd")
 const ComponentMarket = preload("res://src/domain/component_market.gd")
 const Negotiation = preload("res://src/domain/gate1_negotiation.gd")
+const WeekPawn = preload("res://src/domain/alpha_b3_week_pawn.gd")
 const AlphaShop = preload("res://src/domain/alpha_shop_cycle.gd")
 const AlphaCards = preload("res://src/domain/alpha_card_trade.gd")
 const AlphaCommission = preload("res://src/domain/alpha_commission.gd")
@@ -284,6 +285,10 @@ func _execute(command: Dictionary, world: bool) -> Dictionary:
 ## B2 candidate uses original transfer/move and accounting internals. Only the
 ## opt-in profile supplies new phase/real-shelf admission permissions.
 func _apply_alpha(state: Dictionary, command: Dictionary) -> String:
+	if command.type in WeekPawn.ACTIONS:
+		return WeekPawn.apply(state,_definitions,command)
+	if command.type == "alpha_settle" and state.alpha_shop.phase == "CLOSE_SETTLE":
+		WeekPawn.expire(state,_definitions,command.action_id)
 	var p: Dictionary = command.payload
 	if command.type == "alpha_service_repair":
 		if not state.alpha_shop.has("services"):
@@ -530,6 +535,8 @@ func _alpha_valid(state: Dictionary) -> bool:
 		return false
 	var a: Dictionary = state.alpha_shop
 	var expected_alpha_keys: Array = ["version", "profile", "binding", "day", "phase", "cursor", "active", "outcomes", "settled_days", "contacts", "commands"]
+	if _alpha_seed.alpha_shop.has("week_pawn"):
+		expected_alpha_keys.append("week_pawn")
 	if _alpha_seed.alpha_shop.has("displayed"):
 		expected_alpha_keys.append("displayed")
 	if _alpha_seed.alpha_shop.has("contracts"):

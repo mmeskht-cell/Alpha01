@@ -12,6 +12,7 @@ const B3MarketSeed = preload("res://src/content/alpha_b3_market_seed.gd")
 const B3MarketM2Seed = preload("res://src/content/alpha_b3_market_m2_seed.gd")
 const B3FxSeed = preload("res://src/content/alpha_b3_fx_seed.gd")
 const B3RandomSeed = preload("res://src/content/alpha_b3_random_runtime_seed.gd")
+const WeekSeed = preload("res://src/content/alpha_b3_week_candidate.gd")
 const B3M7Seed = preload("res://src/content/alpha_b3_m7_interest_seed.gd")
 const B3SeedAuthority = preload("res://src/content/alpha_b3_seed_authority.gd")
 const B2_KO_PATH = "res://data/alpha_b2/ko.json"
@@ -35,6 +36,7 @@ const SAVE_SLOT = "alpha_b1_profile_v3"
 @export var b3_market_m2_mode: bool = false
 @export var b3_fx_mode: bool = false
 @export var b3_random_mode: bool = false
+@export var week_candidate: bool = false
 @export var b3_m7_mode: bool = false
 var session: RefCounted
 var _repo: RefCounted
@@ -81,7 +83,7 @@ func _ready() -> void:
 	# their first snapshot before any interaction or displayed random visitors.
 	var random_seed: int = 101
 	if b3_random_mode:
-		var random_dir: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b3_m7_interest" if b3_m7_mode else "user://zt_rebuild/alpha_b3_random_m5")
+		var random_dir: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/b3_week_candidate" if week_candidate else "user://zt_rebuild/alpha_b3_m7_interest" if b3_m7_mode else "user://zt_rebuild/alpha_b3_random_m5")
 		var selected_seed: Dictionary = B3SeedAuthority.select_seed(random_dir, _slot())
 		if not selected_seed.get("ok", false):
 			_blocked = true
@@ -91,7 +93,7 @@ func _ready() -> void:
 		random_seed = int(selected_seed.seed)
 	var source: Dictionary = {}
 	if b3_m7_mode:
-		source = B3M7Seed.content(random_seed)
+		source = WeekSeed.content(random_seed) if week_candidate else B3M7Seed.content(random_seed)
 	else:
 		source = B3RandomSeed.content(random_seed) if b3_random_mode else (B3FxSeed.content() if b3_fx_mode else (B3MarketM2Seed.content() if b3_market_m2_mode else (B3MarketSeed.content() if b3_market_mode else (MultiServiceSeed.content() if b2_multi_service_mode else (RecoverySeed.content() if b2_recovery_mode else (ServiceSeed.content() if b2_service_mode else (NamedCommissionSeed.content() if b2_named_commission_mode else (CommissionSeed.content() if b2_commission_mode else (CardSeed.content() if b2_interactive_mode else (B2Seed.content() if b2_mode else Seed.content()))))))))))
 	if source.is_empty():
@@ -105,7 +107,7 @@ func _ready() -> void:
 		else:
 			var location: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b3_fx_m3" if b3_fx_mode else ("user://zt_rebuild/alpha_b3_market_m2" if b3_market_m2_mode else ("user://zt_rebuild/alpha_b3_market_m1" if b3_market_mode else ("user://zt_rebuild/alpha_b2_service_multi" if b2_multi_service_mode else ("user://zt_rebuild/alpha_b2_service_recovery" if b2_recovery_mode else ("user://zt_rebuild/alpha_b2_service" if b2_service_mode else ("user://zt_rebuild/alpha_b2_named_commission" if b2_named_commission_mode else ("user://zt_rebuild/alpha_b2_commission" if b2_commission_mode else ("user://zt_rebuild/alpha_b2_cards" if b2_interactive_mode else ("user://zt_rebuild/alpha_b2" if b2_mode else "user://zt_rebuild/alpha_b1"))))))))))
 			if b3_random_mode:
-				location = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/alpha_b3_m7_interest" if b3_m7_mode else "user://zt_rebuild/alpha_b3_random_m5")
+				location = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/b3_week_candidate" if week_candidate else "user://zt_rebuild/alpha_b3_m7_interest" if b3_m7_mode else "user://zt_rebuild/alpha_b3_random_m5")
 			_repo = Repo.new(location)
 			var loaded: Dictionary = _repo.load_session(session, _slot())
 			if loaded.get("ok", false):
@@ -123,6 +125,8 @@ func _ready() -> void:
 	refresh()
 
 func _slot() -> String:
+	if week_candidate:
+		return "b3_week_candidate_v1"
 	if b3_m7_mode:
 		return "alpha_b3_m7_interest_v1"
 	return "alpha_b3_random_m5_v1" if b3_random_mode else ("alpha_b3_fx_m3_v1" if b3_fx_mode else ("alpha_b3_market_m2_v1" if b3_market_m2_mode else ("alpha_b3_market_m1_v1" if b3_market_mode else ("alpha_b2_service_custody_multi_v3" if b2_multi_service_mode else ("alpha_b2_service_custody_recovery_v2" if b2_recovery_mode else ("alpha_b2_service_custody_pilot_v1" if b2_service_mode else ("alpha_b2_named_commission_parity_v1" if b2_named_commission_mode else ("alpha_b2_commission_pilot_v1" if b2_commission_mode else ("alpha_b2_cards_pilot_v1" if b2_interactive_mode else ("alpha_b2_trade_slice_v2" if b2_mode else SAVE_SLOT))))))))))
@@ -180,6 +184,30 @@ func _add_b2_shop_board(panel: PanelContainer, view: Dictionary) -> void:
 	_board_line(body, "b2_board_cash", _text("b2.board.cash") % [int(cash.get("VKC", 0)), int(cash.get("USD", 0))])
 	# Evidence, not a currency index: show only this visitor's signed
 	# denomination or actual one-off quote. Never imply all VKC is worthless.
+	if b3_m7_mode and not week_candidate and view.phase in ["DAY_PREP", "EVENING_WORK", "COMPLETE"]:
+		_button(body, "week_candidate_open", _text("week.launch"), func() -> void: get_tree().change_scene_to_file("res://scenes/app/alpha_b3_week_candidate.tscn"))
+	if week_candidate:
+		_board_line(body, "week_balance_label", _text("week.proposed"))
+		if view.phase == "CUSTOMER_ACTIVE" and view.active.id == "week_tool_buy_d7" and view.currency_terms.get("trade", {}).get("currency") == "USD":
+			_board_line(body, "week_local_quote", _text("week.usd"))
+		var pawn: Dictionary = current.alpha_shop.week_pawn
+		if view.phase == "CUSTOMER_ACTIVE" and view.active.id == "watch_a" and pawn.status == "available":
+			_button(body, "week_pledge", _text("week.pledge"), func() -> void: _submit("week_pledge"))
+		if pawn.status != "available":
+			for event: Dictionary in pawn.events:
+				if event.has("amount"):
+					var delta: int = int(event.amount.VKC) * (-1 if event.payer == "player" else 1)
+					_board_line(body, "week_payment_" + str(event.action), _text("week.payment") % [int(event.day),delta,"VKC"])
+			_board_line(body, "week_pawn_record", _text("week.pawn_record") % [_text("week." + str(pawn.status)), int(pawn.due)])
+		if view.phase == "CLOSE_SETTLE" and pawn.status == "pledged" and view.day == pawn.due:
+			_button(body, "week_redeem", _text("week.redeem"), func() -> void: _submit("week_redeem"))
+			if pawn.due == 4:
+				_button(body, "week_extend", _text("week.extend"), func() -> void: _submit("week_extend"))
+		for order: Dictionary in current.alpha_shop.get("outbound", {}).values():
+			_board_line(body, "week_order_record", _text("week.order") % _text("week." + str(order.status)))
+			for payment: Dictionary in order.payments:
+				var signed_amount: int = -int(payment.amount) if payment.from == "player" else int(payment.amount)
+				_board_line(body, "week_payment_" + str(payment.action_id), _text("week.payment") % [int(payment.day),signed_amount,str(payment.currency)])
 	if view.has("attendance") and view.phase in ["CLOSE_SETTLE", "EVENING_WORK", "COMPLETE"]:
 		_board_line(body, "b3_daily_attendance", _text("b3.board.arrivals") % int(view.attendance.arrived))
 	if view.has("local_trade_flow"):

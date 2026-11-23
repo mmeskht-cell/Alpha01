@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/presentation/alpha_b1_host.gd" id="1"]
+
+[node name="AlphaB3FiniteBuyersCounter" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+b2_mode = true
+b2_interactive_mode = true
+b2_commission_mode = true
+b2_named_commission_mode = true
+b2_service_mode = true
+b2_multi_service_mode = true
+b3_fx_mode = true
+b3_random_mode = true
+b3_m7_mode = true
+week_candidate = true

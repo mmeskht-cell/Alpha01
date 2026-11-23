@@ -13,7 +13,7 @@ const B3Random = preload("res://src/domain/alpha_b3_visit_randomizer.gd")
 const Story = preload("res://src/domain/alpha_story_projection.gd")
 const Grid = preload("res://src/domain/grid_primitives.gd")
 const Objects = preload("res://src/domain/object_schema.gd")
-const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid", "alpha_fx_trade", "alpha_salvage_dispatch", "alpha_salvage_cancel"]
+const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid", "alpha_fx_trade", "alpha_salvage_dispatch", "alpha_salvage_cancel","week_pledge","week_redeem","week_extend"]
 const PHASES: Array = ["DAY_PREP", "OPEN_IDLE", "CUSTOMER_ENTER", "CUSTOMER_ACTIVE", "CUSTOMER_EXIT", "CLOSE_SETTLE", "EVENING_WORK", "NEXT_DAY", "COMPLETE"]
 
 static func profile_valid(profile: Variant, state: Dictionary) -> bool:
@@ -32,6 +32,10 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 		keys.append("fx_profile")
 	if profile is Dictionary and profile.has("visit_random"):
 		keys.append("visit_random")
+	if profile is Dictionary and profile.has("week_proposal"):
+		if profile.week_proposal != "first_week_proposal_1" or profile.get("market_extension") != B3Interest.M7_MARKER:
+			return false
+		keys.append("week_proposal")
 	if profile is Dictionary and profile.has("market_extension"):
 		keys.append("market_extension")
 	if not Rules.keys(profile, keys) or profile.id != "alpha_b1_v1" or not Rules.identifier(profile.content_version):
@@ -124,6 +128,8 @@ static func seed(state: Dictionary, profile: Dictionary) -> Dictionary:
 		"day": 1, "phase": "DAY_PREP", "cursor": 0, "active": "",
 		"outcomes": {}, "settled_days": [], "contacts": {}, "commands": []
 	}
+	if profile.has("week_proposal"):
+		next.alpha_shop["week_pawn"] = {"status":"available","due":4,"events":[]}
 	if profile.content_version in ["b2-preview-1", "b2-preview-2", "b2-cards-pilot-1", "b2-cards-commission-1", "b2-cards-commission-named-1", "b2-cards-commission-service-1", "b2-cards-commission-service-recovery-2", "b2-cards-commission-service-multi-3", B3Interest.CONTENT_VERSION, B3Interest.CONTENT_VERSION_M2, B3Fx.VERSION]:
 		next.alpha_shop["displayed"] = []
 	if profile.has("contracts"):
@@ -144,7 +150,41 @@ static func seed(state: Dictionary, profile: Dictionary) -> Dictionary:
 ## authored rows remain the only identities; committed returns cannot be dropped.
 static func _admissible(state: Dictionary, visit_id: String) -> bool:
 	var a: Dictionary = state.alpha_shop
+	if visit_id == "tool_buy" and a.get("outbound", {}).get("tool_search", {}).get("status") == "empty":
+		return false
+	if a.has("week_pawn") and state.visits.has(visit_id) and visit_id not in a.profile.visit_random.locked_ids:
+		var visit: Dictionary = state.visits[visit_id]
+		# Appointments/service visits may trade an encumbered object under their
+		# own authority. Ordinary merchandise has to have a real free root.
+		if visit_id not in ["visit_g01","watch_a","tool_buy"] and visit.scope.kind == "ordinary" and visit.prices.size() == 1 and not Commission.is_return_visit(visit_id,str(a.profile.commission_profile_id)) and not ServiceCustody.is_return_visit(visit_id,str(a.profile.service_profile_id)):
+			var id: String = str(visit.prices.keys()[0])
+			var item: Dictionary = state.items[id]
+			if visit.scope.completed or item.status != "stock" or item.protected or not item.reservation_id.is_empty() or not item.parent_id.is_empty():
+				return false
+			if visit.seller == "player":
+				if item.owner_id != "player" or item.custodian_id != "player" or id not in a.displayed:
+					# At opening a later same-day shelf sale can follow a real
+					# funded supply. At the door require actual display.
+					if a.phase != "DAY_PREP" or not _same_day_supply(state,id):
+						return false
+				for currency: String in ["VKC","USD"]:
+					if state.wallets[visit.buyer][currency] < visit.prices[id][currency]:
+						return false
+			elif item.owner_id != visit.seller or item.custodian_id != visit.seller:
+				return false
 	return (not a.has("commissions") or Commission.scheduled(state, visit_id)) and (not a.has("services") or ServiceCustody.scheduled(state, visit_id)) and B3Interest.eligible(state, visit_id)
+
+static func _same_day_supply(state: Dictionary, item_id: String) -> bool:
+	var a: Dictionary = state.alpha_shop
+	var item: Dictionary = state.items[item_id]
+	for slot: Dictionary in a.profile.days[int(a.day)-1]:
+		var supply: Dictionary = state.visits.get(slot.id,{})
+		if supply.get("buyer") != "player" or supply.seller != item.owner_id or supply.seller != item.custodian_id or not supply.prices.has(item_id) or supply.scope.completed:
+			continue
+		var price: Dictionary = supply.prices[item_id]
+		if state.wallets.player.VKC >= price.VKC and state.wallets.player.USD >= price.USD:
+			return true
+	return false
 
 static func _planned_rows(a: Dictionary) -> Array:
 	var source: Array = a.profile.days[int(a.day) - 1]
@@ -163,6 +203,19 @@ static func _planned_rows(a: Dictionary) -> Array:
 static func _draw_day(state: Dictionary) -> String:
 	var a: Dictionary = state.alpha_shop
 	var rows: Array = a.profile.days[int(a.day) - 1]
+	if a.has("week_pawn"):
+		for slot: Dictionary in rows:
+			if slot.id != "week_tool_buy_d7":
+				continue
+			# G01's optional NEW quote changes only if G01 took VKC at an
+			# earlier sale and the shop resold the radio out of local stock.
+			var received_vkc: bool = false
+			var local_outflow: bool = false
+			for sale: Dictionary in state.ledger:
+				received_vkc = received_vkc or (sale.to == "G01" and int(sale.amounts.VKC) > 0)
+				local_outflow = local_outflow or (sale.to == "player" and "R001" in sale.root_ids)
+			if received_vkc and local_outflow and state.items.TL04.owner_id == "G01" and state.items.TL04.custodian_id == "G01":
+				state.visits[slot.id].prices["TL04"] = {"VKC":0,"USD":1}
 	var availability: Dictionary = {}
 	var locked: Array = []
 	for row: Dictionary in rows:
@@ -357,7 +410,7 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 	if kind in ["alpha_salvage_dispatch", "alpha_salvage_cancel"]:
 		if a.profile.get("market_extension") != B3Interest.M7_MARKER or not Rules.keys(p, ["request_id"]) or not Rules.identifier(p.request_id):
 			return "salvage_request"
-		var terms: Dictionary = Salvage.CATALOG.get(p.request_id, {})
+		var terms: Dictionary = Salvage.catalog(a).get(p.request_id, {})
 		if terms.is_empty() or not can_contact(a, terms.actor_id):
 			return "salvage_no_agreement"
 		return Salvage.apply(state, str(p.request_id), terms, command)
@@ -551,8 +604,8 @@ static func view(state: Dictionary) -> Dictionary:
 					protected_now += 1
 		if a.phase == "EVENING_WORK":
 			var options: Array = []
-			for id: String in Salvage.CATALOG:
-				var terms: Dictionary = Salvage.CATALOG[id]
+			for id: String in Salvage.catalog(a):
+				var terms: Dictionary = Salvage.catalog(a)[id]
 				if not can_contact(a, terms.actor_id):
 					continue
 				var request: Dictionary = a.get("outbound", {}).get(id, {})
