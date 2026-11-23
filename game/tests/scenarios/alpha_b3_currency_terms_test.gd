@@ -47,8 +47,8 @@ func _initialize() -> void:
 		check(false, "M2 profile still initializes")
 		_finish()
 		return
-	check(b2.alpha_view().get("currency_terms", {}) == {},
-		"M2 save/view contract is unchanged")
+	check(not b2.alpha_view().has("currency_terms"),
+		"M2 view has no added fields and its original contract is unchanged")
 
 	var s: RefCounted = fresh(src)
 	if s == null:

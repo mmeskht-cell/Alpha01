@@ -386,7 +386,7 @@ static func view(state: Dictionary) -> Dictionary:
 	for actor: String in a.contacts:
 		contacts.append({"actor_id": actor, "contact_id": a.contacts[actor].contact_id, "acquired_day": int(a.contacts[actor].acquired_day), "callable": can_contact(a, actor)})
 	contacts.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return x.actor_id < y.actor_id)
-	return {
+	var result: Dictionary = {
 		"day": a.day, "phase": a.phase, "active": row,
 		"remaining": pending_visits,
 		"contacts": contacts, "contact_exchanged": not row.is_empty() and a.contacts.has(row.actor_id),
@@ -399,7 +399,9 @@ static func view(state: Dictionary) -> Dictionary:
 		"commissions": Commission.view(state) if a.has("commissions") else {"entries":[]},
 		"services": ServiceCustody.view(state) if a.has("services") else {"entries":[]},
 		"fx": B3Fx.view(state) if a.has("fx") else {},
-		"currency_terms": B3Currency.view(state) if a.profile.content_version == B3Fx.VERSION else {},
 		"contracts": contract_view.contracts, "news": contract_view.news,
 		"story": Story.view(state)
 	}
+	if a.profile.content_version == B3Fx.VERSION:
+		result["currency_terms"] = B3Currency.view(state)
+	return result
