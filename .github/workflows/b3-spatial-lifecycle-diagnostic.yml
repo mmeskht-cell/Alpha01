@@ -32,6 +32,17 @@ jobs:
           export XDG_DATA_HOME="$RUNNER_TEMP/b3-test-data"
           export XDG_CONFIG_HOME="$RUNNER_TEMP/b3-test-config"
           engine="$RUNNER_TEMP/Godot_v4.7.2-stable_linux.x86_64"
+          # One-run A/B diagnostic: suppress only score loading in the ephemeral checkout.
+          # Checked-in game assets and source are never modified by this experiment.
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('game/src/presentation/commit_feedback.gd')
+          s = p.read_text()
+          needle = '\t_score = Music.build() if ResourceLoader.exists(Music.PATH) else null'
+          assert s.count(needle) == 1
+          p.write_text(s.replace(needle, '\t_score = null # lifecycle A/B: Ogg score disabled'))
+          print('B3_AUDIO_AB_SCORE_DISABLED')
+          PY
           python3 game/tools/prepare_runtime_assets.py
           "$engine" --headless --editor --path game --import --quit 2>&1 | tee /tmp/b3-import.log
           if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:' /tmp/b3-import.log; then exit 1; fi
