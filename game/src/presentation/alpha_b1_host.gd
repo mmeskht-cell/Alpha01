@@ -139,6 +139,17 @@ func _add_b2_shop_board(panel: PanelContainer, view: Dictionary) -> void:
 			fast.custom_minimum_size = Vector2(84,36)
 	var cash: Dictionary = current.wallets.get("player", {})
 	_board_line(body, "b2_board_cash", _text("b2.board.cash") % [int(cash.get("VKC", 0)), int(cash.get("USD", 0))])
+	# Evidence, not a currency index: show only this visitor's signed
+	# denomination or actual one-off quote. Never imply all VKC is worthless.
+	if b3_fx_mode and view.phase == "CUSTOMER_ACTIVE":
+		var money_terms: Dictionary = view.get("currency_terms", {})
+		var current_trade: Dictionary = money_terms.get("trade", {})
+		var current_exchange: Dictionary = money_terms.get("exchange", {})
+		if not current_trade.is_empty():
+			_board_line(body, "b3_currency_bound_terms",
+				_text("b3.currency.trade_terms") % [int(current_trade.amount), str(current_trade.currency)])
+		if not current_exchange.is_empty():
+			_board_line(body, "b3_currency_quote_scope", _text("b3.currency.quote_scope"))
 	# A customer visit must be finishable without scrolling through the whole
 	# left-hand inspection/card sheet on the actual 720p counter.
 	if view.phase == "CUSTOMER_ACTIVE":

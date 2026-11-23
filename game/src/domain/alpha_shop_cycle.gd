@@ -7,6 +7,7 @@ const Commission = preload("res://src/domain/alpha_commission.gd")
 const ServiceCustody = preload("res://src/domain/alpha_service_custody.gd")
 const B3Interest = preload("res://src/domain/alpha_b3_market_interest.gd")
 const B3Fx = preload("res://src/domain/alpha_b3_fx.gd")
+const B3Currency = preload("res://src/domain/alpha_b3_currency_terms.gd")
 const Story = preload("res://src/domain/alpha_story_projection.gd")
 const Grid = preload("res://src/domain/grid_primitives.gd")
 const Objects = preload("res://src/domain/object_schema.gd")
@@ -398,6 +399,7 @@ static func view(state: Dictionary) -> Dictionary:
 		"commissions": Commission.view(state) if a.has("commissions") else {"entries":[]},
 		"services": ServiceCustody.view(state) if a.has("services") else {"entries":[]},
 		"fx": B3Fx.view(state) if a.has("fx") else {},
+		"currency_terms": B3Currency.view(state) if a.profile.content_version == B3Fx.VERSION else {},
 		"contracts": contract_view.contracts, "news": contract_view.news,
 		"story": Story.view(state)
 	}
