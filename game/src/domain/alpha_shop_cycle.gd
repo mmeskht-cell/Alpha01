@@ -162,8 +162,12 @@ static func _draw_day(state: Dictionary) -> String:
 		var id: String = str(row.id)
 		var admitted: bool = _admissible(state, id)
 		availability[id] = admitted
-		var mandatory: bool = id in a.profile.visit_random.locked_ids
-		if a.has("commissions") and Commission.is_return_visit(id, str(a.profile.commission_profile_id)) and admitted:
+		var commission_return: bool = a.has("commissions") and Commission.is_return_visit(id, str(a.profile.commission_profile_id))
+		# A story-linked return is NOT an unconditional story event:
+		# it is mandatory ONLY after the player actually accepted that order.
+		# An unaccepted order cannot force an impossible counter appointment.
+		var mandatory: bool = id in a.profile.visit_random.locked_ids and (admitted or not commission_return)
+		if commission_return and admitted:
 			mandatory = true
 		if a.has("services") and ServiceCustody.is_return_visit(id, str(a.profile.service_profile_id)) and admitted:
 			mandatory = true

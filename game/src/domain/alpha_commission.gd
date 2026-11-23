@@ -172,14 +172,25 @@ static func pending_pickup(state: Dictionary) -> String:
 	if a.is_empty() or not a.has("commissions") or a.phase != "OPEN_IDLE":
 		return ""
 	var day: int = int(a.day)
+	# M5 uses a persisted source-bound, possibly reordered visit list.
+	# The cursor indexes THAT selected plan, not the older authored pool.
+	# Legacy B2/M1–M3 keep their exact original authored ordering.
+	var remaining_ids: Array = []
+	if a.has("random_visits"):
+		if int(a.random_visits.day) != day:
+			return ""
+		remaining_ids = a.random_visits.plan
+	else:
+		for visit: Dictionary in a.profile.days[day - 1]:
+			remaining_ids.append(str(visit.id))
 	for r: Dictionary in config(_profile_id(state)).get("requests", []):
 		if int(r.due_day) != day:
 			continue
 		var entry: Dictionary = a.commissions.entries.get(r.request_id, {})
 		if str(entry.get("status", "")) not in ["accepted", "ready"]:
 			continue
-		for i: int in range(int(a.cursor), a.profile.days[day - 1].size()):
-			if str(a.profile.days[day - 1][i].id) == str(r.return_visit_id):
+		for i: int in range(int(a.cursor), remaining_ids.size()):
+			if str(remaining_ids[i]) == str(r.return_visit_id):
 				return str(r.request_id)
 	return ""
 

@@ -156,8 +156,8 @@ func _initialize() -> void:
 			and int(selection.target)>=5 and int(selection.target)<=8,
 			"each of seven days uses a persisted bounded plan, day "+str(day))
 		if day == 5:
-			check("hygiene_buy" in selection.plan and "hygiene_sale" in selection.plan,
-				"Day5 source-authored item acquisition AND story-linked resale are never randomly skipped")
+			check("hygiene_buy" in selection.plan and "hygiene_sale" not in selection.plan,
+				"Day5 real HY05 acquisition remains accessible; declined Ian order creates no phantom pickup")
 		if int(selection.shortfall)>0:
 			meaningful_shortfall = true
 		if not check(go(s,"alpha_close") and go(s,"alpha_settle") and go(s,"alpha_next_day"),
