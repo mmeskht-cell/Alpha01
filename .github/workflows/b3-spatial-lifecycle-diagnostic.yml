@@ -1,4 +1,4 @@
-name: B3 Spatial Lifecycle Diagnostic
+name: B3 Spatial Lifecycle Focused Probe
 on:
   workflow_dispatch:
   push:
@@ -32,40 +32,9 @@ jobs:
           export XDG_DATA_HOME="$RUNNER_TEMP/b3-test-data"
           export XDG_CONFIG_HOME="$RUNNER_TEMP/b3-test-config"
           engine="$RUNNER_TEMP/Godot_v4.7.2-stable_linux.x86_64"
-          # Ephemeral A/B: normal Ogg load and actual playback, explicit stop
-          # before each destroyed test host; let audio mixer retire decoders.
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('game/tests/window/b3_spatial_week_window.gd')
-          s = p.read_text()
-          needle = '\t\thost.queue_free()'
-          assert s.count(needle) == 3
-          replacement = ('\t\thost.sound.shutdown_audio()\n'
-                         '\t\tawait create_timer(0.25).timeout\n'
-                         '\t\thost.queue_free()')
-          p.write_text(s.replace(needle, replacement))
-          print('B3_AUDIO_AB_EARLY_STOP_AND_MIXER_DRAIN')
-          PY
           python3 game/tools/prepare_runtime_assets.py
           "$engine" --headless --editor --path game --import --quit 2>&1 | tee /tmp/b3-import.log
           if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:' /tmp/b3-import.log; then exit 1; fi
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('game/tests/window/b3_spatial_week_window.gd')
-          src = p.read_text()
-          marker = '\tNode.print_orphan_nodes()\n\tcall_deferred("quit", 0 if failures == 0 else 1)'
-          addition = '''\tprint("B3_EXIT_DIAGNOSTIC tweens=",get_processed_tweens().size(),
-          \t\t" objects=", Performance.get_monitor(Performance.OBJECT_COUNT),
-          \t\t" resources=",Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT))
-          \tfor tween: Tween in get_processed_tweens():
-          \t\tprint("B3_EXIT_TWEEN valid=",tween.is_valid(),
-          \t\t\t" running=",tween.is_running(),
-          \t\t\t" bound=",str(tween.get_bound_node()))
-          \tNode.print_orphan_nodes()
-          \tcall_deferred("quit", 0 if failures == 0 else 1)'''
-          assert src.count(marker) == 1, 'expected isolated shutdown hook'
-          p.write_text(src.replace(marker,addition))
-          PY
           mkdir -p /tmp/b3-evidence
           LIBGL_ALWAYS_SOFTWARE=1 timeout 170s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/window/b3_spatial_week_window.gd -- /tmp/b3-evidence 2>&1 | tee /tmp/b3-lifecycle.log
           grep -E 'B3_SPATIAL_WEEK_WINDOW: [0-9]+ checks, 0 failures' /tmp/b3-lifecycle.log
