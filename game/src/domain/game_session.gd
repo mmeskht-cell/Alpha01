@@ -1064,7 +1064,8 @@ func composition_options(root_id:String,inventory:String)->Dictionary:
 	var grid:Dictionary=_state.inventories[inventory]
 	if root.owner_id!="player" or root.custodian_id!="player" or not root.parent_id.is_empty() or root.inventory!=inventory or grid.owner_id!="player" or not grid.host_item.is_empty() or d.kind!="composite" or not d.recombine or d.category not in ["fixture","electronics","civilian_electronics"]:
 		return {}
-	var enabled:bool=_state.phase=="workshop" and _can_change(_state,root_id,"player")
+	var spatial_evening: bool = _alpha_mode and _state.has("alpha_shop") and _state.alpha_shop.profile.has("spatial_opening") and _state.alpha_shop.phase=="EVENING_WORK"
+	var enabled:bool=(_state.phase=="workshop" or spatial_evening) and _can_change(_state,root_id,"player")
 	var children:Dictionary={}
 	for id:String in Objects.family(_state,root_id):
 		if id!=root_id:
@@ -1118,6 +1119,10 @@ func composition_options(root_id:String,inventory:String)->Dictionary:
 
 func _composition_preview(kind:String,payload:Dictionary)->bool:
 	var draft:Dictionary=_state.duplicate(true)
+	# Alpha's visible evening phase uses the same legacy workshop primitives;
+	# preview that exact temporary phase, without committing a world-clock change.
+	if _alpha_mode and draft.has("alpha_shop") and draft.alpha_shop.profile.has("spatial_opening") and draft.alpha_shop.phase=="EVENING_WORK":
+		draft.phase="workshop"
 	if kind=="replace_component":
 		return _replace_component(draft,payload,"preview_only").is_empty() and Objects.grids_valid(draft,_definitions)
 	return _composition(draft,payload,"preview_only",kind).is_empty() and Objects.grids_valid(draft,_definitions)

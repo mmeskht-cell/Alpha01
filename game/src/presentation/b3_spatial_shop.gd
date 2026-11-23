@@ -225,17 +225,69 @@ func _counter(v: Dictionary) -> void:
 	elif not a.is_empty():
 		_specimen(v,a)
 	else:
-		for job: Dictionary in v.services.entries:
-			if job.actor_id==v.active.actor_id and job.has("item_id"):
-				var sample = Art.item_profile(str(job.item_id),"counter")
-				if sample != null: pic(sample.texture,476,336,300,95)
-				break
-		action("visitor_papers","의뢰서 · 견적 보기",475,426,300,54,func()->void: open_drawer("ledger"))
+		var visit: Dictionary = session.snapshot().visits.get(str(v.active.id),{})
+		if not visit.is_empty() and not visit.prices.is_empty() and not bool(visit.scope.get("completed",false)):
+			_ordinary_trade(v,visit)
+		else:
+			for job: Dictionary in v.services.entries:
+				if job.actor_id==v.active.actor_id and job.has("item_id"):
+					var sample = Art.item_profile(str(job.item_id),"counter")
+					if sample != null: pic(sample.texture,476,336,300,95)
+					break
+			action("visitor_papers","의뢰서 · 견적 보기",475,426,300,54,func()->void: open_drawer("ledger"))
 	if not zoom:
 		if v.can_exchange: command_button("alpha_exchange_contact","연락처 교환",850,437,170,{"actor_id":v.active.actor_id,"accepted":true})
 		if v.active.id == "watch_a": command_button("week_pledge","시계 전당 · 40 VKC",850,492,215)
 		if v.active.id != "alpha_marcus_intro" or not v.contracts.get("rad1_first",{}).get("can_accept",false):
 			command_button("alpha_finish_customer","응대 마치기",1030,596,194)
+
+## Ordinary pre-card B3 visitors still have real goods and finite quoted terms.
+## Do not hide their existing purchase/sale authority behind the dossier drawer.
+## This is a fixed-term fallback, not a fabricated appraisal or bargaining result.
+func _ordinary_trade(v: Dictionary, visit: Dictionary) -> void:
+	var id: String = str(visit.prices.keys()[0])
+	var state: Dictionary = session.snapshot()
+	if not state.items.has(id):
+		words("방문 물품을 확인할 수 없습니다.",466,352,400,90)
+		return
+	var item: Dictionary = state.items[id]
+	var profile = Art.item_profile(id,"inspection" if zoom else "counter")
+	var texture: Texture2D = profile.texture if profile != null else null
+	var label: String = _text("b2.item."+str(item.def_id))
+	if zoom:
+		paper(52,144,1170,493,Color("#262724f5"))
+		if texture != null: pic(texture,290,170,700,315)
+		words(label+" · "+id,110,496,940,72,25)
+		action("ordinary_close","카운터로",1055,158,146,45,func()->void:
+			zoom = false
+			refresh())
+		return
+	if texture != null: pic(texture,470,343,335,147)
+	var view_item := action("ordinary_item","",470,343,335,147,func()->void:
+		zoom = true
+		refresh())
+	view_item.flat = true
+	view_item.tooltip_text = label+" 살펴보기"
+	words(label,470,491,320,48,20)
+	var quote: Dictionary = visit.prices[id]
+	var currency: String = "VKC" if int(quote.get("VKC",0)) != 0 else "USD"
+	var amount: int = int(quote.get(currency,0))
+	var buying: bool = str(visit.buyer) == "player"
+	var available: bool = buying or (id in v.displayed_items and str(item.inventory)=="storefront_grid")
+	words(("상점 매입 · " if buying else "매대 판매 · ") + str(amount)+" "+currency,819,356,342,54,23)
+	if not available:
+		words("판매하려면 먼저 이 물건을 외부 매대에 진열해야 합니다.",810,417,375,80,18)
+		return
+	action("ordinary_trade",("매입 확정" if buying else "판매 확정")+" · "+str(amount)+" "+currency,829,432,344,56,func()->void:
+		var destination: String = "player_stock" if buying else str(visit.buyer)+"_grid"
+		var fit: Dictionary = session.spatial_fit(id,destination)
+		if not fit.get("ok",false):
+			hint = "물건을 놓을 빈 공간이 없습니다."
+			refresh()
+			return
+		_submit("alpha_trade",{"visit_id":str(v.active.id),"item_id":id,
+			"seller":str(visit.seller),"buyer":str(visit.buyer),"currency":currency,
+			"amount":amount,"inventory":destination,"x":fit.x,"y":fit.y,"rotated":fit.rotated}))
 
 func _specimen(v: Dictionary,a: Dictionary) -> void:
 	var id: String = a.item_id
@@ -310,7 +362,15 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 	place(money,790,378,208,46)
 	var currency: String = str(v.currency_terms.get("trade",{}).get("currency","VKC"))
 	action("offer","제안 · "+currency,1004,378,178,46,func()->void:
-		if price_text.is_valid_int(): _submit("alpha_price_offer",{"amount":int(price_text)}))
+		# Read the actual edited control. Programmatic caret insertion and IME
+		# composition need not emit text_changed before the button is pressed.
+		var proposed: String = money.text.strip_edges()
+		if proposed.is_valid_int() and int(proposed)>0:
+			price_text = proposed
+			_submit("alpha_price_offer",{"amount":int(proposed)})
+		else:
+			hint = "제안할 금액을 양의 정수로 입력해 주세요."
+			refresh())
 	if not a.accepted.is_empty():
 		action("settle_trade","거래 확정 · %d %s"%[a.accepted.amount,a.accepted.currency],790,452,386,52,func()->void:
 			var trade: Dictionary = session.snapshot().visits[v.active.id]
@@ -435,15 +495,16 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 		_button(work,"repair","정비 · 재생",func()->void:_submit("spatial_restore_item",{"actor":"player","item_id":selected}))
 		var composition: Dictionary = session.composition_options(selected,"player_stock")
 		for slot: Dictionary in composition.get("slots",[]):
-			var child: String = slot.item_id
-			if not child.is_empty():
-				var fit: Dictionary = session.spatial_fit(child,"player_stock")
-				if fit.get("ok",false):
-					_button(work,"detach_"+child,"분리 · "+str(slot.tag),func()->void:_submit("spatial_detach",{"actor":"player","root_id":selected,"child_id":child,"inventory":"player_stock","x":fit.x,"y":fit.y,"rotated":fit.rotated}))
-			else:
-				for part: String in s.items:
-					if s.items[part].inventory=="player_stock" and session.spatial_tag(part)==slot.tag:
-						_button(work,"attach_"+part,"장착 · "+part,func()->void:_submit("spatial_attach",{"actor":"player","root_id":selected,"child_id":part}))
+			var child: String = str(slot.item_id)
+			var detach_payload: Dictionary = slot.get("detach",{})
+			if not child.is_empty() and not detach_payload.is_empty():
+				var detach_command: Dictionary = detach_payload.duplicate(true)
+				_button(work,"detach_"+child,"분리 · "+str(slot.tag),func()->void:_submit("spatial_detach",detach_command))
+			elif child.is_empty():
+				for option: Dictionary in slot.get("attach",[]):
+					var attach_command: Dictionary = option.duplicate(true)
+					var part: String = str(attach_command.child_id)
+					_button(work,"attach_"+part,"장착 · "+part,func()->void:_submit("spatial_attach",attach_command))
 	if v.phase=="EVENING_WORK" and item.status=="custody_service":
 		var jobs := VBoxContainer.new()
 		place(jobs,746,453,420,164)

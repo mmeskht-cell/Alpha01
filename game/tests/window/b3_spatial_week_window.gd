@@ -55,8 +55,16 @@ func run() -> void:
 		var input := host.find_child("price",true,false) as LineEdit
 		input.grab_focus()
 		input.insert_text_at_caret("100")
+		await frames()
+		check(input.text == "100","edited live price field retains the 100 VKC draft")
 		await capture("spatial_inspection_%d"%resolution.y,resolution)
-		if not await click("offer","CUSTOMER_ACTIVE") or not await click("settle_trade","CUSTOMER_EXIT"):
+		if not await click("offer","CUSTOMER_ACTIVE"):
+			printerr("B3_SPATIAL_OFFER_DIAGNOSTIC displayed=",input.text,
+				" draft=",host.price_text," message=",host._message,
+				" revision=",host.session.snapshot().revision)
+			await finish()
+			return
+		if not await click("settle_trade","CUSTOMER_EXIT"):
 			await finish()
 			return
 		var paid: Dictionary = host.session.snapshot()
