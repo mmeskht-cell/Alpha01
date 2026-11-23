@@ -6,7 +6,10 @@ func finish() -> void:
 		host.queue_free()
 	await frames()
 	print("B3_SPATIAL_WEEK_WINDOW: ", checks, " checks, ", failures, " failures")
-	quit(0 if failures == 0 else 1)
+	# All nested await continuations must unwind before SceneTree teardown.
+	# Keep the CI leak detector strict: never suppress the engine warning.
+	Node.print_orphan_nodes()
+	call_deferred("quit", 0 if failures == 0 else 1)
 
 
 func run() -> void:
