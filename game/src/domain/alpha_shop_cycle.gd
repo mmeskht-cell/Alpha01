@@ -8,6 +8,7 @@ const ServiceCustody = preload("res://src/domain/alpha_service_custody.gd")
 const B3Interest = preload("res://src/domain/alpha_b3_market_interest.gd")
 const B3Fx = preload("res://src/domain/alpha_b3_fx.gd")
 const B3Currency = preload("res://src/domain/alpha_b3_currency_terms.gd")
+const B3Random = preload("res://src/domain/alpha_b3_visit_randomizer.gd")
 const Story = preload("res://src/domain/alpha_story_projection.gd")
 const Grid = preload("res://src/domain/grid_primitives.gd")
 const Objects = preload("res://src/domain/object_schema.gd")
@@ -28,6 +29,8 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 		keys.append("market_interest")
 	if profile is Dictionary and profile.get("content_version")==B3Fx.VERSION:
 		keys.append("fx_profile")
+	if profile is Dictionary and profile.has("visit_random"):
+		keys.append("visit_random")
 	if not Rules.keys(profile, keys) or profile.id != "alpha_b1_v1" or not Rules.identifier(profile.content_version):
 		return false
 	if not profile.days is Array or profile.days.is_empty() or profile.days.size() > 42 or not profile.unavailable_actors is Array:
@@ -73,6 +76,22 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 		return false
 	if profile.get("content_version")==B3Fx.VERSION and not B3Fx.profile_valid(profile,state):
 		return false
+	if profile.has("visit_random"):
+		var policy: Variant = profile.visit_random
+		if str(profile.content_version) != B3Fx.VERSION or not Rules.keys(policy, ["version", "seed", "locked_ids"]):
+			return false
+		if int(policy.version) != 1 or not Rules.integer(policy.seed, 1, 2147483647) or not policy.locked_ids is Array or policy.locked_ids != ["alpha_marcus_intro", "hygiene_sale"]:
+			return false
+		var intro: bool = false
+		var story_trade: bool = false
+		for day: Array in profile.days:
+			for row: Dictionary in day:
+				if row.id == "alpha_marcus_intro" and row.actor_id == "marcus":
+					intro = true
+				if row.id == "hygiene_sale" and str(profile.get("story_rules", {}).get("clinic_supply_confirmed", {}).get("source_id", "")) == row.id:
+					story_trade = true
+		if not intro or not story_trade:
+			return false
 	return true
 
 static func seed(state: Dictionary, profile: Dictionary) -> Dictionary:
@@ -97,7 +116,57 @@ static func seed(state: Dictionary, profile: Dictionary) -> Dictionary:
 		next.alpha_shop["services"] = ServiceCustody.seed(str(profile.service_profile_id))
 	if profile.get("content_version")==B3Fx.VERSION:
 		next.alpha_shop["fx"] = B3Fx.seed()
+	if profile.has("visit_random"):
+		next.alpha_shop["random_visits"] = {"version":1, "day":0, "plan":[], "target":0, "shortfall":0}
 	return Rules.normalized(next)
+
+## Each replayed opening freezes an eligible nonstory visitor plan. Existing
+## authored rows remain the only identities; committed returns cannot be dropped.
+static func _admissible(state: Dictionary, visit_id: String) -> bool:
+	var a: Dictionary = state.alpha_shop
+	return (not a.has("commissions") or Commission.scheduled(state, visit_id)) and (not a.has("services") or ServiceCustody.scheduled(state, visit_id)) and B3Interest.eligible(state, visit_id)
+
+static func _planned_rows(a: Dictionary) -> Array:
+	var source: Array = a.profile.days[int(a.day) - 1]
+	if not a.has("random_visits"):
+		return source
+	if int(a.random_visits.day) != int(a.day):
+		return []
+	var selected: Array = []
+	for visit_id: String in a.random_visits.plan:
+		for row: Dictionary in source:
+			if row.id == visit_id:
+				selected.append(row)
+				break
+	return selected
+
+static func _draw_day(state: Dictionary) -> String:
+	var a: Dictionary = state.alpha_shop
+	var rows: Array = a.profile.days[int(a.day) - 1]
+	var availability: Dictionary = {}
+	var locked: Array = []
+	for row: Dictionary in rows:
+		var id: String = str(row.id)
+		var admitted: bool = _admissible(state, id)
+		availability[id] = admitted
+		var mandatory: bool = id in a.profile.visit_random.locked_ids
+		if a.has("commissions") and Commission.is_return_visit(id, str(a.profile.commission_profile_id)) and admitted:
+			mandatory = true
+		if a.has("services") and ServiceCustody.is_return_visit(id, str(a.profile.service_profile_id)) and admitted:
+			mandatory = true
+		if mandatory:
+			locked.append(id)
+	var result: Dictionary = B3Random.plan(rows, availability, locked, int(a.profile.visit_random.seed), int(a.day))
+	if not bool(result.get("ok", false)):
+		return str(result.get("error", "b3_random_schedule"))
+	var ids: Array = []
+	for visit: Dictionary in result.visits:
+		ids.append(str(visit.id))
+	a.random_visits.day = int(a.day)
+	a.random_visits.plan = ids
+	a.random_visits.target = int(result.target)
+	a.random_visits.shortfall = int(result.shortfall)
+	return ""
 
 static func active_row(a: Dictionary) -> Dictionary:
 	if a.active == "":
@@ -271,13 +340,17 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 		"alpha_open":
 			if a.phase != "DAY_PREP":
 				return "alpha_phase"
+			if a.has("random_visits"):
+				var planning_error: String = _draw_day(state)
+				if not planning_error.is_empty():
+					return planning_error
 			a.phase = "OPEN_IDLE"
 		"alpha_next_customer":
 			if a.phase != "OPEN_IDLE":
 				return "alpha_no_next_customer"
-			var offered: Array = a.profile.days[int(a.day) - 1]
+			var offered: Array = _planned_rows(a)
 			var cursor: int = int(a.cursor)
-			while cursor < offered.size() and ((a.has("commissions") and not Commission.scheduled(state, str(offered[cursor].id))) or (a.has("services") and not ServiceCustody.scheduled(state, str(offered[cursor].id))) or not B3Interest.eligible(state,str(offered[cursor].id))):
+			while cursor < offered.size() and not _admissible(state, str(offered[cursor].id)):
 				cursor += 1
 			if cursor >= offered.size():
 				return "alpha_no_next_customer"
@@ -329,11 +402,12 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 				return "alpha_customer_active"
 			if a.has("commissions") and not Commission.pending_pickup(state).is_empty():
 				return "alpha_commission_pickup_pending"
-			for i: int in range(int(a.cursor), a.profile.days[int(a.day) - 1].size()):
-				var row: Dictionary = a.profile.days[int(a.day) - 1][i]
-				if (not a.has("commissions") or Commission.scheduled(state, row.id)) and (not a.has("services") or ServiceCustody.scheduled(state, row.id)) and B3Interest.eligible(state,row.id):
+			var remaining_rows: Array = _planned_rows(a)
+			for i: int in range(int(a.cursor), remaining_rows.size()):
+				var row: Dictionary = remaining_rows[i]
+				if _admissible(state, str(row.id)):
 					a.outcomes[row.id] = "unserved"
-			a.cursor = a.profile.days[int(a.day) - 1].size()
+			a.cursor = remaining_rows.size()
 			if a.has("contracts"):
 				Contract.on_close(state, command.action_id)
 			if a.has("commissions"):
@@ -368,6 +442,11 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 			if a.has("contracts"):
 				Contract.on_morning(state, command.action_id)
 			a.cursor = 0
+			if a.has("random_visits"):
+				a.random_visits.day = 0
+				a.random_visits.plan = []
+				a.random_visits.target = 0
+				a.random_visits.shortfall = 0
 			a.phase = "DAY_PREP"
 	return ""
 
@@ -378,9 +457,10 @@ static func view(state: Dictionary) -> Dictionary:
 	var row: Dictionary = active_row(a)
 	var contacts: Array = []
 	var pending_visits: int = 0
-	for i: int in range(int(a.cursor), a.profile.days[int(a.day) - 1].size()):
-		var candidate: Dictionary = a.profile.days[int(a.day) - 1][i]
-		if (not a.has("commissions") or Commission.scheduled(state, candidate.id)) and (not a.has("services") or ServiceCustody.scheduled(state, candidate.id)) and B3Interest.eligible(state,candidate.id):
+	var today_rows: Array = _planned_rows(a)
+	for i: int in range(int(a.cursor), today_rows.size()):
+		var candidate: Dictionary = today_rows[i]
+		if _admissible(state, str(candidate.id)):
 			pending_visits += 1
 	var contract_view: Dictionary = Contract.view(state)
 	for actor: String in a.contacts:
@@ -404,4 +484,8 @@ static func view(state: Dictionary) -> Dictionary:
 	}
 	if a.profile.content_version == B3Fx.VERSION:
 		result["currency_terms"] = B3Currency.view(state)
+	if a.has("random_visits"):
+		# Daily target is internal planning metadata, not guaranteed attendance.
+		result["random_visits"] = {"planned": a.random_visits.plan.size() if int(a.random_visits.day) == int(a.day) else 0,
+			"seeded": int(a.random_visits.day) == int(a.day)}
 	return result

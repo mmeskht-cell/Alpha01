@@ -354,4 +354,45 @@ func run() -> void:
 			and paid.wallets.alpha_broker.VKC==130 and paid.wallets.alpha_broker.USD==4
 			and host.find_child("b3_fx_accept",true,false)==null,
 			"native mouse FX transfers exactly 30 VKC for 1 USD once")
+	# M5 uses the exact same counter and M3 source wallets, but a distinct
+	# saved campaign seed fixes every daily visitor draw across cold restarts.
+	host.queue_free()
+	await frames()
+	var random_scene: PackedScene=load(B3Entry.M5_SCENE_PATH) as PackedScene
+	if not check(random_scene!=null,"B3-M5 isolated seeded scene resolves"):
+		await finish()
+		return
+	if not await install(random_scene,"b3_random_m5"):
+		await finish()
+		return
+	var seed_root: String=host.save_directory_override
+	var m5_before: Dictionary=host.session.snapshot()
+	check(host.b3_random_mode and host.b3_fx_mode and host._slot()=="alpha_b3_random_m5_v1"
+		and m5_before.alpha_shop.profile.visit_random.seed>0
+		and m5_before.wallets.alpha_broker=={"VKC":100,"USD":5},
+		"real M5 boot binds one persisted seed and no new broker funds")
+	check(FileAccess.file_exists(seed_root.path_join(host._slot()+".a.json")),
+		"before first mouse click, a durable initial A/B generation binds visitor seed")
+	await capture("alpha-b3-random-m5-intro-720p",Vector2i(1280,720))
+	if not (await click("intro_skip","DAY_PREP") and await click("alpha_open","OPEN_IDLE")):
+		await finish()
+		return
+	var m5_open: Dictionary=host.session.snapshot()
+	check(m5_open.alpha_shop.random_visits.day==1
+		and m5_open.alpha_shop.random_visits.plan.size()<=8
+		and "alpha_marcus_intro" in m5_open.alpha_shop.random_visits.plan,
+		"opening rolls only finite nonstory arrivals; authored story intro is retained")
+	await capture("alpha-b3-random-m5-open-720p",Vector2i(1280,720))
+	host.queue_free()
+	await frames()
+	host=random_scene.instantiate()
+	host.save_directory_override=seed_root
+	root.add_child(host)
+	await frames()
+	check(not host._blocked and host.session!=null
+		and host.session.snapshot()==m5_open
+		and host._intro==false,
+		"native cold restart reuses exact saved seed and committed visitor plan")
+	check(host.session.snapshot().alpha_shop.random_visits.plan==m5_open.alpha_shop.random_visits.plan,
+		"native screen load cannot reroll visitors or reorder the same day")
 	await finish()
