@@ -2,6 +2,7 @@ extends RefCounted
 ## B3 opt-in currency evidence projection. Currency "acceptance" is only a
 ## signed current-counter trade or broker quote, NOT a global exchange rate,
 ## citywide purchasing-power index or future contract promise.
+## Never leak the hidden negotiated reference price before a public offer.
 ## No persisted keys, wallet writes or invented currency thresholds.
 const Fx = preload("res://src/domain/alpha_b3_fx.gd")
 
@@ -25,16 +26,13 @@ static func view(state: Dictionary) -> Dictionary:
 			var vkc: int = int(price.get("VKC", 0))
 			var usd: int = int(price.get("USD", 0))
 			var currency: String = ""
-			var amount: int = 0
 			if vkc > 0 and usd == 0:
 				currency = "VKC"
-				amount = vkc
 			elif usd > 0 and vkc == 0:
 				currency = "USD"
-				amount = usd
 			if not currency.is_empty():
 				out.trade = {"visit_id": str(a.active), "item_id": item_id,
-					"currency": currency, "amount": amount,
+					"currency": currency,
 					"direction": "pay" if str(visit.buyer) == "player" else "receive",
 					"scope": "current_counter"}
 

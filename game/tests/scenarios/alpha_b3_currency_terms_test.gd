@@ -76,11 +76,10 @@ func _initialize() -> void:
 		if current.visits.has(visit_id) and current.visits[visit_id].prices.size() == 1:
 			var price: Dictionary = current.visits[visit_id].prices.values()[0]
 			var expected_currency: String = "VKC" if int(price.get("VKC", 0)) > 0 else "USD"
-			var expected_amount: int = int(price.get(expected_currency, 0))
 			check(not evidence.trade.is_empty() and evidence.trade.currency == expected_currency
-				and evidence.trade.amount == expected_amount
+				and not evidence.trade.has("amount")
 				and evidence.trade.visit_id == visit_id,
-				"current trade exposes its actual authored unit/amount, not a generated rate")
+				"current trade exposes the actual unit but never secret base price")
 			var variant: Dictionary = current.duplicate(true)
 			var item_id: String = str(variant.visits[visit_id].prices.keys()[0])
 			var old: Dictionary = variant.visits[visit_id].prices[item_id]
@@ -90,7 +89,7 @@ func _initialize() -> void:
 			variant.visits[visit_id].prices[item_id] = shifted
 			var derived: Dictionary = Money.view(variant)
 			check(derived.trade.currency != evidence.trade.currency
-				and derived.trade.amount == 2,
+				and not derived.trade.has("amount"),
 				"future source-bound USD-only terms can be displayed without a rate formula")
 			check(s.snapshot() == current,
 				"hypothetical unit projection never edits a live shop state")

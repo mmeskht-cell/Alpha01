@@ -147,7 +147,7 @@ func _add_b2_shop_board(panel: PanelContainer, view: Dictionary) -> void:
 		var current_exchange: Dictionary = money_terms.get("exchange", {})
 		if not current_trade.is_empty():
 			_board_line(body, "b3_currency_bound_terms",
-				_text("b3.currency.trade_terms") % [int(current_trade.amount), str(current_trade.currency)])
+				_text("b3.currency.trade_terms") % str(current_trade.currency))
 		if not current_exchange.is_empty():
 			_board_line(body, "b3_currency_quote_scope", _text("b3.currency.quote_scope"))
 	# A customer visit must be finishable without scrolling through the whole

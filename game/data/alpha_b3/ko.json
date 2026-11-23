@@ -16,7 +16,7 @@
     "b3.fx.accept": "표시된 견적으로 환전",
     "b3.fx.settled": "환전이 이미 완료됐습니다.",
     "b3.fx.unfunded": "환전에 필요한 현금이 부족합니다.",
-    "b3.currency.trade_terms": "현재 손님이 제시한 대금: %d %s",
+    "b3.currency.trade_terms": "현재 방문의 거래 통화: %s",
     "b3.currency.quote_scope": "환전은 이번 방문의 1회 견적입니다. 이후 시세를 보장하지 않습니다."
   }
 }
