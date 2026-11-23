@@ -284,15 +284,28 @@ func _execute(command: Dictionary, world: bool) -> Dictionary:
 ## Opt-in calendar pilot reuses the existing transaction primitives.
 ## B2 candidate uses original transfer/move and accounting internals. Only the
 ## opt-in profile supplies new phase/real-shelf admission permissions.
+## Read-only quotation for the spatial shop. Run the same permission and
+## transaction rules on a detached state without issuing a command or receipt.
+func spatial_action_preview(kind: String, payload: Dictionary) -> Dictionary:
+	if not _alpha_mode or kind not in ["alpha_service_repair","alpha_trade","alpha_display","alpha_withdraw_display","spatial_move","spatial_restore_item","spatial_attach","spatial_detach"]:
+		return {"ok":false,"error":"spatial_work_permission"}
+	var draft := snapshot()
+	var before: Dictionary = draft.wallets.player.duplicate()
+	var error := _apply_alpha(draft,{"type":kind,"payload":payload.duplicate(true),"action_id":"alpha_b1_"+str(draft.revision+1),"expected_revision":draft.revision})
+	if not error.is_empty():
+		return {"ok":false,"error":error}
+	return {"ok":true,"revision":draft.revision,"VKC":int(draft.wallets.player.VKC)-int(before.VKC),"USD":int(draft.wallets.player.USD)-int(before.USD)}
+
 func _apply_alpha(state: Dictionary, command: Dictionary) -> String:
 	if str(command.type).begins_with("spatial_"):
 		var a: Dictionary = state.alpha_shop
 		var work: Dictionary = command.payload
 		var root: String = str(work.get("root_id",work.get("item_id","")))
-		if not a.profile.has("spatial_opening") or work.get("actor") != "player" or not state.items.has(root) or state.items[root].inventory not in ["player_stock","pawn_grid"]:
+		var shelf_move: bool = command.type=="spatial_move" and root in a.get("displayed",[]) and state.items.get(root,{}).get("inventory")=="storefront_grid" and work.get("inventory")=="storefront_grid"
+		if not a.profile.has("spatial_opening") or work.get("actor") != "player" or not state.items.has(root) or (state.items[root].inventory not in ["player_stock","pawn_grid"] and not shelf_move):
 			return "spatial_work_permission"
 		if command.type == "spatial_move":
-			if a.phase not in ["OPEN_IDLE","EVENING_WORK"] or work.get("inventory") != "player_stock":
+			if a.phase not in ["OPEN_IDLE","EVENING_WORK"] or (work.get("inventory") != "player_stock" and not shelf_move):
 				return "spatial_storage"
 			return _move(state,work)
 		if a.phase != "EVENING_WORK" or state.items[root].inventory != "player_stock" or not _can_change(state,root,"player"):

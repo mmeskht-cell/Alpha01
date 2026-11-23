@@ -6,8 +6,19 @@ func fresh(src: Dictionary) -> RefCounted:
 	return super.fresh(SpatialSeed.content(int(src.alpha_profile.visit_random.seed)))
 
 func go(s: RefCounted,kind: String,p: Dictionary={}) -> bool:
+	var before: Dictionary = s.snapshot()
+	var preview: Dictionary = {}
+	if kind in ["alpha_display","alpha_withdraw_display","alpha_trade","spatial_move","spatial_restore_item","spatial_attach","spatial_detach"]:
+		preview = s.spatial_action_preview(kind,p)
+		check(s.snapshot()==before,"day %d: preview %s preserves the full save candidate"%[before.alpha_shop.day,kind])
+		check(preview.get("ok",false),"preview admits the expected campaign action "+kind)
 	if not super.go(s,kind,p):
 		return false
+	if not preview.is_empty() and preview.get("ok",false):
+		var after: Dictionary = s.snapshot()
+		check(after.revision==before.revision+1,"only confirmation commits "+kind)
+		for currency: String in ["VKC","USD"]:
+			check(after.wallets.player[currency]-before.wallets.player[currency]==preview[currency],"quoted cash movement matches settlement "+kind+" "+currency)
 	if kind=="alpha_settle":
 		var state: Dictionary = s.snapshot()
 		var view: Dictionary = s.alpha_view()

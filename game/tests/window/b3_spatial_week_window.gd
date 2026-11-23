@@ -30,7 +30,7 @@ func run() -> void:
 		return
 	out = args[0]
 	DirAccess.make_dir_recursive_absolute(out)
-	for resolution: Vector2i in [Vector2i(1280,720),Vector2i(1920,1080)]:
+	for resolution: Vector2i in [Vector2i(1280,720),Vector2i(1920,1080),Vector2i(1024,768),Vector2i(1440,900)]:
 		root.size = resolution
 		if not await install(Spatial,"spatial"):
 			await finish()
@@ -57,6 +57,11 @@ func run() -> void:
 		if not await click_navigation(host,"specimen"):
 			await finish()
 			return
+		var before_book: Dictionary = host.session.snapshot()
+		await click_navigation(host,"notes")
+		await capture("spatial_reference_%d"%resolution.y,resolution)
+		await click_navigation(host,"close_drawer")
+		check(host.zoom and host.session.snapshot()==before_book,"book preserves inspection, visitor and entire economic state")
 		var tool: Dictionary = host.session.alpha_view().appraisal.tools[0]
 		await click_navigation(host,"tool_"+str(tool.id))
 		var target: Button = host.find_child("apply_tool",true,false)
@@ -86,8 +91,25 @@ func run() -> void:
 		await click_navigation(host,"stockroom")
 		await click_navigation(host,"stock_R001")
 		await click_navigation(host,"tab_storefront_grid")
-		await click("cell_0_0","OPEN_IDLE")
+		var before_place: Dictionary = host.session.snapshot()
+		await click_navigation(host,"cell_0_0")
+		check(host.session.snapshot()==before_place,"placement draft preserves full authoritative state")
+		await click_navigation(host,"discard_draft")
+		check(host.selected=="R001" and host.session.snapshot()==before_place,"cancel keeps stock selection and ownership")
+		await click_navigation(host,"cell_0_0")
+		await click("confirm_work","OPEN_IDLE")
 		check(host.session.snapshot().items.R001.inventory=="storefront_grid","actual grid listing")
+		var listed: Dictionary = host.session.snapshot()
+		var tag_input := host.find_child("Amount",true,false) as LineEdit
+		check(tag_input!=null,"displayed item has a physical price slip")
+		if tag_input==null:
+			await finish()
+			return
+		tag_input.text = "145"
+		await click("Apply","OPEN_IDLE")
+		var priced: Dictionary = host.session.snapshot()
+		check(priced.revision==listed.revision+1 and priced.ledger==listed.ledger and priced.items==listed.items and priced.wallets==listed.wallets,"repricing writes one tag without settling a sale")
+		check(preload("res://src/domain/alpha_shop_cycle.gd").displayed_ask(priced,"R001")=={"amount":145,"currency":"VKC"},"shelf shows the journaled price for the selected instance")
 		await capture("spatial_shelf_%d"%resolution.y,resolution)
 		await release_host()
 	if await install(Spatial,"spatial_skip"):

@@ -13,7 +13,7 @@ const B3Random = preload("res://src/domain/alpha_b3_visit_randomizer.gd")
 const Story = preload("res://src/domain/alpha_story_projection.gd")
 const Grid = preload("res://src/domain/grid_primitives.gd")
 const Objects = preload("res://src/domain/object_schema.gd")
-const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid", "alpha_fx_trade", "alpha_salvage_dispatch", "alpha_salvage_cancel","week_pledge","week_redeem","week_extend","spatial_move","spatial_restore_item","spatial_attach","spatial_detach"]
+const ACTIONS: Array = ["alpha_reprice_display", "alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid", "alpha_fx_trade", "alpha_salvage_dispatch", "alpha_salvage_cancel","week_pledge","week_redeem","week_extend","spatial_move","spatial_restore_item","spatial_attach","spatial_detach"]
 const PHASES: Array = ["DAY_PREP", "OPEN_IDLE", "CUSTOMER_ENTER", "CUSTOMER_ACTIVE", "CUSTOMER_EXIT", "CLOSE_SETTLE", "EVENING_WORK", "NEXT_DAY", "COMPLETE"]
 
 static func profile_valid(profile: Variant, state: Dictionary) -> bool:
@@ -380,6 +380,17 @@ static func after_display(state: Dictionary, item_id: String, withdraw: bool = f
 	else:
 		state.alpha_shop.displayed.append(item_id)
 
+static func displayed_ask(state: Dictionary,id: String) -> Dictionary:
+	var a: Dictionary = state.alpha_shop
+	if id not in a.get("displayed",[]): return {}
+	for index: int in range(a.commands.size()-1,-1,-1):
+		var cmd: Dictionary = a.commands[index]
+		if cmd.payload.get("item_id") != id: continue
+		if cmd.type == "alpha_display": break
+		if cmd.type == "alpha_reprice_display":
+			return {"amount":cmd.payload.amount,"currency":cmd.payload.currency}
+	return {}
+
 static func trade_gate(state: Dictionary, p: Dictionary) -> String:
 	var a: Dictionary = state.alpha_shop
 	var row: Dictionary = active_row(a)
@@ -418,6 +429,17 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 	var kind: String = command.type
 	if kind not in ACTIONS:
 		return "alpha_command_unavailable"
+	if kind == "alpha_reprice_display":
+		if not a.profile.has("spatial_opening") or a.phase not in ["OPEN_IDLE","EVENING_WORK"]:
+			return "alpha_display_phase"
+		if not Rules.keys(p,["item_id","amount","currency"]) or not Rules.identifier(p.item_id) or not Rules.integer(p.amount,1) or p.currency not in ["VKC","USD"]:
+			return "trade_terms"
+		var item: Dictionary = state.items.get(p.item_id,{})
+		if p.item_id not in a.displayed or item.get("inventory")!="storefront_grid" or item.get("owner_id")!="player" or item.get("custodian_id")!="player" or not str(item.get("reservation_id","")).is_empty():
+			return "alpha_trade_not_displayed"
+		# The existing command journal is the persisted price tag. NPC offers
+		# and visitor currencies remain independent, including the D7 quote.
+		return ""
 	if kind in ["alpha_salvage_dispatch", "alpha_salvage_cancel"]:
 		if a.profile.get("market_extension") != B3Interest.M7_MARKER or not Rules.keys(p, ["request_id"]) or not Rules.identifier(p.request_id):
 			return "salvage_request"

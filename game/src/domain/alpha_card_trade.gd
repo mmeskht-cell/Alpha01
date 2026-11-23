@@ -79,7 +79,7 @@ static func _visit_context(state: Dictionary) -> Dictionary:
 	if a.has("commissions") and Commission.is_return_visit(a.active, str(a.profile.get("commission_profile_id", ""))):
 		return {}
 	var visit: Dictionary = state.visits[a.active]
-	if visit.scope.completed or visit.prices.size() != 1 or (visit.seller != "player" and not visit.allow_inspection):
+	if visit.scope.completed or visit.prices.size() != 1 or (visit.seller != "player" and not visit.allow_inspection and not (a.profile.has("spatial_opening") and visit.scope.kind=="ordinary")):
 		return {}
 	var item_id: String = str(visit.prices.keys()[0])
 	if not state.items.has(item_id):
@@ -102,6 +102,9 @@ static func _inspected_value(item: Dictionary, reading: Variant) -> Variant:
 	return null
 
 static func _tool_rows(state: Dictionary, item_id: String) -> Array:
+	var active: Dictionary = state.visits.get(state.alpha_shop.active,{})
+	if active.get("seller") != "player" and not active.get("allow_inspection",false):
+		return []
 	var c: Dictionary = config()
 	if c.is_empty() or not state.items.has(item_id):
 		return []
