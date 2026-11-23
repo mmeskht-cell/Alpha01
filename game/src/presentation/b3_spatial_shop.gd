@@ -366,9 +366,10 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 	specimen.set_drag_forwarding(Callable(),func(at:Vector2,data:Variant)->bool:
 		return _tool_drop_allowed(at/specimen.size,data,v,a,profile),func(at:Vector2,data:Variant)->void:
 		if _tool_drop_allowed(at/specimen.size,data,v,a,profile): _submit("alpha_inspect",{"slot":data.tool}))
-	action("close_mat","카운터",1055,117,146,38,func()->void:
-		zoom = false
-		refresh())
+	if drawer!="notes":
+		action("close_mat","카운터",1055,117,146,38,func()->void:
+			zoom = false
+			refresh())
 	if id in ["R001","WAT02"]:
 		action("turn_item","뒤집기",550,430,128,38,func()->void:
 			reverse = not reverse
@@ -424,11 +425,11 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 	if not a.we_buy:
 		var tag: Dictionary = Alpha.displayed_ask(session.snapshot(),id)
 		if not tag.is_empty(): words("매대 표시가 · %d %s"%[tag.amount,tag.currency],790,294,390,42,17)
-	elif not a.customer_claims.is_empty(): words("손님 주장 · "+_text(a.customer_claims[0].text_key),788,290,384,72)
+	elif not a.customer_claims.is_empty(): words("손님 주장 · "+_text(a.customer_claims[0].text_key),788,284,384,48,17)
 	var quote: Dictionary = session.snapshot().visits[v.active.id].prices[id]
 	var denomination := "VKC" if int(quote.VKC)>0 else "USD"
 	words(_text("b2.we_buy" if a.we_buy else "b2.we_sell")+" · "+(_text("spatial.terms") % [quote[denomination],denomination]),788,160,396,48,17)
-	words(_text("spatial.private")+(" · 내 추정 "+estimate_text+" "+denomination if not estimate_text.is_empty() else ""),790,343,390,32,18)
+	words(_text("spatial.private")+(" · "+estimate_text+" "+denomination if not estimate_text.is_empty() else ""),790,338,390,35,16)
 	var money := LineEdit.new()
 	money.name = "price"
 	money.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_NUMBER

@@ -17,7 +17,7 @@
     "spatial.quiet": "게시된 소식이 없습니다.",
     "spatial.cash": "%d일 · %d VKC / %d USD",
     "spatial.terms": "손님 제시액 · %d %s",
-    "spatial.private": "내 제안",
+    "spatial.private": "내 추정·참고",
     "spatial.book": "도감 대조 · 개인 전표",
     "spatial.basis": "물품 원가 · %s VKC / %s USD",
     "spatial.locked": "계약 예약품",
@@ -74,6 +74,7 @@
     "week.launch": "B3 첫 주 통합 후보 열기 · 별도 저장",
     "week.proposed": "첫 주 시험 계약 · 밸런스 승인 대기",
     "week.usd": "라디오 거래 이후 G01은 이번 공구 재견적에서 달러 결제만 받습니다.",
-    "week.payment": "D%d 계약 장부 · 상점 현금 증감 %d %s"
+    "week.payment": "D%d 계약 장부 · 상점 현금 증감 %d %s",
+    "b2.value.unknown": "미확인"
   }
 }
