@@ -31,7 +31,13 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 		keys.append("fx_profile")
 	if profile is Dictionary and profile.has("visit_random"):
 		keys.append("visit_random")
+	if profile is Dictionary and profile.has("market_extension"):
+		keys.append("market_extension")
 	if not Rules.keys(profile, keys) or profile.id != "alpha_b1_v1" or not Rules.identifier(profile.content_version):
+		return false
+	# This bounded addon is only valid in its independent seeded campaign.
+	# Legacy M1–M5 profiles remain byte-for-byte compatible.
+	if profile.has("market_extension") and (profile.market_extension != B3Interest.M7_MARKER or not profile.has("visit_random") or str(profile.content_version) != B3Fx.VERSION):
 		return false
 	if not profile.days is Array or profile.days.is_empty() or profile.days.size() > 42 or not profile.unavailable_actors is Array:
 		return false

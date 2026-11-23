@@ -9,12 +9,14 @@ const CONTENT_VERSION_M2: String = "b3-finite-market-m2"
 const CONTENT_VERSION_M3: String = "b3-finite-market-fx-m3"
 const VERSIONS: Array = [CONTENT_VERSION, CONTENT_VERSION_M2, CONTENT_VERSION_M3]
 const M2_FILE: String = "res://data/alpha_b3/market_interest_m2.json"
+const M7_FILE: String = "res://data/alpha_b3/market_interest_m7.json"
+const M7_MARKER: String = "b3_m7_finite_interest_1"
 
-static func config(version: String = CONTENT_VERSION) -> Dictionary:
-	if version not in VERSIONS:
+static func config(version: String = CONTENT_VERSION, extension: String = "") -> Dictionary:
+	if version not in VERSIONS or (not extension.is_empty() and (extension != M7_MARKER or version != CONTENT_VERSION_M3)):
 		return {}
-	var path: String=M2_FILE if version in [CONTENT_VERSION_M2,CONTENT_VERSION_M3] else FILE
-	var expected_version: int=2 if version in [CONTENT_VERSION_M2,CONTENT_VERSION_M3] else 1
+	var path: String = M7_FILE if extension == M7_MARKER else (M2_FILE if version in [CONTENT_VERSION_M2,CONTENT_VERSION_M3] else FILE)
+	var expected_version: int = 3 if extension == M7_MARKER else (2 if version in [CONTENT_VERSION_M2,CONTENT_VERSION_M3] else 1)
 	var raw: Variant=JSON.parse_string(FileAccess.get_file_as_string(path))
 	if not Rules.keys(raw,["version","offers"]) or raw.version!=expected_version or not raw.offers is Array:
 		return {}
@@ -89,10 +91,49 @@ static func extend(source: Dictionary, version: String = CONTENT_VERSION) -> Dic
 	next.alpha_profile["market_interest"]=c.duplicate(true)
 	return next
 
+## Separate opt-in M7: add only four proven new purchase opportunities.
+## The original M2/M3 source schedule, items, wallets, and prices stay intact.
+## This function never clones goods or funds; it binds each extra visit to an
+## existing seller-side quote and an independently funded other buyer.
+static func extend_m7(source: Dictionary) -> Dictionary:
+	if not source.has("state") or not source.has("alpha_profile"):
+		return {}
+	var original: Dictionary = config(CONTENT_VERSION_M3)
+	var expanded: Dictionary = config(CONTENT_VERSION_M3, M7_MARKER)
+	var profile: Dictionary = source.alpha_profile
+	if original.is_empty() or expanded.is_empty() or profile.get("content_version") != CONTENT_VERSION_M3 or profile.has("market_extension") or not profile.has("visit_random"):
+		return {}
+	if Rules.canonical(profile.get("market_interest", {})) != Rules.canonical(original) or expanded.offers.size() != original.offers.size() + 4:
+		return {}
+	for i: int in range(original.offers.size()):
+		if Rules.canonical(expanded.offers[i]) != Rules.canonical(original.offers[i]):
+			return {}
+	var next: Dictionary = source.duplicate(true)
+	for i: int in range(original.offers.size(), expanded.offers.size()):
+		var offer: Dictionary = expanded.offers[i]
+		if not _valid_offer(offer, next.state, next.alpha_profile, false) or next.state.visits.has(offer.visit_id):
+			return {}
+		var price: Dictionary = next.state.visits[offer.quote_source_visit_id].prices[offer.item_id].duplicate(true)
+		next.state.visits[offer.visit_id] = {
+			"scope": {"visit_id": offer.visit_id, "kind": "ordinary", "purpose": "sale", "completed": false, "required_ids": []},
+			"seller": "player", "buyer": offer.actor_id,
+			"prices": {offer.item_id: price},
+			"opens": (int(offer.day) - 1) * 1440,
+			"expires": (int(offer.day) - 1) * 1440 + 600,
+			"allow_inspection": true
+		}
+		next.alpha_profile.days[int(offer.day) - 1].append({
+			"id": offer.visit_id, "actor_id": offer.actor_id,
+			"kind": "regular", "purpose_key": offer.purpose_key, "contact_offer": false
+		})
+	next.alpha_profile.market_interest = expanded.duplicate(true)
+	next.alpha_profile["market_extension"] = M7_MARKER
+	return next
+
 static func profile_valid(profile: Dictionary, state: Dictionary) -> bool:
 	if profile.get("content_version") not in VERSIONS or not profile.has("market_interest"):
 		return false
-	var c: Dictionary=config(str(profile.content_version))
+	var c: Dictionary = config(str(profile.content_version), str(profile.get("market_extension", "")))
 	if c.is_empty() or Rules.canonical(profile.market_interest)!=Rules.canonical(c):
 		return false
 	for offer: Dictionary in c.offers:

@@ -1,0 +1,101 @@
+{
+  "version": 3,
+  "offers": [
+    {
+      "visit_id": "alpha_b3_g09_radio_d2",
+      "actor_id": "G09",
+      "day": 2,
+      "item_id": "R001",
+      "quote_source_visit_id": "radio_recovery",
+      "purpose_key": "b3.market.interest.radio"
+    },
+    {
+      "visit_id": "alpha_b3_g08_watch_d4",
+      "actor_id": "G08",
+      "day": 4,
+      "item_id": "WAT02",
+      "quote_source_visit_id": "watch_sale",
+      "purpose_key": "b3.market.interest.watch"
+    },
+    {
+      "visit_id": "alpha_b3_g11_battery_d4",
+      "actor_id": "G11",
+      "day": 4,
+      "item_id": "BAT02",
+      "quote_source_visit_id": "battery_sale",
+      "purpose_key": "b3.market.interest.battery"
+    },
+    {
+      "visit_id": "alpha_b3_g09_tool_d5",
+      "actor_id": "G09",
+      "day": 5,
+      "item_id": "TL04",
+      "quote_source_visit_id": "tool_sale",
+      "purpose_key": "b3.market.interest.tool"
+    },
+    {
+      "visit_id": "alpha_b3_g03_gear_d6",
+      "actor_id": "G03",
+      "day": 6,
+      "item_id": "GE03",
+      "quote_source_visit_id": "gear_recovery",
+      "purpose_key": "b3.market.interest.gear"
+    },
+    {
+      "visit_id": "alpha_b3_g04_radio_d6",
+      "actor_id": "G04",
+      "day": 6,
+      "item_id": "R003",
+      "quote_source_visit_id": "radio3_sale",
+      "purpose_key": "b3.market.interest.radio"
+    },
+    {
+      "visit_id": "alpha_b3_g08_electronics_d7",
+      "actor_id": "G08",
+      "day": 7,
+      "item_id": "EL06",
+      "quote_source_visit_id": "electronics_sale",
+      "purpose_key": "b3.market.interest.electronics"
+    },
+    {
+      "visit_id": "alpha_b3_g03_hygiene_d7",
+      "actor_id": "G03",
+      "day": 7,
+      "item_id": "HY05",
+      "quote_source_visit_id": "hygiene_sale",
+      "purpose_key": "b3.market.interest.hygiene"
+    },
+    {
+      "visit_id": "alpha_b3_g11_battery_d5",
+      "actor_id": "G11",
+      "day": 5,
+      "item_id": "BAT02",
+      "quote_source_visit_id": "battery_sale",
+      "purpose_key": "b3.market.interest.battery"
+    },
+    {
+      "visit_id": "alpha_b3_g08_watch_d6",
+      "actor_id": "G08",
+      "day": 6,
+      "item_id": "WAT02",
+      "quote_source_visit_id": "watch_sale",
+      "purpose_key": "b3.market.interest.watch"
+    },
+    {
+      "visit_id": "alpha_b3_g02_electronics_d7",
+      "actor_id": "G02",
+      "day": 7,
+      "item_id": "EL06",
+      "quote_source_visit_id": "electronics_sale",
+      "purpose_key": "b3.market.interest.electronics"
+    },
+    {
+      "visit_id": "alpha_b3_g12_tool_d7",
+      "actor_id": "G12",
+      "day": 7,
+      "item_id": "TL04",
+      "quote_source_visit_id": "tool_sale",
+      "purpose_key": "b3.market.interest.tool"
+    }
+  ]
+}
