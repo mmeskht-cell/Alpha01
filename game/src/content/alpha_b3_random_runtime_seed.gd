@@ -7,7 +7,7 @@ const Base = preload("res://src/content/alpha_b3_fx_seed.gd")
 const Rules = preload("res://src/domain/value_rules.gd")
 
 static func content(campaign_seed: int = 101) -> Dictionary:
-	if not Rules.integer(campaign_seed, 1, 2147483647):
+	if not Rules.integer(campaign_seed, 1, Rules.LIMIT):
 		return {}
 	var original: Dictionary = Base.content()
 	if original.is_empty():

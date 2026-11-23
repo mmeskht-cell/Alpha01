@@ -64,8 +64,17 @@ func _initialize() -> void:
 			and int(underfilled.shortfall) > 0,
 			"missing eligible customers cause honest underfill, never visitor minting")
 		if day == 1:
-			check(not p.visits.is_empty() and p.visits[p.visits.size()-1].id == "alpha_marcus_intro",
-				"the authored contract introduction stays after ordinary Day1 visitors")
+			var named_original: Array = []
+			var named_planned: Array = []
+			for source_row: Dictionary in rows:
+				if source_row.id in fixed:
+					named_original.append(str(source_row.id))
+			for actual_row: Dictionary in p.visits:
+				if actual_row.id in fixed:
+					named_planned.append(str(actual_row.id))
+			check(named_original == named_planned
+				and "alpha_marcus_intro" in named_planned,
+				"protected named story/contract visits retain their authored relative order")
 		if day == 2:
 			day_two = rows
 			day_two_flags = availability

@@ -80,7 +80,7 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 		var policy: Variant = profile.visit_random
 		if str(profile.content_version) != B3Fx.VERSION or not Rules.keys(policy, ["version", "seed", "locked_ids"]):
 			return false
-		if int(policy.version) != 1 or not Rules.integer(policy.seed, 1, 2147483647) or not policy.locked_ids is Array or policy.locked_ids != ["alpha_marcus_intro", "hygiene_sale"]:
+		if int(policy.version) != 1 or not Rules.integer(policy.seed, 1, Rules.LIMIT) or not policy.locked_ids is Array or policy.locked_ids != ["alpha_marcus_intro", "hygiene_sale"]:
 			return false
 		var intro: bool = false
 		var story_trade: bool = false

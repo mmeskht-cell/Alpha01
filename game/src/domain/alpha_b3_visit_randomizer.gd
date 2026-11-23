@@ -13,7 +13,7 @@ static func _score(seed: int, day: int, label: String) -> int:
 	return text.sha256_text().substr(0, 8).hex_to_int()
 
 static func plan(rows: Array, eligible: Dictionary, locked_ids: Array, seed: int, day: int) -> Dictionary:
-	if not Rules.integer(seed, 1, 2147483647) or not Rules.integer(day, 1, 42):
+	if not Rules.integer(seed, 1, Rules.LIMIT) or not Rules.integer(day, 1, 42):
 		return {"ok": false, "error": "b3_random_seed_or_day"}
 	if rows.size() > 128:
 		return {"ok": false, "error": "b3_random_pool_limit"}

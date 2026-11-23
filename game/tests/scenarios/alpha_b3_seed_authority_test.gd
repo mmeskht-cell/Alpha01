@@ -85,4 +85,17 @@ func _initialize() -> void:
 		f.close()
 	check(not Authority.select_seed(folder, SLOT).get("ok", false),
 		"both corrupted saves fail closed; never reset to a new random campaign")
+	var edge_dir: String = folder + "_canonical_edge"
+	var edge_repo := Repo.new(edge_dir)
+	var edge_session: RefCounted = fresh(1000000000)
+	check(edge_session != null and edge_repo.save_session(edge_session, SLOT).get("ok", false),
+		"max canonical seed 1e9 successfully round-trips through on-disk save verification")
+	var edge_seed: Dictionary = Authority.select_seed(edge_dir, SLOT)
+	var edge_reloaded: RefCounted = fresh(int(edge_seed.get("seed", 0)))
+	check(edge_seed.get("ok", false) and int(edge_seed.seed) == 1000000000
+		and edge_reloaded != null and edge_repo.load_session(edge_reloaded, SLOT).get("ok", false)
+		and edge_reloaded.snapshot() == edge_session.snapshot(),
+		"max canonical seed cold-restore exactly preserves strict profile binding")
+	check(Source.content(1000000001).is_empty(),
+		"seed beyond canonical numeric range rejected before any session or save")
 	done()

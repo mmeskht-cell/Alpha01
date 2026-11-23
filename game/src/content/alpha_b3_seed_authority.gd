@@ -26,7 +26,7 @@ static func _saved_seed(path: String, slot: String) -> Dictionary:
 	if not profile is Dictionary or not profile.get("visit_random") is Dictionary:
 		return {}
 	var random_policy: Variant = profile.visit_random
-	if not Rules.keys(random_policy, ["version", "seed", "locked_ids"]) or random_policy.version != 1 or random_policy.locked_ids != EXPECTED_LOCKS or not Rules.integer(random_policy.seed, 1, 2147483647):
+	if not Rules.keys(random_policy, ["version", "seed", "locked_ids"]) or random_policy.version != 1 or random_policy.locked_ids != EXPECTED_LOCKS or not Rules.integer(random_policy.seed, 1, Rules.LIMIT):
 		return {}
 	if snapshot.alpha_shop.get("binding") != Rules.canonical(profile).sha256_text():
 		return {}
@@ -53,4 +53,4 @@ static func select_seed(directory: String, slot: String) -> Dictionary:
 		return {"ok": true, "seed": int(found[0].seed), "new": false}
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
-	return {"ok": true, "seed": int(rng.randi_range(1, 2147483647)), "new": true}
+	return {"ok": true, "seed": int(rng.randi_range(1, Rules.LIMIT)), "new": true}
