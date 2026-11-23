@@ -32,16 +32,15 @@ jobs:
           export XDG_DATA_HOME="$RUNNER_TEMP/b3-test-data"
           export XDG_CONFIG_HOME="$RUNNER_TEMP/b3-test-config"
           engine="$RUNNER_TEMP/Godot_v4.7.2-stable_linux.x86_64"
-          # Ephemeral A/B: load the Ogg and attach it, but do not start playback.
-          # No checked-in game code or music asset is modified by this probe.
+          # Ephemeral A/B: enable normal playback, reuse resource cache instead
+          # of allocating independent Ogg packet graphs for scene re-entries.
           python3 - <<'PY'
           from pathlib import Path
-          p = Path('game/src/presentation/commit_feedback.gd')
+          p = Path('game/src/presentation/score_resource.gd')
           s = p.read_text()
-          needle = '\t\t\t_music.play(float(get_tree().get_meta("spatial_score_position",0.0)))'
-          assert s.count(needle) == 1
-          p.write_text(s.replace(needle, '\t\t\tpass # lifecycle A/B: Ogg loaded, playback disabled'))
-          print('B3_AUDIO_AB_SCORE_LOADED_NO_PLAYBACK')
+          assert s.count('ResourceLoader.CACHE_MODE_IGNORE') == 1
+          p.write_text(s.replace('ResourceLoader.CACHE_MODE_IGNORE','ResourceLoader.CACHE_MODE_REUSE'))
+          print('B3_AUDIO_AB_CACHE_REUSE_NORMAL_PLAYBACK')
           PY
           python3 game/tools/prepare_runtime_assets.py
           "$engine" --headless --editor --path game --import --quit 2>&1 | tee /tmp/b3-import.log
