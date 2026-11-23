@@ -151,6 +151,7 @@ func _build_buttons()->void:
 	_clear_buttons()
 	_loading=false
 	_button("menu_new",tr_key("menu.new"),_new_game)
+	_button("menu_spatial_week","크라벤스크 상점 · 첫 주 시작 / 이어하기",_open_spatial_week)
 	_button("menu_b1","신규 영업 프로필 · B1",func()->void: get_tree().change_scene_to_file(B1ScenePath))
 	_button("menu_b2_cards","물품 감정·흥정 · B2 시험",func()->void: get_tree().change_scene_to_file(B2CardsScenePath))
 	_button("menu_b2_commission","고객 의뢰 · B2 시험",func()->void: get_tree().change_scene_to_file(B2CommissionScenePath))
@@ -278,3 +279,7 @@ func _unhandled_input(event:InputEvent)->void:
 	else:
 		return
 	get_viewport().set_input_as_handled()
+
+func _open_spatial_week() -> void:
+	game._feedback_audio.remember_score_position()
+	get_tree().change_scene_to_file("res://scenes/app/alpha_b3_week_candidate.tscn")

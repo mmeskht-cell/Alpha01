@@ -93,7 +93,7 @@ func _ready() -> void:
 		random_seed = int(selected_seed.seed)
 	var source: Dictionary = {}
 	if b3_m7_mode:
-		source = WeekSeed.content(random_seed) if week_candidate else B3M7Seed.content(random_seed)
+		source = _week_source(random_seed) if week_candidate else B3M7Seed.content(random_seed)
 	else:
 		source = B3RandomSeed.content(random_seed) if b3_random_mode else (B3FxSeed.content() if b3_fx_mode else (B3MarketM2Seed.content() if b3_market_m2_mode else (B3MarketSeed.content() if b3_market_mode else (MultiServiceSeed.content() if b2_multi_service_mode else (RecoverySeed.content() if b2_recovery_mode else (ServiceSeed.content() if b2_service_mode else (NamedCommissionSeed.content() if b2_named_commission_mode else (CommissionSeed.content() if b2_commission_mode else (CardSeed.content() if b2_interactive_mode else (B2Seed.content() if b2_mode else Seed.content()))))))))))
 	if source.is_empty():
@@ -123,6 +123,9 @@ func _ready() -> void:
 					_blocked = true
 					_message = "초기 랜덤 시드 저장에 실패했습니다: " + str(first_save.get("error", "unknown"))
 	refresh()
+
+func _week_source(seed_value: int) -> Dictionary:
+	return WeekSeed.content(seed_value)
 
 func _slot() -> String:
 	if week_candidate:

@@ -37,6 +37,8 @@ static func apply(s: Dictionary, defs: Dictionary, command: Dictionary) -> Strin
 	var payer: String = "player" if accepting else "G04"
 	var receiver: String = "G04" if accepting else "player"
 	var target: String = "player_stock" if accepting else "G04_grid"
+	if accepting and a.profile.has("spatial_opening"):
+		target = "pawn_grid"
 	var amount: Dictionary = PRINCIPAL if accepting else REPAYMENT
 	if accepting:
 		if pawn.status != "available" or a.active != "watch_a" or a.phase != "CUSTOMER_ACTIVE" or not Merchant._good_family(s,defs,"WAT02","G04"):
@@ -81,5 +83,13 @@ static func expire(s: Dictionary, defs: Dictionary, action: String) -> void:
 		item.status = "stock"
 		item.basis = {"VKC":costs[id],"USD":0}
 		item.version += 1
+	if a.profile.has("spatial_opening"):
+		var free: Dictionary = placement(s,defs,"player_stock")
+		if free.get("ok",false):
+			var root: Dictionary = s.items.WAT02
+			root.inventory = "player_stock"
+			root.x = free.x
+			root.y = free.y
+			root.rotated = free.rotated
 	a.week_pawn.status = "forfeited"
 	a.week_pawn.events.append({"action":action,"day":a.day,"kind":"forfeited","item_id":"WAT02"})

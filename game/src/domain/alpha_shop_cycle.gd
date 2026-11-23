@@ -13,7 +13,7 @@ const B3Random = preload("res://src/domain/alpha_b3_visit_randomizer.gd")
 const Story = preload("res://src/domain/alpha_story_projection.gd")
 const Grid = preload("res://src/domain/grid_primitives.gd")
 const Objects = preload("res://src/domain/object_schema.gd")
-const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid", "alpha_fx_trade", "alpha_salvage_dispatch", "alpha_salvage_cancel","week_pledge","week_redeem","week_extend"]
+const ACTIONS: Array = ["alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid", "alpha_fx_trade", "alpha_salvage_dispatch", "alpha_salvage_cancel","week_pledge","week_redeem","week_extend","spatial_move","spatial_restore_item","spatial_attach","spatial_detach"]
 const PHASES: Array = ["DAY_PREP", "OPEN_IDLE", "CUSTOMER_ENTER", "CUSTOMER_ACTIVE", "CUSTOMER_EXIT", "CLOSE_SETTLE", "EVENING_WORK", "NEXT_DAY", "COMPLETE"]
 
 static func profile_valid(profile: Variant, state: Dictionary) -> bool:
@@ -32,6 +32,10 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 		keys.append("fx_profile")
 	if profile is Dictionary and profile.has("visit_random"):
 		keys.append("visit_random")
+	if profile is Dictionary and profile.has("spatial_opening"):
+		if profile.spatial_opening != 1 or not profile.has("week_proposal"):
+			return false
+		keys.append("spatial_opening")
 	if profile is Dictionary and profile.has("week_proposal"):
 		if profile.week_proposal != "first_week_proposal_1" or profile.get("market_extension") != B3Interest.M7_MARKER:
 			return false
@@ -234,6 +238,8 @@ static func _draw_day(state: Dictionary) -> String:
 		for request: Dictionary in a.get("outbound", {}).values():
 			if admitted and request.status == "goods_offered" and request.visit_id == id:
 				mandatory = true
+		if a.profile.has("spatial_opening") and a.day == 1 and id == "visit_g01":
+			mandatory = true
 		if mandatory:
 			locked.append(id)
 	var result: Dictionary = B3Random.plan(rows, availability, locked, int(a.profile.visit_random.seed), int(a.day))
@@ -243,6 +249,11 @@ static func _draw_day(state: Dictionary) -> String:
 	for visit: Dictionary in result.visits:
 		ids.append(str(visit.id))
 	a.random_visits.day = int(a.day)
+	if a.profile.has("spatial_opening") and a.day == 1:
+		for opening_id: String in ["visit_g01", "alpha_marcus_intro"]:
+			if opening_id in ids:
+				ids.erase(opening_id)
+				ids.push_front(opening_id)
 	a.random_visits.plan = ids
 	a.random_visits.target = int(result.target)
 	a.random_visits.shortfall = int(result.shortfall)

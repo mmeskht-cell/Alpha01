@@ -64,7 +64,7 @@ func _ready() -> void:
 		_ambient.append(layer)
 		if _playback_enabled:
 			layer.play()
-	_score = Music.build()
+	_score = Music.build() if ResourceLoader.exists(Music.PATH) else null
 	if _score != null:
 		_music = AudioStreamPlayer.new()
 		_music.bus = BUS_NAMES.music
@@ -72,7 +72,9 @@ func _ready() -> void:
 		_music.stream = _score
 		add_child(_music)
 		if _playback_enabled:
-			_music.play()
+			_music.play(float(get_tree().get_meta("spatial_score_position",0.0)))
+			if get_tree().has_meta("spatial_score_position"):
+				get_tree().remove_meta("spatial_score_position")
 			_music_starts += 1
 	_line = ColorRect.new()
 	_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -258,3 +260,7 @@ func set_motion(enabled: bool) -> void:
 func diagnostic_view() -> Dictionary:
 	return {"revision": _revision, "presented": _presented, "played": _played, "motions": _motions, "last_cue": _last_cue, "sound": sound_enabled, "motion": motion_enabled, "cue_count": _streams.size(), "levels": _levels.duplicate(), "ambience_layers": _ambient.size(), "phase": _phase, "music_tracks": 1 if _score != null else 0, "music_starts": _music_starts}
 
+
+func remember_score_position() -> void:
+	if is_instance_valid(_music) and _music.playing:
+		get_tree().set_meta("spatial_score_position",_music.get_playback_position())

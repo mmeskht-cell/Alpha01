@@ -72,7 +72,7 @@ def check_shutdown():
 
 tests = []
 if args.scope in ('all', 'regression'):
-    tests += ['scenarios/alpha_b1_flow_test', 'scenarios/alpha_b1_host_test', 'scenarios/alpha_b1_contract_boundary_test', 'scenarios/alpha_b2_trade_slice_test', 'scenarios/alpha_b2_shelf_options_test', 'scenarios/alpha_b2_stock_custody_integration_test', 'scenarios/alpha_b2_shared_counter_transaction_test', 'scenarios/alpha_b2_unified_launch_test', 'scenarios/alpha_b3_visit_capacity_test', 'scenarios/alpha_b3_market_interest_test', 'scenarios/alpha_b3_market_m2_test', 'scenarios/alpha_b3_fx_m3_test', 'scenarios/alpha_b3_currency_terms_test', 'scenarios/alpha_b3_seeded_visits_test', 'scenarios/alpha_b3_random_runtime_test', 'scenarios/alpha_b3_seed_authority_test', 'scenarios/alpha_b3_conditional_story_test', 'scenarios/alpha_b3_m6_seven_day_real_trade_test', 'scenarios/alpha_b3_m7_finite_interest_test', 'scenarios/alpha_b3_week_attendance_test', 'scenarios/alpha_b3_paid_flow_test', 'scenarios/alpha_b3_outbound_funds_test', 'scenarios/alpha_b3_integrated_week_test', 'scenarios/alpha_b2_host_test', 'scenarios/alpha_b2_card_negotiation_test', 'scenarios/alpha_b2_statement_authority_test', 'scenarios/alpha_b2_cards_host_test', 'scenarios/alpha_b2_generic_appraisal_test', 'scenarios/alpha_b2_generic_appraisal_host_test', 'scenarios/alpha_b2_commission_test', 'scenarios/alpha_b2_commission_host_test', 'scenarios/alpha_b2_named_parity_test', 'scenarios/alpha_b2_q08_template_test', 'scenarios/alpha_b2_story_projection_test', 'scenarios/alpha_b2_service_custody_test', 'scenarios/alpha_b2_multi_host_test', 'unit/gate2_contract_plan_test', 'scenarios/gate2_calendar_test', 'scenarios/gate2_medicine_test', 'scenarios/gate2_visit_queue_test', 'scenarios/gate2_service_test', 'scenarios/gate2_contract_test', 'unit/foundation_test', 'unit/save_test', 'unit/checkpoint_pilot_test', 'unit/registry_pilot_test', 'unit/registry_ab_pilot_test', 'unit/replay_checkpoint_test', 'unit/campaign_identity_directory_test', 'scenarios/lifecycle_authority_test', 'scenarios/campaign_capacity_test', 'scenarios/registry_runtime_test', 'unit/localization_test', 'scenarios/foundation_integration', 'unit/retention_test', 'unit/item_lineage_test', 'scenarios/gate2_p3_work_lineage_test', 'scenarios/gate2_p3_l2_compatibility_test', 'scenarios/gate2_p3_calendar_lifecycle_test', 'scenarios/gate2_demo_integration_test', 'scenarios/gate2_demo_host_test', 'scenarios/maintenance_sample_test']
+    tests += ['scenarios/alpha_b1_flow_test', 'scenarios/alpha_b1_host_test', 'scenarios/alpha_b1_contract_boundary_test', 'scenarios/alpha_b2_trade_slice_test', 'scenarios/alpha_b2_shelf_options_test', 'scenarios/alpha_b2_stock_custody_integration_test', 'scenarios/alpha_b2_shared_counter_transaction_test', 'scenarios/alpha_b2_unified_launch_test', 'scenarios/alpha_b3_visit_capacity_test', 'scenarios/alpha_b3_market_interest_test', 'scenarios/alpha_b3_market_m2_test', 'scenarios/alpha_b3_fx_m3_test', 'scenarios/alpha_b3_currency_terms_test', 'scenarios/alpha_b3_seeded_visits_test', 'scenarios/alpha_b3_random_runtime_test', 'scenarios/alpha_b3_seed_authority_test', 'scenarios/alpha_b3_conditional_story_test', 'scenarios/alpha_b3_m6_seven_day_real_trade_test', 'scenarios/alpha_b3_m7_finite_interest_test', 'scenarios/alpha_b3_week_attendance_test', 'scenarios/alpha_b3_paid_flow_test', 'scenarios/alpha_b3_outbound_funds_test', 'scenarios/alpha_b3_integrated_week_test', 'scenarios/b3_spatial_week_daily_test', 'scenarios/alpha_b2_host_test', 'scenarios/alpha_b2_card_negotiation_test', 'scenarios/alpha_b2_statement_authority_test', 'scenarios/alpha_b2_cards_host_test', 'scenarios/alpha_b2_generic_appraisal_test', 'scenarios/alpha_b2_generic_appraisal_host_test', 'scenarios/alpha_b2_commission_test', 'scenarios/alpha_b2_commission_host_test', 'scenarios/alpha_b2_named_parity_test', 'scenarios/alpha_b2_q08_template_test', 'scenarios/alpha_b2_story_projection_test', 'scenarios/alpha_b2_service_custody_test', 'scenarios/alpha_b2_multi_host_test', 'unit/gate2_contract_plan_test', 'scenarios/gate2_calendar_test', 'scenarios/gate2_medicine_test', 'scenarios/gate2_visit_queue_test', 'scenarios/gate2_service_test', 'scenarios/gate2_contract_test', 'unit/foundation_test', 'unit/save_test', 'unit/checkpoint_pilot_test', 'unit/registry_pilot_test', 'unit/registry_ab_pilot_test', 'unit/replay_checkpoint_test', 'unit/campaign_identity_directory_test', 'scenarios/lifecycle_authority_test', 'scenarios/campaign_capacity_test', 'scenarios/registry_runtime_test', 'unit/localization_test', 'scenarios/foundation_integration', 'unit/retention_test', 'unit/item_lineage_test', 'scenarios/gate2_p3_work_lineage_test', 'scenarios/gate2_p3_l2_compatibility_test', 'scenarios/gate2_p3_calendar_lifecycle_test', 'scenarios/gate2_demo_integration_test', 'scenarios/gate2_demo_host_test', 'scenarios/maintenance_sample_test']
 if args.scope in ('all', 'gate0c'):
     tests += [f'unit/{name}_primitives_test' for name in ['item', 'grid', 'visit', 'object_relation', 'evidence']]
     tests += ['scenarios/gate0_c_test']
@@ -91,6 +91,10 @@ for test in tests:
     elif test == 'scenarios/gate2_demo_integration_test':
         # Identical four independent scenarios, one process and timeout per part.
         commands.extend(command + ['--', part] for part in demo_parts)
+    elif test == 'scenarios/b3_spatial_week_daily_test':
+        commands.extend(command + ['--', part] for part in (
+            'return', 'empty', 'cancel', 'redeem', 'extend',
+            'forfeit', 'market', 'combined', 'shortage'))
     elif test == 'scenarios/alpha_b3_integrated_week_test':
         # Nine unchanged seven-day paths, one bounded Godot process per route.
         commands.extend(command + ['--', part] for part in (
@@ -145,6 +149,30 @@ for index, command in enumerate(commands, start=1):
         )
         if not valid:
             print('FAIL: missing successful B3 first-week route marker', command[-1], flush=True)
+            failed = True
+    if any('b3_spatial_week_daily_test.gd' in str(part) for part in command):
+        # Explicit seven day receipts and final per-route gate from the B3 spatial profile.
+        route = command[-1]
+        expected = f'ALPHA_B3_INTEGRATED_WEEK_PART {route}: '
+        receipts = [line for line in output.splitlines() if line.startswith('SPATIAL_DAY ')]
+        valid = (
+            len(receipts) == 7 and
+            any(
+                line.startswith(expected) and line.endswith(' failures') and
+                ', 0 failures' in line and
+                int(line[len(expected):].split(' ', 1)[0]) >= 15
+                for line in output.splitlines()
+                if line.startswith(expected) and line[len(expected):].split(' ', 1)[0].isdigit()
+            )
+        )
+        if valid:
+            try:
+                parsed = [json.loads(line[len('SPATIAL_DAY '):]) for line in receipts]
+                valid = [day.get('day') for day in parsed] == list(range(1, 8))
+            except (ValueError, TypeError):
+                valid = False
+        if not valid:
+            print('FAIL: B3 spatial week route missing ordered daily receipts / pass', route, flush=True)
             failed = True
     record_step(index, command, output, result.returncode or (1 if failed else 0), 'failed' if failed else 'passed')
     if failed:

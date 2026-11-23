@@ -285,6 +285,32 @@ func _execute(command: Dictionary, world: bool) -> Dictionary:
 ## B2 candidate uses original transfer/move and accounting internals. Only the
 ## opt-in profile supplies new phase/real-shelf admission permissions.
 func _apply_alpha(state: Dictionary, command: Dictionary) -> String:
+	if str(command.type).begins_with("spatial_"):
+		var a: Dictionary = state.alpha_shop
+		var work: Dictionary = command.payload
+		var root: String = str(work.get("root_id",work.get("item_id","")))
+		if not a.profile.has("spatial_opening") or work.get("actor") != "player" or not state.items.has(root) or state.items[root].inventory not in ["player_stock","pawn_grid"]:
+			return "spatial_work_permission"
+		if command.type == "spatial_move":
+			if a.phase not in ["OPEN_IDLE","EVENING_WORK"] or work.get("inventory") != "player_stock":
+				return "spatial_storage"
+			return _move(state,work)
+		if a.phase != "EVENING_WORK" or state.items[root].inventory != "player_stock" or not _can_change(state,root,"player"):
+			return "spatial_evening"
+		var previous: String = state.phase
+		state.phase = "workshop"
+		var error: String = "spatial_work"
+		match command.type:
+			"spatial_restore_item":
+				error = _restore_item(state,work,command.action_id)
+			"spatial_detach":
+				if work.get("inventory") == "player_stock":
+					error = _composition(state,work,command.action_id,"detach")
+			"spatial_attach":
+				if state.items.get(work.get("child_id",""),{}).get("inventory") == "player_stock":
+					error = _composition(state,work,command.action_id,"attach")
+		state.phase = previous
+		return error
 	if command.type in WeekPawn.ACTIONS:
 		return WeekPawn.apply(state,_definitions,command)
 	if command.type == "alpha_settle" and state.alpha_shop.phase == "CLOSE_SETTLE":
@@ -1674,7 +1700,7 @@ func _history_valid(state: Dictionary) -> bool:
 	for e: Variant in state.object_events:
 		if not Rules.keys(e, ["event_id", "revision", "type", "item_ids", "basis", "expenses"]) or not Rules.identifier(e.event_id) or events.has(e.event_id) or e.type not in ["detach", "attach", "discard", "restore_item", "replace_component","clean_exterior"]:
 			return false
-		if not _ids_valid(state, e.item_ids) or not Objects.money(e.basis) or not Objects.money(e.expenses, false) or e.revision != _receipt_revision(state, e.event_id) or e.type != ("restore_item" if _receipt_type(state, e.event_id) == "alpha_service_repair" else _receipt_type(state, e.event_id)):
+		if not _ids_valid(state, e.item_ids) or not Objects.money(e.basis) or not Objects.money(e.expenses, false) or e.revision != _receipt_revision(state, e.event_id) or e.type != ("restore_item" if _receipt_type(state, e.event_id) == "alpha_service_repair" else _receipt_type(state, e.event_id).trim_prefix("spatial_")):
 			return false
 		events[e.event_id] = e
 		if e.type=="clean_exterior":
@@ -1706,7 +1732,7 @@ func _history_valid(state: Dictionary) -> bool:
 				if not ComponentHistory.valid_link(state, id, ComponentAppraisal.observation_keys()):
 					return false
 				continue
-			if kind in ["detach", "attach", "discard", "restore_item", "alpha_service_repair", "replace_component","clean_exterior"] and not events.has(id):
+			if kind in ["detach", "attach", "discard", "restore_item", "alpha_service_repair","spatial_attach","spatial_detach","spatial_restore_item", "replace_component","clean_exterior"] and not events.has(id):
 				return false
 			if kind == "observe" and not state.knowledge.has(id):
 				return false
@@ -1759,3 +1785,24 @@ func _compact(state: Dictionary) -> void:
 
 func _error(code: String) -> Dictionary:
 	return {"ok": false, "error": code}
+
+## Public geometry only; one placement routine for purchased and moved objects.
+func spatial_fit(id: String, inventory: String) -> Dictionary:
+	if not _state.items.has(id) or not _state.inventories.has(inventory):
+		return {}
+	var grid: Dictionary = _state.inventories[inventory]
+	var rows: Array = []
+	for other_id: String in _state.items:
+		var other: Dictionary = _state.items[other_id]
+		if other_id == id or other.inventory != inventory or not other.parent_id.is_empty():
+			continue
+		var shape: Array = Objects.footprint(_state,_definitions,other_id)
+		rows.append({"item_id":other_id,"width":shape[0],"height":shape[1],"x":other.x,"y":other.y,"rotated":other.rotated})
+	var shape: Array = Objects.footprint(_state,_definitions,id)
+	return preload("res://src/domain/grid_primitives.gd").first_fit(grid.width,grid.height,rows,{"item_id":id,"width":shape[0],"height":shape[1],"rotated":false})
+
+func spatial_dimensions(id: String) -> Array:
+	return Objects.footprint(_state,_definitions,id) if _state.items.has(id) else []
+
+func spatial_tag(id: String) -> String:
+	return str(_definitions[_state.items[id].def_id].get("tag","")) if _state.items.has(id) else ""
