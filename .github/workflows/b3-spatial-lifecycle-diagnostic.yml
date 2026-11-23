@@ -35,7 +35,35 @@ jobs:
           python3 game/tools/prepare_runtime_assets.py
           "$engine" --headless --editor --path game --import --quit 2>&1 | tee /tmp/b3-import.log
           if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:' /tmp/b3-import.log; then exit 1; fi
+          # Snapshot-only audit: temporary edits in the CI checkout, no game authority changes.
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('game/tests/window/b3_spatial_week_window.gd')
+          s=p.read_text()
+          replacements=[
+              ('\t\tcheck(host.session.alpha_view().active.id=="visit_g01","real G01 immediately follows Marcus")',
+               '\t\tcheck(host.session.alpha_view().active.id=="visit_g01","real G01 immediately follows Marcus")\n\t\tawait capture("audit_g01_counter_%d"%resolution.y,resolution)'),
+              ('\t\tawait click("alpha_ack_exit","OPEN_IDLE")\n\t\tawait click_navigation(host,"stockroom")',
+               '\t\tawait click("alpha_ack_exit","OPEN_IDLE")\n\t\tawait click_navigation(host,"ledger")\n\t\tawait capture("audit_ledger_%d"%resolution.y,resolution)\n\t\tawait click_navigation(host,"close_drawer")\n\t\tawait click_navigation(host,"stockroom")'),
+              ('\t\tawait capture("spatial_shelf_%d"%resolution.y,resolution)\n\t\tawait release_host()',
+               '\t\tawait capture("spatial_shelf_%d"%resolution.y,resolution)\n\t\tawait click_navigation(host,"stock_R001")\n\t\tawait click_navigation(host,"tab_player_stock")\n\t\tif not await click("cell_0_0","OPEN_IDLE"):\n\t\t\tawait finish()\n\t\t\treturn\n\t\tawait click_navigation(host,"close_drawer")\n\t\tif not await click("alpha_close","CLOSE_SETTLE") or not await click("alpha_settle","EVENING_WORK"):\n\t\t\tawait finish()\n\t\t\treturn\n\t\tawait capture("audit_evening_counter_%d"%resolution.y,resolution)\n\t\tawait click_navigation(host,"stockroom")\n\t\tawait capture("audit_evening_stockroom_%d"%resolution.y,resolution)\n\t\tawait click_navigation(host,"stock_R001")\n\t\tawait capture("audit_evening_item_work_%d"%resolution.y,resolution)\n\t\tawait click_navigation(host,"close_drawer")\n\t\tawait click_navigation(host,"phone")\n\t\tawait capture("audit_evening_phone_%d"%resolution.y,resolution)\n\t\tawait release_host()')
+          ]
+          for old,new in replacements:
+              assert s.count(old)==1,(old[:60],s.count(old))
+              s=s.replace(old,new)
+          p.write_text(s)
+          print('B3_AUDIT_SCREEN_CAPTURE_PATCHED')
+          PY
           mkdir -p /tmp/b3-evidence
           LIBGL_ALWAYS_SOFTWARE=1 timeout 170s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/window/b3_spatial_week_window.gd -- /tmp/b3-evidence 2>&1 | tee /tmp/b3-lifecycle.log
           grep -E 'B3_SPATIAL_WEEK_WINDOW: [0-9]+ checks, 0 failures' /tmp/b3-lifecycle.log
           if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:|ObjectDB instances were leaked|Leaked instance:|resources still in use at exit' /tmp/b3-lifecycle.log; then exit 1; fi
+      - name: Upload B3 UI audit screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: b3-ui-audit-gallery
+          path: |
+            /tmp/b3-evidence/*.png
+            /tmp/b3-lifecycle.log
+          retention-days: 14
