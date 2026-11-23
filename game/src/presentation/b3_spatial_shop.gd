@@ -104,7 +104,7 @@ func _room(index: int,npc: bool) -> void:
 		if not reduce_motion and last_cue != last_visit:
 			last_cue = last_visit
 			portrait.modulate.a = 0
-			create_tween().tween_property(portrait,"modulate:a",1.0,0.24)
+			stage.create_tween().tween_property(portrait,"modulate:a",1.0,0.24)
 	pic(Art.COUNTER,0,0,1280,720,true)
 	pic(Art.AMBER,0,0,1280,720,true)
 	pic(Art.LAMP,0,0,1280,720,true)
@@ -130,7 +130,7 @@ func _intro_scene() -> void:
 		_: _room(0,false)
 	if _intro_page == 3 and not reduce_motion:
 		var shutter := paper(0,0,1280,410,Color("#24292c"))
-		create_tween().tween_property(shutter,"position:y",-420,0.65)
+		stage.create_tween().tween_property(shutter,"position:y",-420,0.65)
 	if _intro_page in [1,2]:
 		paper(135,82,530,218,Color("#b4a688"))
 		paper(146,93,5,185,Color("#89745a"))
@@ -343,6 +343,7 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 		var slot: String = card.slot
 		var fact: String = str(card.value)
 		if _strings.has("b2.value."+fact): fact = _text("b2.value."+fact)
+		elif _strings.has("b2.item."+fact): fact = _text("b2.item."+fact)
 		var note := action("fact_"+slot,("공개 예정" if card.selected else "내 기록")+"\n"+_text(card.text_key)+" · "+fact,68+(i-start)*196,502,190,87,func()->void: _submit("alpha_card_toggle",{"slot":slot,"selected":not card.selected}))
 		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		note.set_drag_forwarding(func(_at: Vector2)->Variant: return {"slot":slot,"visit":v.active.id},Callable(),Callable())
