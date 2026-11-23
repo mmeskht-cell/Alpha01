@@ -32,15 +32,19 @@ jobs:
           export XDG_DATA_HOME="$RUNNER_TEMP/b3-test-data"
           export XDG_CONFIG_HOME="$RUNNER_TEMP/b3-test-config"
           engine="$RUNNER_TEMP/Godot_v4.7.2-stable_linux.x86_64"
-          # Ephemeral A/B: enable normal playback, reuse resource cache instead
-          # of allocating independent Ogg packet graphs for scene re-entries.
+          # Ephemeral A/B: normal Ogg load and actual playback, explicit stop
+          # before each destroyed test host; let audio mixer retire decoders.
           python3 - <<'PY'
           from pathlib import Path
-          p = Path('game/src/presentation/score_resource.gd')
+          p = Path('game/tests/window/b3_spatial_week_window.gd')
           s = p.read_text()
-          assert s.count('ResourceLoader.CACHE_MODE_IGNORE') == 1
-          p.write_text(s.replace('ResourceLoader.CACHE_MODE_IGNORE','ResourceLoader.CACHE_MODE_REUSE'))
-          print('B3_AUDIO_AB_CACHE_REUSE_NORMAL_PLAYBACK')
+          needle = '\t\thost.queue_free()'
+          assert s.count(needle) == 3
+          replacement = ('\t\thost.sound.shutdown_audio()\n'
+                         '\t\tawait create_timer(0.25).timeout\n'
+                         '\t\thost.queue_free()')
+          p.write_text(s.replace(needle, replacement))
+          print('B3_AUDIO_AB_EARLY_STOP_AND_MIXER_DRAIN')
           PY
           python3 game/tools/prepare_runtime_assets.py
           "$engine" --headless --editor --path game --import --quit 2>&1 | tee /tmp/b3-import.log
