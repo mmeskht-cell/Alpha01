@@ -73,8 +73,8 @@ func _initialize() -> void:
 	check(frozen == replay.snapshot().alpha_shop.random_visits.plan
 		and frozen.size() <= 8 and frozen.size() <= day_one.alpha_shop.random_visits.target,
 		"same seed and source yield identical finite visitor sequence")
-	check("alpha_marcus_intro" in frozen,
-		"fixed campaign introduction cannot disappear from random selection")
+	check("alpha_marcus_intro" in frozen and "alpha_ian_hygiene_offer_d1" in frozen,
+		"authored first-day supplier intro and story-linked Ian order offer cannot be rerolled")
 	check(day_one.items == initial.items and day_one.wallets == initial.wallets
 		and day_one.ledger == initial.ledger,
 		"opening changes no money/stock/owner, only shop phase and plan")
@@ -142,4 +142,42 @@ func _initialize() -> void:
 	check(cold != null and store.load_session(cold,"b3_m5_runtime").get("ok",false)
 		and cold.snapshot() == s.snapshot(),
 		"cold restore keeps unchanged same-seed second-day sequence")
+	# Bounded full seven-day calendar A/B branch: intentionally exercise
+	# early-close/no-sale on later days. Do not fabricate attendance or paid
+	# trades solely to satisfy a soft visit target.
+	var meaningful_shortfall: bool = false
+	for day: int in range(2,8):
+		if day > 2 and not check(go(s,"alpha_open"),"day "+str(day)+" starts once"):
+			done()
+			return
+		var selection: Dictionary = s.snapshot().alpha_shop.random_visits
+		check(int(selection.day)==day
+			and selection.plan.size()<=8
+			and int(selection.target)>=5 and int(selection.target)<=8,
+			"each of seven days uses a persisted bounded plan, day "+str(day))
+		if day == 5:
+			check("hygiene_buy" in selection.plan and "hygiene_sale" in selection.plan,
+				"Day5 source-authored item acquisition AND story-linked resale are never randomly skipped")
+		if int(selection.shortfall)>0:
+			meaningful_shortfall = true
+		if not check(go(s,"alpha_close") and go(s,"alpha_settle") and go(s,"alpha_next_day"),
+			"normal early-close/settlement without artificial customer visits day "+str(day)):
+			done()
+			return
+		if day<7 and not check(go(s,"alpha_prepare_day"),"next real day remains available"):
+			done()
+			return
+	check(meaningful_shortfall,
+		"source shortage is reported instead of making up nonexistent D5-D7 customers")
+	var complete: Dictionary = s.snapshot()
+	check(complete.alpha_shop.phase=="COMPLETE" and complete.alpha_shop.day==7
+		and complete.items==initial.items and complete.wallets==initial.wallets
+		and complete.ledger==initial.ledger,
+		"seven-day no-trade branch has finite completion and exact money/item conservation")
+	check(store.save_session(s,"b3_m5_runtime").get("ok",false),
+		"seven-day result fits existing A/B storage without schema change")
+	cold = fresh(source)
+	check(cold != null and store.load_session(cold,"b3_m5_runtime").get("ok",false)
+		and cold.snapshot()==complete and cold.alpha_view()==s.alpha_view(),
+		"cold restore of full seven-day seeded history is identical")
 	done()

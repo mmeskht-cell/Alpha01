@@ -80,17 +80,30 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 		var policy: Variant = profile.visit_random
 		if str(profile.content_version) != B3Fx.VERSION or not Rules.keys(policy, ["version", "seed", "locked_ids"]):
 			return false
-		if int(policy.version) != 1 or not Rules.integer(policy.seed, 1, Rules.LIMIT) or not policy.locked_ids is Array or policy.locked_ids != ["alpha_marcus_intro", "hygiene_sale"]:
+		if int(policy.version) != 1 or not Rules.integer(policy.seed, 1, Rules.LIMIT) or not policy.locked_ids is Array or policy.locked_ids != ["alpha_marcus_intro", "alpha_ian_hygiene_offer_d1", "hygiene_buy", "hygiene_sale"]:
 			return false
-		var intro: bool = false
-		var story_trade: bool = false
-		for day: Array in profile.days:
-			for row: Dictionary in day:
-				if row.id == "alpha_marcus_intro" and row.actor_id == "marcus":
-					intro = true
-				if row.id == "hygiene_sale" and str(profile.get("story_rules", {}).get("clinic_supply_confirmed", {}).get("source_id", "")) == row.id:
-					story_trade = true
-		if not intro or not story_trade:
+		# Mandatory events and their original supply chain must remain
+		# present on their authored day. A protected story sale without
+		# its real D5 item acquisition would be an empty promise.
+		var authored: Dictionary = {}
+		for day_index: int in range(profile.days.size()):
+			for row: Dictionary in profile.days[day_index]:
+				if row.id in policy.locked_ids:
+					authored[row.id] = {"day": day_index + 1, "actor": str(row.actor_id)}
+		if authored != {
+			"alpha_marcus_intro": {"day": 1, "actor": "marcus"},
+			"alpha_ian_hygiene_offer_d1": {"day": 1, "actor": "ian"},
+			"hygiene_buy": {"day": 5, "actor": "G05"},
+			"hygiene_sale": {"day": 5, "actor": "ian"}
+		}:
+			return false
+		var purchase: Dictionary = state.visits.get("hygiene_buy", {})
+		var resale: Dictionary = state.visits.get("hygiene_sale", {})
+		if purchase.is_empty() or resale.is_empty() or not purchase.prices.has("HY05") or not resale.prices.has("HY05"):
+			return false
+		if str(purchase.seller) != "G05" or str(purchase.buyer) != "player" or str(resale.seller) != "player" or str(resale.buyer) != "ian":
+			return false
+		if str(profile.get("story_rules", {}).get("clinic_supply_confirmed", {}).get("source_id", "")) != "hygiene_sale":
 			return false
 	return true
 

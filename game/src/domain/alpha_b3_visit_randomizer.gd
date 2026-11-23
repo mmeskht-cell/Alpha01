@@ -38,7 +38,10 @@ static func plan(rows: Array, eligible: Dictionary, locked_ids: Array, seed: int
 		if not bool(eligible[id]):
 			return {"ok": false, "error": "b3_random_protected_unavailable"}
 		protected[id] = true
-	if protected.size() > BASE_MAX:
+	# 5–8 is a *soft* daily target, never a hard limit on previously
+	# accepted obligations. Up to the authored 10-slot shop capacity must
+	# remain available for committed appointments and story anchors.
+	if protected.size() > 10:
 		return {"ok": false, "error": "b3_random_protected_overflow"}
 
 	var selected: Array = []

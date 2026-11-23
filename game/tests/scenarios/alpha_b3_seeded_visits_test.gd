@@ -94,6 +94,25 @@ func _initialize() -> void:
 	check(story_draw.get("ok", false) and story_expected >= 0
 		and story_position == story_expected,
 		"narrative-linked economic visit retains authored Day5 position")
+	# An unusually obligation-heavy day may exceed the default 5–8
+	# target: the shop must not cancel accepted commitments to satisfy RNG.
+	# Pure fixture uses only nine DISTINCT existing authored identities.
+	var overload_rows: Array = []
+	var overload_actors: Dictionary = {}
+	for day_rows: Array in source.alpha_profile.days:
+		for row: Dictionary in day_rows:
+			if not overload_actors.has(row.actor_id) and overload_rows.size()<9:
+				overload_rows.append(row.duplicate(true))
+				overload_actors[row.actor_id] = true
+	var overload_allowed: Dictionary = {}
+	var overload_mandatory: Array = []
+	for row: Dictionary in overload_rows:
+		overload_allowed[row.id] = true
+		overload_mandatory.append(str(row.id))
+	var extra: Dictionary = Randomizer.plan(overload_rows, overload_allowed, overload_mandatory, 101, 1)
+	check(overload_rows.size()==9 and extra.get("ok", false) and int(extra.get("target", 0))==9
+		and extra.get("visits", []).size()==9,
+		"nine pre-accepted appointments override soft 5–8 attendance without cancellation")
 	check(source == copy, "planner never mutates source wallets, items, offers or calendar")
 	check(not day_two.is_empty(), "real source includes multiple D2 potential visits")
 	var baseline: Dictionary = Randomizer.plan(day_two, day_two_flags, day_two_fixed, 101, 2)

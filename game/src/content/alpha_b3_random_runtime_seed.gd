@@ -15,6 +15,6 @@ static func content(campaign_seed: int = 101) -> Dictionary:
 	var data: Dictionary = original.duplicate(true)
 	data.alpha_profile["visit_random"] = {
 		"version": 1, "seed": campaign_seed,
-		"locked_ids": ["alpha_marcus_intro", "hygiene_sale"]
+		"locked_ids": ["alpha_marcus_intro", "alpha_ian_hygiene_offer_d1", "hygiene_buy", "hygiene_sale"]
 	}
 	return data
