@@ -39,7 +39,7 @@ static func observed(cards: Array, slot: String, seed_value: int) -> Dictionary:
 	return {"base":"neutral","overlay":"neutral_wear_"+str(key%4+1) if intensity>0.0 else "","opacity":0.0 if intensity==0.0 else 0.24+0.76*intensity/100.0,"turns":floori(float(key)/4.0),"coverage":0.45+0.55*intensity/100.0,"caption":caption}
 
 ## These are labelled reference swatches, not an item-specific reading.
-static func reference(material: String, grade: int,variant_index: int=0) -> Dictionary:
+static func reference_sample(material: String, grade: int,variant_index: int=0) -> Dictionary:
 	if material not in MATERIALS or grade<0 or grade>2 or variant_index<0 or variant_index>3:
 		return {}
 	return {"base":material,"overlay":material+"_wear_"+str(variant_index+1),"opacity":[0.4,0.75,1.0][grade],"coverage":[0.45,0.75,1.0][grade],"turns":0,"caption":["경미 예시","보통 예시","심함 예시"][grade]}

@@ -831,7 +831,7 @@ func _surface_reference(pages: VBoxContainer) -> void:
 	var row := HBoxContainer.new()
 	pages.add_child(row)
 	for grade: int in range(3):
-		var sample: Dictionary = SurfaceVisuals.reference(reference_material,grade,reference_variant)
+		var sample: Dictionary = SurfaceVisuals.reference_sample(reference_material,grade,reference_variant)
 		var column := VBoxContainer.new()
 		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(column)
