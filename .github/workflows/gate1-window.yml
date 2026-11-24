@@ -130,6 +130,15 @@ jobs:
             LIBGL_ALWAYS_SOFTWARE=1 timeout 170s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/window/b3_spatial_week_window.gd -- "$GITHUB_WORKSPACE/evidence/b3-spatial" 2>&1 | tee evidence/b3-spatial-window.log
             grep -E 'B3_SPATIAL_WEEK_WINDOW: [0-9]+ checks, 0 failures' evidence/b3-spatial-window.log
             if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:|ObjectDB instances were leaked|Leaked instance:|resources still in use at exit' evidence/b3-spatial-window.log; then exit 1; fi
+            mkdir -p evidence/b3-w18
+            LIBGL_ALWAYS_SOFTWARE=1 timeout 120s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/b3_w18_capture_route.gd -- "$GITHUB_WORKSPACE/evidence/b3-w18" 2>&1 | tee evidence/b3-w18-window.log
+            grep -E 'B3_W18_CAPTURE: [1-9][0-9]* checks, 0 failures' evidence/b3-w18-window.log
+            if grep -E 'SCRIPT ERROR:|^ERROR:|^FAIL:|ObjectDB instances were leaked|Leaked instance:|resources still in use at exit' evidence/b3-w18-window.log; then exit 1; fi
+            for resolution in 720 1080; do
+              for scene in 01_initial_book 02_observation_and_slip 03_surface_reference 04_public_offer 05_selected_stock 06_placement_preview 07_cancelled_placement; do
+                test -s "evidence/b3-w18/${scene}_${resolution}.png"
+              done
+            done
           fi
           if [ "$CI_SCOPE" = full ]; then
             LIBGL_ALWAYS_SOFTWARE=1 timeout 100s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/window/gate1_window.gd -- "$GITHUB_WORKSPACE/evidence" 2>&1 | tee evidence/window.log
