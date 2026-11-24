@@ -1,0 +1,20 @@
+[gd_resource type="Theme" format=3]
+
+[sub_resource type="StyleBoxFlat" id="Rest"]
+bg_color = Color(0.188, 0.184, 0.161, 1)
+border_width_bottom = 2
+border_color = Color(0.40, 0.35, 0.28, 1)
+content_margin_left = 6.0
+content_margin_right = 6.0
+
+[sub_resource type="StyleBoxFlat" id="Hover"]
+bg_color = Color(0.27, 0.24, 0.20, 1)
+border_width_bottom = 2
+border_color = Color(0.78, 0.64, 0.42, 1)
+
+[resource]
+default_font_size = 16
+Button/styles/normal = SubResource("Rest")
+Button/styles/hover = SubResource("Hover")
+Button/styles/pressed = SubResource("Hover")
+Button/colors/font_color = Color(0.91, 0.87, 0.78, 1)

@@ -4,9 +4,9 @@ const DeskProp = preload("res://src/presentation/b3_desk_prop.gd")
 const COPY_PATH = "res://data/alpha_b3/w19_desk_ko.json"
 var desk_copy: Dictionary
 var phone_contact := ""
-var phone_terms := ""
-var phone_revision := -1
+var phone_view: Control
 var dock_slots: Array = []
+var judgment_leaf := false
 var book_choice := false
 var index_group := -1
 var index_page := 0
@@ -23,6 +23,8 @@ var feedback: Control
 var mounting: Control
 var room_key := ""
 var drag_origin: Button
+const SpecimenSurface = preload("res://src/presentation/b3_specimen_surface.gd")
+var counter_item: TextureRect
 var standing_actor: TextureRect
 var rail: Control
 var rail_key := ""
@@ -88,6 +90,7 @@ func _ready() -> void:
 	captions = JSON.parse_string(FileAccess.get_file_as_string(INTRO_FILE))
 	resized.connect(_viewport_changed)
 	super._ready()
+	if theme!=null: theme.merge_with(preload("res://src/presentation/b3_shop_theme.tres"))
 	add_child(sound)
 	if session != null: sound.prime(int(session.snapshot().revision))
 	if continuing and not _blocked:
@@ -173,8 +176,6 @@ func open_drawer(which: String) -> void:
 	drawer_scroll = previous_book_scroll if which=="notes" else 0
 	draft.clear()
 	drawer = which
-	phone_terms = ""
-	phone_revision = -1
 	if which=="notes" and not book_choice and lens_open and not surface_slot.is_empty(): book_tab = 1
 	hint = ""
 	refresh()
@@ -288,9 +289,10 @@ func _rebuild_stage() -> void:
 		interaction = _layer()
 		feedback = _layer()
 	for child in interaction.get_children():
-		if child != offer_editor and child != rail:
+		if child != offer_editor and child != rail and child != counter_item:
 			interaction.remove_child(child)
 			child.queue_free()
+	if is_instance_valid(counter_item): counter_item.hide()
 	mounting = interaction
 	scenery.visible = not _blocked and session != null and ((_intro and _intro_page>=3) or (not _intro and drawer in ["","notes","phone"]))
 	scenery.process_mode = Node.PROCESS_MODE_INHERIT if scenery.visible else Node.PROCESS_MODE_DISABLED
@@ -308,6 +310,7 @@ func _rebuild_stage() -> void:
 	var visit: String = str(v.active.get("id",""))
 	var context := visit + "/" + str(v.appraisal.get("item_id",""))
 	if context != appraisal_context:
+		judgment_leaf = false
 		appraisal_context = context
 		dock_slots.clear()
 		book_choice = false
@@ -317,6 +320,8 @@ func _rebuild_stage() -> void:
 		surface_slot = ""
 		previous_book_scroll = 0
 		book_tab = 0
+		reference_material = "metal"
+		reference_variant = 0
 		if drawer == "notes": drawer = ""
 		if visit == last_visit:
 			private_model = ""
@@ -382,7 +387,7 @@ func _rebuild_stage() -> void:
 		greet.flat = true
 		greet.tooltip_text = _actor_label(v.active.actor_id)
 		if visit=="visit_g01":
-			motion_subjects["item"] = pic(Art.RADIO_COUNTER,500,415,245,100)
+			motion_subjects["item"] = pic(Art.ITEMS.model_texture("portable_radio","inspection"),382,418,355,132)
 			words(captions.g01,774,244,420,64)
 	if v.phase != "CUSTOMER_ACTIVE" or not zoom:
 		action("stockroom","재고 서랍",32,75,154,44,func()->void: open_drawer("stock"))
@@ -403,9 +408,9 @@ func _counter(v: Dictionary) -> void:
 		var latest: Dictionary = a.offers.back()
 		words(_text("spatial.terms")%[latest.amount,latest.currency]+" · "+("수락" if latest.response=="accepted" else "거절"),799,142,410,40,17)
 	if v.active.id == "alpha_marcus_intro":
-		var terms := VBoxContainer.new()
-		place(terms,420,365,440,180)
-		_add_contract_actions(terms,v)
+		var sheet := _terms_sheet("계약 전표")
+		_add_contract_actions(sheet,v)
+		_finish_terms_sheet(sheet)
 	elif not a.is_empty():
 		_specimen(v,a)
 	else:
@@ -430,6 +435,8 @@ func _counter(v: Dictionary) -> void:
 			if contract.supplier==actor_id: has_terms = true
 		if has_terms: _counter_papers(v)
 
+	if zoom and drawer.is_empty():
+		command_button("alpha_finish_customer","응대 마치기",1020,246,186)
 	if not zoom:
 		if v.can_exchange:
 			var contact := command_button("alpha_exchange_contact","연락처 교환",42,235,175,{"actor_id":v.active.actor_id,"accepted":true})
@@ -446,16 +453,34 @@ func _counter_papers(v: Dictionary) -> void:
 		refresh())
 	_paper_face(envelope,papers_open)
 	if papers_open:
-		paper(796,135,446,297)
-		var scroll := ScrollContainer.new()
-		place(scroll,808,146,422,272)
-		var terms := VBoxContainer.new()
-		terms.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		scroll.add_child(terms)
+		var terms := _terms_sheet("접수 전표")
 		_add_contract_actions(terms,v)
 		_add_b2_commission_actions(terms,v)
 		_add_b2_service_actions(terms,v)
 		_add_b3_fx_actions(terms,v)
+		_finish_terms_sheet(terms)
+
+func _terms_sheet(title: String) -> VBoxContainer:
+	paper(790,294,446,218,Color("#534a3c"))
+	paper(798,298,3,208,Color("#b49a71"))
+	words(title,814,302,390,36,20)
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	place(scroll,814,344,400,155)
+	var terms := VBoxContainer.new()
+	terms.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(terms)
+	return terms
+
+func _finish_terms_sheet(terms: VBoxContainer) -> void:
+	var actions := HFlowContainer.new()
+	terms.add_child(actions)
+	for child in terms.get_children():
+		if child is Button:
+			child.custom_minimum_size = Vector2(132,44)
+			child.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			child.reparent(actions)
+			_paper_face(child)
 
 func _preview(kind: String,payload: Dictionary) -> void:
 	var result: Dictionary = session.spatial_action_preview(kind,payload)
@@ -529,9 +554,9 @@ func _tray(x: float,y: float,w: float,h: float) -> void:
 
 func _specimen(v: Dictionary,a: Dictionary) -> void:
 	var id: String = a.item_id
-	var texture: Texture2D = Art.ITEMS.model_texture(str(a.def_id),"inspection" if zoom else "counter",id,reverse and zoom)
+	var texture: Texture2D = Art.ITEMS.model_texture(str(a.def_id),"inspection",id,reverse and zoom)
 	_tray(52,475,246,38)
-	paper(393,502,305,9,Color("#262722")).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
 	var surface_slots: Array = SurfaceVisuals.observation_slots(a.cards)
 	if chosen_tool in surface_slots and surface_slot.is_empty(): surface_slot = chosen_tool
 	# Preserve the selected, not-yet-observed slot until the inspect command commits.
@@ -539,9 +564,17 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 		surface_slot = str(surface_slots[0]) if not surface_slots.is_empty() else ""
 	var sample: Dictionary = SurfaceVisuals.observed(a.cards,surface_slot,int(a.surface_seed)) if lens_open and not reverse else {}
 	var surface_texture: Texture2D = SurfaceVisuals.texture_for(sample)
-	var specimen := pic(texture,315,294,334 if surface_texture!=null else 460,218)
+	if not is_instance_valid(counter_item):
+		counter_item = SpecimenSurface.new()
+		interaction.add_child(counter_item)
+	counter_item.call("present",texture,Rect2(324,390,460,166))
+	interaction.move_child(counter_item,-1)
+	var specimen := counter_item
+	var shadow := paper(specimen.position.x+8,specimen.position.y+specimen.size.y-4,maxf(1,specimen.size.x-16),7,Color("#28251fb8"))
+	shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	interaction.move_child(specimen,-1)
 	if not zoom:
-		var focus_item := action("specimen","",315,294,specimen.size.x,218,func()->void:
+		var focus_item := action("specimen","",specimen.position.x,specimen.position.y,specimen.size.x,specimen.size.y,func()->void:
 			zoom = true
 			refresh())
 		focus_item.set_drag_forwarding(Callable(),func(at:Vector2,data:Variant)->bool:
@@ -549,22 +582,22 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 			if _tool_drop_allowed(at/focus_item.size,data,v,a): _inspect_drop(str(data.tool)))
 		focus_item.flat = true
 		focus_item.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	action("lens","확대경 접기" if lens_open else "확대경",51,324,136,44,func()->void:
+	action("lens","표본 접기" if lens_open else "표본 보기",51,324,136,44,func()->void:
 		lens_open = not lens_open
 		refresh()
 		_slide(motion_subjects.get("item"),Vector2(0,6),0.14))
 	motion_subjects["item"] = specimen
 	if lens_open and not reverse:
 		if surface_texture!=null:
-			var loupe := _prop(interaction,"sample",Rect2(568,311,194,194))
+			var loupe := _prop(interaction,"sample",Rect2(562,352,188,188))
 			loupe.set("sample",surface_texture)
-			words(str(desk_copy.subject)+" · "+str(sample.caption),426,512,345,42,15)
+			words(str(desk_copy.subject)+" · "+str(sample.caption),366,548,396,32,15)
 		elif sample.is_empty(): words("표면을 직접 조사하세요",322,262,355,44,15)
 		else: words(str(sample.caption)+" · 이미지 미반입",285,425,480,35,14)
 		if not surface_slots.is_empty() and not sample.is_empty():
 			var index: int = surface_slots.find(surface_slot)
 			var caption: String = SurfaceVisuals.SLOT_NAMES[SurfaceVisuals.SLOTS.find(surface_slot)]
-			action("surface_next",caption+" · "+str(index+1)+"/"+str(surface_slots.size()),322,262,355,44,func()->void:
+			action("surface_next",caption+" · "+str(index+1)+"/"+str(surface_slots.size()),487,330,177,44,func()->void:
 				surface_slot = str(surface_slots[(index+1)%surface_slots.size()])
 				refresh())
 	elif lens_open: words("뒷면 확대 표본 없음",322,262,355,44,15)
@@ -573,13 +606,13 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 		return _tool_drop_allowed(at/specimen.size,data,v,a),func(at:Vector2,data:Variant)->void:
 		if _tool_drop_allowed(at/specimen.size,data,v,a): _inspect_drop(str(data.tool)))
 	if drawer!="notes" and zoom:
-		action("close_mat","카운터",52,259,146,44,func()->void:
+		action("close_mat","도구 내려놓기",52,259,146,44,func()->void:
 			chosen_tool = ""
 			lens_open = false
 			zoom = false
 			refresh())
 	if Art.ITEMS.model_art.get(str(a.def_id),{}).has("back"):
-		action("turn_item","뒤집기",310,510,106,42,func()->void:
+		action("turn_item","뒤집기",304,331,106,44,func()->void:
 			reverse = not reverse
 			refresh())
 	for row: Dictionary in a.tools:
@@ -634,7 +667,7 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 func _evidence_rail(v: Dictionary,a: Dictionary) -> void:
 	if a.cards.is_empty(): return
 	var per_page := 2 if reading_scale>100 or compact_layout else 3
-	var card_width := 584.0/per_page
+	var card_width := 684.0/per_page
 	hand_page = clampi(hand_page,0,maxi(0,ceili(float(a.cards.size())/per_page)-1))
 	var signature := JSON.stringify([appraisal_context,a.cards,hand_page,per_page,reading_scale])
 	rail_used = true
@@ -655,7 +688,8 @@ func _evidence_rail(v: Dictionary,a: Dictionary) -> void:
 		var card: Dictionary = a.cards[i]
 		var slot: String = card.slot
 		var fact := _fact_caption(slot,card.value)
-		var note := action("fact_"+slot,(("공개 중 · 재첨부" if card.selected else "공개 중") if card.public_active else ("첨부 예정" if card.selected else "내 기록"))+"\n"+_text(card.text_key)+" · "+fact,60+(i-start)*card_width,566,card_width-9,80,func()->void: _submit("alpha_card_toggle",{"slot":slot,"selected":not card.selected}))
+		var note := action("fact_"+slot,(("공개 중 · 재첨부" if card.selected else "공개 중") if card.public_active else ("첨부 예정" if card.selected else "내 기록"))+"\n"+fact,32+(i-start)*card_width,580,card_width-8,103,func()->void: _submit("alpha_card_toggle",{"slot":slot,"selected":not card.selected}))
+		note.tooltip_text = _text(card.text_key)+" · "+fact
 		_paper_face(note,card.selected)
 		motion_subjects["card_"+slot] = note
 		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -669,31 +703,32 @@ func _evidence_rail(v: Dictionary,a: Dictionary) -> void:
 			note.set_drag_preview(slip)
 			return {"slot":slot,"visit":v.active.id},Callable(),Callable())
 	if a.cards.size()>per_page:
-		action("more_facts","카드 넘기기",642,582,115,42,func()->void:
+		action("more_facts","›",718,600,54,48,func()->void:
 			hand_page = (hand_page+1)%ceili(float(a.cards.size())/per_page)
 			refresh())
 	mounting = interaction
 
 func _offer_docket(v: Dictionary,a: Dictionary,id: String) -> void:
-	paper(782,516,449,165,Color("#463f34"))
-	paper(787,520,3,154,Color("#b6a282"))
-	var public_cards := PackedStringArray()
+	paper(794,554,448,129,Color("#463f34"))
+	paper(798,558,3,120,Color("#b6a282"))
+	var pocket := preload("res://src/presentation/b3_attachment_pocket.gd").new()
+	place(pocket,1010,555,222,44)
+	var slips := {}
 	for card: Dictionary in a.cards:
-		if card.selected: public_cards.append(_text(card.text_key))
-	var target := words("다음 제안에 첨부 · "+("없음" if public_cards.is_empty() else ", ".join(public_cards)),800,550,417,44,16)
-	target.mouse_filter = Control.MOUSE_FILTER_STOP
-	target.set_drag_forwarding(Callable(),func(_at:Vector2,data:Variant)->bool: return data is Dictionary and data.get("visit")==v.active.id and a.cards.any(func(c:Dictionary)->bool:return c.slot==data.get("slot")),func(_at:Vector2,data:Variant)->void: _submit("alpha_card_toggle",{"slot":data.slot,"selected":true}))
+		slips[str(card.slot)] = {"caption":_text(card.text_key),"selected":card.selected}
+	pocket.bind(str(v.active.id),slips)
+	pocket.attach.connect(func(slot:String)->void:_submit("alpha_card_toggle",{"slot":slot,"selected":true}))
 	if not a.we_buy and drawer!="notes":
 		var tag: Dictionary = Alpha.displayed_ask(session.snapshot(),id)
 		if not tag.is_empty(): words("매대 표시가 · %d %s"%[tag.amount,tag.currency],805,472,403,40,17)
 	elif drawer!="notes" and not a.customer_claims.is_empty(): words("손님 주장 · "+_text(a.customer_claims[0].text_key),805,183,399,70,17)
 	var denomination := str(a.offer_currency)
-	var quote_label := "가격 제안 · "+denomination
+	var quote_label := ("매입" if a.we_buy else "판매")+" · "+denomination+" · 제안 전"
 	if not a.accepted.is_empty(): quote_label = "합의가 · %d %s"%[a.accepted.amount,a.accepted.currency]
 	elif not a.offers.is_empty():
 		var latest: Dictionary = a.offers.back()
 		quote_label = "직전 제안 · %d %s"%[latest.amount,latest.currency]
-	var amount_link := action("counter_offer",quote_label,800,518,393,34,func()->void:
+	var amount_link := action("counter_offer",quote_label,807,555,201,44,func()->void:
 		if is_instance_valid(offer_editor): offer_editor.grab_focus())
 	amount_link.flat = true
 	amount_link.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -713,11 +748,11 @@ func _offer_docket(v: Dictionary,a: Dictionary,id: String) -> void:
 		if price_text.is_empty() and not a.we_buy:
 			var posted: Dictionary = Alpha.displayed_ask(session.snapshot(),id)
 			if posted.get("currency")==denomination: money.text = str(posted.amount)
-	editor_used = true
-	money.show()
+	editor_used = a.accepted.is_empty()
+	money.visible = editor_used
 	interaction.move_child(money,-1)
 	var currency: String = denomination
-	action("offer","제안 · "+currency,1010,595,200,44,func()->void:
+	var send_offer := action("offer","제안 · "+currency,1010,595,200,44,func()->void:
 		# Read the actual edited control. Programmatic caret insertion and IME
 		# composition need not emit text_changed before the button is pressed.
 		var proposed: String = money.text.strip_edges()
@@ -727,8 +762,9 @@ func _offer_docket(v: Dictionary,a: Dictionary,id: String) -> void:
 		else:
 			hint = "제안할 금액을 양의 정수로 입력해 주세요."
 			refresh())
+	send_offer.visible = editor_used
 	if not a.accepted.is_empty():
-		action("settle_trade","거래 확정 · %d %s"%[a.accepted.amount,a.accepted.currency],803,643,410,42,func()->void:
+		action("settle_trade","거래 확정 · %d %s"%[a.accepted.amount,a.accepted.currency],806,603,410,50,func()->void:
 			var trade: Dictionary = session.snapshot().visits[v.active.id]
 			var dest: String = "player_stock" if a.we_buy else str(trade.buyer)+"_grid"
 			var fit: Dictionary = session.spatial_fit(id,dest)
@@ -768,16 +804,24 @@ func _drawer(v: Dictionary) -> void:
 		paper(788,192,430,303,Color("#cabc9e"))
 		paper(789,192,9,303,Color("#a28d6b"))
 	elif drawer=="phone":
-		_desk_object("phone_ledger","book",_text("spatial.shop")+" · 장부",Rect2(954,480,175,120),func()->void:open_drawer("ledger"))
+		_prop(interaction,"phone",Rect2(520,350,225,185))
+		_desk_object("phone_ledger","book",_text("spatial.shop")+" · 장부",Rect2(555,540,168,100),func()->void:open_drawer("ledger"))
 	else:
 		pic(Art.STOCK_ROOM if drawer=="stock" else Art.OFFICE_ROOM,0,0,1280,720,true)
 	if drawer not in ["notes","phone"]: paper(44,50,1192,625,Color("#241f1deb"))
 	action("close_drawer","재고로" if drawer=="item_history" else "카운터로",1045,128 if drawer=="notes" else 64,165,44,func()->void: open_drawer("stock" if drawer=="item_history" else ""))
+	if drawer=="ledger":
+		_ledger_workspace(v,current)
+		return
+	if drawer=="phone":
+		_phone_workspace(v)
+		return
 	if drawer=="stock":
 		_inventory(v,current)
 		return
 	var scroll := ScrollContainer.new()
-	if drawer=="notes": place(scroll,803,196,407,292)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	if drawer=="notes": place(scroll,803,196,410,304)
 	elif drawer=="phone": place(scroll,55,205,896,369)
 	else: place(scroll,84,126,1100,510)
 	motion_subjects["book"] = scroll
@@ -808,40 +852,44 @@ func _drawer(v: Dictionary) -> void:
 			_button(pages,"mute","음소거 전환",func()->void: AudioServer.set_bus_mute(0,not AudioServer.is_bus_mute(0)))
 			_button(pages,"return_title","제목 화면",_return_to_title)
 		"notes": _book_contents(pages,v)
-		"phone": _phone_pages(pages,v)
-		"ledger":
-			_board_line(pages,"cash","보유 현금   %d VKC   /   %d USD"%[current.wallets.player.VKC,current.wallets.player.USD])
-			if v.phase!="CUSTOMER_ACTIVE": _add_contract_actions(pages,v)
-			for contract: Dictionary in v.contracts.values():
-				if v.phase!="CUSTOMER_ACTIVE": break
-				_board_line(pages,"contract_record",_text("alpha.contract.header")+" · "+_text("alpha.contract.status."+str(contract.status))+" · D"+str(contract.due_day))
-			for job: Dictionary in v.services.entries:
-				_board_line(pages,"service_record",_text("b2.service.receipt")%[_text("b2.item."+str(job.def_id)),job.due_day,job.fee.VKC,_text("b2.service.status."+str(job.status))])
-			if v.phase in ["OPEN_IDLE","EVENING_WORK"]:
-				_add_b2_commission_actions(pages,v)
-			else:
-				for request: Dictionary in v.commissions.entries:
-					_board_line(pages,"commission_record",_text(request.text_key)+" · D"+str(request.due_day)+" · "+_text("b2.commission.status."+str(request.status)))
-			var pawn: Dictionary = current.alpha_shop.week_pawn
-			if pawn.status != "available":
-				_board_line(pages,"pledge",_text("b2.item."+str(current.items.get("WAT02",current.get("tombstones",{}).get("WAT02",{})).get("def_id","watch")))+" · "+_text("week."+str(pawn.status))+" · D"+str(pawn.due))
-				if pawn.status=="pledged" and v.phase=="CLOSE_SETTLE" and v.day==pawn.due:
-					_button(pages,"week_redeem",_text("week.redeem"),func()->void:_submit("week_redeem"))
-					if pawn.due==4: _button(pages,"week_extend",_text("week.extend"),func()->void:_submit("week_extend"))
-			for order: Dictionary in current.alpha_shop.get("outbound",{}).values():
-				_board_line(pages,"order",_text("week.order")%_text("week."+str(order.status)))
-				for payment: Dictionary in order.payments:
-					_board_line(pages,"p_"+str(payment.action_id),"D%d · %s → %s · %d %s"%[payment.day,_actor_label(payment.from),_actor_label(payment.to),payment.amount,payment.currency])
-			for entry: Dictionary in current.ledger:
-				var receipt_key: String = entry.event_id
-				_button(pages,"r_"+receipt_key,"%s → %s   %d VKC / %d USD   ·   %s"%[_actor_label(entry.from),_actor_label(entry.to),entry.amounts.VKC,entry.amounts.USD,_receipt_items(current,entry.root_ids)],func()->void:
-					receipt_id = "" if receipt_id==receipt_key else receipt_key
-					refresh())
-				if receipt_id==receipt_key and entry.from!="player" and entry.to=="player":
-					for currency: String in ["VKC","USD"]:
-						var basis: Variant = entry.basis[currency]
-						var profit: String = str(int(entry.amounts[currency])-int(basis)) if basis!=null else "?"
-						_board_line(pages,"detail_"+currency,"원가 %s · 실현손익 %s %s"%[str(basis) if basis!=null else "?",profit,currency])
+func _ledger_workspace(v: Dictionary,current: Dictionary) -> void:
+	var ledger := preload("res://src/presentation/b3_ledger_spread.gd").new()
+	place(ledger,62,126,1154,520)
+	var rows: Array = []
+	for entry: Dictionary in current.ledger:
+		var names := _receipt_items(current,entry.root_ids)
+		var amount := "%d VKC  /  %d USD"%[entry.amounts.VKC,entry.amounts.USD]
+		var day := "D"+str(entry.day) if entry.has("day") else "날짜 미기록"
+		var facts := PackedStringArray([day,names, _actor_label(entry.from)+" → "+_actor_label(entry.to),amount])
+		if entry.from!="player" and entry.to=="player":
+			for currency: String in ["VKC","USD"]:
+				var basis: Variant = entry.basis[currency]
+				if basis!=null: facts.append("원가 %d · 실현손익 %d %s"%[int(basis),int(entry.amounts[currency])-int(basis),currency])
+				else: facts.append(currency+" 원가 자료 부족")
+		rows.append({"key":str(entry.event_id),"caption":day+"   "+names+"   "+amount,"facts":"\n".join(facts)})
+	var pages := ledger.open(current.wallets.player,rows,receipt_id)
+	ledger.receipt_selected.connect(func(key:String)->void:receipt_id=key)
+	if v.phase!="CUSTOMER_ACTIVE": _add_contract_actions(pages,v)
+	for contract: Dictionary in v.contracts.values():
+		if v.phase!="CUSTOMER_ACTIVE": break
+		_board_line(pages,"contract_record",_text("alpha.contract.header")+" · "+_text("alpha.contract.status."+str(contract.status))+" · D"+str(contract.due_day))
+	for job: Dictionary in v.services.entries:
+		_board_line(pages,"service_record",_text("b2.service.receipt")%[_text("b2.item."+str(job.def_id)),job.due_day,job.fee.VKC,_text("b2.service.status."+str(job.status))])
+	if v.phase in ["OPEN_IDLE","EVENING_WORK"]:
+		_add_b2_commission_actions(pages,v)
+	else:
+		for request: Dictionary in v.commissions.entries:
+			_board_line(pages,"commission_record",_text(request.text_key)+" · D"+str(request.due_day)+" · "+_text("b2.commission.status."+str(request.status)))
+	var pawn: Dictionary = current.alpha_shop.week_pawn
+	if pawn.status != "available":
+		_board_line(pages,"pledge",_text("b2.item."+str(current.items.get("WAT02",current.get("tombstones",{}).get("WAT02",{})).get("def_id","watch")))+" · "+_text("week."+str(pawn.status))+" · D"+str(pawn.due))
+		if pawn.status=="pledged" and v.phase=="CLOSE_SETTLE" and v.day==pawn.due:
+			_button(pages,"week_redeem",_text("week.redeem"),func()->void:_submit("week_redeem"))
+			if pawn.due==4: _button(pages,"week_extend",_text("week.extend"),func()->void:_submit("week_extend"))
+	for order: Dictionary in current.alpha_shop.get("outbound",{}).values():
+		_board_line(pages,"order",_text("week.order")%_text("week."+str(order.status)))
+		for payment: Dictionary in order.payments:
+			_board_line(pages,"p_"+str(payment.action_id),"D%d · %s → %s · %d %s"%[payment.day,_actor_label(payment.from),_actor_label(payment.to),payment.amount,payment.currency])
 
 func _refresh_book(pages: VBoxContainer,top: bool=false) -> void:
 	if drawer!="notes" or not pages.is_inside_tree(): return
@@ -942,7 +990,7 @@ func _model_page(pages: VBoxContainer) -> void:
 			for tool: Dictionary in doc.get("profiles",{}).get(reference_model,{}).get("tools",[]):
 				var feature := _text("b2.inspect."+str(tool.id))
 				if feature not in features: features.append(feature)
-		if not features.is_empty(): _board_line(pages,"reference_features","대조할 특징 · "+", ".join(features))
+		if not features.is_empty(): _board_line(pages,"reference_features","확인할 항목 · "+", ".join(features))
 		if Art.ITEMS.model_art.has(reference_model):
 			_button(pages,"record_model","이 모델로 추정",func()->void:
 				private_model = reference_model
@@ -953,18 +1001,49 @@ func _model_page(pages: VBoxContainer) -> void:
 			_refresh_book(pages))
 
 func _surface_page(pages: VBoxContainer,v: Dictionary) -> void:
-	_board_line(pages,"reference_material","재질 대조 · 금속의 가공결, 플라스틱의 성형선, 종이의 절단면, 직물의 짜임, 유리의 반사면")
-	_board_line(pages,"reference_exterior","외관 대조 · 경미한 국소 흔적 / 여러 부위의 마모 / 넓은 파손이나 변형")
-	_surface_reference(pages)
+	var leaf := preload("res://src/presentation/b3_surface_leaf.gd").new()
+	pages.add_child(leaf)
+	leaf.bind(reference_material,reference_variant,judgment_leaf,reading_scale)
+	leaf.turn.connect(func(family:String,variant:int,judging:bool)->void:
+		reference_material = family
+		reference_variant = variant
+		judgment_leaf = judging
+		_refresh_book(pages,true))
+	if not judgment_leaf: return
+	var choices: Dictionary = preload("res://src/domain/alpha_card_trade.gd").SURFACE_CHOICES
 	for group: String in ["material","exterior"]:
-		var choice := OptionButton.new()
-		var labels := ["재질 추정 · 보류","금속","플라스틱","종이","직물","유리"] if group=="material" else ["외관 추정 · 보류","훼손 경미","훼손 보통","훼손 심함"]
-		for caption: String in labels: choice.add_item(caption)
-		var values: Array = preload("res://src/domain/alpha_card_trade.gd").SURFACE_CHOICES[group]
-		choice.select(maxi(0,values.find(v.appraisal.surface_judgments.get(group,"unknown"))))
-		choice.item_selected.connect(func(index:int)->void:
-			_submit("alpha_hypothesis",{"slot":group,"judgment":values[index]}))
-		pages.add_child(choice)
+		var values: Array = choices[group]
+		var saved := str(v.appraisal.surface_judgments.get(group,"unknown"))
+		var selected_index := maxi(0,values.find(saved))
+		var labels := ["보류","금속","플라스틱","종이","직물","유리"] if group=="material" else ["보류","경미","보통","심함"]
+		var row := HBoxContainer.new()
+		pages.add_child(row)
+		if group=="material":
+			var caption := Label.new()
+			caption.text = "내 재질 판단 · "+str(labels[selected_index])
+			row.add_child(caption)
+			var step := Button.new()
+			step.text = "표본 재질로 기록"
+			step.custom_minimum_size.y = 44
+			row.add_child(step)
+			step.pressed.connect(func()->void:
+				_submit("alpha_hypothesis",{"slot":"material","judgment":reference_material}))
+			var clear := Button.new()
+			clear.text = "보류"
+			clear.custom_minimum_size.y = 44
+			row.add_child(clear)
+			clear.pressed.connect(func()->void: _submit("alpha_hypothesis",{"slot":"material","judgment":"unknown"}))
+		else:
+			for index in range(values.size()):
+				var grade := Button.new()
+				grade.text = str(labels[index])
+				grade.tooltip_text = "내 외관 판단"
+				grade.custom_minimum_size.y = 44
+				grade.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				row.add_child(grade)
+				_paper_face(grade,index==selected_index)
+				var value := str(values[index])
+				grade.pressed.connect(func()->void: _submit("alpha_hypothesis",{"slot":"exterior","judgment":value}))
 	for claim: Dictionary in v.appraisal.get("customer_claims",[]):
 		_board_line(pages,"claim_"+str(claim.claim_key),"손님 주장 · "+_text(claim.text_key))
 		if claim.can_challenge:
@@ -992,96 +1071,39 @@ func _price_page(pages: VBoxContainer,v: Dictionary) -> void:
 	pages.add_child(estimate)
 	_history_lines(pages,str(v.appraisal.item_id))
 
-func _phone_pages(pages: VBoxContainer,v: Dictionary) -> void:
+func _phone_workspace(v: Dictionary) -> void:
 	if v.phase!="EVENING_WORK": return
-	if v.contacts.is_empty():
-		_board_line(pages,"empty","교환한 연락처가 없습니다.")
-		return
-	var spread := HBoxContainer.new()
-	pages.add_child(spread)
-	var address_book := VBoxContainer.new()
-	spread.add_child(address_book)
-	var call_sheet := VBoxContainer.new()
-	call_sheet.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	spread.add_child(call_sheet)
+	var contacts: Array = []
 	for contact: Dictionary in v.contacts:
 		var actor := str(contact.actor_id)
-		var tab := _button(address_book,"contact_"+actor,_actor_label(actor),func()->void:
-			phone_contact = actor
-			phone_terms = ""
-			refresh())
-		_paper_face(tab,phone_contact==actor)
-	if phone_contact.is_empty(): return
-	_board_line(call_sheet,"recipient",_actor_label(phone_contact),true)
+		var alias := _actor_label(actor)
+		if alias==_text("spatial.visitor"): alias = "수첩의 연락처 %02d"%(contacts.size()+1)
+		contacts.append({"actor":actor,"caption":alias})
+	var options: Array = []
 	for option: Dictionary in v.get("outbound_options",[]):
-		if option.actor!=phone_contact: continue
-		var id := str(option.id)
-		var command := str(option.command)
-		_button(call_sheet,"terms_"+id,_text(option.label),func()->void:
-			phone_terms = id
-			phone_revision = int(session.snapshot().revision)
-			refresh())
-		if phone_terms!=id: continue
-		_button(call_sheet,"phone_"+id,desk_copy.confirm if command=="alpha_salvage_dispatch" else _text(option.label),func()->void:
-			var options: Array = session.alpha_view().get("outbound_options",[])
-			if phone_revision!=int(session.snapshot().revision) or not options.any(func(now:Dictionary)->bool:return now.id==id and now.actor==phone_contact and now.command==command):
-				phone_terms=""
-				refresh()
-				return
-			phone_terms=""
-			_submit(command,{"request_id":id}))
-		_button(call_sheet,"cancel_call",desk_copy.cancel,func()->void:
-			phone_terms=""
-			refresh())
+		options.append({"id":str(option.id),"actor":str(option.actor),"command":str(option.command),"body":_text(option.label)})
+	var receipts: Dictionary = {}
 	for order: Dictionary in session.snapshot().alpha_shop.get("outbound",{}).values():
-		if order.get("actor_id","")!=phone_contact: continue
-		_board_line(call_sheet,"order_state",_text("week."+str(order.status)))
+		var lines: PackedStringArray = receipts.get(order.actor_id,PackedStringArray())
+		lines.append(_text("week."+str(order.status)))
 		for payment: Dictionary in order.payments:
-			_board_line(call_sheet,"payment","D%d · %s → %s · %d %s"%[payment.day,_actor_label(payment.from),_actor_label(payment.to),payment.amount,payment.currency])
-
-func _surface_reference(pages: VBoxContainer) -> void:
-	var families := HFlowContainer.new()
-	pages.add_child(families)
-	for index in range(SurfaceVisuals.MATERIALS.size()):
-		var family := str(SurfaceVisuals.MATERIALS[index])
-		var tab := Button.new()
-		tab.text = SurfaceVisuals.MATERIAL_NAMES[index]
-		tab.custom_minimum_size = Vector2(56,44)
-		_paper_face(tab,reference_material==family)
-		families.add_child(tab)
-		tab.pressed.connect(func()->void:
-			reference_material = family
-			_refresh_book(pages))
-	var controls := HBoxContainer.new()
-	pages.add_child(controls)
-	var variant_button := Button.new()
-	variant_button.text = "다른 표본 · %d/4"%(reference_variant+1)
-	controls.add_child(variant_button)
-	variant_button.pressed.connect(func()->void:
-		reference_variant = (reference_variant+1)%4
-		_refresh_book(pages))
-	var row := HBoxContainer.new()
-	pages.add_child(row)
-	for grade: int in range(3):
-		var sample: Dictionary = SurfaceVisuals.reference_sample(reference_material,grade,reference_variant)
-		var column := VBoxContainer.new()
-		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(column)
-		var texture: Texture2D = SurfaceVisuals.texture_for(sample)
-		if texture!=null:
-			var swatch := TextureRect.new()
-			swatch.texture = texture
-			swatch.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-			swatch.custom_minimum_size = Vector2(0,96)
-			swatch.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			swatch.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			swatch.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			column.add_child(swatch)
-		var label := Label.new()
-		label.text = str(sample.caption) if texture!=null else str(sample.caption)+" · 미반입"
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		column.add_child(label)
-	_board_line(pages,"reference_limit","비교 예시이며 현재 물품의 재질이나 상태를 확정하지 않습니다.")
+			lines.append("D%d  ·  %s  %d %s"%[payment.day,"지급" if payment.from=="player" else "수령",payment.amount,payment.currency])
+		receipts[order.actor_id] = lines
+	var phone := preload("res://src/presentation/b3_phone_desk.gd").new()
+	phone_view = phone
+	place(phone,0,0,1280,720)
+	phone.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	phone.selected_contact.connect(func(actor:String)->void: phone_contact=actor)
+	phone.confirm_order.connect(func(actor:String,id:String,command:String,revision:int)->void:
+		var view: Dictionary = session.alpha_view()
+		if view.phase!="EVENING_WORK" or revision!=int(session.snapshot().revision) or not view.get("outbound_options",[]).any(func(now:Dictionary)->bool:return now.id==id and now.actor==actor and now.command==command):
+			hint="의뢰 조건이 바뀌었습니다. 전표를 다시 확인하세요."
+			refresh()
+			return
+		hint=""
+		_submit(command,{"request_id":id}))
+	phone.populate(contacts,options,receipts,phone_contact,int(session.snapshot().revision),reading_scale)
+	if not hint.is_empty(): words(hint,770,555,442,65,16)
 
 func _fact_caption(slot: String,value: Variant) -> String:
 	var fact := str(value)
@@ -1176,7 +1198,7 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 				draft.clear()
 				refresh())
 	var spec: Dictionary = s.inventories[storage]
-	var cell := minf(68,630.0/float(spec.width))
+	var cell := minf(64,630.0/float(spec.width))
 	for y: int in range(int(spec.height)):
 		for x: int in range(int(spec.width)):
 			var target := Vector2i(x,y)
@@ -1351,7 +1373,10 @@ func _discard_preview() -> void:
 
 func _cancel_local() -> bool:
 	if not draft.is_empty(): _discard_preview()
-	elif drawer=="phone" and not phone_terms.is_empty(): phone_terms = ""
+	elif drawer=="phone" and is_instance_valid(phone_view) and phone_view.is_inside_tree() and not str(phone_view.get("preview")).is_empty():
+		phone_view.set("preview","")
+		phone_view.call("show_sheet")
+		return true
 	elif drawer.is_empty() and zoom and not chosen_tool.is_empty(): chosen_tool = ""
 	elif drawer=="item_history": drawer = "stock"
 	elif not drawer.is_empty():
@@ -1371,6 +1396,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if _leaving_title or _intro or _blocked or not event is InputEventKey or not event.pressed or event.echo: return
+	if get_viewport().gui_get_focus_owner() is LineEdit and event.keycode!=KEY_ESCAPE: return
 	if event.keycode == KEY_ESCAPE:
 		if not _cancel_local(): return
 	elif event.keycode == KEY_R and drawer=="stock" and not selected.is_empty():
