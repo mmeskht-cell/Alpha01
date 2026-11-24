@@ -560,8 +560,86 @@ func calendar_view(basic_visit:String="") -> Dictionary:
 
 ## Seed-bound full replay, with a local cache only for exact validated prefixes.
 ## No persisted cache or new live save schema. Existing capacity guard still applies.
+## Read the most recent journal event only when its authoritative receipt matches.
+func alpha_presentation_event(revision: int,kind: String,payload: Dictionary) -> Dictionary:
+	if not _alpha_mode or int(_state.get("revision",-1))!=revision: return {}
+	var journal: Array = _state.alpha_shop.commands
+	if journal.is_empty(): return {}
+	var cmd: Dictionary = journal.back()
+	if cmd.type!=kind or cmd.payload!=payload or int(cmd.expected_revision)+1!=revision: return {}
+	if not Receipt.matches_receipt(_state,cmd.action_id,kind,payload,revision): return {}
+	return {"event_id":cmd.action_id,"revision":revision}
+
 func alpha_view() -> Dictionary:
 	return AlphaShop.view(_state) if _alpha_mode and not _state.is_empty() else {}
+
+## Alpha-specific player-visible history. Alpha and Calendar modes are
+## mutually exclusive; never query a Calendar-only journal for Alpha records.
+func alpha_item_history(item_id: String, current_visit: String="") -> Dictionary:
+	var result: Dictionary = {"item_id":item_id,"records":[],"omitted":0,"work_records":[],"work_omitted":0,"prior_offers":[]}
+	if not _alpha_mode or _state.is_empty() or not Rules.identifier(item_id):
+		return result
+	var a: Dictionary = _state.alpha_shop
+	var journal: Array = a.commands
+	var ledger: Array = _state.ledger
+	for i: int in range(ledger.size()-1,-1,-1):
+		var entry: Dictionary = ledger[i]
+		if item_id not in entry.item_ids or "player" not in [entry.from,entry.to]:
+			continue
+		if result.records.size()>=ItemLineage.DISPLAY_LIMIT:
+			result.omitted += 1
+			continue
+		var single_root: bool = entry.root_ids.size()==1 and entry.root_ids[0]==item_id
+		var row: Dictionary = {"event_id":entry.event_id,"minute":int(entry.game_minutes),"direction":"purchase" if entry.from=="player" else "sale","amounts":entry.amounts.duplicate(true) if single_root else null}
+		var rev: int = int(entry.revision)
+		if single_root and rev>=1 and rev<=journal.size():
+			var cmd: Dictionary = journal[rev-1]
+			var p: Dictionary = cmd.payload
+			if cmd.type=="alpha_trade" and cmd.action_id==entry.event_id and p.get("visit_id")==entry.visit_id and p.get("item_id")==item_id and Receipt.matches_receipt(_state,entry.event_id,cmd.type,p,rev):
+				var visit_row: Dictionary = a.get("appraisal",{}).get("visits",{}).get(entry.visit_id,{})
+				var accepted: Dictionary = visit_row.get("accepted",{})
+				if visit_row.get("item_id")==item_id and accepted.get("currency")==p.currency and accepted.get("amount")==p.amount:
+					for offer: Dictionary in visit_row.get("offers",[]):
+						if offer.get("action_id")!=accepted.get("action_id") or offer.get("response")!="accepted" or offer.get("currency")!=p.currency or offer.get("amount")!=p.amount:
+							continue
+						var offer_rev: int = Receipt.receipt_revision(_state,str(offer.action_id))
+						if offer_rev<1 or offer_rev>=rev:
+							continue
+						var offer_cmd: Dictionary = journal[offer_rev-1]
+						if offer_cmd.type!="alpha_price_offer" or offer_cmd.action_id!=offer.action_id or offer_cmd.payload.get("amount")!=p.amount or not Receipt.matches_receipt(_state,offer.action_id,offer_cmd.type,offer_cmd.payload,offer_rev):
+							continue
+						var facts: Array = []
+						for fact: Dictionary in offer.get("revealed",[]):
+							facts.append({"slot":fact.slot,"value":str(fact.value)})
+						row["offer_reference"] = {"offer_id":offer.action_id,"facts":facts,"assessment":offer.get("private_assessment",{}).duplicate(true),"observed_slots":offer.get("observed_slots",[]).duplicate()}
+						break
+		result.records.append(row)
+	var work_types: Dictionary = {"spatial_attach":"attach","spatial_detach":"detach","spatial_restore_item":"restore_item","alpha_service_repair":"restore_item"}
+	var events: Array = _state.object_events
+	for i: int in range(events.size()-1,-1,-1):
+		var event: Dictionary = events[i]
+		if item_id not in event.item_ids:
+			continue
+		var rev: int = int(event.revision)
+		if rev<1 or rev>journal.size():
+			continue
+		var cmd: Dictionary = journal[rev-1]
+		if work_types.get(cmd.type,"")!=event.type or cmd.action_id!=event.event_id or not Receipt.matches_receipt(_state,event.event_id,cmd.type,cmd.payload,rev):
+			continue
+		var p: Dictionary = cmd.payload
+		var row: Dictionary = {"event_id":event.event_id,"revision":rev,"kind":event.type}
+		if cmd.type in ["spatial_attach","spatial_detach"]:
+			if p.get("actor")!="player" or event.item_ids!=[p.get("root_id"),p.get("child_id")]:
+				continue
+			row["related_item_id"] = p.child_id if p.root_id==item_id else p.root_id
+		elif event.item_ids!=[p.get("item_id")]:
+			continue
+		if result.work_records.size()>=ItemLineage.DISPLAY_LIMIT:
+			result.work_omitted += 1
+		else:
+			result.work_records.append(row)
+	result.prior_offers = AlphaCards.prior_disclosures(_state,item_id,current_visit)
+	return result
 
 ## Read-only item placement hints; actual player actions must still run
 ## through _apply_alpha and _move on a validated candidate.

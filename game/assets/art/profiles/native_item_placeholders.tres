@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=20 format=3]
+[gd_resource type="Resource" load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://src/presentation/item_visual_catalog.gd" id="1"]
 [ext_resource type="Script" path="res://src/presentation/item_visual_profile.gd" id="2"]
@@ -11,6 +11,10 @@
 [ext_resource type="Texture2D" path="res://assets/art/items/electronics_counter_pilot.svg" id="9"]
 [ext_resource type="Texture2D" path="res://assets/art/items/hygiene_counter_pilot.svg" id="10"]
 [ext_resource type="Texture2D" path="res://assets/art/items/fictional_gear_pilot.svg" id="11"]
+
+[ext_resource type="Texture2D" path="res://assets/art/items/r001_pixel_front_candidate.png" id="12"]
+[ext_resource type="Texture2D" path="res://assets/art/items/r001_pixel_back_candidate.png" id="13"]
+[ext_resource type="Texture2D" path="res://assets/art/items/watch_spatial_back_pilot.svg" id="14"]
 
 [sub_resource type="Resource" id="radio_counter"]
 script = ExtResource("2")
@@ -114,3 +118,10 @@ inspection_keys = {
 }
 counter_fallback = "electronics"
 inspection_fallback = "electronics"
+model_art = {
+"portable_radio": {"base": ExtResource("12"), "counter": ExtResource("4"), "back": ExtResource("13")},
+"fictional_watch_p2": {"base": ExtResource("6"), "back": ExtResource("14")},
+"battery": {"base": ExtResource("7")},
+"demo_tool": {"base": ExtResource("8")},
+"demo_hygiene": {"base": ExtResource("10")}
+}

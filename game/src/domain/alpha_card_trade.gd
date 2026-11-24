@@ -9,6 +9,7 @@ const Objects = preload("res://src/domain/object_schema.gd")
 const Commission = preload("res://src/domain/alpha_commission.gd")
 const CONFIG_PATH: String = "res://data/alpha_b2/cards_pilot_1.json"
 const CLAIMS_PATH: String = "res://data/alpha_b2/customer_claims_1.json"
+const SURFACE_CHOICES := {"material":["unknown","metal","plastic","paper","fabric","glass"],"exterior":["unknown","minimal","moderate","severe"]}
 const MAX_OFFERS: int = 3
 const MAX_OBSERVATIONS: int = 8
 const ACTIONS: Array = ["alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge"]
@@ -249,11 +250,11 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 		"alpha_hypothesis":
 			# Explicitly provisional and private. Never put guesses inside
 			# row.observed, selected fact cards, NPC DTO or customer receipts.
-			if not Rules.keys(p,["slot","judgment"]) or not Rules.identifier(p.slot) or p.judgment not in ["serviceable","inoperable","unknown"]:
+			if not Rules.keys(p,["slot","judgment"]) or not Rules.identifier(p.slot) or not p.judgment is String:
 				return "alpha_hypothesis_shape"
-			var guess_allowed: bool = false
+			var guess_allowed: bool = SURFACE_CHOICES.has(p.slot) and p.judgment in SURFACE_CHOICES[p.slot]
 			for option: Dictionary in _tool_rows(state,context.item_id):
-				if option.id == p.slot and p.slot in ["function_detail","condition_detail"]:
+				if option.id == p.slot and p.slot in ["function_detail","condition_detail"] and p.judgment in ["serviceable","inoperable","unknown"]:
 					guess_allowed = true
 			if not guess_allowed:
 				return "alpha_hypothesis_slot"
@@ -339,6 +340,14 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 				"selected": row.selected.duplicate(), "revealed": revealed,
 				"response": "accepted" if accepted else "declined"
 			}
+			var assessment := {}
+			for slot: String in SURFACE_CHOICES:
+				if row.get("hypotheses",{}).has(slot): assessment[slot] = row.hypotheses[slot]
+			if not assessment.is_empty():
+				outcome["private_assessment"] = assessment
+				var known_slots: Array = row.observed.keys()
+				known_slots.sort()
+				outcome["observed_slots"] = known_slots
 			row.offers.append(outcome)
 			if accepted:
 				row.accepted = {"amount": p.amount,"currency": currency,"action_id":command.action_id}
@@ -350,6 +359,21 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 			return "alpha_appraisal_action"
 	a.appraisal.visits[context.visit_id] = row
 	return ""
+
+## Only evidence already disclosed in a previous visit is historical testimony.
+## A proposal can exist without a completed transfer.
+static func prior_disclosures(state: Dictionary,item_id: String,current_visit: String) -> Array:
+	var records: Array = []
+	var visits: Dictionary = state.get("alpha_shop",{}).get("appraisal",{}).get("visits",{})
+	for visit_id: String in visits:
+		var row: Dictionary = visits[visit_id]
+		if visit_id==current_visit or row.get("item_id")!=item_id: continue
+		for offer: Dictionary in row.get("offers",[]):
+			var facts: Array = []
+			for observation: Dictionary in offer.get("revealed",[]):
+				facts.append({"slot":observation.slot,"value":observation.value})
+			records.append({"amount":offer.amount,"currency":offer.currency,"response":offer.response,"facts":facts,"assessment":offer.get("private_assessment",{}).duplicate(),"observed_slots":offer.get("observed_slots",[]).duplicate()})
+	return records
 
 static func trade_gate(state: Dictionary, payload: Dictionary) -> String:
 	var context: Dictionary = _visit_context(state)
@@ -403,7 +427,11 @@ static func view(state: Dictionary) -> Dictionary:
 				"text_key":str(statement.text_key),"check_status":discrepancy,
 				"can_challenge":discrepancy=="conflict" and not challenged,
 				"challenged":challenged})
-	return {"item_id":context.item_id,"def_id":context.item.def_id,"we_buy":context.visit.buyer=="player",
+	var terms: Dictionary = context.visit.prices[context.item_id]
+	var currency := "VKC" if int(terms.VKC)>0 else "USD"
+	return {"offer_currency":currency,"item_id":context.item_id,"def_id":context.item.def_id,"we_buy":context.visit.buyer=="player",
+		"surface_seed":("%s/%s"%[state.alpha_shop.profile.get("visit_random",{}).get("seed",0),context.item_id]).sha256_text().left(8).hex_to_int(),
+		"surface_judgments":row.get("hypotheses",{}).duplicate(),
 		"tools": options,"cards":cards,"offers":history,"hypotheses":hypotheses,
 		"customer_claims":claims,"statements":row.get("statements",[]).duplicate(true),
 		"claim_challenges":row.get("claim_challenges",[]).duplicate(true),

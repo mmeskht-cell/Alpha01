@@ -1,0 +1,182 @@
+{
+  "version": "v0.3",
+  "source_zip_sha256": "97d8abb7aae40e1097809b7dec798480df8b2a952fa9cfc5ad1968f3e1bc84e2",
+  "status": "VERIFIED_ASSET_BYTES_PENDING_GODOT_IMPORT",
+  "items": [
+    {
+      "art_key": "food_01_sardines",
+      "english_name": "Sardines in Oil",
+      "gameplay_def_id": null,
+      "files": {
+        "base": {
+          "path": "game/assets/art/items/preserved_food_v03/food_01_sardines_256.png",
+          "sha256": "0b9e24072ddf37919546c80a29dca8534447226e2d277e4c2e624ec530b0719f",
+          "bytes": 29309
+        },
+        "stock": {
+          "path": "game/assets/art/items/preserved_food_v03/food_01_sardines_128.png",
+          "sha256": "ea17afb073db65b5bf22e7589f5e0ffa66b78e90fdc641ed5687f657481c2d1e",
+          "bytes": 12260
+        }
+      }
+    },
+    {
+      "art_key": "food_02_canned_meat",
+      "english_name": "Canned Beef",
+      "gameplay_def_id": null,
+      "files": {
+        "base": {
+          "path": "game/assets/art/items/preserved_food_v03/food_02_canned_meat_256.png",
+          "sha256": "7bcbfc2787404777740a5ddd7fdc1d1dc33f8480b9dce1ac9b20717df1a24e64",
+          "bytes": 50950
+        },
+        "stock": {
+          "path": "game/assets/art/items/preserved_food_v03/food_02_canned_meat_128.png",
+          "sha256": "64c75966d8245b7e09d30a960ea69dcfce91568c1243598ddff4f5e5ab29eddd",
+          "bytes": 21356
+        }
+      }
+    },
+    {
+      "art_key": "food_03_hardtack",
+      "english_name": "Hardtack Biscuits",
+      "gameplay_def_id": null,
+      "files": {
+        "base": {
+          "path": "game/assets/art/items/preserved_food_v03/food_03_hardtack_256.png",
+          "sha256": "58cad9c862bfdea6176683a4bfcf4d8d8b28a73068cc63c77054ee0ced906e16",
+          "bytes": 57146
+        },
+        "stock": {
+          "path": "game/assets/art/items/preserved_food_v03/food_03_hardtack_128.png",
+          "sha256": "488055ab02fc496a9fecd59d18d54921051bb4552b58cc10bb819d8446703b5e",
+          "bytes": 23417
+        }
+      }
+    },
+    {
+      "art_key": "food_04_canned_beans",
+      "english_name": "Baked Beans",
+      "gameplay_def_id": null,
+      "files": {
+        "base": {
+          "path": "game/assets/art/items/preserved_food_v03/food_04_canned_beans_256.png",
+          "sha256": "b5cc03f5a587c64eb5bbe08631fb7056a9c3a460952414826c755eee25e36ad1",
+          "bytes": 45349
+        },
+        "stock": {
+          "path": "game/assets/art/items/preserved_food_v03/food_04_canned_beans_128.png",
+          "sha256": "eeda52821edf11db12837b2efa0e5eb2e1f12b3c5ed7d6eaab46da0aba0881de",
+          "bytes": 19300
+        }
+      }
+    },
+    {
+      "art_key": "food_05_oats",
+      "english_name": "Rolled Oats",
+      "gameplay_def_id": null,
+      "files": {
+        "base": {
+          "path": "game/assets/art/items/preserved_food_v03/food_05_oats_256.png",
+          "sha256": "8899cfb11006f9bd6ed4eecf410e675535d49703cfc3e97dde89630e9caa7d9d",
+          "bytes": 50070
+        },
+        "stock": {
+          "path": "game/assets/art/items/preserved_food_v03/food_05_oats_128.png",
+          "sha256": "68efaea442bf619763fee91b120892e7f0d130f7674ab7cfed40639d7281424d",
+          "bytes": 20736
+        }
+      }
+    },
+    {
+      "art_key": "food_06_pasta",
+      "english_name": "Dried Pasta",
+      "gameplay_def_id": null,
+      "files": {
+        "base": {
+          "path": "game/assets/art/items/preserved_food_v03/food_06_pasta_256.png",
+          "sha256": "e3bad5af6fc05a24f3578d044e78e28385980539cbebe6b3f8b0545560eaf765",
+          "bytes": 29739
+        },
+        "stock": {
+          "path": "game/assets/art/items/preserved_food_v03/food_06_pasta_128.png",
+          "sha256": "523cfc534e7c6341e2d6b83afb8cdecfd9ee31c4a9430e49d24496f4f90c7352",
+          "bytes": 12230
+        }
+      }
+    },
+    {
+      "art_key": "food_07_instant_soup",
+      "english_name": "Instant Soup",
+      "gameplay_def_id": null,
+      "files": {
+        "base": {
+          "path": "game/assets/art/items/preserved_food_v03/food_07_instant_soup_256.png",
+          "sha256": "7322781a5f7076787954be4c31a7ed228898c71162a6c791a1beebbcd672b5d0",
+          "bytes": 52186
+        },
+        "stock": {
+          "path": "game/assets/art/items/preserved_food_v03/food_07_instant_soup_128.png",
+          "sha256": "18978c519d6052ea4f7e6614ed1f996c1e17ace82fad3e59aa3c401ed6b22867",
+          "bytes": 22107
+        }
+      }
+    },
+    {
+      "art_key": "food_08_pickled_vegetables",
+      "english_name": "Pickled Cucumbers",
+      "gameplay_def_id": null,
+      "files": {
+        "base": {
+          "path": "game/assets/art/items/preserved_food_v03/food_08_pickled_vegetables_256.png",
+          "sha256": "b3cbd9f96373a7754c12ce13b088681c0087af3b05991e339ed8d487b60101bf",
+          "bytes": 71187
+        },
+        "stock": {
+          "path": "game/assets/art/items/preserved_food_v03/food_08_pickled_vegetables_128.png",
+          "sha256": "8fa6f830b2a0ce75cd19c92886a2d11fcc41752091ae9557189d2fb52686105a",
+          "bytes": 20587
+        }
+      }
+    },
+    {
+      "art_key": "food_09_milk_powder",
+      "english_name": "Milk Powder",
+      "gameplay_def_id": null,
+      "files": {
+        "base": {
+          "path": "game/assets/art/items/preserved_food_v03/food_09_milk_powder_256.png",
+          "sha256": "acf98127c48b0735221c1687219a79025b62390f5d89b243a882b0abfe280284",
+          "bytes": 90452
+        },
+        "stock": {
+          "path": "game/assets/art/items/preserved_food_v03/food_09_milk_powder_128.png",
+          "sha256": "6640a7d072b1a084c3ee21410e34711b6b74e7cb3b12f7db1ff8f2cf88029084",
+          "bytes": 25751
+        }
+      }
+    },
+    {
+      "art_key": "food_10_instant_coffee",
+      "english_name": "Instant Coffee",
+      "gameplay_def_id": null,
+      "files": {
+        "base": {
+          "path": "game/assets/art/items/preserved_food_v03/food_10_instant_coffee_256.png",
+          "sha256": "aab667f864e5d70e472451ded5c3bfd88dfbe199eceff48495d1709d43b9f166",
+          "bytes": 62196
+        },
+        "stock": {
+          "path": "game/assets/art/items/preserved_food_v03/food_10_instant_coffee_128.png",
+          "sha256": "7c3912f75320cba44c86100a803f17f2a266edb5abd343aee0d1f22f6b4eefc7",
+          "bytes": 17925
+        }
+      }
+    }
+  ],
+  "notes": [
+    "Exact PNG bytes from user-provided archive; no image re-encoding.",
+    "1024 previews are not runtime art and are excluded.",
+    "Art keys do not introduce new gameplay definitions or prices."
+  ]
+}

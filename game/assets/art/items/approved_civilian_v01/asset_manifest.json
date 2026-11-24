@@ -1,0 +1,565 @@
+{
+  "status": "PENDING_VISUAL_QA",
+  "items": [
+    {
+      "key": "medical_01_field_bandage",
+      "source": "image-gen-1(2).png",
+      "source_sha256": "358e7da51fa57f46bd4a9b4bef1836f4a421e97927e271e9adc57217f4703b13",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        0,
+        69,
+        1210,
+        1180
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_01_field_bandage_128.png",
+          "sha256": "69098eaad520a056ad3b18c0bacb545d21627e873b30708c4bed7b41e7aa9e29",
+          "bytes": 11917
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_01_field_bandage_256.png",
+          "sha256": "cb7f2e9c94f72c104cc5f070a3dbb0fef05c77e4b891472f369e40617ce07c89",
+          "bytes": 41662
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "medical_02_first_aid_kit",
+      "source": "image-gen-2(2).png",
+      "source_sha256": "dc6523216024bb9ba74fdc5ec9f8db3f6a7969c0312076a200cc9cb23f5f887a",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        0,
+        23,
+        1232,
+        1212
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_02_first_aid_kit_128.png",
+          "sha256": "1189249164bd9d81be73db78cb35ad57520d8166e18d47fc74d33628d0c9e3e5",
+          "bytes": 18479
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_02_first_aid_kit_256.png",
+          "sha256": "b0287d3bbd43c3fd85a656acca6c548aa1b148f1c449de2bf1c0111115faf738",
+          "bytes": 66981
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "medical_03_painkillers",
+      "source": "image-gen-3(2).png",
+      "source_sha256": "be5b57c6d80f4ebda499fc39008144d13c3ecf777b4a996b8845f4b0c483db71",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        19,
+        22,
+        1240,
+        1254
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_03_painkillers_128.png",
+          "sha256": "b32343a6deb5cf81299630cf2fad861a364c13996dbcaa04e2f31fed09f45163",
+          "bytes": 12596
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_03_painkillers_256.png",
+          "sha256": "70a6ce3072efa900c9ee6fa58209061a9369d8e67a8b24d6419df6996012f252",
+          "bytes": 43138
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "medical_04_antiseptic",
+      "source": "image-gen-4(1).png",
+      "source_sha256": "467234509d3a8c83f9831abc50c78da96f2a368a600c41bc06b6128331344b3b",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        0,
+        0,
+        1254,
+        1254
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_04_antiseptic_128.png",
+          "sha256": "f0baec01f6c06d6ef3e7caad04c44014ddbf920ca9db23290635fac7373a59f3",
+          "bytes": 18633
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_04_antiseptic_256.png",
+          "sha256": "e7d8272772c8ea0b5706dfe7f26a1be49e0e208b910abe1df1f5eb9f05a1f299",
+          "bytes": 66264
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "medical_05_syringe_kit",
+      "source": "image-gen-5.png",
+      "source_sha256": "634b40602be89ff1a1764573bd45bb4bc1942b439bc12e01522d0c3982f3138c",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        0,
+        52,
+        1227,
+        1216
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_05_syringe_kit_128.png",
+          "sha256": "de28f43badc136159e45aa4971dc4837c68eaadd7ee0b7bf99c22647feecd332",
+          "bytes": 17390
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_05_syringe_kit_256.png",
+          "sha256": "091ec9af1790d90e5718102b004f8451bc2c0b25dc6ed1d8305a68c75021a4b1",
+          "bytes": 61984
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "medical_06_soap",
+      "source": "image-gen-6.png",
+      "source_sha256": "55c66430407faf341f87a24bba18cd1e1d60bcaabe7458d7beeee7e4cddb1e4d",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        0,
+        69,
+        1234,
+        1231
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_06_soap_128.png",
+          "sha256": "1a237feb65cdc10ef4840e489310f5538eb8d27af4e2caf04f60a2dec271bc19",
+          "bytes": 11032
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_06_soap_256.png",
+          "sha256": "6ca590f0db91f6b6e49e38eecbee888b90327b9773d82e23b1c5c9cd061c5b54",
+          "bytes": 38625
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "medical_07_matches",
+      "source": "image-gen-7.png",
+      "source_sha256": "9296e9c3ff512b62d23e3803f1bbee8e72f6bac011487658649a1960b14f8991",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        0,
+        22,
+        1208,
+        1204
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_07_matches_128.png",
+          "sha256": "5d364af38a8906af6d8ed4bed2a236e7d09327013a8a927f497ec1b70b0afc8f",
+          "bytes": 11281
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_07_matches_256.png",
+          "sha256": "0e677939988239bdd770cda675642d5d32db0409b9123a2b73e862931cb8a3ac",
+          "bytes": 39022
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "medical_08_candles",
+      "source": "image-gen-8.png",
+      "source_sha256": "a95097093a29816ab66c42c8426d1921a1d77c5680a670c3c4cc6d32548d7f67",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        0,
+        0,
+        1254,
+        1254
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_08_candles_128.png",
+          "sha256": "6da722e7cc4943a0f5c80c813480c2153424739576dbbf8376b162fdb2a1feb4",
+          "bytes": 13462
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_08_candles_256.png",
+          "sha256": "e807b9559559b85e8ff5e298c66f9c782032f9293127eec826a4500801fee2fc",
+          "bytes": 46206
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "medical_09_tooth_powder",
+      "source": "image-gen-9.png",
+      "source_sha256": "b924ea93a3437efaf50d13babe93158e150bc494c7986bc3126f59143f2cf634",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        0,
+        0,
+        1254,
+        1254
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_09_tooth_powder_128.png",
+          "sha256": "581a33d04f3d7d8ee9dbefade726bb62d6667a4b57451376a8ef7096ae2d2151",
+          "bytes": 20645
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_09_tooth_powder_256.png",
+          "sha256": "f59fb935d81b9e6c82d9f913be717f9e69ec017f419ecd17539bde168328949f",
+          "bytes": 71297
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "medical_10_water_tablets",
+      "source": "image-gen-10.png",
+      "source_sha256": "1182a0636797081d3c6ccde6dcb38bb1d80bf3c144031f13cfd65ccb7d7b53b4",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        0,
+        0,
+        1224,
+        1254
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_10_water_tablets_128.png",
+          "sha256": "e5e6162fcb642b89e463ce331e4b03ee65d2eb04daced2f55ca3c16473ed8d67",
+          "bytes": 12286
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/medical_10_water_tablets_256.png",
+          "sha256": "8f68815ec561ceda84ab98397cb836f9091c0141d2c21ed6cb66ef6d38810269",
+          "bytes": 42898
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "utility_01_field_radio",
+      "source": "image-gen-1(3).png",
+      "source_sha256": "98b3aeb5ec7392066dab77b3853bdf7431494f69dbaf99382638866314c96e02",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        0,
+        30,
+        1191,
+        1254
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_01_field_radio_128.png",
+          "sha256": "9edbb30266b62ec0e9ce6e609de022127a75c74e0f7c23b908424deb962be3b5",
+          "bytes": 26328
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_01_field_radio_256.png",
+          "sha256": "afcacea21f25ba3aa6c13fa7ef5638f54157752cf1026771a0dd519bdc524d97",
+          "bytes": 90710
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "utility_02_flashlight",
+      "source": "image-gen-2(3).png",
+      "source_sha256": "53d8b068574e800324a87ba5d0dae834659f986a90a2792755abbcd51c53c879",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        0,
+        17,
+        1242,
+        1254
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_02_flashlight_128.png",
+          "sha256": "6ebd17594addab92d68aeda5e5b2271cfd0d509d0c8e483fe15115f8eb5244b1",
+          "bytes": 15789
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_02_flashlight_256.png",
+          "sha256": "9806ebd7df5eda86841529afd7ad47ee930bdd842a3e1c9595778f9d7c770995",
+          "bytes": 55854
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "utility_03_aa_batteries",
+      "source": "image-gen-3(3).png",
+      "source_sha256": "2e1c13d9c9a98cf28a46ba8aec349764486e4f942cefbdce5739445f721b805d",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        0,
+        9,
+        1236,
+        1254
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_03_aa_batteries_128.png",
+          "sha256": "2c10e48ec9c0efd83eb8ac94dc0eab6254ce72a2b2ee60ec4c6f9b219aa1ce1d",
+          "bytes": 16762
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_03_aa_batteries_256.png",
+          "sha256": "08b5a89792684a737c565da4f5a2bb1defef9b9039a5936df879ea3190b16555",
+          "bytes": 59154
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "utility_04_power_bank",
+      "source": "image-gen-4(2).png",
+      "source_sha256": "96819379991ab9fbcf8142797a44fc176e5890969d2e716d56970bd7f7a7e124",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        0,
+        8,
+        1234,
+        1254
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_04_power_bank_128.png",
+          "sha256": "c33edc1b1b4613e9d62385515f86a4a75679c1f417609dd57e9ed783f5b162db",
+          "bytes": 23632
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_04_power_bank_256.png",
+          "sha256": "9ee8097400bbe0b800b4497c0b4ba586b33ba9b5218b96bd753d75b1af7c2a35",
+          "bytes": 83057
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "utility_05_wrench",
+      "source": "image-gen-5(1).png",
+      "source_sha256": "f6bf72c01864da38986524e56ff6464711511171a5f5893953206c0e33092308",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        0,
+        12,
+        1222,
+        1254
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_05_wrench_128.png",
+          "sha256": "bcfc4a50a77c7bf873160a2d4d86ac704cd535d97deb4fa11e92f7b494469c5a",
+          "bytes": 13945
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_05_wrench_256.png",
+          "sha256": "b4a0fd3c13c5a04192b01eb57c2c79bd7018b4de9c561461fe7c1dfe5839e0ab",
+          "bytes": 49025
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "utility_06_pliers",
+      "source": "image-gen-6(1).png",
+      "source_sha256": "90d77062744b3a3433eeb3c6849375c2c53728c194e9587e89f8e4da5ec345c8",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        0,
+        21,
+        1243,
+        1254
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_06_pliers_128.png",
+          "sha256": "b638e56d816baf6a8e6b30a98e63ae0344f2ade051980ca95c500327c8adfd06",
+          "bytes": 15925
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_06_pliers_256.png",
+          "sha256": "9bcc0119a91f18f37db256dfd7a1f2119917f54821011b0a8a0d00fa3ed8177b",
+          "bytes": 55521
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "utility_07_electrical_tape",
+      "source": "image-gen-7(1).png",
+      "source_sha256": "6277a1aeefeb185421b7d348f2159da31ca34f04e30470054524cf49ae07869d",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        76,
+        30,
+        1238,
+        1254
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_07_electrical_tape_128.png",
+          "sha256": "2adbc83de619a3a234321dc8d92db162cbd1194b2e5a72f7181aad054c91e66e",
+          "bytes": 23454
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_07_electrical_tape_256.png",
+          "sha256": "a5798d786e9dcb66d1d3a85aa500d603988cce92e94be3b6a306b3de28d06a04",
+          "bytes": 80569
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "utility_08_multimeter",
+      "source": "image-gen-8(1).png",
+      "source_sha256": "b6277ed56cd4fdc6c2b7687f20b922746f9069239dd623d01cee6ff46035112b",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        0,
+        0,
+        1226,
+        1254
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_08_multimeter_128.png",
+          "sha256": "6a6085f24000750753a1e28010b24b23156b64da36a82bcd8e1929635a9fab8c",
+          "bytes": 26506
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_08_multimeter_256.png",
+          "sha256": "41e8266390639a747e98406ecd583a08ec204bd29d5dda9d29fe0cdf1b8a17f7",
+          "bytes": 93536
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "utility_09_recorder",
+      "source": "image-gen-9(1).png",
+      "source_sha256": "9b429765500d6b41e1c7e8d16080b8ad6f49283c55b4eef7794ceff01e0c5cc6",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        0,
+        14,
+        1234,
+        1254
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_09_recorder_128.png",
+          "sha256": "771a066d97ae2991be0a132a7cabe2312e9ef404d4da35621288a001bebfb7e2",
+          "bytes": 21239
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_09_recorder_256.png",
+          "sha256": "cebd714aa9b289e591d6efd849160ca034072ac4cada991ed95e790caf82a4c6",
+          "bytes": 74376
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    },
+    {
+      "key": "utility_10_control_module",
+      "source": "image-gen-10(1).png",
+      "source_sha256": "331564602a62fb64bb8f9f9057ba150f44c73c0cc6e12317130ec338704515a7",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_alpha_bbox": [
+        20,
+        57,
+        1229,
+        1254
+      ],
+      "files": [
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_10_control_module_128.png",
+          "sha256": "a51055bb5b584b5b193f28eec3a1da0916d6c46e6b6346cc4e0fcaddcf075e0a",
+          "bytes": 27838
+        },
+        {
+          "path": "game/assets/art/items/approved_civilian_v01/utility_10_control_module_256.png",
+          "sha256": "2e30b5e054d47100b6a1213514768e1b90ff9a411960ea3e385cfb8cdeb87936",
+          "bytes": 97336
+        }
+      ],
+      "status": "PENDING_VISUAL_QA"
+    }
+  ]
+}

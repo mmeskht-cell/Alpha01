@@ -1,0 +1,169 @@
+{
+  "version": "surface_v01",
+  "status": "PROCEDURAL_CANDIDATE_NOT_PLAYTESTED",
+  "base_count": 8,
+  "overlay_count": 24,
+  "purpose": "5 material reference families, 3 neutral observed surface swatches, 4 overlays per material and neutral family; no game-state facts inferred",
+  "files": [
+    {
+      "path": "game/assets/art/items/surface_v01/cross_base.png",
+      "sha256": "56f2f87f9b1d2cf94058978801a291dc7f2d4b10308bb3079d165e153f8e4a98",
+      "bytes": 19567
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/fabric_base.png",
+      "sha256": "e997fc14f1aefbe2a05b01be2bca4a15b74a14f3ec02452c29c69a3953137389",
+      "bytes": 22580
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/fabric_wear_1.png",
+      "sha256": "d4cf9d9e75fd79cf97b93ce218e1f54505885baf2352370fc9b4dcfa843367d7",
+      "bytes": 27368
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/fabric_wear_2.png",
+      "sha256": "d60ce7494aa2c23a0ae7fef9eb2328850e4b289a83df9da2be2ad7b49d15d336",
+      "bytes": 28927
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/fabric_wear_3.png",
+      "sha256": "e1908dbb0a00e1ee9b63f1df1da6b18e53d2b61bc768b1efa958b08c3b46c5e7",
+      "bytes": 30402
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/fabric_wear_4.png",
+      "sha256": "36f52e30cfa169c063d107842c767313be7b7d6ccf777e0e3278e5b5257f1d63",
+      "bytes": 30803
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/glass_base.png",
+      "sha256": "62f9bdd2cdfc7e4161b044bca56aff64d5ab90ea4104fc5961462265761b41fb",
+      "bytes": 12735
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/glass_wear_1.png",
+      "sha256": "b84a280e4d1a4976f0f5191c333010af9125f6a041e0001587cb26ae60d337ee",
+      "bytes": 29995
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/glass_wear_2.png",
+      "sha256": "6e0d1a40787ee7dc7191c0b545e472900e35105417250d7db0fbbdd6964c8dd9",
+      "bytes": 26685
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/glass_wear_3.png",
+      "sha256": "0f5dd788b4c02d8df51d55287aceddcb56cf5550ac7d4cab50d1fcbffda16cf4",
+      "bytes": 25880
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/glass_wear_4.png",
+      "sha256": "9628e3b804bd97574a42e846ab173463e358c1e964425fc82ac9405fa280f1be",
+      "bytes": 31721
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/metal_base.png",
+      "sha256": "616d82ea27ae92bebd17107f3571d5244e70d63e0f3e1246a3a17e001cbdf1f1",
+      "bytes": 17387
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/metal_wear_1.png",
+      "sha256": "493b8d61f8e0ee0ecfb403a0b54020b56bfe3338567a1f6a29c9443418ff0912",
+      "bytes": 28347
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/metal_wear_2.png",
+      "sha256": "cc2b68739aa25499dac221d337b04437548caaeeaab819814d5f6f4a84c95add",
+      "bytes": 26781
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/metal_wear_3.png",
+      "sha256": "f4ab4dbe9ca9a22933b26b2d5de1c474a9555d325a9f79fc0cf96778f66c4486",
+      "bytes": 28656
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/metal_wear_4.png",
+      "sha256": "dfc53d73f860f2367a981433ce93c942c0ca6b92559f39fdc6a6530ca79ea6f3",
+      "bytes": 29212
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/neutral_base.png",
+      "sha256": "4518f71fc15ec397ef57889d4d3f395ba3e1b080379abfcaf56d7f78db71e641",
+      "bytes": 15426
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/neutral_wear_1.png",
+      "sha256": "b935d4914e0e9f2eefe17635caf9655c9f880c28fc94df75b37ae61a573608c8",
+      "bytes": 29815
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/neutral_wear_2.png",
+      "sha256": "0a5a16367097ed3c9e46a63e72f9a9278ea00df6018c7d59bd6620a89cd92e5d",
+      "bytes": 28871
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/neutral_wear_3.png",
+      "sha256": "b6a03969fb73c1838e47a659995663d0fb8c40e8fc20e36e0a22032c97d1883d",
+      "bytes": 28057
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/neutral_wear_4.png",
+      "sha256": "f0f23dba2b72603843afba75d447cfb5b08fa769ff952652e2edf06800d1393c",
+      "bytes": 27711
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/paper_base.png",
+      "sha256": "fcec838f7299cc7c7e7d0b62ab95507a4556c774e492dba1b5c6708e6305d9b7",
+      "bytes": 18915
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/paper_wear_1.png",
+      "sha256": "5d82eb28ff6d6a7bc1aa3fd0b3fbc21998690392dd9120f2dbf39925323d594d",
+      "bytes": 27483
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/paper_wear_2.png",
+      "sha256": "84193d0ab9b182dc9403465ca403aebdda12e33e8c3540f55314fd49b73b9c2d",
+      "bytes": 26789
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/paper_wear_3.png",
+      "sha256": "940daf5e21f046162405ac706919ba1d5d488eae4cf5cc1222edd2d3d2265115",
+      "bytes": 28544
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/paper_wear_4.png",
+      "sha256": "5e8fdc150141b56a4b9aae13863b78918f1a7759fb287875492ed82e30bf95ce",
+      "bytes": 29191
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/parallel_base.png",
+      "sha256": "5c86e11b99e5fd9ea22401ad7e9a9b711cc7a8aefe41d0dceae219e9d77ecc00",
+      "bytes": 16960
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/plastic_base.png",
+      "sha256": "87a23042ab1eeb24c6b5a18e3480f3080d47b6a3032f4692735ccc446b802e64",
+      "bytes": 16850
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/plastic_wear_1.png",
+      "sha256": "cf6e948386c52e6165aeca6f32c0c6ff2864069d56451479c5508d7803abd5e2",
+      "bytes": 33172
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/plastic_wear_2.png",
+      "sha256": "ac670bdfa7bee471b76ae109b434612c1eb19f8651792e653c4dad125ba42061",
+      "bytes": 25630
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/plastic_wear_3.png",
+      "sha256": "6b836019658424c459c4505818871368179751aaa39560b645930ea9dd786a31",
+      "bytes": 29206
+    },
+    {
+      "path": "game/assets/art/items/surface_v01/plastic_wear_4.png",
+      "sha256": "c965398f0c1d6ee314b4d996759cf9325a47f200b02a8047be029105073f80c0",
+      "bytes": 29757
+    }
+  ]
+}
