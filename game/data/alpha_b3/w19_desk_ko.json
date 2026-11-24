@@ -1,0 +1,33 @@
+{
+  "subject": "대표 관찰 표본",
+  "index": "품목 색인",
+  "known": "관찰 기록과 관련된 항목",
+  "groups": [
+    "기존 품목",
+    "보존 식량",
+    "의료·생활",
+    "전자·공구"
+  ],
+  "book": "감정 도감",
+  "held": "들고 있음",
+  "call": "통화 조건 보기",
+  "confirm": "이 조건으로 의뢰",
+  "cancel": "전표 접기",
+  "empty_slot": "빈 부품 자리",
+  "installed": "장착 중",
+  "detach": "분리 위치와 비용 확인",
+  "repair": "정비 · 재생",
+  "attach": "장착",
+  "close_flow": "매입 %d점 · 판매 %d점  /  순거래 %d VKC · %d USD",
+  "region": "크라벤스크 · D%d",
+  "tool_names": {
+    "identity": "품명표",
+    "wear_detail": "외장 렌즈",
+    "material_detail": "재질경",
+    "casing_detail": "각인표",
+    "batch_detail": "로트표",
+    "function_detail": "검사기",
+    "condition_detail": "기능계",
+    "display_damage_detail": "표시부 렌즈"
+  }
+}
