@@ -69,6 +69,7 @@ var reference_variant := 0
 var book_tab := 0
 var previous_book_scroll := 0
 var layout_after_drag := false
+var pending_counter_drop: Dictionary = {}
 var tag_draft: Dictionary = {}
 
 func _actor_label(actor_id: String) -> String:
@@ -112,6 +113,8 @@ func _viewport_changed() -> void:
 		_scale_stage()
 
 func _notification(what: int) -> void:
+	if what==NOTIFICATION_DRAG_END and not pending_counter_drop.is_empty():
+		_flush_counter_drop.call_deferred()
 	if what==NOTIFICATION_DRAG_END and is_instance_valid(drag_origin):
 		drag_origin.self_modulate = Color.WHITE
 		drag_origin = null
@@ -579,7 +582,7 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 			refresh())
 		focus_item.set_drag_forwarding(Callable(),func(at:Vector2,data:Variant)->bool:
 			return _tool_drop_allowed(at/focus_item.size,data,v,a),func(at:Vector2,data:Variant)->void:
-			if _tool_drop_allowed(at/focus_item.size,data,v,a): _inspect_drop(str(data.tool)))
+			if _tool_drop_allowed(at/focus_item.size,data,v,a): _queue_counter_drop("inspect",str(data.tool),v,a))
 		focus_item.flat = true
 		focus_item.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	action("lens","표본 접기" if lens_open else "표본 보기",51,324,136,44,func()->void:
@@ -604,7 +607,7 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 	specimen.mouse_filter = Control.MOUSE_FILTER_STOP
 	specimen.set_drag_forwarding(Callable(),func(at:Vector2,data:Variant)->bool:
 		return _tool_drop_allowed(at/specimen.size,data,v,a),func(at:Vector2,data:Variant)->void:
-		if _tool_drop_allowed(at/specimen.size,data,v,a): _inspect_drop(str(data.tool)))
+		if _tool_drop_allowed(at/specimen.size,data,v,a): _queue_counter_drop("inspect",str(data.tool),v,a))
 	if drawer!="notes" and zoom:
 		action("close_mat","도구 내려놓기",52,259,146,44,func()->void:
 			chosen_tool = ""
@@ -638,6 +641,8 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 			var held := DeskProp.new()
 			held.kind = slot
 			held.custom_minimum_size = Vector2(88,76)*stage.scale
+			held.size = held.custom_minimum_size
+			held.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			tool.set_drag_preview(held)
 			return {"tool":slot,"visit":v.active.id},Callable(),Callable())
 
@@ -659,7 +664,7 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 		apply.tooltip_text = "선택한 도구로 살펴보기"
 		apply.set_drag_forwarding(Callable(),func(at:Vector2,data:Variant)->bool:
 			return _tool_drop_allowed(at/apply.size,data,v,a),func(at:Vector2,data:Variant)->void:
-			if _tool_drop_allowed(at/apply.size,data,v,a): _inspect_drop(str(data.tool)))
+			if _tool_drop_allowed(at/apply.size,data,v,a): _queue_counter_drop("inspect",str(data.tool),v,a))
 
 	_evidence_rail(v,a)
 	_offer_docket(v,a,id)
@@ -717,7 +722,7 @@ func _offer_docket(v: Dictionary,a: Dictionary,id: String) -> void:
 	for card: Dictionary in a.cards:
 		slips[str(card.slot)] = {"caption":_text(card.text_key),"selected":card.selected}
 	pocket.bind(str(v.active.id),slips)
-	pocket.attach.connect(func(slot:String)->void:_submit("alpha_card_toggle",{"slot":slot,"selected":true}))
+	pocket.attach.connect(func(slot:String)->void:_queue_counter_drop("attach",slot,v,a))
 	if not a.we_buy and drawer!="notes":
 		var tag: Dictionary = Alpha.displayed_ask(session.snapshot(),id)
 		if not tag.is_empty(): words("매대 표시가 · %d %s"%[tag.amount,tag.currency],805,472,403,40,17)
@@ -775,6 +780,39 @@ func _offer_docket(v: Dictionary,a: Dictionary,id: String) -> void:
 				refresh())
 	
 	if drawer!="notes": _desk_object("notes","book",str(desk_copy.book),Rect2(899,307,215,157),func()->void: open_drawer("notes"))
+
+# A native drop callback must not remove the source or target while Godot is
+# still finishing the GUI drag. Defer the existing authority command, never
+# fabricate a second inspection or attachment. Revalidate the live context.
+func _queue_counter_drop(kind: String, slot: String, v: Dictionary, a: Dictionary) -> void:
+	if _blocked or _leaving_title or session==null or not pending_counter_drop.is_empty(): return
+	var live: Dictionary = session.alpha_view()
+	if live.phase!="CUSTOMER_ACTIVE" or live.active.get("id","")!=v.active.id or live.appraisal.get("item_id","")!=a.item_id: return
+	pending_counter_drop = {"kind":kind,"slot":slot,"visit":v.active.id,"item":a.item_id,"revision":int(session.snapshot().revision)}
+	_flush_counter_drop.call_deferred()
+
+func _flush_counter_drop() -> void:
+	if pending_counter_drop.is_empty(): return
+	if not is_inside_tree():
+		pending_counter_drop.clear()
+		return
+	if get_viewport().gui_is_dragging(): return
+	var drop: Dictionary = pending_counter_drop
+	pending_counter_drop = {}
+	if _blocked or _leaving_title or session==null: return
+	if int(session.snapshot().revision)!=int(drop.revision): return
+	var live: Dictionary = session.alpha_view()
+	if live.phase!="CUSTOMER_ACTIVE" or live.active.get("id","")!=drop.visit or live.appraisal.get("item_id","")!=drop.item: return
+	if drawer not in ["","notes"]: return
+	var a: Dictionary = live.appraisal
+	var slot: String = str(drop.slot)
+	match str(drop.kind):
+		"inspect":
+			if a.tools.any(func(tool:Dictionary)->bool:return tool.id==slot) or a.cards.any(func(card:Dictionary)->bool:return card.slot==slot):
+				_inspect_drop(slot)
+		"attach":
+			if a.cards.any(func(card:Dictionary)->bool:return card.slot==slot and not card.selected):
+				_submit("alpha_card_toggle",{"slot":slot,"selected":true})
 
 func _inspect_drop(slot: String) -> void:
 	zoom = true

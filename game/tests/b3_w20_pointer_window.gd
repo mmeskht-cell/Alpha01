@@ -15,8 +15,19 @@ func run() -> void:
 
 func drag_between(source: Control,target: Control) -> bool:
 	if not check(is_instance_valid(source) and is_instance_valid(target),"drag endpoints exist"): return false
+	if not check(source.is_visible_in_tree() and target.is_visible_in_tree(),"drag endpoints visible"): return false
 	var start := source.get_global_transform_with_canvas()*(source.size*0.5)
 	var end := target.get_global_transform_with_canvas()*(target.size*0.5)
+	if not check(root.get_visible_rect().has_point(start) and root.get_visible_rect().has_point(end),"drag endpoints inside viewport"): return false
+	var begin := InputEventMouseMotion.new()
+	begin.position=start
+	begin.global_position=start
+	root.push_input(begin,true)
+	await frames()
+	var hovered := root.gui_get_hovered_control()
+	print("W20_DRAG_START source=",source.name," target=",target.name," start=",start," end=",end," hover=",str(hovered.get_path()) if is_instance_valid(hovered) else "none")
+	var saw_drag := false
+	var payload: Variant = null
 	var prior := start
 	for step in range(11):
 		var point := start.lerp(end,float(step)/10)
@@ -36,12 +47,25 @@ func drag_between(source: Control,target: Control) -> bool:
 			root.push_input(press,true)
 		prior=point
 		await process_frame
+		if root.gui_is_dragging():
+			saw_drag = true
+			payload = root.gui_get_drag_data()
+		if step==9:
+			var over := root.gui_get_hovered_control()
+			print("W20_DRAG_OVER dragging=",root.gui_is_dragging()," hover=",str(over.get_path()) if is_instance_valid(over) else "none"," payload=",payload)
 	await frames()
-	return true
+	print("W20_DRAG_END started=",saw_drag," successful=",root.gui_is_drag_successful()," revision=",host.session.snapshot().revision)
+	return check(saw_drag,"real GUI drag started") and check(root.gui_is_drag_successful(),"real GUI drop accepted")
 
 func counter_drag(resolution: Vector2i) -> bool:
 	for step: Array in [["intro_skip","DAY_PREP"],["alpha_open","OPEN_IDLE"],["alpha_next_customer","CUSTOMER_ENTER"],["alpha_ack_entry","CUSTOMER_ACTIVE"],["alpha_contract_decline","CUSTOMER_ACTIVE"],["alpha_finish_customer","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"],["alpha_next_customer","CUSTOMER_ENTER"],["alpha_ack_entry","CUSTOMER_ACTIVE"]]:
 		if not await click(step[0],step[1]): return false
+	var wear := host.find_child("tool_wear_detail",true,false) as Control
+	for page in range(4):
+		if is_instance_valid(wear) and wear.is_visible_in_tree(): break
+		if not await click_navigation(host,"more_tools"): return false
+		wear = host.find_child("tool_wear_detail",true,false) as Control
+	if not check(is_instance_valid(wear) and wear.is_visible_in_tree(),"wear tool actually visible before drag"): return false
 	var before: int = host.session.snapshot().revision
 	if not await drag_between(host.find_child("tool_wear_detail",true,false),host.find_child("specimen",true,false)): return false
 	if not check(host.session.snapshot().revision==before+1,"one real drag inspection"): return false
