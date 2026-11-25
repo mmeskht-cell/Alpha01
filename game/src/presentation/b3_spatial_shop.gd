@@ -1162,7 +1162,7 @@ func _counter_speech(v: Dictionary) -> String:
 	if v.has("customer_bid_vkc") and public_context.get("current_offer",{}).is_empty() and public_context.get("latest_spoken",{}).is_empty():
 		if public_context.get("prior",{}).get("outcome","")=="departed":
 			return "지난번엔 값이 안 맞았죠. 오늘은 %d VKC에 사겠습니다."%v.customer_bid_vkc
-		return "전지를 사러 왔습니다. %d VKC면 어떻습니까?"%v.customer_bid_vkc
+		return "이 물건을 사러 왔습니다. %d VKC면 어떻습니까?"%v.customer_bid_vkc
 	if r2_room_active and v.active.id=="visit_g01":
 		if public_context.get("current_offer",{}).is_empty() and public_context.get("latest_spoken",{}).is_empty() and public_context.get("prior",{}).is_empty():
 			return str(captions.g01)
@@ -1459,7 +1459,7 @@ func _product_document_workspace(v: Dictionary,state: Dictionary) -> void:
 		"news":
 			header = str(desk_copy.region)%v.day
 			var notices: Array = []
-			if v.has("market_bulletin"): notices.append({"key":"battery_notice","caption":"항구 전지 납품 공지","detail":v.market_bulletin})
+			if v.has("market_bulletin"): notices.append({"key":"battery_notice","caption":"지역 시장 납품 공지","detail":v.market_bulletin})
 			for notice: Dictionary in v.news:
 				var stamp := "게시일 %d일차"%int(notice.day) if notice.has("day") else "게시일 기록 없음"
 				var notice_text := _text("alpha.news."+str(notice.text_key))

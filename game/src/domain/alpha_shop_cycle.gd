@@ -34,8 +34,8 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 	if profile is Dictionary and profile.has("visit_random"):
 		keys.append("visit_random")
 	if profile is Dictionary and profile.has("battery_market"):
-		if not profile.has("spatial_opening") or profile.battery_market not in ["regular_delivery","late_delivery"]: return false
-		if not BatteryMarket.seed_valid(state): return false
+		if not profile.has("spatial_opening") or profile.battery_market not in BatteryMarket.PROFILES: return false
+		if not BatteryMarket.seed_valid(state,profile): return false
 		keys.append("battery_market")
 	if profile is Dictionary and profile.has("spatial_opening"):
 		if profile.spatial_opening != 1 or not profile.has("week_proposal"):
@@ -181,7 +181,7 @@ static func _admissible(state: Dictionary, visit_id: String) -> bool:
 						return false
 			elif item.owner_id != visit.seller or item.custodian_id != visit.seller:
 				return false
-	return (not a.has("commissions") or Commission.scheduled(state, visit_id)) and (not a.has("services") or ServiceCustody.scheduled(state, visit_id)) and B3Interest.eligible(state, visit_id)
+	return (not a.has("commissions") or Commission.scheduled(state, visit_id)) and (not a.has("services") or ServiceCustody.scheduled(state, visit_id)) and B3Interest.eligible(state, visit_id) and BatteryMarket.eligible(state,visit_id)
 
 static func _same_day_supply(state: Dictionary, item_id: String) -> bool:
 	var a: Dictionary = state.alpha_shop
@@ -639,8 +639,8 @@ static func view(state: Dictionary) -> Dictionary:
 	if a.profile.content_version == B3Fx.VERSION:
 		if a.profile.has("battery_market"):
 			result["market_bulletin"] = BatteryMarket.bulletin(state)
-			if a.phase=="CUSTOMER_ACTIVE" and a.active in BatteryMarket.BIDS:
-				result["customer_bid_vkc"] = int(state.visits[a.active].prices.BAT02.VKC)
+			var public_bid:int = BatteryMarket.public_bid(state,result.appraisal)
+			if public_bid>0: result["customer_bid_vkc"] = public_bid
 		result["currency_terms"] = B3Currency.view(state)
 	if a.has("random_visits"):
 		# Daily target is internal planning metadata, not guaranteed attendance.
