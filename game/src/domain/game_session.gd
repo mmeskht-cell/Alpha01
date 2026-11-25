@@ -294,6 +294,10 @@ func spatial_action_preview(kind: String, payload: Dictionary) -> Dictionary:
 	var error := _apply_alpha(draft,{"type":kind,"payload":payload.duplicate(true),"action_id":"alpha_b1_"+str(draft.revision+1),"expected_revision":draft.revision})
 	if not error.is_empty():
 		return {"ok":false,"error":error}
+	# _place defers geometry to execute()'s final invariant check. Use the
+	# same grid validator here so a draft cannot advertise a rejected drop.
+	if kind in ["alpha_trade","alpha_display","alpha_withdraw_display","spatial_move","spatial_attach","spatial_detach"] and not Objects.grids_valid(draft,_definitions):
+		return {"ok":false,"error":"inventory_placement"}
 	return {"ok":true,"revision":draft.revision,"VKC":int(draft.wallets.player.VKC)-int(before.VKC),"USD":int(draft.wallets.player.USD)-int(before.USD)}
 
 func _apply_alpha(state: Dictionary, command: Dictionary) -> String:

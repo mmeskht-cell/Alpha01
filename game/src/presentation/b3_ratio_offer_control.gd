@@ -69,3 +69,14 @@ func _render() -> void:
 	for i: int in range(_buttons.size()):
 		var delta: int = [-50,-1,1,50][i]
 		_buttons[i].disabled = not valid or Quote.shift(_basis,_ratio,delta)==_ratio
+
+
+func present_as_receipt(enabled: bool) -> void:
+	if enabled==_amount.has_theme_color_override("font_color"): return
+	_amount.add_theme_font_size_override("font_size",24 if enabled else 20)
+	if enabled:
+		_amount.add_theme_color_override("font_color",Color("#302820"))
+		_percent.add_theme_color_override("font_color",Color("#554734"))
+	else:
+		_amount.remove_theme_color_override("font_color")
+		_percent.remove_theme_color_override("font_color")

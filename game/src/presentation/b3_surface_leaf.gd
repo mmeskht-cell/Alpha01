@@ -12,7 +12,7 @@ func link(row: Container, caption: String, callback: Callable) -> Button:
 	button.pressed.connect(callback)
 	return button
 
-func bind(family: String, variant: int, judging: bool, percent: int) -> void:
+func bind(family: String, variant: int, judging: bool, percent: int, plate_height: float = 102) -> void:
 	var index := maxi(0,Visuals.MATERIALS.find(family))
 	var controls := HBoxContainer.new()
 	add_child(controls)
@@ -31,7 +31,7 @@ func bind(family: String, variant: int, judging: bool, percent: int) -> void:
 		plates.add_child(column)
 		var swatch := TextureRect.new()
 		swatch.texture = Visuals.texture_for(sample)
-		swatch.custom_minimum_size.y = 102
+		swatch.custom_minimum_size.y = plate_height
 		swatch.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		swatch.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		column.add_child(swatch)
@@ -41,3 +41,4 @@ func bind(family: String, variant: int, judging: bool, percent: int) -> void:
 		label.add_theme_font_size_override("font_size",roundi(16*percent/100.0))
 		column.add_child(label)
 	link(self,"비교 예시  ·  내 판단 기록 ›",func()->void: turn.emit(family,variant,true)).name = "surface_judgment_open"
+
