@@ -12,6 +12,8 @@ var index_group := -1
 var index_page := 0
 const Art = preload("res://src/presentation/native_v23_art.gd")
 const KnownEstimate = preload("res://src/domain/known_estimate.gd")
+const RatioQuote = preload("res://src/presentation/b3_ratio_offer.gd")
+const RatioControl = preload("res://src/presentation/b3_ratio_offer_control.gd")
 const SurfaceVisuals = preload("res://src/presentation/surface_visuals.gd")
 const INTRO_FILE = "res://data/alpha_b3/spatial_intro_ko.json"
 const BEATS = ["port","ledger","clinic","shutter","counter"]
@@ -29,9 +31,11 @@ var standing_actor: TextureRect
 var rail: Control
 var rail_key := ""
 var rail_used := false
-var offer_editor: LineEdit
-var editor_context := ""
+var offer_editor: RatioControl
 var editor_used := false
+var offer_basis: Dictionary = {}
+var offer_ratio: int = 1000
+var provisional_amount: int = 1
 var captions: Dictionary
 var drawer := ""
 var zoom := false
@@ -42,7 +46,6 @@ var storage := "player_stock"
 var rotated := false
 var hand_page := 0
 var tool_page := 0
-var price_text := ""
 var last_visit := ""
 var reduce_motion := false
 var motion_subjects: Dictionary = {}
@@ -60,7 +63,6 @@ var hover_ghost: ColorRect
 var reading_scale := 100
 var reference_model := ""
 var private_model := ""
-var estimate_text := ""
 var appraisal_context := ""
 var lens_open := false
 var surface_slot := ""
@@ -276,7 +278,7 @@ func refresh() -> void:
 	_rebuild_stage()
 	if is_instance_valid(rail): rail.visible = rail_used
 	if is_instance_valid(offer_editor): offer_editor.visible = editor_used
-	if context!=appraisal_context or stock_id!=selected or field not in ["price","private_estimate","Amount"]: return
+	if context!=appraisal_context or stock_id!=selected or field!="Amount": return
 	var replacement := stage.find_child(field,true,false) as LineEdit
 	if replacement and replacement.is_visible_in_tree() and not replacement.has_focus():
 		replacement.grab_focus()
@@ -315,6 +317,9 @@ func _rebuild_stage() -> void:
 	if context != appraisal_context:
 		judgment_leaf = false
 		appraisal_context = context
+		offer_basis.clear()
+		offer_ratio = 1000
+		provisional_amount = 1
 		dock_slots.clear()
 		book_choice = false
 		index_group = -1
@@ -329,9 +334,7 @@ func _rebuild_stage() -> void:
 		if visit == last_visit:
 			private_model = ""
 			reference_model = ""
-			estimate_text = ""
 			chosen_tool = ""
-			price_text = ""
 			hand_page = 0
 			reverse = false
 			zoom = false
@@ -340,14 +343,12 @@ func _rebuild_stage() -> void:
 		papers_open = false
 		reference_model = ""
 		private_model = ""
-		estimate_text = ""
 		tool_page = 0
 		last_visit = visit
 		zoom = false
 		reverse = false
 		chosen_tool = ""
 		hand_page = 0
-		price_text = ""
 		hint = ""
 	_room(5 if v.phase == "EVENING_WORK" else 1,not v.active.is_empty())
 	var cash: Dictionary = session.snapshot().wallets.player
@@ -404,9 +405,7 @@ func _rebuild_stage() -> void:
 func _counter(v: Dictionary) -> void:
 	var a: Dictionary = v.appraisal
 	var actor: String = _actor_label(str(v.active.actor_id))
-	var speech: String = _b2_npc_line(v)
-	if speech.is_empty(): speech = _text(v.active.purpose_key)
-	words(actor+"   "+speech,799,65,413,79)
+	_counter_caption(actor,_counter_speech(v))
 	if not a.is_empty() and not a.offers.is_empty():
 		var latest: Dictionary = a.offers.back()
 		words(_text("spatial.terms")%[latest.amount,latest.currency]+" · "+("수락" if latest.response=="accepted" else "거절"),799,142,410,40,17)
@@ -693,7 +692,7 @@ func _evidence_rail(v: Dictionary,a: Dictionary) -> void:
 		var card: Dictionary = a.cards[i]
 		var slot: String = card.slot
 		var fact := _fact_caption(slot,card.value)
-		var note := action("fact_"+slot,(("공개 중 · 재첨부" if card.selected else "공개 중") if card.public_active else ("첨부 예정" if card.selected else "내 기록"))+"\n"+fact,32+(i-start)*card_width,580,card_width-8,103,func()->void: _submit("alpha_card_toggle",{"slot":slot,"selected":not card.selected}))
+		var note := action("fact_"+slot,(("공개 중 · 다시 제시" if card.selected else "공개 중") if card.public_active else ("제시 예정" if card.selected else "내 기록"))+"\n"+fact,32+(i-start)*card_width,580,card_width-8,103,func()->void: _submit("alpha_card_toggle",{"slot":slot,"selected":not card.selected}))
 		note.tooltip_text = _text(card.text_key)+" · "+fact
 		_paper_face(note,card.selected)
 		motion_subjects["card_"+slot] = note
@@ -713,61 +712,90 @@ func _evidence_rail(v: Dictionary,a: Dictionary) -> void:
 			refresh())
 	mounting = interaction
 
+func _basis_caption(base: Dictionary) -> String:
+	if base.is_empty(): return "감정가 기준 선택"
+	var caption: String = {"appraisal_range":"내 감정가","catalog_reference":"도감 참고가","posted_ask":"매대 표시가","personal_provisional":"내 임시 평가액","public_quote":"공개 요구가"}.get(str(base.source),"평가 기준")
+	if base.source=="catalog_reference" and base.get("judgment","unknown")!="unknown": caption="도감 기반 내 감정가"
+	return "%s · %d %s"%[caption,base.amount,base.currency]
+
+func _known_offer_basis(v: Dictionary) -> Dictionary:
+	var a: Dictionary = v.appraisal
+	var history: Dictionary = session.alpha_item_history(str(a.item_id),last_visit)
+	return RatioQuote.basis(KnownEstimate.evaluate(history,a,private_model,int(v.day)),str(a.offer_currency))
+
+func _choose_offer_basis(base: Dictionary) -> void:
+	if base.is_empty(): return
+	offer_basis = base.duplicate(true)
+	offer_ratio = 1000
+	refresh()
+
+func _open_offer_basis() -> void:
+	book_choice = true
+	book_tab = 2
+	previous_book_scroll = 0
+	drawer_scroll = 0
+	open_drawer("notes")
+
+func _counter_speech(v: Dictionary) -> String:
+	var a: Dictionary = v.appraisal
+	if a.is_empty():
+		var original := _b2_npc_line(v)
+		return original if not original.is_empty() else _text(v.active.purpose_key)
+	var context: Dictionary = v.get("npc_context",{})
+	var reply: Dictionary = context.get("current_offer",{})
+	if not reply.is_empty():
+		if reply.response=="accepted":
+			return "좋습니다. 그 가격에 넘기죠." if a.we_buy else "좋아요. 그 가격이면 사겠습니다."
+		if int(reply.get("disclosed_count",0))>0 or not reply.get("active_slots",[]).is_empty():
+			return "말씀하신 건 알겠습니다만, 그 가격은 좀 어렵군요."
+		return "그 돈에 넘기기는 좀 아깝군요." if a.we_buy else "그 가격은 제게 좀 부담스럽습니다."
+	if not context.get("current_challenges",[]).is_empty():
+		return "그랬습니까? 다시 확인해 보죠."
+	var prior := _b2_npc_line(v)
+	if not prior.is_empty(): return prior
+	return "이 물건 좀 봐주시겠어요?" if a.we_buy else "이 물건, 살 수 있을까요?"
+
+func _counter_caption(actor: String,speech: String) -> void:
+	var nameplate := words(actor,813,65,400,28,16)
+	nameplate.add_theme_color_override("font_color",Color("#cbb99c"))
+	words(speech,813,95,400,47,19)
+
 func _offer_docket(v: Dictionary,a: Dictionary,id: String) -> void:
-	paper(794,554,448,129,Color("#463f34"))
-	paper(798,558,3,120,Color("#b6a282"))
+	# A separate evidence presentation strip, not part of the numeric controls.
 	var pocket := preload("res://src/presentation/b3_attachment_pocket.gd").new()
-	place(pocket,1010,555,222,44)
+	place(pocket,800,510,432,44)
 	var slips := {}
 	for card: Dictionary in a.cards:
-		slips[str(card.slot)] = {"caption":_text(card.text_key),"selected":card.selected}
+		slips[str(card.slot)] = {"caption":_fact_caption(str(card.slot),card.value),"selected":card.selected,"public":card.public_active}
 	pocket.bind(str(v.active.id),slips)
 	pocket.attach.connect(func(slot:String)->void:_queue_counter_drop("attach",slot,v,a))
 	if not a.we_buy and drawer!="notes":
 		var tag: Dictionary = Alpha.displayed_ask(session.snapshot(),id)
-		if not tag.is_empty(): words("매대 표시가 · %d %s"%[tag.amount,tag.currency],805,472,403,40,17)
-	elif drawer!="notes" and not a.customer_claims.is_empty(): words("손님 주장 · "+_text(a.customer_claims[0].text_key),805,183,399,70,17)
+		if not tag.is_empty(): words("매대 표시가 · %d %s"%[tag.amount,tag.currency],805,472,403,36,17)
+	elif drawer!="notes" and not a.customer_claims.is_empty(): words("손님 주장 · "+_text(a.customer_claims[0].text_key),805,183,399,64,17)
 	var denomination := str(a.offer_currency)
-	var quote_label := ("매입" if a.we_buy else "판매")+" · "+denomination+" · 제안 전"
-	if not a.accepted.is_empty(): quote_label = "합의가 · %d %s"%[a.accepted.amount,a.accepted.currency]
-	elif not a.offers.is_empty():
-		var latest: Dictionary = a.offers.back()
-		quote_label = "직전 제안 · %d %s"%[latest.amount,latest.currency]
-	var amount_link := action("counter_offer",quote_label,807,555,201,44,func()->void:
-		if is_instance_valid(offer_editor): offer_editor.grab_focus())
-	amount_link.flat = true
-	amount_link.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	if a.accepted.is_empty(): words(("내 매입 목표가" if a.we_buy else "내 판매 계획가")+(" · "+estimate_text+" "+denomination if not estimate_text.is_empty() else " · 미설정"),800,640,405,36,15)
-	if not is_instance_valid(offer_editor):
-		offer_editor = LineEdit.new()
-		offer_editor.name = "price"
-		offer_editor.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_NUMBER
-		offer_editor.max_length = 9
-		offer_editor.placeholder_text = "제안할 금액"
-		offer_editor.text_changed.connect(func(value:String)->void: price_text=value)
-		place(offer_editor,800,595,200,44)
-	var money := offer_editor
-	if editor_context != appraisal_context:
-		editor_context = appraisal_context
-		money.text = price_text
-		if price_text.is_empty() and not a.we_buy:
-			var posted: Dictionary = Alpha.displayed_ask(session.snapshot(),id)
-			if posted.get("currency")==denomination: money.text = str(posted.amount)
-	editor_used = a.accepted.is_empty()
-	money.visible = editor_used
-	interaction.move_child(money,-1)
-	var currency: String = denomination
-	var send_offer := action("offer","제안 · "+currency,1010,595,200,44,func()->void:
-		# Read the actual edited control. Programmatic caret insertion and IME
-		# composition need not emit text_changed before the button is pressed.
-		var proposed: String = money.text.strip_edges()
-		if proposed.is_valid_int() and int(proposed)>0:
-			price_text = proposed
-			_submit("alpha_price_offer",{"amount":int(proposed)})
-		else:
-			hint = "제안할 금액을 양의 정수로 입력해 주세요."
-			refresh())
-	send_offer.visible = editor_used
+	paper(794,554,448,143,Color("#463f34")).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if a.accepted.is_empty():
+		var basis_button := action("counter_offer",_basis_caption(offer_basis),800,555,432,44,_open_offer_basis)
+		_paper_face(basis_button)
+		if not is_instance_valid(offer_editor):
+			offer_editor = RatioControl.new()
+			place(offer_editor,800,600,432,48)
+			offer_editor.ratio_changed.connect(func(value:int)->void: offer_ratio=value)
+		offer_editor.bind(offer_basis,offer_ratio)
+		editor_used = true
+		offer_editor.visible = true
+		interaction.move_child(offer_editor,-1)
+		var send_offer := action("offer",("매입 제안" if a.we_buy else "판매 제안")+" · "+denomination,800,650,432,44,func()->void:
+			var proposed: int = RatioQuote.amount(offer_basis,offer_ratio)
+			if proposed>0 and offer_basis.get("currency")==denomination:
+				_submit("alpha_price_offer",{"amount":proposed})
+			else:
+				hint = "먼저 감정가 기준을 선택하세요."
+				refresh())
+		send_offer.disabled = offer_basis.is_empty()
+	else:
+		words("합의가 · %d %s"%[a.accepted.amount,a.accepted.currency],806,558,410,44,21)
 	if not a.accepted.is_empty():
 		action("settle_trade","거래 확정 · %d %s"%[a.accepted.amount,a.accepted.currency],806,603,410,50,func()->void:
 			var trade: Dictionary = session.snapshot().visits[v.active.id]
@@ -833,9 +861,7 @@ func _tool_drop_allowed(relative:Vector2,data:Variant,v:Dictionary,a:Dictionary)
 func _drawer(v: Dictionary) -> void:
 	var current: Dictionary = session.snapshot()
 	if drawer=="notes":
-		var line: String = _b2_npc_line(v)
-		if line.is_empty(): line = _text(v.active.purpose_key)
-		words(_actor_label(str(v.active.actor_id))+"   "+line,799,65,413,79)
+		_counter_caption(_actor_label(str(v.active.actor_id)),_counter_speech(v))
 		_specimen(v,v.appraisal)
 		paper(777,184,456,321,Color("#574535"))
 		paper(783,189,442,311,Color("#9c8c70"))
@@ -1098,16 +1124,50 @@ func _surface_page(pages: VBoxContainer,v: Dictionary) -> void:
 			_button(pages,"spoken_"+slot,("공개 진술 철회 · " if fact.public_active else "진술 재확인 · ")+_text(fact.text_key),func()->void: _submit(kind,{"slot":slot}))
 
 func _price_page(pages: VBoxContainer,v: Dictionary) -> void:
-	_known_price(pages,v.appraisal,int(v.day))
-	var estimate := LineEdit.new()
-	estimate.name = "private_estimate"
-	estimate.placeholder_text = ("내 매입 목표가" if v.appraisal.we_buy else "내 판매 계획가")+" · 개인 메모"
-	estimate.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_NUMBER
-	estimate.max_length = 9
-	estimate.text = estimate_text
-	estimate.text_changed.connect(func(value:String)->void: estimate_text=value)
-	pages.add_child(estimate)
-	_history_lines(pages,str(v.appraisal.item_id))
+	var a: Dictionary = v.appraisal
+	var currency: String = str(a.offer_currency)
+	_board_line(pages,"basis_status",_basis_caption(offer_basis),true)
+	var known := _known_offer_basis(v)
+	if not known.is_empty():
+		_button(pages,"basis_known","내 감정가 적용 · %d %s"%[known.amount,currency],func()->void: _choose_offer_basis(known))
+	# These are dated/provisional public catalogue candidates. Choosing one
+	# does not identify the actual hidden model. No default is selected.
+	var catalog_path: String = {"portable_radio":"res://data/campaign/gate2/demo_radio_catalog.json","fictional_watch_p2":"res://data/campaign/gate2/watch_public_catalog.json"}.get(str(a.def_id),"")
+	if not catalog_path.is_empty():
+		var catalog: Variant = JSON.parse_string(FileAccess.get_file_as_string(catalog_path))
+		if catalog is Dictionary and catalog.get("currency")==currency:
+			for slot: Dictionary in catalog.get("slots",[]):
+				if slot.get("effect")!="base": continue
+				for candidate: Dictionary in slot.get("candidates",[]):
+					var base := RatioQuote.catalog_basis(catalog,candidate,str(a.surface_judgments.get("exterior","unknown")),currency)
+					if base.is_empty(): continue
+					_button(pages,"basis_catalog_"+str(candidate.id),("도감 평가 · " if base.get("judgment","unknown")!="unknown" else "도감 참고 · ")+str({"selvar_r18":"셀바르 R18","selvar_r18s":"셀바르 R18S","meridian_12":"메리디언 12","meridian_12a":"메리디언 12A"}.get(str(candidate.id),_text(str(candidate.label_key))))+" · %d %s"%[base.amount,currency],func()->void: _choose_offer_basis(base))
+	if not a.we_buy:
+		var posted: Dictionary = Alpha.displayed_ask(session.snapshot(),str(a.item_id))
+		var base := RatioQuote.basis({},currency,{"kind":"posted_ask","source":"player_displayed_ask","amount":posted.get("amount",0),"currency":posted.get("currency","")})
+		if not base.is_empty(): _button(pages,"basis_posted","내 매대 표시가 적용 · %d %s"%[base.amount,currency],func()->void: _choose_offer_basis(base))
+	_board_line(pages,"provisional_caption","내 임시 평가액 · 자료 부족 시 직접 판단 (시세 아님)")
+	var provisional := Label.new()
+	provisional.name = "provisional_amount"
+	provisional.text = "%d %s"%[provisional_amount,currency]
+	pages.add_child(provisional)
+	for magnitude: int in [1,10,100,1000]:
+		var row := HBoxContainer.new()
+		pages.add_child(row)
+		for delta: int in [-magnitude,magnitude]:
+			var adjust := Button.new()
+			adjust.name = "provisional_"+("minus_" if delta<0 else "plus_")+str(absi(delta))
+			adjust.text = "%+d"%delta
+			adjust.custom_minimum_size.y = 44
+			adjust.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			row.add_child(adjust)
+			adjust.pressed.connect(func()->void:
+				provisional_amount = clampi(provisional_amount+delta,1,RatioQuote.MAX_AMOUNT)
+				provisional.text = "%d %s"%[provisional_amount,currency])
+	_button(pages,"basis_provisional","내 임시 평가액 적용",func()->void:
+		_choose_offer_basis(RatioQuote.basis({},currency,{"kind":"personal_provisional","source":"player","amount":provisional_amount,"currency":currency})))
+	_known_price(pages,a,int(v.day))
+	_history_lines(pages,str(a.item_id))
 
 func _phone_workspace(v: Dictionary) -> void:
 	if v.phase!="EVENING_WORK": return

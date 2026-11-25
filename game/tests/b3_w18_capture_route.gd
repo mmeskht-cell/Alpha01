@@ -57,12 +57,7 @@ func _w18_route(resolution: Vector2i) -> bool:
 	if not await click_navigation(host,"book_surface"): return false
 	await capture("03_surface_reference"+suffix,resolution)
 	if not await click_navigation(host,"close_drawer"): return false
-	var price := host.find_child("price",true,false) as LineEdit
-	if not check(price!=null and price.is_visible_in_tree(),"live offer editor"): return false
-	price.grab_focus()
-	price.clear()
-	price.insert_text_at_caret("100")
-	await frames()
+	if not await choose_radio_offer_100(): return false
 	if not await click("offer","CUSTOMER_ACTIVE"): return false
 	await capture("04_public_offer"+suffix,resolution)
 	if not await click("settle_trade","CUSTOMER_EXIT"): return false

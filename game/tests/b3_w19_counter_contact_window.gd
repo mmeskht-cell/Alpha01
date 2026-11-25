@@ -36,10 +36,7 @@ func desk_day(resolution: Vector2i) -> bool:
 	await capture("w19_loupe_book"+suffix,resolution)
 	if not await click_navigation(host,"close_drawer"): return false
 	if not await click("fact_wear_detail","CUSTOMER_ACTIVE"): return false
-	var price := host.find_child("price",true,false) as LineEdit
-	price.grab_focus()
-	price.clear()
-	price.insert_text_at_caret("100")
+	if not await choose_radio_offer_100(): return false
 	if not await click("offer","CUSTOMER_ACTIVE"): return false
 	await capture("w19_offer_response"+suffix,resolution)
 	for step: Array in [["settle_trade","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"],["alpha_close","CLOSE_SETTLE"],["alpha_settle","EVENING_WORK"]]:

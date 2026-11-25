@@ -23,6 +23,23 @@ func finish() -> void:
 	call_deferred("quit", 0 if failures == 0 else 1)
 
 
+## Same protected 100 VKC fixture; actual native pointer controls only.
+func choose_radio_offer_100() -> bool:
+	var before: Dictionary = host.session.snapshot()
+	if not await click_navigation(host,"counter_offer"): return false
+	if not await click_navigation(host,"basis_catalog_selvar_r18"): return false
+	if not await click_navigation(host,"close_drawer"): return false
+	if not check(host.find_child("price",true,false)==null,"no editable counter amount"): return false
+	for step in range(10):
+		if not await click_navigation(host,"ratio_minus_5"): return false
+	var amount := host.find_child("offer_amount",true,false) as Label
+	if not check(amount!=null and amount.text=="100 VKC","visible proportional offer is 100 VKC"): return false
+	if not check(host.session.snapshot()==before,"basis and ratio draft do not alter authority"): return false
+	if not await click_navigation(host,"notes"): return false
+	if not await click_navigation(host,"close_drawer"): return false
+	amount = host.find_child("offer_amount",true,false) as Label
+	return check(amount!=null and amount.text=="100 VKC" and host.session.snapshot()==before,"book round trip preserves proportional draft and authority")
+
 func run() -> void:
 	var args := OS.get_cmdline_user_args()
 	if args.size()!=1:
@@ -70,15 +87,13 @@ func run() -> void:
 		if not await click("apply_tool","CUSTOMER_ACTIVE") or not await click("fact_"+str(tool.id),"CUSTOMER_ACTIVE"):
 			await finish()
 			return
-		var input := host.find_child("price",true,false) as LineEdit
-		input.grab_focus()
-		input.insert_text_at_caret("100")
-		await frames()
-		check(input.text == "100","edited live price field retains the 100 VKC draft")
+		if not await choose_radio_offer_100():
+			await finish()
+			return
 		await capture("spatial_inspection_%d"%resolution.y,resolution)
 		if not await click("offer","CUSTOMER_ACTIVE"):
-			printerr("B3_SPATIAL_OFFER_DIAGNOSTIC displayed=",input.text,
-				" draft=",host.price_text," message=",host._message,
+			printerr("B3_SPATIAL_OFFER_DIAGNOSTIC displayed=",host.find_child("offer_amount",true,false).text,
+				" ratio=",host.offer_ratio," message=",host._message,
 				" revision=",host.session.snapshot().revision)
 			await finish()
 			return
