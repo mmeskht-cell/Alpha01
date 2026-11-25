@@ -1,0 +1,45 @@
+extends SceneTree
+const Alpha = preload("res://src/domain/alpha_shop_cycle.gd")
+const Dialogue = preload("res://src/presentation/b3_counter_dialogue.gd")
+const Quote = preload("res://src/presentation/b3_ratio_offer.gd")
+var checks := 0
+var failures := 0
+
+func check(ok: bool, label: String) -> void:
+	checks += 1
+	if not ok:
+		failures += 1
+		printerr("FAIL: ",label)
+
+func _initialize() -> void:
+	var notes := {"offers":[{"action_id":"z_offer"}],"claim_challenges":[{"action_id":"a_challenge","slot":"function_detail","verified_reading":"SECRET"}],"statements":[{"action_id":"m_withdraw","kind":"withdraw","slot":"wear_detail"}]}
+	var state := {"commands":[{"action_id":"z_offer"},{"action_id":"a_challenge"},{"action_id":"private_inspection"}]}
+	var before := notes.duplicate(true)
+	var newest := Alpha._latest_spoken_event(state,notes)
+	check(newest=={"kind":"challenge","slot":"function_detail"},"journal order not lexical ID or private inspection")
+	var context := {"latest_spoken":newest,"current_offer":{"response":"declined","public_slots":["wear_detail"]}}
+	check(Dialogue.line(context,true).contains("작동 상태"),"new challenge outranks old offer")
+	check(not Dialogue.line(context,true).contains("SECRET"),"no private reading rendered")
+	state.commands.append({"action_id":"m_withdraw"})
+	context.latest_spoken=Alpha._latest_spoken_event(state,notes)
+	check(Dialogue.line(context,true).contains("취소"),"withdrawal follows later public event")
+	notes.statements.append({"action_id":"aa_reaffirm","kind":"reaffirm","slot":"wear_detail"})
+	state.commands.append({"action_id":"aa_reaffirm"})
+	context.latest_spoken=Alpha._latest_spoken_event(state,notes)
+	check(Dialogue.line(context,true).contains("아까 말씀대로"),"reaffirmation response")
+	notes.offers.append({"action_id":"b_new_offer"})
+	state.commands.append({"action_id":"b_new_offer"})
+	context.latest_spoken=Alpha._latest_spoken_event(state,notes)
+	check(context.latest_spoken=={"kind":"offer"} and Dialogue.line(context,true).contains("사용 흔적"),"later offer supersedes challenge and references submitted evidence")
+	context.current_offer={"response":"declined","public_slots":[],"active_slots":["material_detail"]}
+	check(Dialogue.line(context,true).contains("재질") and Dialogue.line(context,true).contains("기억"),"prior disclosed evidence remembered")
+	context.current_offer={"response":"accepted"}
+	check(Dialogue.line(context,true).contains("넘기죠") and Dialogue.line(context,false).contains("사겠습니다"),"actual response and trade direction")
+	check(Alpha._latest_spoken_event(state,{}).is_empty(),"unrelated visitor sees no conversation")
+	check(Dialogue.line({"current_offer":{"response":"declined","public_slots":[]},"private_reading":"SECRET"},true)==Dialogue.line({"current_offer":{"response":"declined","public_slots":[]}},true),"private facts cannot affect speech")
+	var first := Quote.basis({"estimate":{"VKC":{"low":180,"high":220}}},"VKC")
+	var revised := Quote.basis({"estimate":{"VKC":{"low":140,"high":180}}},"VKC")
+	check(Quote.amount(first,500)==100 and Quote.amount(revised,500)==80 and first.amount==200,"new valuation does not mutate prior basis; same ratio preview")
+	check(before.offers[0]==notes.offers[0] and before.claim_challenges==notes.claim_challenges,"old public event records preserved")
+	print("B3_PUBLIC_DIALOGUE: ",checks," checks, ",failures," failures")
+	quit(1 if failures>0 else 0)

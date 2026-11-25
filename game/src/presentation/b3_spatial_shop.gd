@@ -14,6 +14,7 @@ const Art = preload("res://src/presentation/native_v23_art.gd")
 const KnownEstimate = preload("res://src/domain/known_estimate.gd")
 const RatioQuote = preload("res://src/presentation/b3_ratio_offer.gd")
 const RatioControl = preload("res://src/presentation/b3_ratio_offer_control.gd")
+const CounterDialogue = preload("res://src/presentation/b3_counter_dialogue.gd")
 const SurfaceVisuals = preload("res://src/presentation/surface_visuals.gd")
 const INTRO_FILE = "res://data/alpha_b3/spatial_intro_ko.json"
 const BEATS = ["port","ledger","clinic","shutter","counter"]
@@ -723,6 +724,33 @@ func _known_offer_basis(v: Dictionary) -> Dictionary:
 	var history: Dictionary = session.alpha_item_history(str(a.item_id),last_visit)
 	return RatioQuote.basis(KnownEstimate.evaluate(history,a,private_model,int(v.day)),str(a.offer_currency))
 
+# Same catalogue source used by the explicit price-book selection.
+func _public_offer_catalog(a: Dictionary) -> Dictionary:
+	var path: String = {"portable_radio":"res://data/campaign/gate2/demo_radio_catalog.json","fictional_watch_p2":"res://data/campaign/gate2/watch_public_catalog.json"}.get(str(a.def_id),"")
+	if path.is_empty(): return {}
+	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	return data if data is Dictionary and data.get("currency")==a.offer_currency else {}
+
+func _updated_offer_basis(v: Dictionary) -> Dictionary:
+	if offer_basis.is_empty(): return {}
+	var a: Dictionary = v.appraisal
+	var fresh: Dictionary = _known_offer_basis(v)
+	if fresh.is_empty() and offer_basis.get("source")=="catalog_reference":
+		var catalog := _public_offer_catalog(a)
+		for slot: Dictionary in catalog.get("slots",[]):
+			if slot.get("effect")!="base": continue
+			for candidate: Dictionary in slot.get("candidates",[]):
+				if candidate.get("id")==offer_basis.get("model"):
+					fresh = RatioQuote.catalog_basis(catalog,candidate,str(a.surface_judgments.get("exterior","unknown")),str(a.offer_currency))
+	if fresh.is_empty() or fresh==offer_basis: return {}
+	return fresh
+
+func _apply_updated_basis(base: Dictionary) -> void:
+	if base.is_empty() or RatioQuote.amount(base,offer_ratio)<=0: return
+	# Keep the chosen percentage; actual prior submitted offers remain unchanged.
+	offer_basis = base.duplicate(true)
+	refresh()
+
 func _choose_offer_basis(base: Dictionary) -> void:
 	if base.is_empty(): return
 	offer_basis = base.duplicate(true)
@@ -741,19 +769,7 @@ func _counter_speech(v: Dictionary) -> String:
 	if a.is_empty():
 		var original := _b2_npc_line(v)
 		return original if not original.is_empty() else _text(v.active.purpose_key)
-	var context: Dictionary = v.get("npc_context",{})
-	var reply: Dictionary = context.get("current_offer",{})
-	if not reply.is_empty():
-		if reply.response=="accepted":
-			return "좋습니다. 그 가격에 넘기죠." if a.we_buy else "좋아요. 그 가격이면 사겠습니다."
-		if int(reply.get("disclosed_count",0))>0 or not reply.get("active_slots",[]).is_empty():
-			return "말씀하신 건 알겠습니다만, 그 가격은 좀 어렵군요."
-		return "그 돈에 넘기기는 좀 아깝군요." if a.we_buy else "그 가격은 제게 좀 부담스럽습니다."
-	if not context.get("current_challenges",[]).is_empty():
-		return "그랬습니까? 다시 확인해 보죠."
-	var prior := _b2_npc_line(v)
-	if not prior.is_empty(): return prior
-	return "이 물건 좀 봐주시겠어요?" if a.we_buy else "이 물건, 살 수 있을까요?"
+	return CounterDialogue.line(v.get("npc_context",{}),bool(a.we_buy))
 
 func _counter_caption(actor: String,speech: String) -> void:
 	var nameplate := words(actor,813,65,400,28,16)
@@ -776,7 +792,11 @@ func _offer_docket(v: Dictionary,a: Dictionary,id: String) -> void:
 	var denomination := str(a.offer_currency)
 	paper(794,554,448,143,Color("#463f34")).mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if a.accepted.is_empty():
-		var basis_button := action("counter_offer",_basis_caption(offer_basis),800,555,432,44,_open_offer_basis)
+		var updated := _updated_offer_basis(v)
+		var title := _basis_caption(offer_basis)
+		if not updated.is_empty(): title = "기준 %d · 새 평가 %d %s"%[offer_basis.amount,updated.amount,updated.currency]
+		var basis_button := action("counter_offer",title,800,555,432,44,_open_offer_basis)
+		basis_button.tooltip_text = _basis_caption(offer_basis) if updated.is_empty() else "현재 제안 기준 유지 · "+_basis_caption(updated)+" · 도감에서 적용"
 		_paper_face(basis_button)
 		if not is_instance_valid(offer_editor):
 			offer_editor = RatioControl.new()
@@ -1127,21 +1147,23 @@ func _price_page(pages: VBoxContainer,v: Dictionary) -> void:
 	var a: Dictionary = v.appraisal
 	var currency: String = str(a.offer_currency)
 	_board_line(pages,"basis_status",_basis_caption(offer_basis),true)
+	var updated := _updated_offer_basis(v)
+	if not updated.is_empty():
+		_board_line(pages,"basis_update_notice","새 평가 "+_basis_caption(updated)+" · 현재 제안 기준 유지 중")
+		var apply_update := _button(pages,"basis_update","새 평가 적용 · 비율 유지",func()->void: _apply_updated_basis(updated))
+		apply_update.disabled = RatioQuote.amount(updated,offer_ratio)<=0
 	var known := _known_offer_basis(v)
 	if not known.is_empty():
 		_button(pages,"basis_known","내 감정가 적용 · %d %s"%[known.amount,currency],func()->void: _choose_offer_basis(known))
 	# These are dated/provisional public catalogue candidates. Choosing one
 	# does not identify the actual hidden model. No default is selected.
-	var catalog_path: String = {"portable_radio":"res://data/campaign/gate2/demo_radio_catalog.json","fictional_watch_p2":"res://data/campaign/gate2/watch_public_catalog.json"}.get(str(a.def_id),"")
-	if not catalog_path.is_empty():
-		var catalog: Variant = JSON.parse_string(FileAccess.get_file_as_string(catalog_path))
-		if catalog is Dictionary and catalog.get("currency")==currency:
-			for slot: Dictionary in catalog.get("slots",[]):
-				if slot.get("effect")!="base": continue
-				for candidate: Dictionary in slot.get("candidates",[]):
-					var base := RatioQuote.catalog_basis(catalog,candidate,str(a.surface_judgments.get("exterior","unknown")),currency)
-					if base.is_empty(): continue
-					_button(pages,"basis_catalog_"+str(candidate.id),("도감 평가 · " if base.get("judgment","unknown")!="unknown" else "도감 참고 · ")+str({"selvar_r18":"셀바르 R18","selvar_r18s":"셀바르 R18S","meridian_12":"메리디언 12","meridian_12a":"메리디언 12A"}.get(str(candidate.id),_text(str(candidate.label_key))))+" · %d %s"%[base.amount,currency],func()->void: _choose_offer_basis(base))
+	var catalog := _public_offer_catalog(a)
+	for slot: Dictionary in catalog.get("slots",[]):
+		if slot.get("effect")!="base": continue
+		for candidate: Dictionary in slot.get("candidates",[]):
+			var base := RatioQuote.catalog_basis(catalog,candidate,str(a.surface_judgments.get("exterior","unknown")),currency)
+			if base.is_empty(): continue
+			_button(pages,"basis_catalog_"+str(candidate.id),("도감 평가 · " if base.get("judgment","unknown")!="unknown" else "도감 참고 · ")+str({"selvar_r18":"셀바르 R18","selvar_r18s":"셀바르 R18S","meridian_12":"메리디언 12","meridian_12a":"메리디언 12A"}.get(str(candidate.id),_text(str(candidate.label_key))))+" · %d %s"%[base.amount,currency],func()->void: _choose_offer_basis(base))
 	if not a.we_buy:
 		var posted: Dictionary = Alpha.displayed_ask(session.snapshot(),str(a.item_id))
 		var base := RatioQuote.basis({},currency,{"kind":"posted_ask","source":"player_displayed_ask","amount":posted.get("amount",0),"currency":posted.get("currency","")})

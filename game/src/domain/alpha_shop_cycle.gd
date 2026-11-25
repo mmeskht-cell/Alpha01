@@ -292,6 +292,23 @@ static func _last_public_offer(a: Dictionary, visit_id: String) -> Dictionary:
 		"public_slots": public_slots, "known_slots": standing.known_slots,
 		"active_slots": standing.active_slots, "withdrawn_slots": standing.withdrawn_slots}
 
+## Resolve speech order from the accepted command journal, not lexical action
+## IDs, private inspections, or the order of dictionary members.
+static func _latest_spoken_event(a: Dictionary, notes: Dictionary) -> Dictionary:
+	var candidates: Dictionary = {}
+	for offer: Dictionary in notes.get("offers",[]):
+		candidates[str(offer.action_id)] = {"kind":"offer"}
+	for challenge: Dictionary in notes.get("claim_challenges",[]):
+		candidates[str(challenge.action_id)] = {"kind":"challenge","slot":str(challenge.slot)}
+	for statement: Dictionary in notes.get("statements",[]):
+		candidates[str(statement.action_id)] = {"kind":str(statement.kind),"slot":str(statement.slot)}
+	if candidates.is_empty(): return {}
+	var journal: Array = a.get("commands",[])
+	for index: int in range(journal.size()-1,-1,-1):
+		var key: String = str(journal[index].get("action_id",""))
+		if candidates.has(key): return candidates[key].duplicate()
+	return {}
+
 static func npc_context(state: Dictionary) -> Dictionary:
 	if not state.has("alpha_shop"):
 		return {}
@@ -316,6 +333,7 @@ static func npc_context(state: Dictionary) -> Dictionary:
 	var challenges: Array = current_notes.get("claim_challenges",[]).duplicate(true)
 	return {"current_offer": _last_public_offer(a, str(current.id)),
 		"current_challenges":challenges,
+		"latest_spoken":_latest_spoken_event(a,current_notes),
 		"current_outcome": str(a.outcomes.get(current.id, "")), "prior": prior}
 
 ## B2 candidate only: every physical shelf item must be an owned free root
