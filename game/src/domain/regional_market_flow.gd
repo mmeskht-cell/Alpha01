@@ -102,10 +102,12 @@ static func quote(s:Dictionary,visit_id:String)->Dictionary:
 	var basis:int=int(initial[e.currency])
 	var m:Dictionary=policy(s)
 	var net:int=_settled_flow(s,e.region,e.category,Clock.day_index(int(s.game_minutes)))
-	var delta:int=clampi(-net*int(m.flow_step),-int(m.max_flow_delta),int(m.max_flow_delta))
-	var negotiated_delta:int=Bargain.adjustment(s,visit_id)
-	var settled:int=clampi(int(e.prices[status])+delta+negotiated_delta,maxi(1,int(ceili(basis*0.75))),maxi(1,int(floori(basis*1.25))))
+	var settled := bounded_quote(basis,int(e.prices[status]),net,int(m.flow_step),int(m.max_flow_delta),Bargain.adjustment(s,visit_id))
 	return {"visit_id":visit_id,"item_id":e.item_id,"region":e.region,"category":e.category,"currency":e.currency,"amount":settled}
+
+static func bounded_quote(basis:int, regional:int, net:int, step:int, limit:int, personal:int)->int:
+	var delta := clampi(-net*step,-limit,limit)
+	return clampi(regional+delta+personal,maxi(1,ceili(basis*0.75)),maxi(1,floori(basis*1.25)))
 
 static func eligible(s:Dictionary,visit_id:String)->bool:
 	var e:Dictionary=policy(s).get("entries",{}).get(visit_id,{})

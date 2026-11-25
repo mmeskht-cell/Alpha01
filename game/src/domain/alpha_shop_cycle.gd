@@ -13,6 +13,7 @@ const B3Random = preload("res://src/domain/alpha_b3_visit_randomizer.gd")
 const Story = preload("res://src/domain/alpha_story_projection.gd")
 const Grid = preload("res://src/domain/grid_primitives.gd")
 const Objects = preload("res://src/domain/object_schema.gd")
+const BatteryMarket = preload("res://src/domain/b3_f2_market.gd")
 const ACTIONS: Array = ["alpha_reprice_display", "alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid", "alpha_fx_trade", "alpha_salvage_dispatch", "alpha_salvage_cancel","week_pledge","week_redeem","week_extend","spatial_move","spatial_restore_item","spatial_attach","spatial_detach"]
 const PHASES: Array = ["DAY_PREP", "OPEN_IDLE", "CUSTOMER_ENTER", "CUSTOMER_ACTIVE", "CUSTOMER_EXIT", "CLOSE_SETTLE", "EVENING_WORK", "NEXT_DAY", "COMPLETE"]
 
@@ -32,6 +33,10 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 		keys.append("fx_profile")
 	if profile is Dictionary and profile.has("visit_random"):
 		keys.append("visit_random")
+	if profile is Dictionary and profile.has("battery_market"):
+		if not profile.has("spatial_opening") or profile.battery_market not in ["regular_delivery","late_delivery"]: return false
+		if not BatteryMarket.seed_valid(state): return false
+		keys.append("battery_market")
 	if profile is Dictionary and profile.has("spatial_opening"):
 		if profile.spatial_opening != 1 or not profile.has("week_proposal"):
 			return false
@@ -207,6 +212,7 @@ static func _planned_rows(a: Dictionary) -> Array:
 static func _draw_day(state: Dictionary) -> String:
 	var a: Dictionary = state.alpha_shop
 	var rows: Array = a.profile.days[int(a.day) - 1]
+	if a.profile.has("battery_market"): BatteryMarket.open_day(state,rows)
 	if a.has("week_pawn"):
 		for slot: Dictionary in rows:
 			if slot.id != "week_tool_buy_d7":
@@ -631,6 +637,10 @@ static func view(state: Dictionary) -> Dictionary:
 		"story": Story.view(state)
 	}
 	if a.profile.content_version == B3Fx.VERSION:
+		if a.profile.has("battery_market"):
+			result["market_bulletin"] = BatteryMarket.bulletin(state)
+			if a.phase=="CUSTOMER_ACTIVE" and a.active in BatteryMarket.BIDS:
+				result["customer_bid_vkc"] = int(state.visits[a.active].prices.BAT02.VKC)
 		result["currency_terms"] = B3Currency.view(state)
 	if a.has("random_visits"):
 		# Daily target is internal planning metadata, not guaranteed attendance.

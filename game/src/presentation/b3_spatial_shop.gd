@@ -1104,6 +1104,7 @@ func _r2_evidence_hand(v: Dictionary,a: Dictionary) -> void:
 func _basis_caption(base: Dictionary) -> String:
 	if base.is_empty(): return "감정가 기준 선택"
 	var caption: String = {"appraisal_range":"내 감정가","catalog_reference":"도감 참고가","posted_ask":"매대 표시가","personal_provisional":"내 임시 평가액","public_quote":"공개 요구가"}.get(str(base.source),"평가 기준")
+	if base.get("reference_source")=="customer_at_counter": caption="손님 제시가"
 	if base.source=="catalog_reference" and base.get("judgment","unknown")!="unknown": caption="도감 기반 내 감정가"
 	return "%s · %d %s"%[caption,base.amount,base.currency]
 
@@ -1158,6 +1159,10 @@ func _counter_speech(v: Dictionary) -> String:
 		var original := _b2_npc_line(v)
 		return original if not original.is_empty() else _text(v.active.purpose_key)
 	var public_context: Dictionary = v.get("npc_context",{})
+	if v.has("customer_bid_vkc") and public_context.get("current_offer",{}).is_empty() and public_context.get("latest_spoken",{}).is_empty():
+		if public_context.get("prior",{}).get("outcome","")=="departed":
+			return "지난번엔 값이 안 맞았죠. 오늘은 %d VKC에 사겠습니다."%v.customer_bid_vkc
+		return "전지를 사러 왔습니다. %d VKC면 어떻습니까?"%v.customer_bid_vkc
 	if r2_room_active and v.active.id=="visit_g01":
 		if public_context.get("current_offer",{}).is_empty() and public_context.get("latest_spoken",{}).is_empty() and public_context.get("prior",{}).is_empty():
 			return str(captions.g01)
@@ -1454,6 +1459,7 @@ func _product_document_workspace(v: Dictionary,state: Dictionary) -> void:
 		"news":
 			header = str(desk_copy.region)%v.day
 			var notices: Array = []
+			if v.has("market_bulletin"): notices.append({"key":"battery_notice","caption":"항구 전지 납품 공지","detail":v.market_bulletin})
 			for notice: Dictionary in v.news:
 				var stamp := "게시일 %d일차"%int(notice.day) if notice.has("day") else "게시일 기록 없음"
 				var notice_text := _text("alpha.news."+str(notice.text_key))
@@ -1806,6 +1812,11 @@ func _surface_page(pages: VBoxContainer,v: Dictionary) -> void:
 func _price_page(pages: VBoxContainer,v: Dictionary) -> void:
 	var a: Dictionary = v.appraisal
 	var currency: String = str(a.offer_currency)
+	if v.has("market_bulletin"): _board_line(pages,"market_notice",v.market_bulletin)
+	if v.has("customer_bid_vkc"):
+		var bid := RatioQuote.basis({},currency,{"kind":"public_quote","source":"customer_at_counter","amount":v.customer_bid_vkc,"currency":"VKC"})
+		if not bid.is_empty():
+			_button(pages,"customer_bid","손님 제시가 적용 · %d VKC"%v.customer_bid_vkc,func()->void: _choose_offer_basis(bid))
 	_board_line(pages,"basis_status",_basis_caption(offer_basis),true)
 	var updated := _updated_offer_basis(v)
 	if not updated.is_empty():
