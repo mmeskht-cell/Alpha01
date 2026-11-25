@@ -7,11 +7,38 @@ func run() -> void:
 		return
 	out=args[0]
 	for resolution: Vector2i in [Vector2i(1280,720),Vector2i(1920,1080)]:
-		root.size=resolution
+		if not await configure_native_window(resolution): break
 		if not await install(Spatial,"w20_pointer_"+str(resolution.y)): break
 		if not await counter_drag(resolution): break
 		await release_host()
 	await finish()
+
+# Run each resolution inside the physical Xvfb screen, without a title bar
+# or retained window offset clipping the lower part of the 1080p client.
+# This changes only the test window, not the shipped project's display mode.
+func configure_native_window(resolution: Vector2i) -> bool:
+	root.mode = Window.MODE_WINDOWED
+	root.borderless = true
+	var screen: int = root.current_screen
+	var origin: Vector2i = DisplayServer.screen_get_position(screen)
+	var screen_size: Vector2i = DisplayServer.screen_get_size(screen)
+	if not check(screen_size.x>=resolution.x and screen_size.y>=resolution.y,"physical screen fits requested resolution"): return false
+	root.position = origin
+	root.size = resolution
+	root.position = origin
+	for frame in range(12):
+		await process_frame
+		if root.size==resolution and root.position==origin: break
+	await frames()
+	print("W20_WINDOW requested=",resolution," size=",root.size," position=",root.position," screen_origin=",origin," screen_size=",screen_size," viewport=",root.get_visible_rect()," scale=",root.get_screen_transform())
+	if not check(root.size==resolution,"actual native window resolution"): return false
+	if not check(Rect2i(origin,screen_size).encloses(Rect2i(root.position,root.size)),"whole native client inside physical screen"): return false
+	var visible: Rect2 = root.get_visible_rect()
+	# Verify near each corner in the logical input coordinate space before
+	# installing the host. Do not silently select a different drag endpoint.
+	for fraction: Vector2 in [Vector2(0.05,0.05),Vector2(0.95,0.05),Vector2(0.05,0.95),Vector2(0.95,0.95)]:
+		if not check(await sync_pointer(visible.position+visible.size*fraction),"native pointer reaches viewport corner"): return false
+	return true
 
 # Root Viewport native drop validation may read the display-server pointer,
 # rather than the coordinates of a synthetic push_input event. Keep both
@@ -21,7 +48,7 @@ func sync_pointer(point: Vector2) -> bool:
 	for frame in range(8):
 		await process_frame
 		if root.get_mouse_position().distance_to(point)<=2.0: return true
-	print("W20_POINTER_MISMATCH requested=",point," actual=",root.get_mouse_position())
+	print("W20_POINTER_MISMATCH requested=",point," actual=",root.get_mouse_position()," window=",root.position," size=",root.size," display_pointer=",DisplayServer.mouse_get_position()," viewport=",root.get_visible_rect())
 	return false
 
 func drag_between(source: Control,target: Control) -> bool:
