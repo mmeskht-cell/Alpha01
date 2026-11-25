@@ -12,7 +12,8 @@ func _ready() -> void:
 	if use_desk_finish:
 		_rest = _edge(Color("#483d32"),Color("#978165"))
 		_ready_for_card = _edge(Color("#5d4935"),Color("#dab37c"))
-		set_process(false)
+	# Legacy pocket has no R2 hover styles; processing is opt-in on drag.
+	set_process(false)
 
 func _edge(fill: Color, rim: Color) -> StyleBoxFlat:
 	var edge := StyleBoxFlat.new()
@@ -63,6 +64,9 @@ func _notification(what: int) -> void:
 		add_theme_stylebox_override("normal",_rest)
 
 func _process(_delta: float) -> void:
+	if not use_desk_finish or _rest == null or _ready_for_card == null:
+		set_process(false)
+		return
 	var pointer := get_local_mouse_position()
 	var valid := is_visible_in_tree() and Rect2(Vector2.ZERO,size).has_point(pointer) and _can_drop_data(pointer,get_viewport().gui_get_drag_data())
 	var skin := _ready_for_card if valid else _rest
