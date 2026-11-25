@@ -12,7 +12,7 @@ const SUPPLIER = "week_battery_buy_d3"
 const BATTERY := "BAT02"
 # Immutable opening quote of this isolated fixture; never compound a frozen quote.
 const BID_BASIS := 60
-const PROFILES = ["regular_delivery","late_delivery","regional_regular_v1","regional_late_v1"]
+const PROFILES = ["regular_delivery","late_delivery","regional_regular_v1","regional_late_v1","regional_regular_v2","regional_late_v2"]
 # Versioned, isolated fixture policy. No production balance is implied.
 # Region and commodity group are separate; two radios share one group.
 const ITEM_MARKETS = {"BAT02":"port_battery","EL06":"port_electronics","R001":"market_radio","R003":"market_radio"}
@@ -29,12 +29,48 @@ const REGIONAL_BIDS = {
 # unspent cash applies only to new optional regional bids.
 const PERSONAL = {"G02":{"offset":-2,"reserve":5},"G04":{"offset":0,"reserve":5},"G07":{"offset":0,"reserve":5},"G08":{"offset":2,"reserve":15},"G11":{"offset":-2,"reserve":10}}
 
+# V2 covers the entire authored M7 optional demand catalogue. Story,
+# commissioned custody, pawn/recovery and mandatory D1/D5 terms stay fixed.
+const EXTRA_MARKETS = {"WAT02":"market_watch","TL04":"workshop_tools","GE03":"workshop_goods","HY05":"market_hygiene"}
+const EXTRA_LABELS = {"market_watch":"시장 구역 · 시계","workshop_tools":"공방 구역 · 공구","workshop_goods":"공방 구역 · 일반 장비","market_hygiene":"시장 구역 · 위생용품"}
+const EXTRA_BIDS = {
+	"alpha_b3_g09_radio_d2":["R001","G09",2,130],
+	"alpha_b3_g08_watch_d4":["WAT02","G08",4,140],
+	"alpha_b3_g09_tool_d5":["TL04","G09",5,95],
+	"alpha_b3_g03_gear_d6":["GE03","G03",6,105],
+	"alpha_b3_g03_hygiene_d7":["HY05","G03",7,90],
+	"alpha_b3_g08_watch_d6":["WAT02","G08",6,140],
+	"alpha_b3_g12_tool_d7":["TL04","G12",7,95]
+}
+# Only optional, existing repeat supplies, never original fixed contracts.
+# Missing authored repeats (actor already scheduled) are not generated.
+const REPEAT_ASKS = {
+	"week_battery_buy_d5":["BAT02","G06",5,40],
+	"week_battery_buy_d7":["BAT02","G06",7,40],
+	"week_gear_buy_d5":["GE03","G08",5,80],
+	"week_radio3_buy_d6":["R003","G10",6,40],
+	"week_tool_buy_d6":["TL04","G01",6,60]
+}
+const EXTRA_PERSONAL = {"G03":{"offset":0,"reserve":5},"G09":{"offset":1,"reserve":5},"G12":{"offset":-1,"reserve":5}}
+const SELLER_OFFSETS = {"G01":0,"G06":1,"G08":2,"G10":-1}
+
+static func expanded(profile:Dictionary)->bool:
+	return profile.get("battery_market") in ["regional_regular_v2","regional_late_v2"]
+
 static func regional(profile:Dictionary)->bool:
-	return profile.get("battery_market") in ["regional_regular_v1","regional_late_v1"]
+	return profile.get("battery_market") in ["regional_regular_v1","regional_late_v1"] or expanded(profile)
+
+static func market_key(profile:Dictionary, item_id:String)->String:
+	if expanded(profile) and EXTRA_MARKETS.has(item_id): return str(EXTRA_MARKETS[item_id])
+	return str(ITEM_MARKETS.get(item_id,""))
+
+static func buyer_policy(actor:String)->Dictionary:
+	return PERSONAL.get(actor,EXTRA_PERSONAL.get(actor,{}))
 
 static func bid_rule(profile:Dictionary, visit_id:String)->Array:
 	if visit_id in BIDS:
 		return [BATTERY,"G07" if visit_id=="battery_sale" else "G11",2 if visit_id=="battery_sale" else (4 if visit_id=="alpha_b3_g11_battery_d4" else 5),BID_BASIS]
+	if expanded(profile) and EXTRA_BIDS.has(visit_id): return EXTRA_BIDS[visit_id]
 	if regional(profile): return REGIONAL_BIDS.get(visit_id,[])
 	return []
 
@@ -59,15 +95,26 @@ static func seed_valid(state:Dictionary, profile:Dictionary={})->bool:
 			if not valid_bid_seed(state,id,REGIONAL_BIDS[id]) or not scheduled_seed(profile,id,REGIONAL_BIDS[id]): return false
 		for id:String in BIDS:
 			if not scheduled_seed(profile,id,bid_rule(profile,id)): return false
+	if expanded(profile):
+		for id:String in EXTRA_BIDS:
+			if not valid_bid_seed(state,id,EXTRA_BIDS[id]) or not scheduled_seed(profile,id,EXTRA_BIDS[id]): return false
+		for id:String in REPEAT_ASKS:
+			var rule:Array = REPEAT_ASKS[id]
+			if not state.visits.has(id):
+				if scheduled_seed(profile,id,rule): return false
+				continue
+			var v:Dictionary = state.visits[id]
+			if not scheduled_seed(profile,id,rule) or v.seller!=rule[1] or v.buyer!="player" or v.scope.kind!="ordinary" or v.scope.completed or v.prices.size()!=1 or v.prices.get(rule[0])!={"VKC":rule[3],"USD":0} or int(v.opens)!=(int(rule[2])-1)*1440: return false
 	var supplier:Dictionary = state.visits.get(SUPPLIER,{})
 	return supplier.get("seller")=="G06" and supplier.get("buyer")=="player" and supplier.get("prices",{}).get("BAT02")=={"VKC":40,"USD":0}
 
 static func shortage(profile:Dictionary, day:int)->bool:
-	return profile.get("battery_market") in ["late_delivery","regional_late_v1"] and day in [3,4]
+	return profile.get("battery_market") in ["late_delivery","regional_late_v1","regional_late_v2"] and day in [3,4]
 
 static func market_shortage(profile:Dictionary, market:String, day:int)->bool:
 	if market=="port_battery": return shortage(profile,day)
-	if profile.get("battery_market")!="regional_late_v1": return false
+	if profile.get("battery_market") not in ["regional_late_v1","regional_late_v2"]: return false
+	if expanded(profile) and ((market=="workshop_tools" and day in [5,6]) or (market=="workshop_goods" and day==5) or (market=="market_hygiene" and day==7)): return true
 	return (market=="port_electronics" and day==7) or (market=="market_radio" and day==6)
 
 static func history(state:Dictionary, day:int)->Dictionary:
@@ -100,7 +147,7 @@ static func market_history(state:Dictionary, day:int)->Dictionary:
 		var buying:bool = row.from=="player"
 		var actor:String = row.to if buying else row.from
 		customers[actor] = true
-		var market:String = str(ITEM_MARKETS.get(p.item_id,""))
+		var market:String = market_key(state.alpha_shop.profile,str(p.item_id))
 		if not market.is_empty():
 			flows[market] = int(flows.get(market,0)) + (-1 if buying else 1)
 			counts[market] = int(counts.get(market,0)) + 1
@@ -114,6 +161,11 @@ static func prior_terms(shop:Dictionary, actor:String)->int:
 			var outcome:String = shop.outcomes.get(visit.id,"")
 			if outcome in ["commission_delivered","service_delivered"]: adjustment = 2
 			elif outcome in ["departed","traded"]:
+				# In the regional policy, a later completed purchase supersedes
+				# an earlier refusal. Do not permanently penalize a recovered
+				# relationship. Retractions in this encounter still count.
+				# V2 only: keep earlier replayable trial profiles unchanged.
+				if expanded(shop.profile) and outcome=="traded": adjustment = 0
 				var notes:Dictionary = shop.get("appraisal",{}).get("visits",{}).get(visit.id,{})
 				var offers:Array = notes.get("offers",[])
 				if outcome=="departed" and not offers.is_empty() and offers.back().response=="declined": adjustment = -2
@@ -131,14 +183,25 @@ static func open_day(state:Dictionary, rows:Array)->void:
 			if not state.visits[slot.id].scope.completed:
 				state.visits[slot.id].prices.BAT02 = {"VKC":0,"USD":1} if delayed else {"VKC":40,"USD":0}
 			continue
+		if expanded(a.profile) and REPEAT_ASKS.has(slot.id):
+			var ask:Array = REPEAT_ASKS[slot.id]
+			var seller_visit:Dictionary = state.visits[slot.id]
+			if seller_visit.scope.completed: continue
+			var ask_market:String = market_key(a.profile,ask[0])
+			var ask_base:int = int(ask[3])
+			var seller:String = str(ask[1])
+			var seller_delta:int = int(SELLER_OFFSETS[seller]) - (2 if past.customers.has(seller) else 0) - prior_terms(a,seller)
+			var ask_premium:int = 8 if market_shortage(a.profile,ask_market,day) else 0
+			seller_visit.prices[ask[0]].VKC = Flow.bounded_quote(ask_base,ask_base+ask_premium,int(past.flows.get(ask_market,0)),3,6,seller_delta)
+			continue
 		var rule:Array = bid_rule(a.profile,slot.id)
 		if rule.is_empty(): continue
 		var visit:Dictionary = state.visits[slot.id]
 		if visit.scope.completed: continue
 		var item_id:String = rule[0]
 		var base:int = int(rule[3])
-		var market:String = ITEM_MARKETS[item_id]
-		var personal:int = int(PERSONAL.get(visit.buyer,{}).get("offset",0)) if regional(a.profile) else int(BUYER_OFFSETS[visit.buyer])
+		var market:String = market_key(a.profile,item_id)
+		var personal:int = int(buyer_policy(visit.buyer).get("offset",0)) if regional(a.profile) else int(BUYER_OFFSETS[visit.buyer])
 		if past.customers.has(visit.buyer): personal += 2
 		personal += prior_terms(a,visit.buyer)
 		var premium:int = 8 if market_shortage(a.profile,market,day) else 0
@@ -148,10 +211,10 @@ static func open_day(state:Dictionary, rows:Array)->void:
 ## refusal raises the reserve, not the wallet. No protected contract uses it.
 static func eligible(state:Dictionary, visit_id:String)->bool:
 	var a:Dictionary = state.alpha_shop
-	if not regional(a.profile) or not REGIONAL_BIDS.has(visit_id): return true
-	var rule:Array = REGIONAL_BIDS[visit_id]
+	if not regional(a.profile) or (not REGIONAL_BIDS.has(visit_id) and not (expanded(a.profile) and EXTRA_BIDS.has(visit_id))): return true
+	var rule:Array = bid_rule(a.profile,visit_id)
 	var visit:Dictionary = state.visits[visit_id]
-	var reserve:int = int(PERSONAL[visit.buyer].reserve) + (5 if prior_terms(a,visit.buyer)<0 else 0)
+	var reserve:int = int(buyer_policy(visit.buyer).reserve) + (5 if prior_terms(a,visit.buyer)<0 else 0)
 	return int(state.wallets[visit.buyer].VKC) >= int(visit.prices[rule[0]].VKC)+reserve
 
 ## Only an actual active, matching appraisal can disclose a buyer's opening bid.
@@ -168,12 +231,14 @@ static func bulletin(state:Dictionary)->String:
 	if regional(state.alpha_shop.profile):
 		var past:Dictionary = market_history(state,day)
 		var lines:Array[String] = []
-		for market:String in MARKET_LABELS:
+		var labels:Dictionary = MARKET_LABELS.duplicate()
+		if expanded(state.alpha_shop.profile): labels.merge(EXTRA_LABELS)
+		for market:String in labels:
 			var supply:String = "납품 지연" if market_shortage(state.alpha_shop.profile,market,day) else "정상 공급 공지"
 			var count:int = int(past.counts.get(market,0))
 			var net:int = int(past.flows.get(market,0))
 			var trend:String = "거래 자료 부족" if count==0 else ("순매입" if net<0 else ("순매출" if net>0 else "순거래량 변동 없음"))
-			lines.append("%s · %d일차 · 지역 납품 공지: %s\n상점 거래장(전일까지 %d건): %s"%[MARKET_LABELS[market],day,supply,count,trend])
+			lines.append("%s · %d일차 · 지역 납품 공지: %s\n상점 거래장(전일까지 %d건): %s"%[labels[market],day,supply,count,trend])
 		return "\n".join(lines)
 	var arrival := "전지 납품 지연" if shortage(state.alpha_shop.profile,day) else "전지 정상 공급"
 	var net := int(history(state,day).net)

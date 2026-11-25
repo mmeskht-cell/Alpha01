@@ -84,9 +84,9 @@ func quote_pair()->bool:
 		return true
 	return false
 
-func cross_item_memory()->bool:
+func cross_item_memory(recovery:bool=false)->bool:
 	for seed_value:int in range(101,125):
-		var src:Dictionary = trial(seed_value,"regional_late_v1")
+		var src:Dictionary = trial(seed_value,"regional_late_v2" if recovery else "regional_late_v1")
 		var s:RefCounted = fresh(src)
 		if s==null or not go(s,"alpha_open") or not next_open(s): continue
 		if not enter(s,"battery_buy") or not settle_item(s,"BAT02",40) or not display_item(s,"BAT02"): continue
@@ -111,6 +111,12 @@ func cross_item_memory()->bool:
 		if not settle_item(declined,"BAT02",battery_amount): return check(false,"repeat customer's actual battery payment")
 		# Another genuine item remains available: sale of BAT02 cannot clone R003.
 		check(declined.snapshot().items.R003.owner_id=="player" and declined.snapshot().items.BAT02.owner_id=="G11","cross-item memory preserves both unique item identities")
+		if recovery:
+			if not next_open(declined): return check(false,"next day after actual recovered relationship")
+			var recovered:Dictionary = declined.snapshot()
+			check(Market.prior_terms(recovered.alpha_shop,"G11")==0,"later paid battery trade supersedes earlier radio refusal")
+			check(Market.market_history(recovered,5).customers.has("G11"),"genuine repeat-customer loyalty remains after recovery")
+			check(FIVE not in recovered.alpha_shop.random_visits.plan and not declined.alpha_view().has("customer_bid_vkc"),"recovered relationship cannot create missing stock or expose unopened quote")
 		return true
 	return false
 
@@ -133,10 +139,101 @@ func finite_buyer()->bool:
 		return true
 	return false
 
+const TOOL_BUYER := "alpha_b3_g09_tool_d5"
+const GEAR_SUPPLY := "week_gear_buy_d5"
+
+func expanded_scope()->void:
+	var src:Dictionary = trial(101,"regional_late_v2")
+	var s:RefCounted = fresh(src)
+	if not check(s!=null,"expanded seed initializes without new stock or wallets"): return
+	var initial:Dictionary = s.snapshot()
+	var count:int = 0
+	for offer:Dictionary in initial.alpha_shop.profile.market_interest.offers:
+		var rule:Array = Market.bid_rule(initial.alpha_shop.profile,offer.visit_id)
+		if not rule.is_empty() and rule[0]==offer.item_id and rule[1]==offer.actor_id and int(rule[2])==int(offer.day): count+=1
+	check(count==12,"all twelve existing M7 conditional demands bound to real commodity and actor")
+	check(Market.market_key(initial.alpha_shop.profile,"TL04")=="workshop_tools" and Market.market_key(initial.alpha_shop.profile,"HY05")=="market_hygiene","separate tool and hygiene markets")
+	var legacy_src:Dictionary = trial(101,"regional_late_v1")
+	var legacy:RefCounted = fresh(legacy_src)
+	if not check(legacy!=null,"V1 regional seed remains available"): return
+	check(legacy.snapshot().items==initial.items and legacy.snapshot().wallets==initial.wallets and legacy.snapshot().visits==initial.visits,"V2 adds no stock, cash or seeded visits")
+	check(Market.bid_rule(initial.alpha_shop.profile,"hygiene_sale").is_empty() and Market.bid_rule(initial.alpha_shop.profile,"visit_g01").is_empty() and Market.bid_rule(initial.alpha_shop.profile,"week_tool_buy_d7").is_empty(),"protected story, first sale and existing conditional FX untouched")
+	check(not Market.expanded(legacy_src.alpha_profile) and Market.bid_rule(legacy_src.alpha_profile,TOOL_BUYER).is_empty(),"prior version unaffected by new policy")
+	var bad:Dictionary = trial(101,"regional_late_v2")
+	bad.state.visits[TOOL_BUYER].prices.TL04.VKC+=1
+	var rejected:=Session.new()
+	check(not rejected.initialize(bad.defs,bad.state,false,false,{},bad.alpha_profile),"additional market policy rejects tampered seed price")
+
+func complete_tool_week()->bool:
+	for seed_value:int in range(101,125):
+		var src:Dictionary = trial(seed_value,"regional_late_v2")
+		var s:RefCounted = fresh(src)
+		if s==null or not go(s,"alpha_open"): continue
+		var initial:Dictionary = s.snapshot()
+		var ready:bool = true
+		for day:int in range(2,5):
+			if not next_open(s):
+				ready=false
+				break
+		if not ready or not enter(s,"tool_buy") or not settle_item(s,"TL04",60) or not display_item(s,"TL04") or not next_open(s): continue
+		if TOOL_BUYER not in s.snapshot().alpha_shop.random_visits.plan: continue
+		var pre:Dictionary = s.snapshot()
+		var flows:Dictionary = Market.market_history(pre,5)
+		check(flows.flows=={"workshop_tools":-1} and flows.counts=={"workshop_tools":1},"actual tool purchase affects only tool market")
+		check("공방 구역 · 공구" in s.alpha_view().market_bulletin and not s.alpha_view().has("customer_bid_vkc"),"regional news exposes past aggregate only")
+		if not enter(s,TOOL_BUYER): return check(false,"actual D5 tool buyer arrives")
+		var amount:int = int(s.alpha_view().get("customer_bid_vkc",0))
+		check(amount>95,"tool shortage and actual earlier purchase change buyer offer")
+		if not settle_item(s,"TL04",amount): return check(false,"real new commodity payment")
+		var paid:Dictionary = s.snapshot()
+		check(paid.items.TL04.owner_id=="G09" and paid.ledger.back().basis.VKC==60 and paid.wallets.player.VKC==initial.wallets.player.VKC-60+amount,"actual item basis, ownership and shop cash")
+		if not next_open(s) or not next_open(s) or not advance(s,true): return check(false,"paid V2 week reaches final settlement")
+		var final:Dictionary = s.snapshot()
+		check(final.alpha_shop.phase=="COMPLETE" and final.alpha_shop.day==7 and final.wallets==paid.wallets and final.items==paid.items and final.ledger==paid.ledger,"seven days finish without phantom settlements")
+		var totals:Dictionary = Market.market_history(final,8)
+		check(totals.flows=={"workshop_tools":0} and totals.counts=={"workshop_tools":2},"two real tool settlements net to zero")
+		check(wallet_total(final.wallets,"VKC")==wallet_total(initial.wallets,"VKC") and wallet_total(final.wallets,"USD")==wallet_total(initial.wallets,"USD") and final.items.size()==initial.items.size(),"full week finite stock and money")
+		var store_repo:=Repo.new("user://zt_rebuild/f2_v2_week_"+str(Time.get_ticks_usec()))
+		var cold:RefCounted = fresh(src)
+		check(store_repo.save_session(s,"v2week").get("ok",false) and cold!=null and store_repo.load_session(cold,"v2week").get("ok",false) and cold.snapshot()==final and cold.alpha_view()==s.alpha_view(),"full week cold save and replay")
+		return true
+	return false
+
+func expanded_supply()->bool:
+	for seed_value:int in range(101,125):
+		var sessions:Array = []
+		var ready:bool = true
+		for policy:String in ["regional_regular_v2","regional_late_v2"]:
+			var s:RefCounted = fresh(trial(seed_value,policy))
+			if s==null or not go(s,"alpha_open"):
+				ready=false
+				break
+			for day:int in range(2,6):
+				if not next_open(s):
+					ready=false
+					break
+			if not ready or not enter(s,GEAR_SUPPLY):
+				ready=false
+				break
+			sessions.append(s)
+		if not ready or sessions.size()!=2: continue
+		var normal:RefCounted = sessions[0]
+		var late:RefCounted = sessions[1]
+		var before:Dictionary = normal.snapshot()
+		var late_before:Dictionary = late.snapshot()
+		var normal_ask:int = int(before.visits[GEAR_SUPPLY].prices.GE03.VKC)
+		var late_ask:int = int(late_before.visits[GEAR_SUPPLY].prices.GE03.VKC)
+		check(before.wallets==late_before.wallets and before.items==late_before.items and late_ask-normal_ask==8,"same actual seller and goods, independent supply event changes ask")
+		check(not late.alpha_view().currency_terms.trade.has("amount") and not late.alpha_view().has("customer_bid_vkc"),"seller private ask never projected as buyer bid")
+		if not settle_item(normal,"GE03",normal_ask) or not settle_item(late,"GE03",late_ask): return check(false,"both regional supply branches settle")
+		check(normal.snapshot().items.GE03.owner_id=="player" and late.snapshot().items.GE03.owner_id=="player" and normal.snapshot().wallets.player.VKC-late.snapshot().wallets.player.VKC==8,"different actual purchasing cost")
+		return true
+	return false
+
 func _initialize()->void:
 	var args:=OS.get_cmdline_user_args()
 	var part:String = args[0] if args.size()==1 else "all"
-	if part not in ["all","quotes","memory","finite"]: check(false,"unknown regional market part")
+	if part not in ["all","quotes","memory","finite","recovery","scope","week","supplier"]: check(false,"unknown regional market part")
 	if part in ["all","quotes"]:
 		var bad:Dictionary = trial(101,"regional_regular_v1")
 		bad.state.visits[LOW].prices.EL06.VKC+=1
@@ -145,5 +242,9 @@ func _initialize()->void:
 		check(quote_pair(),"same-day two-buyer and independent supply branch reached")
 	if part in ["all","memory"]: check(cross_item_memory(),"real cross-commodity returning customer path reached")
 	if part in ["all","finite"]: check(finite_buyer(),"finite budget branch reached")
+	if part in ["all","recovery"]: check(cross_item_memory(true),"regional V2 relationship recovery branch reached")
+	if part in ["all","scope"]: expanded_scope()
+	if part in ["all","week"]: check(complete_tool_week(),"expanded paid seven-day route reached")
+	if part in ["all","supplier"]: check(expanded_supply(),"expanded actual repeat supplier branches reached")
 	print("B3_F2_REGIONAL_PART ",part,": ",checks," checks, ",failures," failures")
 	quit(0 if failures==0 and checks>0 else 1)
