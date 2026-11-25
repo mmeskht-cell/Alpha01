@@ -13,12 +13,24 @@ func run() -> void:
 		await release_host()
 	await finish()
 
+# Root Viewport native drop validation may read the display-server pointer,
+# rather than the coordinates of a synthetic push_input event. Keep both
+# positions in sync, and fail rather than bypass native hit testing.
+func sync_pointer(point: Vector2) -> bool:
+	root.warp_mouse(point)
+	for frame in range(8):
+		await process_frame
+		if root.get_mouse_position().distance_to(point)<=2.0: return true
+	print("W20_POINTER_MISMATCH requested=",point," actual=",root.get_mouse_position())
+	return false
+
 func drag_between(source: Control,target: Control) -> bool:
 	if not check(is_instance_valid(source) and is_instance_valid(target),"drag endpoints exist"): return false
 	if not check(source.is_visible_in_tree() and target.is_visible_in_tree(),"drag endpoints visible"): return false
 	var start := source.get_global_transform_with_canvas()*(source.size*0.5)
 	var end := target.get_global_transform_with_canvas()*(target.size*0.5)
 	if not check(root.get_visible_rect().has_point(start) and root.get_visible_rect().has_point(end),"drag endpoints inside viewport"): return false
+	if not check(await sync_pointer(start),"native pointer reaches drag source"): return false
 	var begin := InputEventMouseMotion.new()
 	begin.position=start
 	begin.global_position=start
@@ -31,12 +43,19 @@ func drag_between(source: Control,target: Control) -> bool:
 	var prior := start
 	for step in range(11):
 		var point := start.lerp(end,float(step)/10)
+		if not check(await sync_pointer(point),"native pointer matches drag motion"): return false
 		var move := InputEventMouseMotion.new()
 		move.position=point
 		move.global_position=point
 		move.relative=point-prior
 		move.button_mask=0 if step==0 else MOUSE_BUTTON_MASK_LEFT
 		root.push_input(move,true)
+		if step==10:
+			await process_frame
+			var final_hover := root.gui_get_hovered_control()
+			print("W20_DRAG_RELEASE requested=",point," actual=",root.get_mouse_position()," local=",target.get_local_mouse_position()," target_size=",target.size," hover=",str(final_hover.get_path()) if is_instance_valid(final_hover) else "none")
+			if not check(Rect2(Vector2.ZERO,target.size).has_point(target.get_local_mouse_position()),"native release inside intended target"): return false
+			if not check(root.gui_is_dragging(),"drag still active before native release"): return false
 		if step==0 or step==10:
 			var press := InputEventMouseButton.new()
 			press.position=point
@@ -52,7 +71,7 @@ func drag_between(source: Control,target: Control) -> bool:
 			payload = root.gui_get_drag_data()
 		if step==9:
 			var over := root.gui_get_hovered_control()
-			print("W20_DRAG_OVER dragging=",root.gui_is_dragging()," hover=",str(over.get_path()) if is_instance_valid(over) else "none"," payload=",payload)
+			print("W20_DRAG_OVER dragging=",root.gui_is_dragging()," hover=",str(over.get_path()) if is_instance_valid(over) else "none"," payload=",payload," actual=",root.get_mouse_position()," target_local=",target.get_local_mouse_position())
 	await frames()
 	print("W20_DRAG_END started=",saw_drag," successful=",root.gui_is_drag_successful()," revision=",host.session.snapshot().revision)
 	return check(saw_drag,"real GUI drag started") and check(root.gui_is_drag_successful(),"real GUI drop accepted")
