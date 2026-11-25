@@ -287,7 +287,7 @@ func _execute(command: Dictionary, world: bool) -> Dictionary:
 ## Read-only quotation for the spatial shop. Run the same permission and
 ## transaction rules on a detached state without issuing a command or receipt.
 func spatial_action_preview(kind: String, payload: Dictionary) -> Dictionary:
-	if not _alpha_mode or kind not in ["alpha_service_repair","alpha_trade","alpha_display","alpha_withdraw_display","spatial_move","spatial_restore_item","spatial_attach","spatial_detach"]:
+	if not _alpha_mode or kind not in ["alpha_service_repair","alpha_trade","alpha_display","alpha_withdraw_display","spatial_move","spatial_restore_item","spatial_attach","spatial_detach","spatial_discard"]:
 		return {"ok":false,"error":"spatial_work_permission"}
 	var draft := snapshot()
 	var before: Dictionary = draft.wallets.player.duplicate()
@@ -318,6 +318,10 @@ func _apply_alpha(state: Dictionary, command: Dictionary) -> String:
 		state.phase = "workshop"
 		var error: String = "spatial_work"
 		match command.type:
+			"spatial_discard":
+				# Existing disposition authority, restricted to the isolated F3 stock.
+				if a.profile.has("f3_composite_trial") and state.items[root].def_id in ["f3_receiver_v1","f3_module_a","f3_module_b"]:
+					error = _discard(state,work,command.action_id)
 			"spatial_restore_item":
 				error = _restore_item(state,work,command.action_id)
 			"spatial_detach":
@@ -618,7 +622,7 @@ func alpha_item_history(item_id: String, current_visit: String="") -> Dictionary
 						row["offer_reference"] = {"offer_id":offer.action_id,"facts":facts,"assessment":offer.get("private_assessment",{}).duplicate(true),"observed_slots":offer.get("observed_slots",[]).duplicate()}
 						break
 		result.records.append(row)
-	var work_types: Dictionary = {"spatial_attach":"attach","spatial_detach":"detach","spatial_restore_item":"restore_item","alpha_service_repair":"restore_item"}
+	var work_types: Dictionary = {"spatial_attach":"attach","spatial_detach":"detach","spatial_restore_item":"restore_item","alpha_service_repair":"restore_item","spatial_discard":"discard"}
 	var events: Array = _state.object_events
 	for i: int in range(events.size()-1,-1,-1):
 		var event: Dictionary = events[i]
@@ -638,6 +642,10 @@ func alpha_item_history(item_id: String, current_visit: String="") -> Dictionary
 			row["related_item_id"] = p.child_id if p.root_id==item_id else p.root_id
 			if a.profile.has("f3_composite_trial"):
 				row["role"]="root" if p.root_id==item_id else "child"
+		elif cmd.type=="spatial_discard":
+			if p.get("actor")!="player" or event.item_ids!=p.get("confirmed_ids"): continue
+			row["group_size"]=event.item_ids.size()
+			row["loss"]=event.basis.duplicate(true) if event.item_ids.size()==1 else null
 		elif event.item_ids!=[p.get("item_id")]:
 			continue
 		elif a.profile.has("f3_composite_trial") and event.type=="restore_item":
@@ -1225,6 +1233,17 @@ func _composition_preview(kind:String,payload:Dictionary)->bool:
 	if kind=="replace_component":
 		return _replace_component(draft,payload,"preview_only").is_empty() and Objects.grids_valid(draft,_definitions)
 	return _composition(draft,payload,"preview_only",kind).is_empty() and Objects.grids_valid(draft,_definitions)
+
+## Actual confirmed family, not a UI estimate. Phase/rights checked by the
+## very same candidate command used for final destruction.
+func alpha_discard_preview(item_id:String)->Dictionary:
+	if not _alpha_mode: return {}
+	var family:Dictionary=discard_preview(item_id)
+	if not family.get("ok",false): return {}
+	var payload:Dictionary={"actor":"player","item_id":item_id,"confirmed_ids":family.item_ids}
+	var checked:Dictionary=spatial_action_preview("spatial_discard",payload)
+	if not checked.get("ok",false): return {}
+	return {"payload":payload,"basis":family.basis,"revision":family.revision}
 
 func discard_preview(item_id: String, actor: String = "player") -> Dictionary:
 	if actor != "player":
@@ -1836,7 +1855,7 @@ func _history_valid(state: Dictionary) -> bool:
 				if not ComponentHistory.valid_link(state, id, ComponentAppraisal.observation_keys()):
 					return false
 				continue
-			if kind in ["detach", "attach", "discard", "restore_item", "alpha_service_repair","spatial_attach","spatial_detach","spatial_restore_item", "replace_component","clean_exterior"] and not events.has(id):
+			if kind in ["detach", "attach", "discard", "restore_item", "alpha_service_repair","spatial_attach","spatial_detach","spatial_restore_item","spatial_discard", "replace_component","clean_exterior"] and not events.has(id):
 				return false
 			if kind == "observe" and not state.knowledge.has(id):
 				return false

@@ -132,11 +132,76 @@ func f3_route()->bool:
 		return true
 	return false
 
+func f3_choices()->bool:
+	for seed_value:int in range(101,125):
+		var src:Dictionary=F3Source.content(seed_value)
+		var live:RefCounted=fresh(src)
+		if live==null or not go(live,"alpha_open"): return false
+		if not enter(live,F3.BUY): continue
+		var before:Dictionary=live.snapshot()
+		check(live.alpha_view().appraisal.composite_access=="not_requested" and not live.execute(command(live,"alpha_inspect",{"slot":"f3_part_b"})).get("ok",false) and live.snapshot()==before,"no interior observation before consent")
+		check(live.alpha_discard_preview(F3.ROOT).is_empty(),"customer stock cannot be discarded")
+		if not go(live,"alpha_composite_consent"): return false
+		check(live.alpha_view().appraisal.composite_access=="granted" and live.snapshot().items==before.items and live.snapshot().wallets==before.wallets,"consent changes access only")
+		if not f3_observe(live,"f3_part_a") or not f3_observe(live,"f3_part_b"): return false
+		check(f3_value(live.alpha_view(),"f3_part_a")=="serviceable" and f3_value(live.alpha_view(),"f3_part_b")=="inoperable" and live.snapshot().items==before.items,"separate read-only fictional module observations")
+		if not settle_item(live,F3.ROOT,70): return false
+		check(live.alpha_discard_preview(F3.ROOT).is_empty(),"daytime disposal unavailable")
+		if not f3_close(live): return false
+		var purchased:Dictionary=live.snapshot()
+		var keep:RefCounted=fork_session(src,purchased)
+		var broken:RefCounted=fork_session(src,purchased)
+		if keep==null or broken==null: return false
+		var whole:Dictionary=live.alpha_discard_preview(F3.ROOT)
+		if not check(not whole.is_empty() and whole.payload.confirmed_ids.size()==3 and whole.basis.VKC==70 and live.snapshot()==purchased,"whole-family loss preview is read only"): return false
+		var wrong:Dictionary=whole.payload.duplicate(true)
+		wrong.confirmed_ids=[F3.ROOT]
+		check(not live.execute(command(live,"spatial_discard",wrong)).get("ok",false) and live.snapshot()==purchased,"partial confirmation cannot destroy family")
+		var disposal:Dictionary=command(live,"spatial_discard",whole.payload)
+		if not live.execute(disposal).get("ok",false): return check(false,"actual whole-family disposal")
+		var gone:Dictionary=live.snapshot()
+		live.execute(disposal)
+		check(live.snapshot()==gone and gone.wallets==purchased.wallets and gone.ledger==purchased.ledger and gone.items.size()==purchased.items.size()-3,"no cash reward or duplicate loss")
+		for id:String in whole.payload.confirmed_ids:
+			check(gone.tombstones.has(id) and not gone.items.has(id) and gone.tombstones[id].provenance_id==purchased.items[id].provenance_id,"terminal original identity "+id)
+		var h:Dictionary=live.alpha_item_history(F3.ROOT)
+		check(h.records.size()==1 and h.work_records.size()==1 and h.work_records[0].group_size==3 and h.work_records[0].loss==null,"group loss never repeated as single item cost")
+		var split:Dictionary={"actor":"player","root_id":F3.ROOT,"child_id":"F3R01_A","inventory":"player_stock","x":5,"y":0,"rotated":false}
+		if not f3_work(keep,"spatial_detach",split): return false
+		var remainder:Dictionary=keep.alpha_discard_preview(F3.ROOT)
+		if not check(not remainder.is_empty() and remainder.payload.confirmed_ids.size()==2 and int(remainder.basis.VKC)+int(keep.snapshot().items.F3R01_A.basis.VKC)==70,"recovery separates retained cost from written-off cost"): return false
+		if not go(keep,"spatial_discard",remainder.payload): return false
+		var saved_part:Dictionary=keep.snapshot()
+		check(saved_part.items.F3R01_A.owner_id=="player" and saved_part.items.F3R01_A.functional and saved_part.items.F3R01_A.parent_id=="" and saved_part.wallets==gone.wallets and saved_part.items.size()==gone.items.size()+1,"recover real reusable part, not fictional cash")
+		check(keep.alpha_item_history("F3R01_A").work_records.size()==1,"retained component has its own history")
+		if not display_item(broken,F3.ROOT) or not f3_open(broken) or not next_open(broken): return false
+		if F3.SELL not in broken.snapshot().alpha_shop.random_visits.plan: continue
+		if not enter(broken,F3.SELL): return false
+		check(broken.alpha_view().get("customer_bid_vkc",0)==50,"actual broken-unit buyer quote differs from restored 100")
+		if not settle_item(broken,F3.ROOT,50): return false
+		check(broken.snapshot().wallets.player.VKC==purchased.wallets.player.VKC+50 and broken.snapshot().items[F3.ROOT].owner_id=="G05","actual unrepaired sale settles lower price")
+		if not next_open(broken): return false
+		if F3.RETURN not in broken.snapshot().alpha_shop.random_visits.plan: continue
+		if not enter(broken,F3.RETURN) or not go(broken,"alpha_composite_consent"): return false
+		var denied:Dictionary=broken.snapshot()
+		check(broken.alpha_view().appraisal.composite_access=="denied" and not broken.execute(command(broken,"alpha_inspect",{"slot":"f3_part_a"})).get("ok",false) and broken.snapshot()==denied,"returning owner refuses interior access; no previous grant carryover")
+		for session:RefCounted in [live,keep]:
+			if not f3_open(session) or not next_open(session): return false
+			check(F3.SELL not in session.snapshot().alpha_shop.random_visits.plan and not session.snapshot().items.has(F3.ROOT),"disposed item cannot become a later buyer visit")
+			if not next_open(session): return false
+			check(F3.RETURN not in session.snapshot().alpha_shop.random_visits.plan and not session.snapshot().items.has(F3.ROOT),"disposed ID cannot reenter")
+		var db:=Repo.new("user://zt_rebuild/f3_recovery_"+str(Time.get_ticks_usec()))
+		var cold:RefCounted=fresh(src)
+		check(db.save_session(keep,"recovery").get("ok",false) and cold!=null and db.load_session(cold,"recovery").get("ok",false) and cold.snapshot()==keep.snapshot() and cold.alpha_item_history(F3.ROOT)==keep.alpha_item_history(F3.ROOT),"cold replay retains terminal loss and recovered part")
+		return true
+	return false
+
 func _initialize()->void:
 	var args:=OS.get_cmdline_user_args()
 	var part:String=args[0] if args.size()==1 else "all"
-	if part not in ["all","scope","route"]: check(false,"unknown F3 part")
+	if part not in ["all","scope","route","choices"]: check(false,"unknown F3 part")
 	if part in ["all","scope"]: scope_test()
 	if part in ["all","route"]: check(f3_route(),"F3 actual composite vertical path reached")
+	if part in ["all","choices"]: check(f3_choices(),"actual consent, recovery and condition-price alternatives reached")
 	print("B3_F3_COMPOSITE_PART ",part,": ",checks," checks, ",failures," failures")
 	quit(0 if failures==0 and checks>0 else 1)

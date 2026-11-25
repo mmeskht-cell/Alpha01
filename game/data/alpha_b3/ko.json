@@ -75,6 +75,11 @@
     "week.proposed": "첫 주 시험 계약 · 밸런스 승인 대기",
     "week.usd": "라디오 거래 이후 G01은 이번 공구 재견적에서 달러 결제만 받습니다.",
     "week.payment": "D%d 계약 장부 · 상점 현금 증감 %d %s",
-    "b2.value.unknown": "미확인"
+    "b2.value.unknown": "미확인",
+    "b2.item.f3_receiver_v1": "복합 수신기",
+    "b2.item.f3_module_a": "수신기 모듈 A",
+    "b2.item.f3_module_b": "수신기 모듈 B",
+    "b2.inspect.f3_part_a": "모듈 A 관찰",
+    "b2.inspect.f3_part_b": "모듈 B 관찰"
   }
 }

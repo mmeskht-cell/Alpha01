@@ -15,7 +15,7 @@ const Grid = preload("res://src/domain/grid_primitives.gd")
 const Objects = preload("res://src/domain/object_schema.gd")
 const BatteryMarket = preload("res://src/domain/b3_f2_market.gd")
 const F3Trial = preload("res://src/domain/b3_f3_composite_trial.gd")
-const ACTIONS: Array = ["alpha_reprice_display", "alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid", "alpha_fx_trade", "alpha_salvage_dispatch", "alpha_salvage_cancel","week_pledge","week_redeem","week_extend","spatial_move","spatial_restore_item","spatial_attach","spatial_detach"]
+const ACTIONS: Array = ["alpha_reprice_display", "alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid", "alpha_fx_trade", "alpha_salvage_dispatch", "alpha_salvage_cancel","week_pledge","week_redeem","week_extend","spatial_move","spatial_restore_item","spatial_attach","spatial_detach","spatial_discard","alpha_composite_consent"]
 const PHASES: Array = ["DAY_PREP", "OPEN_IDLE", "CUSTOMER_ENTER", "CUSTOMER_ACTIVE", "CUSTOMER_EXIT", "CLOSE_SETTLE", "EVENING_WORK", "NEXT_DAY", "COMPLETE"]
 
 static func profile_valid(profile: Variant, state: Dictionary) -> bool:
@@ -171,6 +171,7 @@ static func _admissible(state: Dictionary, visit_id: String) -> bool:
 		# own authority. Ordinary merchandise has to have a real free root.
 		if visit_id not in ["visit_g01","watch_a","tool_buy"] and visit.scope.kind == "ordinary" and visit.prices.size() == 1 and not Commission.is_return_visit(visit_id,str(a.profile.commission_profile_id)) and not ServiceCustody.is_return_visit(visit_id,str(a.profile.service_profile_id)):
 			var id: String = str(visit.prices.keys()[0])
+			if not state.items.has(id): return false
 			var item: Dictionary = state.items[id]
 			if visit.scope.completed or item.status != "stock" or item.protected or not item.reservation_id.is_empty() or not item.parent_id.is_empty():
 				return false
@@ -217,6 +218,7 @@ static func _draw_day(state: Dictionary) -> String:
 	var a: Dictionary = state.alpha_shop
 	var rows: Array = a.profile.days[int(a.day) - 1]
 	if a.profile.has("battery_market"): BatteryMarket.open_day(state,rows)
+	if F3Trial.enabled(a.profile): F3Trial.open_day(state)
 	if a.has("week_pawn"):
 		for slot: Dictionary in rows:
 			if slot.id != "week_tool_buy_d7":
@@ -645,6 +647,8 @@ static func view(state: Dictionary) -> Dictionary:
 			result["market_bulletin"] = BatteryMarket.bulletin(state)
 			var public_bid:int = BatteryMarket.public_bid(state,result.appraisal)
 			if public_bid>0: result["customer_bid_vkc"] = public_bid
+		if F3Trial.enabled(a.profile) and a.phase=="CUSTOMER_ACTIVE" and a.active==F3Trial.SELL and not result.appraisal.is_empty():
+			result["customer_bid_vkc"]=int(state.visits[a.active].prices[F3Trial.ROOT].VKC)
 		result["currency_terms"] = B3Currency.view(state)
 	if a.has("random_visits"):
 		# Daily target is internal planning metadata, not guaranteed attendance.

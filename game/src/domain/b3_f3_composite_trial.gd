@@ -48,7 +48,21 @@ static func signal_value(state:Dictionary,id:String)->String:
 static func observation_current(state:Dictionary,id:String,observation:Dictionary)->bool:
 	if not state.items.has(id): return false
 	if observation.slot=="identity": return true
-	if observation.slot!="function_detail": return false
+	if observation.slot not in ["function_detail","f3_part_a","f3_part_b"]: return false
 	var old:Dictionary=observation.get("version",{})
 	var now:Dictionary=state.items[id].field_versions
 	return old.get("functional",-1)==now.functional and old.get("composition",-1)==now.composition
+
+## No physical access or state mutation. Only invoked through an explicitly
+## granted, active customer inspection and the selected fictional module.
+static func part_signal(state:Dictionary,id:String,slot:String)->String:
+	var def_id:String=PART_A if slot=="f3_part_a" else PART_B
+	for part:Dictionary in state.items.values():
+		if part.parent_id==id and part.def_id==def_id:
+			return "serviceable" if part.functional else "inoperable"
+	return "unknown"
+
+## Existing finite buyer's offer is frozen at opening; no additional ledger.
+static func open_day(state:Dictionary)->void:
+	if state.alpha_shop.day!=3 or not state.items.has(ROOT) or state.visits[SELL].scope.completed: return
+	state.visits[SELL].prices[ROOT].VKC=100 if signal_value(state,ROOT)=="serviceable" else 50

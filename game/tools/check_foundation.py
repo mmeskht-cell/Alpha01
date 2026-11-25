@@ -98,7 +98,7 @@ for test in tests:
     elif test == 'scenarios/b3_f2_regional_market_test':
         commands.extend(command + ['--', part] for part in ('quotes', 'memory', 'finite', 'recovery', 'scope', 'week', 'supplier', 'authority', 'service_memory', 'commission_memory'))
     elif test == 'scenarios/b3_f3_composite_lineage_test':
-        commands.extend(command + ['--', part] for part in ('scope', 'route'))
+        commands.extend(command + ['--', part] for part in ('scope', 'route', 'choices'))
     elif test == 'scenarios/b3_spatial_week_daily_test':
         commands.extend(command + ['--', part] for part in (
             'return', 'empty', 'cancel', 'redeem', 'extend',

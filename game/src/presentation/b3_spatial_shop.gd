@@ -570,6 +570,10 @@ func _counter(v: Dictionary) -> void:
 	var a: Dictionary = v.appraisal
 	var actor: String = _actor_label(str(v.active.actor_id))
 	_counter_caption(actor,_counter_speech(v))
+	if a.get("composite_access","")=="not_requested":
+		action("f3_consent","내부 확인 요청",32,310,164,40,func()->void:_submit("alpha_composite_consent"))
+	elif a.get("composite_access","") in ["granted","denied"]:
+		words("내부 확인 허용" if a.composite_access=="granted" else "내부 확인 거부",32,310,170,40,16)
 	if not r2_room_active and not a.is_empty() and not a.offers.is_empty():
 		var latest: Dictionary = a.offers.back()
 		words(_text("spatial.terms")%[latest.amount,latest.currency]+" · "+("수락" if latest.response=="accepted" else "거절"),799,142,410,40,17)
@@ -709,7 +713,7 @@ func _draft_controls(x: float,y: float,id: String) -> void:
 	var result: Dictionary = draft.result
 	if result.ok:
 		words(_text("spatial.preview_cash")%[result.VKC,result.USD],x,y,404,36,17)
-		var button := action(id,_text("spatial.confirm"),x,y+39,168,42,func()->void:
+		var button := action(id,"영구 폐기 확정" if draft.kind=="spatial_discard" else _text("spatial.confirm"),x,y+39,168,42,func()->void:
 			if draft.is_empty() or not draft.result.ok: return
 			if session.snapshot().revision != draft.result.revision:
 				_preview(draft.kind,draft.payload)
@@ -1497,6 +1501,22 @@ func _ledger_groups(v: Dictionary,state: Dictionary) -> Dictionary:
 				if basis!=null: facts.append("%s 원가 %d · 차액 %d"%[currency,int(basis),int(money[currency])-int(basis)])
 				else: facts.append(currency+" 원가 자료 부족")
 		trade_rows.push_front({"key":"r_"+str(entry.event_id),"caption":stamp+" · "+party+" · "+direction+" "+amount+"\n"+names,"detail":"\n".join(facts)})
+	# Keep terminal-item records in the existing ledger after stock is gone.
+	if state.alpha_shop.profile.has("f3_composite_trial"):
+		for event:Dictionary in state.object_events:
+			if event.type not in ["discard","restore_item"]: continue
+			var item_id:String=str(event.item_ids[0])
+			var specimen:Dictionary=state.items.get(item_id,state.tombstones.get(item_id,{}))
+			if specimen.get("def_id") not in ["f3_receiver_v1","f3_module_a","f3_module_b"]: continue
+			var title:String=("폐기 · " if event.type=="discard" else "정비 · ")+_receipt_items(state,event.item_ids)
+			var cost:Dictionary=event.basis if event.type=="discard" else event.expenses
+			var detail:String=title+"\n"+("원가 손실" if event.type=="discard" else "실제 정비 비용")+" · %s VKC / %s USD"%[str(cost.VKC),str(cost.USD)]
+			var history:Dictionary=session.alpha_item_history(item_id)
+			for offer:Dictionary in history.prior_offers:
+				detail+="\n당시 제안 %d %s"%[offer.amount,offer.currency]
+				for fact:Dictionary in offer.facts:
+					detail+="\n"+_text("b2.inspect."+str(fact.slot))+" · "+_fact_caption(fact.slot,fact.value)
+			trade_rows.push_front({"key":"work_"+str(event.event_id),"caption":title,"detail":detail})
 	for transfer: Dictionary in state.alpha_shop.get("fx",{}).get("settlements",{}).values():
 		var change := "%d %s 지급 · %d %s 수령"%[transfer.give_amount,transfer.give_currency,transfer.receive_amount,transfer.receive_currency]
 		var stamp := "%d일차 · 환전"%transfer.day
@@ -1963,13 +1983,15 @@ func _history_lines(pages: VBoxContainer,id: String) -> void:
 			for slot: String in offer.observed_slots: known.append(_text("b2.inspect."+slot))
 			_board_line(pages,"past_basis","당시 확인한 단서 · "+("없음" if known.is_empty() else ", ".join(known)))
 		for fact: Dictionary in offer.facts:
-			_board_line(pages,"past_fact",_text("b2.inspect."+str(fact.slot))+" · "+_fact_caption(fact.slot,fact.value))
+			_board_line(pages,"past_fact",_text("b2.inspect."+str(fact.slot))+" · "+_fact_caption(fact.slot,fact.value)+(" · "+("현재 유효" if fact.current else "이전 관찰") if fact.has("current") else ""))
 	for work: Dictionary in history.get("work_records",[]):
 		var action_name := str(work.kind)
-		var title: String = {"attach":"구성품 결합","detach":"구성품 분리","restore_item":"재생·정비 작업"}.get(action_name,"구성 또는 정비")
+		var title: String = {"attach":"구성품 결합","detach":"구성품 분리","restore_item":"재생·정비 작업","discard":"폐기"}.get(action_name,"구성 또는 정비")
 		var related := str(work.get("related_item_id",""))
 		var names := _receipt_items(session.snapshot(),[related]) if not related.is_empty() else ""
 		_board_line(pages,"work_"+str(work.event_id),"작업 기록 · "+title+(" · "+names if not names.is_empty() else ""))
+		if work.has("expense"): _board_line(pages,"work_cost","정비 비용 · %s VKC / %s USD"%[work.expense.VKC,work.expense.USD])
+		if work.has("group_size"): _board_line(pages,"work_loss","폐기 %d개 · "%work.group_size+("%s VKC 손실"%work.loss.VKC if work.loss is Dictionary else "묶음 원가 손실"))
 	if r2_review_mode:
 		_board_line(pages,"claim_boundary","미확인 주장",true)
 		_board_line(pages,"claim_data","현재 물품 이력에는 확인되지 않은 주장 기록이 제공되지 않습니다.")
@@ -2178,6 +2200,9 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 			var ghost := paper(76+visible.position.x*cell,160+visible.position.y*cell,visible.size.x*cell,visible.size.y*cell,Color("#77bc8c88") if draft.result.ok else Color("#d4665488"))
 			ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var summary := _work_label(draft.kind)
+		if draft.kind=="spatial_discard":
+			var loss:Dictionary=session.discard_preview(selected)
+			summary="영구 폐기 %d개 · 원가 %s VKC / %s USD 손실"%[pending.confirmed_ids.size(),str(loss.get("basis",{}).get("VKC","?")),str(loss.get("basis",{}).get("USD","?"))]
 		var part_id := str(pending.get("child_id",""))
 		if s.items.has(part_id): summary += " · "+_text("b2.item."+str(s.items[part_id].def_id))
 		words(summary,746,455,445,38)
@@ -2232,6 +2257,10 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 				action("b2_service_repair",_text("b2.service.repair"),746,459,420,52,func()->void:
 					_preview("alpha_service_repair",{"job_id":job.job_id,"item_id":selected}))
 	_workspace_action("item_history","물품 이력",Rect2(746,630 if r2_review_mode else 611,212,44),func()->void:open_drawer("item_history")).visible = not r2_review_mode or draft.is_empty()
+	if draft.is_empty() and v.phase=="EVENING_WORK" and item.inventory=="player_stock" and s.alpha_shop.profile.has("f3_composite_trial"):
+		var disposal:Dictionary=session.alpha_discard_preview(selected)
+		if not disposal.is_empty():
+			_workspace_action("f3_discard","물품 폐기",Rect2(966,630 if r2_review_mode else 611,212,44),func()->void:_preview("spatial_discard",disposal.payload))
 	if not _message.is_empty(): words(_visible_notice(),74,645 if r2_review_mode else 608,650,55,16)
 
 func _inventory_difference(state: Dictionary,pending: Dictionary) -> String:
@@ -2307,6 +2336,7 @@ func _work_label(kind: String) -> String:
 		"spatial_restore_item","alpha_service_repair": return _text("spatial.work_restore")
 		"spatial_attach": return _text("spatial.work_attach")
 		"spatial_detach": return _text("spatial.work_detach")
+		"spatial_discard": return "영구 폐기"
 		_: return _text("spatial.place")
 
 func _discard_preview() -> void:

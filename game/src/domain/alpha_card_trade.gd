@@ -14,7 +14,7 @@ const F3Trial = preload("res://src/domain/b3_f3_composite_trial.gd")
 const F3Receipt = preload("res://src/domain/receipt_primitives.gd")
 const MAX_OFFERS: int = 3
 const MAX_OBSERVATIONS: int = 8
-const ACTIONS: Array = ["alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge"]
+const ACTIONS: Array = ["alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge","alpha_composite_consent"]
 
 static func config() -> Dictionary:
 	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_PATH))
@@ -115,6 +115,10 @@ static func _tool_rows(state: Dictionary, item_id: String) -> Array:
 	var options: Array = [{"id":"identity","text_key":"b2.inspect.identity","kind":"fact"}]
 	if F3Trial.enabled(state.alpha_shop.profile) and item.def_id==F3Trial.MODEL:
 		options.append({"id":"function_detail","text_key":"b2.inspect.function_detail","kind":"fact"})
+		var consent:Dictionary=state.alpha_shop.appraisal.visits.get(state.alpha_shop.active,{}).get("composite_consent",{})
+		if consent.get("granted",false):
+			for slot:String in ["f3_part_a","f3_part_b"]:
+				options.append({"id":slot,"text_key":"b2.inspect."+slot,"kind":"fact"})
 	for src: Dictionary in c.specimen_sources:
 		if src.def_id != item.def_id:
 			continue
@@ -138,6 +142,8 @@ static func _reading(state: Dictionary, item_id: String, slot: String) -> Dictio
 		return {"slot": slot, "value": item.def_id, "kind": "fact", "version": item.field_versions.duplicate(true)}
 	if F3Trial.enabled(state.alpha_shop.profile) and item.def_id==F3Trial.MODEL and slot=="function_detail":
 		return {"slot":slot,"value":F3Trial.signal_value(state,item_id),"kind":"fact","version":item.field_versions.duplicate(true)}
+	if F3Trial.enabled(state.alpha_shop.profile) and item.def_id==F3Trial.MODEL and slot in ["f3_part_a","f3_part_b"]:
+		return {"slot":slot,"value":F3Trial.part_signal(state,item_id,slot),"kind":"fact","version":item.field_versions.duplicate(true)}
 	for src: Dictionary in config().get("specimen_sources", []):
 		if src.def_id != item.def_id:
 			continue
@@ -228,6 +234,11 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 	if not row.accepted.is_empty():
 		return "alpha_appraisal_already_accepted"
 	match command.type:
+		"alpha_composite_consent":
+			if not p.is_empty() or not F3Trial.enabled(a.profile) or context.item.def_id!=F3Trial.MODEL or context.visit.seller=="player" or not context.visit.allow_inspection or row.has("composite_consent"):
+				return "alpha_inspect_permission"
+			# Authored customer response, read-only access for this visit only.
+			row["composite_consent"]={"granted":context.visit_id==F3Trial.BUY,"action_id":command.action_id}
 		"alpha_inspect":
 			if not Rules.keys(p,["slot"]) or not Rules.identifier(p.slot):
 				return "alpha_inspect_shape"
@@ -452,7 +463,7 @@ static func view(state: Dictionary) -> Dictionary:
 				"challenged":challenged})
 	var terms: Dictionary = context.visit.prices[context.item_id]
 	var currency := "VKC" if int(terms.VKC)>0 else "USD"
-	return {"offer_currency":currency,"item_id":context.item_id,"def_id":context.item.def_id,"we_buy":context.visit.buyer=="player",
+	var result:Dictionary={"offer_currency":currency,"item_id":context.item_id,"def_id":context.item.def_id,"we_buy":context.visit.buyer=="player",
 		"surface_seed":("%s/%s"%[state.alpha_shop.profile.get("visit_random",{}).get("seed",0),context.item_id]).sha256_text().left(8).hex_to_int(),
 		"surface_judgments":row.get("hypotheses",{}).duplicate(),
 		"tools": options,"cards":cards,"offers":history,"hypotheses":hypotheses,
@@ -460,3 +471,6 @@ static func view(state: Dictionary) -> Dictionary:
 		"claim_challenges":row.get("claim_challenges",[]).duplicate(true),
 		"commitments":[],"public_standing":public,
 		"accepted":row.accepted.duplicate(true)}
+	if F3Trial.enabled(state.alpha_shop.profile) and context.item.def_id==F3Trial.MODEL and context.visit.seller!="player":
+		result["composite_access"]="not_requested" if not row.has("composite_consent") else ("granted" if row.composite_consent.granted else "denied")
+	return result
