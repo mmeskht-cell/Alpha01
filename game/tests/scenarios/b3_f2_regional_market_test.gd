@@ -306,7 +306,7 @@ func authority_audit()->bool:
 const SERVICE_JOB := "service_w002s"
 const SERVICE_RETURN := "alpha_service_g04_return_d3"
 const GEAR_BUYER := "alpha_b3_g03_gear_d6"
-const RADIO_BUYER := "alpha_b3_g09_radio_d2"
+const RADIO_BUYER := "visit_g02_buy"
 const REQUEST_ID := "tool_for_g03"
 const COMMISSION_RETURN := "alpha_commission_g03_d4"
 
@@ -371,14 +371,28 @@ func service_memory()->bool:
 	return false
 
 func commission_memory()->bool:
+	var baseline:Dictionary=trial(101,"regional_late_v2")
+	var rows:Array=baseline.alpha_profile.days[0]
+	var availability:Dictionary={}
+	for row:Dictionary in rows: availability[row.id]=true
+	# Cheap source-only prefilter for the required D1 order. The actual
+	# session still decides admission and performs all transactions.
 	for seed_value:int in range(101,125):
+		var proposal:Dictionary=Planner.plan(rows,availability,["visit_g01","alpha_marcus_intro","alpha_ian_hygiene_offer_d1"],seed_value,1)
+		if not proposal.get("ok",false): continue
+		var ordered:Array=ids(proposal.visits)
+		if not ("radio_wholesale" in ordered and RADIO_BUYER in ordered) or ordered.find("radio_wholesale")>ordered.find(RADIO_BUYER): continue
 		var src:Dictionary=trial(seed_value,"regional_late_v2")
 		var paid:RefCounted=fresh(src)
 		if paid==null or not go(paid,"alpha_open") or not enter(paid,"visit_g01") or not settle_item(paid,"R001",100) or not display_item(paid,"R001"): continue
 		if not enter(paid,"radio_wholesale") or not go(paid,"alpha_commission_accept",{"request_id":REQUEST_ID}) or not leave(paid): continue
-		if not next_open(paid) or not enter(paid,RADIO_BUYER): continue
-		var radio_bid:int=int(paid.alpha_view().get("customer_bid_vkc",0))
-		if radio_bid<=0 or not settle_item(paid,"R001",radio_bid) or not next_open(paid): continue
+		# G09's V2 radio quote (130 basis + flow + preference) and
+		# reserve exceed that actor's real 130 VKC budget. Use the
+		# funded original G02 D1 sale AFTER accepting G03's order.
+		# No wallet top-up or relaxed eligibility.
+		if not enter(paid,RADIO_BUYER): continue
+		if not settle_item(paid,"R001",170): return check(false,"funded D1 radio resale")
+		if not next_open(paid) or not next_open(paid): return check(false,"D3 after funded D1 sale")
 		if not enter(paid,"gear_buy") or not settle_item(paid,"GE03",80) or not display_item(paid,"GE03") or not next_open(paid): continue
 		if not enter(paid,"tool_buy") or not settle_item(paid,"TL04",60) or not go(paid,"alpha_commission_reserve",{"request_id":REQUEST_ID,"item_id":"TL04"}): continue
 		var reserved:Dictionary=paid.snapshot()
