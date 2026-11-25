@@ -10,6 +10,8 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 		last_root = root_id
 		slot_page = 0
 		part_page = 0
+	var slots: Array = composition.get("slots",[])
+	slot_page = clampi(slot_page,0,maxi(0,slots.size()-1))
 	var key := JSON.stringify([root_id,composition,slot_page,part_page,restore_quote])
 	if key==view_key: return
 	view_key = key
@@ -19,7 +21,6 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 	var work := self
 	var header := HBoxContainer.new()
 	work.add_child(header)
-	var slots: Array = composition.get("slots",[])
 	var redraw := func()->void: populate(root_id,composition,items,catalog,copy,translate,preview,restore_quote,drop_part)
 	var restore := Button.new()
 	restore.name = "repair"
@@ -27,10 +28,10 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 	restore.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if not restore_quote.is_empty():
 		restore.tooltip_text = "작업비 · %d VKC / %d USD"%[int(restore_quote.VKC),int(restore_quote.USD)]
+		if int(restore_quote.USD)==0: restore.text = str(copy.repair)+" · %d VKC"%int(restore_quote.VKC)
 	header.add_child(restore)
 	restore.custom_minimum_size.y = 44
 	restore.pressed.connect(func()->void:preview.call("spatial_restore_item",{"actor":"player","item_id":root_id}))
-	slot_page = clampi(slot_page,0,maxi(0,slots.size()-1))
 	if slots.size()>1:
 		var next := Button.new()
 		next.text = "작업 위치 %d/%d ›"%[slot_page+1,slots.size()]
@@ -41,6 +42,8 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 			redraw.call())
 	for slot: Dictionary in slots.slice(slot_page,slot_page+1):
 		var child := str(slot.item_id)
+		var tag := str(slot.get("tag",""))
+		var slot_title: String = {"f3_module_a":"모듈 A","f3_module_b":"모듈 B"}.get(tag,"")
 		var socket := Button.new()
 		socket.custom_minimum_size = Vector2(0,44)
 		socket.expand_icon = true
@@ -56,7 +59,7 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 			socket.tooltip_text = str(copy.detach) if not detach.is_empty() else "분리할 수 있는 창고 자리 또는 권한 없음"
 			socket.pressed.connect(func()->void:preview.call("spatial_detach",detach.duplicate(true)))
 		else:
-			socket.text = copy.empty_slot
+			socket.text = str(copy.empty_slot) if slot_title.is_empty() else slot_title+" · 빈 자리"
 			var candidates := {}
 			var alternatives := HBoxContainer.new()
 			work.add_child(alternatives)

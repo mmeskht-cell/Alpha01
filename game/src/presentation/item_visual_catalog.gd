@@ -26,8 +26,15 @@ func profile_for(item_id:String,role:String)->Profile:
 
 @export var model_art: Dictionary = {}
 
+# The isolated civilian receiver uses the approved new radio model, never R001.
+# Module B has the approved control-module image; module A has no distinct approved image yet.
+# These bindings are presentation only and cannot alter the definition or item identity.
+const CIVILIAN_MODEL_ART = {"f3_receiver_v1":"utility_01_field_radio","f3_module_b":"utility_10_control_module"}
+
 func model_texture(model: String,role: String,item_id: String="",back: bool=false) -> Texture2D:
 	# Exact candidate art keys only. Do not pretend a missing food image is electronics.
+	if CIVILIAN_MODEL_ART.has(model): return CivilianVisuals.texture_for(str(CIVILIAN_MODEL_ART[model]),role,back)
+	if model=="f3_module_a": return null
 	if FoodVisuals.LABELS.has(model): return FoodVisuals.texture_for(model,role,back)
 	if CivilianVisuals.LABELS.has(model): return CivilianVisuals.texture_for(model,role,back)
 	var entry: Dictionary = model_art.get(model,{})
