@@ -41,5 +41,16 @@ func _initialize() -> void:
 	var revised := Quote.basis({"estimate":{"VKC":{"low":140,"high":180}}},"VKC")
 	check(Quote.amount(first,500)==100 and Quote.amount(revised,500)==80 and first.amount==200,"new valuation does not mutate prior basis; same ratio preview")
 	check(before.offers[0]==notes.offers[0] and before.claim_challenges==notes.claim_challenges,"old public event records preserved")
+	var voices := {}
+	var samples := {}
+	for actor: String in ["G01","G02","G03","G04","G05","G06","G07","G08","G09","G10","G11","G12"]:
+		voices[Dialogue.voice(actor)] = true
+		samples[Dialogue.line({},true,actor)] = true
+	check(voices.size()>1 and samples.size()>1,"stable visitor wording is varied")
+	check(Dialogue.line({},true,"G01")==Dialogue.line({},true,"G01"),"same visitor stable after refresh")
+	var public := {"current_offer":{"response":"declined","public_slots":["material_detail"]}}
+	var secret := public.duplicate(true)
+	secret["private_reading"]="SECRET"
+	check(Dialogue.line(public,true,"G02")==Dialogue.line(secret,true,"G02") and Dialogue.line(public,true,"G02").contains("재질"),"variant remains grounded in public topic")
 	print("B3_PUBLIC_DIALOGUE: ",checks," checks, ",failures," failures")
 	quit(1 if failures>0 else 0)

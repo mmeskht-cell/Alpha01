@@ -40,4 +40,4 @@ func bind(family: String, variant: int, judging: bool, percent: int) -> void:
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.add_theme_font_size_override("font_size",roundi(16*percent/100.0))
 		column.add_child(label)
-	link(self,"비교 예시  ·  내 판단 기록 ›",func()->void: turn.emit(family,variant,true))
+	link(self,"비교 예시  ·  내 판단 기록 ›",func()->void: turn.emit(family,variant,true)).name = "surface_judgment_open"

@@ -124,4 +124,35 @@ func counter_drag(resolution: Vector2i) -> bool:
 	await capture("w20_attached_"+str(resolution.y),resolution)
 	if not await click_navigation(host,"notes"): return false
 	await capture("w20_surface_"+str(resolution.y),resolution)
-	return check(host.session.snapshot().revision==before+2,"opening reference has no authority effect")
+	if not check(host.session.snapshot().revision==before+2,"opening reference has no authority effect"): return false
+	return await valuation_update_route(resolution)
+
+func valuation_update_route(resolution: Vector2i) -> bool:
+	var initial: Dictionary = host.session.snapshot()
+	if not await click_navigation(host,"book_prices"): return false
+	if not await click_navigation(host,"basis_catalog_selvar_r18"): return false
+	if not await click_navigation(host,"close_drawer"): return false
+	for step in range(10):
+		if not await click_navigation(host,"ratio_minus_5"): return false
+	var amount := host.find_child("offer_amount",true,false) as Label
+	if not check(amount!=null and amount.text=="100 VKC" and host.offer_ratio==500 and host.session.snapshot()==initial,"initial 50 percent offer is read-only"): return false
+	if not await click_navigation(host,"notes"): return false
+	if not await click_navigation(host,"book_surface"): return false
+	if not await click_navigation(host,"surface_judgment_open"): return false
+	if not await click("exterior_moderate","CUSTOMER_ACTIVE"): return false
+	var judged: Dictionary = host.session.snapshot()
+	if not check(judged.revision==initial.revision+1 and judged.wallets==initial.wallets and judged.ledger==initial.ledger and judged.items==initial.items,"new private judgment changes only authorized record"): return false
+	if not await click_navigation(host,"close_drawer"): return false
+	amount = host.find_child("offer_amount",true,false) as Label
+	var basis := host.find_child("counter_offer",true,false) as Button
+	if not check(amount!=null and amount.text=="100 VKC" and basis!=null and basis.text.contains("160"),"old offer frozen while new appraisal shown"): return false
+	await capture("w20_valuation_pending_"+str(resolution.y),resolution)
+	if not await click_navigation(host,"counter_offer"): return false
+	if not await click_navigation(host,"basis_update"): return false
+	if not await click_navigation(host,"close_drawer"): return false
+	amount = host.find_child("offer_amount",true,false) as Label
+	if not check(amount!=null and amount.text=="80 VKC" and host.offer_ratio==500 and host.session.snapshot()==judged,"explicit valuation update retains ratio and changes only draft"): return false
+	var public: Dictionary = host.session.alpha_view().npc_context
+	if not check(public.current_offer.is_empty() and public.latest_spoken.is_empty(),"private assessment and ratio never become NPC speech"): return false
+	await capture("w20_valuation_applied_"+str(resolution.y),resolution)
+	return true

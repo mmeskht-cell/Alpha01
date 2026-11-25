@@ -769,7 +769,7 @@ func _counter_speech(v: Dictionary) -> String:
 	if a.is_empty():
 		var original := _b2_npc_line(v)
 		return original if not original.is_empty() else _text(v.active.purpose_key)
-	return CounterDialogue.line(v.get("npc_context",{}),bool(a.we_buy))
+	return CounterDialogue.line(v.get("npc_context",{}),bool(a.we_buy),str(v.active.actor_id))
 
 func _counter_caption(actor: String,speech: String) -> void:
 	var nameplate := words(actor,813,65,400,28,16)
@@ -1120,6 +1120,7 @@ func _surface_page(pages: VBoxContainer,v: Dictionary) -> void:
 		else:
 			for index in range(values.size()):
 				var grade := Button.new()
+				grade.name = "exterior_"+str(values[index])
 				grade.text = str(labels[index])
 				grade.tooltip_text = "내 외관 판단"
 				grade.custom_minimum_size.y = 44
