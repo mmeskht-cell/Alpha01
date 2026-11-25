@@ -230,10 +230,81 @@ func expanded_supply()->bool:
 		return true
 	return false
 
+## Boundary audit uses a genuine acquired item, not modified live state.
+## Mutated snapshots are attempted only through restore(), and must fail.
+func authority_audit()->bool:
+	for seed_value:int in range(101,125):
+		var src:Dictionary = trial(seed_value,"regional_late_v2")
+		var s:RefCounted = fresh(src)
+		if s==null or not go(s,"alpha_open") or not next_open(s): continue
+		if not enter(s,"battery_buy") or not settle_item(s,"BAT02",40) or not display_item(s,"BAT02"): continue
+		var purchase:Dictionary = s.snapshot()
+		var event_id:String = purchase.ledger.back().event_id
+		# Repricing is an authorized public shelf action; it must not
+		# fabricate supply pressure or erase the original receipt.
+		for n:int in range(34):
+			if not go(s,"alpha_reprice_display",{"item_id":"BAT02","amount":60+n,"currency":"VKC"}): return check(false,"real shelf repricing")
+		if not next_open(s) or not next_open(s): return check(false,"later market opening")
+		if FOUR not in s.snapshot().alpha_shop.random_visits.plan: continue
+		if not enter(s,FOUR): return check(false,"real returning buyer")
+		var opening:Dictionary = s.snapshot()
+		var bid:int = int(s.alpha_view().get("customer_bid_vkc",0))
+		check(opening.receipt_archive.has(event_id) and not opening.receipts.has(event_id) and opening.receipts.size()<=Session.MAX_RECEIPTS,"actual receipt compaction retains archived settlement")
+		check(Market.market_history(opening,4).flows=={"port_battery":-1} and Market.market_history(opening,4).counts=={"port_battery":1},"archived trade counts once; 34 shelf prices do not count")
+		check(opening.wallets==purchase.wallets and opening.items==purchase.items and opening.ledger==purchase.ledger,"repeated repricing cannot alter physical goods or money")
+		check(bid>0 and bid==int(opening.visits[FOUR].prices.BAT02.VKC),"only the active real bid is projected")
+		var old:Dictionary = opening.alpha_shop.commands[int(purchase.ledger.back().revision)-1]
+		s.execute(old)
+		check(s.snapshot()==opening,"replayed archived payment cannot execute again")
+		var forged:Dictionary = opening.duplicate(true)
+		forged.visits[FOUR].prices.BAT02.VKC+=1
+		check(not s.restore(forged) and s.snapshot()==opening,"forged live market quote rejected atomically")
+		forged=opening.duplicate(true)
+		forged.wallets.player.VKC+=1
+		check(not s.restore(forged) and s.snapshot()==opening,"forged cash rejected atomically")
+		forged=opening.duplicate(true)
+		forged.alpha_shop.profile.battery_market="regional_regular_v2"
+		check(not s.restore(forged) and s.snapshot()==opening,"supply profile swap rejected")
+		var other:RefCounted = fresh(trial(seed_value,"regional_regular_v2"))
+		if not check(other!=null,"independent regular profile initializes"): return false
+		var other_before:Dictionary = other.snapshot()
+		check(not other.restore(opening) and other.snapshot()==other_before,"cold restore rejects another profile's otherwise valid save")
+		var fit:Dictionary = s.spatial_fit("BAT02","G11_grid")
+		if not fit.get("ok",false): return check(false,"real buyer placement")
+		var p:Dictionary = trade(FOUR,"player","G11",bid,"G11_grid",fit.x,fit.y)
+		p.item_id="BAT02"
+		p.rotated=fit.rotated
+		check(not s.execute(command(s,"alpha_trade",p)).get("ok",false) and s.snapshot()==opening,"public bid is not a payment agreement")
+		if not go(s,"alpha_price_offer",{"amount":1}): return false
+		var refused:Dictionary = s.snapshot()
+		check(s.alpha_view().appraisal.offers.back().response=="declined" and s.alpha_view().customer_bid_vkc==bid and refused.wallets==opening.wallets and refused.items==opening.items,"refusal cannot change frozen bid or assets")
+		check(not s.execute(command(s,"alpha_price_offer",{"amount":1})).get("ok",false) and s.snapshot()==refused,"duplicate offer is rejected without repricing")
+		if not go(s,"alpha_price_offer",{"amount":bid}): return false
+		var accepted:Dictionary = s.snapshot()
+		check(accepted.wallets==opening.wallets and accepted.items==opening.items and accepted.ledger==opening.ledger,"acceptance remains separate from settlement")
+		var wrong:Dictionary = p.duplicate(true)
+		wrong.amount+=1
+		check(not s.execute(command(s,"alpha_trade",wrong)).get("ok",false) and s.snapshot()==accepted,"altered agreed amount rejected")
+		wrong=p.duplicate(true)
+		wrong.currency="USD"
+		check(not s.execute(command(s,"alpha_trade",wrong)).get("ok",false) and s.snapshot()==accepted,"currency substitution rejected")
+		var payment:Dictionary = command(s,"alpha_trade",p)
+		if not s.execute(payment).get("ok",false): return check(false,"actual agreed payment")
+		var paid:Dictionary = s.snapshot()
+		s.execute(payment)
+		check(s.snapshot()==paid and paid.items.BAT02.owner_id=="G11" and paid.ledger.size()==opening.ledger.size()+1,"one actual payment and one original item")
+		check(wallet_total(paid.wallets,"VKC")==wallet_total(opening.wallets,"VKC") and wallet_total(paid.wallets,"USD")==wallet_total(opening.wallets,"USD"),"actual global balances conserved")
+		check(not s.alpha_view().has("customer_bid_vkc"),"completed customer cannot expose a new bid")
+		var store_repo:=Repo.new("user://zt_rebuild/f2_audit_"+str(Time.get_ticks_usec()))
+		var cold:RefCounted=fresh(src)
+		check(store_repo.save_session(s,"audit").get("ok",false) and cold!=null and store_repo.load_session(cold,"audit").get("ok",false) and cold.snapshot()==paid and cold.alpha_view()==s.alpha_view(),"cold A/B save after archived receipt, rejected commands and actual sale")
+		return true
+	return false
+
 func _initialize()->void:
 	var args:=OS.get_cmdline_user_args()
 	var part:String = args[0] if args.size()==1 else "all"
-	if part not in ["all","quotes","memory","finite","recovery","scope","week","supplier"]: check(false,"unknown regional market part")
+	if part not in ["all","quotes","memory","finite","recovery","scope","week","supplier","authority"]: check(false,"unknown regional market part")
 	if part in ["all","quotes"]:
 		var bad:Dictionary = trial(101,"regional_regular_v1")
 		bad.state.visits[LOW].prices.EL06.VKC+=1
@@ -246,5 +317,6 @@ func _initialize()->void:
 	if part in ["all","scope"]: expanded_scope()
 	if part in ["all","week"]: check(complete_tool_week(),"expanded paid seven-day route reached")
 	if part in ["all","supplier"]: check(expanded_supply(),"expanded actual repeat supplier branches reached")
+	if part in ["all","authority"]: check(authority_audit(),"V2 authority and archive audit path reached")
 	print("B3_F2_REGIONAL_PART ",part,": ",checks," checks, ",failures," failures")
 	quit(0 if failures==0 and checks>0 else 1)
