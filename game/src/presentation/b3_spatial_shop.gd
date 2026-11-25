@@ -474,7 +474,7 @@ func _rebuild_stage() -> void:
 					docket.mouse_filter = Control.MOUSE_FILTER_IGNORE
 					var stamp := words("거래 영수증 · %d일차"%v.day,820,449,391,39,17)
 					var direction := "지출" if receipt.from=="player" else ("수입" if receipt.to=="player" else "거래액")
-				var amount := words("%s · %d VKC / %d USD"%[direction,receipt.amounts.VKC,receipt.amounts.USD],820,488,391,45,21)
+					var amount := words("%s · %d VKC / %d USD"%[direction,receipt.amounts.VKC,receipt.amounts.USD],820,488,391,45,21)
 					for field: Label in [stamp,amount]:
 						field.remove_theme_constant_override("outline_size")
 						field.add_theme_color_override("font_color",Color("#30271e"))
