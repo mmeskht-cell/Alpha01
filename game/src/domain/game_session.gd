@@ -636,8 +636,12 @@ func alpha_item_history(item_id: String, current_visit: String="") -> Dictionary
 			if p.get("actor")!="player" or event.item_ids!=[p.get("root_id"),p.get("child_id")]:
 				continue
 			row["related_item_id"] = p.child_id if p.root_id==item_id else p.root_id
+			if a.profile.has("f3_composite_trial"):
+				row["role"]="root" if p.root_id==item_id else "child"
 		elif event.item_ids!=[p.get("item_id")]:
 			continue
+		elif a.profile.has("f3_composite_trial") and event.type=="restore_item":
+			row["expense"]=event.expenses.duplicate(true)
 		if result.work_records.size()>=ItemLineage.DISPLAY_LIMIT:
 			result.work_omitted += 1
 		else:

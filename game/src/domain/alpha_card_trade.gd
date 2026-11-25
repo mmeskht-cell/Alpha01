@@ -10,6 +10,7 @@ const Commission = preload("res://src/domain/alpha_commission.gd")
 const CONFIG_PATH: String = "res://data/alpha_b2/cards_pilot_1.json"
 const CLAIMS_PATH: String = "res://data/alpha_b2/customer_claims_1.json"
 const SURFACE_CHOICES := {"material":["unknown","metal","plastic","paper","fabric","glass"],"exterior":["unknown","minimal","moderate","severe"]}
+const F3Trial = preload("res://src/domain/b3_f3_composite_trial.gd")
 const MAX_OFFERS: int = 3
 const MAX_OBSERVATIONS: int = 8
 const ACTIONS: Array = ["alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge"]
@@ -111,6 +112,8 @@ static func _tool_rows(state: Dictionary, item_id: String) -> Array:
 		return []
 	var item: Dictionary = state.items[item_id]
 	var options: Array = [{"id":"identity","text_key":"b2.inspect.identity","kind":"fact"}]
+	if F3Trial.enabled(state.alpha_shop.profile) and item.def_id==F3Trial.MODEL:
+		options.append({"id":"function_detail","text_key":"b2.inspect.function_detail","kind":"fact"})
 	for src: Dictionary in c.specimen_sources:
 		if src.def_id != item.def_id:
 			continue
@@ -132,6 +135,8 @@ static func _reading(state: Dictionary, item_id: String, slot: String) -> Dictio
 	var item: Dictionary = state.items[item_id]
 	if slot == "identity":
 		return {"slot": slot, "value": item.def_id, "kind": "fact", "version": item.field_versions.duplicate(true)}
+	if F3Trial.enabled(state.alpha_shop.profile) and item.def_id==F3Trial.MODEL and slot=="function_detail":
+		return {"slot":slot,"value":F3Trial.signal_value(state,item_id),"kind":"fact","version":item.field_versions.duplicate(true)}
 	for src: Dictionary in config().get("specimen_sources", []):
 		if src.def_id != item.def_id:
 			continue
@@ -371,7 +376,10 @@ static func prior_disclosures(state: Dictionary,item_id: String,current_visit: S
 		for offer: Dictionary in row.get("offers",[]):
 			var facts: Array = []
 			for observation: Dictionary in offer.get("revealed",[]):
-				facts.append({"slot":observation.slot,"value":observation.value})
+				var fact:Dictionary={"slot":observation.slot,"value":observation.value}
+				if F3Trial.enabled(state.alpha_shop.profile) and item_id==F3Trial.ROOT:
+					fact["current"]=F3Trial.observation_current(state,item_id,observation)
+				facts.append(fact)
 			records.append({"amount":offer.amount,"currency":offer.currency,"response":offer.response,"facts":facts,"assessment":offer.get("private_assessment",{}).duplicate(),"observed_slots":offer.get("observed_slots",[]).duplicate()})
 	return records
 
