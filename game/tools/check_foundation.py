@@ -96,7 +96,7 @@ for test in tests:
     elif test == 'scenarios/b3_f2_battery_market_test':
         commands.extend(command + ['--', part] for part in ('supply', 'regular', 'late', 'resale'))
     elif test == 'scenarios/b3_f2_regional_market_test':
-        commands.extend(command + ['--', part] for part in ('quotes', 'memory', 'finite', 'recovery', 'scope', 'week', 'supplier', 'authority'))
+        commands.extend(command + ['--', part] for part in ('quotes', 'memory', 'finite', 'recovery', 'scope', 'week', 'supplier', 'authority', 'service_memory', 'commission_memory'))
     elif test == 'scenarios/b3_spatial_week_daily_test':
         commands.extend(command + ['--', part] for part in (
             'return', 'empty', 'cancel', 'redeem', 'extend',

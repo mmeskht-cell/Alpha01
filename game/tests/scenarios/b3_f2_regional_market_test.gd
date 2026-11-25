@@ -301,10 +301,124 @@ func authority_audit()->bool:
 		return true
 	return false
 
+## Real service custody, not a synthetic reputation flag. Compare paid
+## completion against unpaid return from the same consent and physical item.
+const SERVICE_JOB := "service_w002s"
+const SERVICE_RETURN := "alpha_service_g04_return_d3"
+const GEAR_BUYER := "alpha_b3_g03_gear_d6"
+const RADIO_BUYER := "alpha_b3_g09_radio_d2"
+const REQUEST_ID := "tool_for_g03"
+const COMMISSION_RETURN := "alpha_commission_g03_d4"
+
+func service_radio_day(s:RefCounted, paid:bool)->bool:
+	var collected:bool=false
+	var bought:bool=false
+	while int(s.alpha_view().remaining)>0:
+		if not go(s,"alpha_next_customer") or not go(s,"alpha_ack_entry"): return false
+		var id:String = s.alpha_view().active.id
+		if id==SERVICE_RETURN:
+			var action:String = "alpha_service_deliver" if paid else "alpha_service_return_unpaid"
+			if not go(s,action,{"job_id":SERVICE_JOB}) or not go(s,"alpha_ack_exit"): return false
+			collected=true
+		elif id=="radio3_buy":
+			if not settle_item(s,"R003",40) or not display_item(s,"R003"): return false
+			bought=true
+		elif not leave(s): return false
+	return collected and bought
+
+func service_memory()->bool:
+	for seed_value:int in range(101,125):
+		var src:Dictionary = trial(seed_value,"regional_late_v2")
+		var paid:RefCounted=fresh(src)
+		if paid==null or not go(paid,"alpha_open") or not next_open(paid): continue
+		if not enter(paid,"watch_a") or not go(paid,"alpha_service_accept",{"job_id":SERVICE_JOB}) or not leave(paid): continue
+		if not go(paid,"alpha_close") or not go(paid,"alpha_settle"): return false
+		var agreed:Dictionary=paid.snapshot()
+		var unpaid:RefCounted=fork_session(src,agreed)
+		if unpaid==null: return false
+		if not go(paid,"alpha_service_repair",{"job_id":SERVICE_JOB,"item_id":"W002S"}): return false
+		var ready:bool=true
+		for session:RefCounted in [paid,unpaid]:
+			if not go(session,"alpha_next_day") or not go(session,"alpha_prepare_day") or not go(session,"alpha_open"):
+				return false
+			if SERVICE_RETURN not in session.snapshot().alpha_shop.random_visits.plan or "radio3_buy" not in session.snapshot().alpha_shop.random_visits.plan:
+				ready=false
+				break
+			if not service_radio_day(session,session==paid): return false
+			for day:int in range(4,7):
+				if not next_open(session): return false
+			if RADIO not in session.snapshot().alpha_shop.random_visits.plan:
+				ready=false
+				break
+			if not enter(session,RADIO): return false
+		if not ready: continue
+		var a:Dictionary=paid.snapshot()
+		var b:Dictionary=unpaid.snapshot()
+		var av:Dictionary=paid.alpha_view()
+		var bv:Dictionary=unpaid.alpha_view()
+		var quote_a:int=int(av.get("customer_bid_vkc",0))
+		var quote_b:int=int(bv.get("customer_bid_vkc",0))
+		check(agreed.items.W002S.owner_id=="G04" and agreed.items.W002S.custodian_id=="player","shared actual service consent and custody")
+		check(a.items.W002S.owner_id=="G04" and a.items.W002S.custodian_id=="G04" and a.items.W002S.functional and not b.items.W002S.functional and b.items.W002S.custodian_id=="G04","same customer object returned with real differing repair outcome")
+		check(a.wallets.G04.VKC==b.wallets.G04.VKC-40 and a.wallets.player.VKC==b.wallets.player.VKC+30,"actual fee and ten VKC work cost, no phantom money")
+		check(a.alpha_shop.services.settlements.size()==1 and a.alpha_shop.services.settlements[0].paid.VKC==40 and b.alpha_shop.services.settlements.size()==1 and b.alpha_shop.services.settlements[0].paid.VKC==0,"each branch has one actual service settlement")
+		check(a.items.R003==b.items.R003 and Market.market_history(a,6)==Market.market_history(b,6),"service fee never masquerades as merchandise flow")
+		check(Market.prior_terms(a.alpha_shop,"G04")==2 and Market.prior_terms(b.alpha_shop,"G04")==0 and quote_a>0 and quote_a-quote_b==2,"completed service causes real different later radio bid")
+		check(av.npc_context.prior.get("outcome")=="service_delivered","returning customer public conversation reflects paid service")
+		if not settle_item(paid,"R003",quote_a) or not settle_item(unpaid,"R003",quote_b): return check(false,"both actual later buyer settlements")
+		check(paid.snapshot().items.R003.owner_id=="G04" and unpaid.snapshot().items.R003.owner_id=="G04","one original radio moves to funded customer in each alternative")
+		return true
+	return false
+
+func commission_memory()->bool:
+	for seed_value:int in range(101,125):
+		var src:Dictionary=trial(seed_value,"regional_late_v2")
+		var paid:RefCounted=fresh(src)
+		if paid==null or not go(paid,"alpha_open") or not enter(paid,"visit_g01") or not settle_item(paid,"R001",100) or not display_item(paid,"R001"): continue
+		if not enter(paid,"radio_wholesale") or not go(paid,"alpha_commission_accept",{"request_id":REQUEST_ID}) or not leave(paid): continue
+		if not next_open(paid) or not enter(paid,RADIO_BUYER): continue
+		var radio_bid:int=int(paid.alpha_view().get("customer_bid_vkc",0))
+		if radio_bid<=0 or not settle_item(paid,"R001",radio_bid) or not next_open(paid): continue
+		if not enter(paid,"gear_buy") or not settle_item(paid,"GE03",80) or not display_item(paid,"GE03") or not next_open(paid): continue
+		if not enter(paid,"tool_buy") or not settle_item(paid,"TL04",60) or not go(paid,"alpha_commission_reserve",{"request_id":REQUEST_ID,"item_id":"TL04"}): continue
+		var reserved:Dictionary=paid.snapshot()
+		var cancelled:RefCounted=fork_session(src,reserved)
+		if cancelled==null: return false
+		if not go(cancelled,"alpha_commission_cancel",{"request_id":REQUEST_ID}): return false
+		if not enter(paid,COMMISSION_RETURN) or not go(paid,"alpha_commission_deliver",{"request_id":REQUEST_ID}) or not go(paid,"alpha_ack_exit"): return false
+		var ready:bool=true
+		for session:RefCounted in [paid,cancelled]:
+			if not next_open(session) or not next_open(session): return false
+			if GEAR_BUYER not in session.snapshot().alpha_shop.random_visits.plan:
+				ready=false
+				break
+			if not enter(session,GEAR_BUYER): return false
+		if not ready: continue
+		var a:Dictionary=paid.snapshot()
+		var b:Dictionary=cancelled.snapshot()
+		var av:Dictionary=paid.alpha_view()
+		var bv:Dictionary=cancelled.alpha_view()
+		var quote_a:int=int(av.get("customer_bid_vkc",0))
+		var quote_b:int=int(bv.get("customer_bid_vkc",0))
+		check(reserved.items.TL04.owner_id=="player" and reserved.items.TL04.reservation_id==REQUEST_ID,"shared physical commission reservation")
+		check(a.items.TL04.owner_id=="G03" and b.items.TL04.owner_id=="player" and b.items.TL04.reservation_id.is_empty(),"paid delivery versus released cancellation")
+		check(a.wallets.G03.VKC==b.wallets.G03.VKC-90 and a.wallets.player.VKC==b.wallets.player.VKC+90 and a.ledger.size()==b.ledger.size()+1,"actual contract payment exactly once")
+		check(a.alpha_shop.commissions.settlements.size()==1 and b.alpha_shop.commissions.settlements.is_empty(),"cancellation creates no contract revenue")
+		check(a.items.GE03==b.items.GE03 and Market.market_history(a,6)==Market.market_history(b,6),"commission stays distinct from ordinary market-flow ledger")
+		check(Market.prior_terms(a.alpha_shop,"G03")==2 and Market.prior_terms(b.alpha_shop,"G03")==0 and quote_a>0 and quote_a-quote_b==2,"completed commission changes subsequent actual buyer quote")
+		check(av.npc_context.prior.get("outcome")=="commission_delivered","returning customer remembers completed commission")
+		if not settle_item(paid,"GE03",quote_a) or not settle_item(cancelled,"GE03",quote_b): return check(false,"both funded later purchase opportunities settle")
+		check(paid.snapshot().items.GE03.owner_id=="G03" and cancelled.snapshot().items.GE03.owner_id=="G03","later physical good changes owner once per alternative")
+		var store_repo:=Repo.new("user://zt_rebuild/f2_commission_memory_"+str(Time.get_ticks_usec()))
+		var cold:RefCounted=fresh(src)
+		check(store_repo.save_session(paid,"fulfilled").get("ok",false) and cold!=null and store_repo.load_session(cold,"fulfilled").get("ok",false) and cold.snapshot()==paid.snapshot(),"cold save replays fulfilled order and subsequent trade")
+		return true
+	return false
+
 func _initialize()->void:
 	var args:=OS.get_cmdline_user_args()
 	var part:String = args[0] if args.size()==1 else "all"
-	if part not in ["all","quotes","memory","finite","recovery","scope","week","supplier","authority"]: check(false,"unknown regional market part")
+	if part not in ["all","quotes","memory","finite","recovery","scope","week","supplier","authority","service_memory","commission_memory"]: check(false,"unknown regional market part")
 	if part in ["all","quotes"]:
 		var bad:Dictionary = trial(101,"regional_regular_v1")
 		bad.state.visits[LOW].prices.EL06.VKC+=1
@@ -318,5 +432,7 @@ func _initialize()->void:
 	if part in ["all","week"]: check(complete_tool_week(),"expanded paid seven-day route reached")
 	if part in ["all","supplier"]: check(expanded_supply(),"expanded actual repeat supplier branches reached")
 	if part in ["all","authority"]: check(authority_audit(),"V2 authority and archive audit path reached")
+	if part in ["all","service_memory"]: check(service_memory(),"real paid and unpaid service memory branches reached")
+	if part in ["all","commission_memory"]: check(commission_memory(),"real fulfilled and cancelled commission memory branches reached")
 	print("B3_F2_REGIONAL_PART ",part,": ",checks," checks, ",failures," failures")
 	quit(0 if failures==0 and checks>0 else 1)
