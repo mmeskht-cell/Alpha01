@@ -104,9 +104,31 @@ func f3_route()->bool:
 		check(history.records.size()==3 and history.records[0].amounts.VKC==90 and history.records[1].amounts.VKC==100 and history.records[2].amounts.VKC==70 and history.work_records==old.work_records,"purchase repair sale return chronological lineage")
 		check(f3_find_fact(history.prior_offers,"function_detail","inoperable").get("current")==false and f3_find_fact(history.prior_offers,"function_detail","serviceable").get("current")==true,"new facts never rewrite old appraisal")
 		check(wallet_total(final.wallets,"VKC")==wallet_total(src.state.wallets,"VKC")-5 and wallet_total(final.wallets,"USD")==wallet_total(src.state.wallets,"USD"),"only actual workshop expense leaves economy")
+		var proposals:Array=history.prior_offers
+		check(proposals.size()==3 and proposals[0].amount==70 and proposals[1].amount==100 and proposals[2].amount==90,"actual chronological proposals, not alphabetical visit IDs")
+		if proposals.size()==3:
+			check(proposals[0].revision<proposals[1].revision and proposals[1].revision<proposals[2].revision,"history order uses genuine receipt revisions")
 		var db:=Repo.new("user://zt_rebuild/f3_composite_"+str(Time.get_ticks_usec()))
 		var cold:RefCounted=fresh(src)
-		check(db.save_session(s,"composite").get("ok",false) and cold!=null and db.load_session(cold,"composite").get("ok",false) and cold.snapshot()==final and cold.alpha_item_history(F3.ROOT)==history,"cold replay preserves physical lineage and appraisal dates")
+		var saved:Dictionary=db.save_session(s,"composite")
+		check(saved.get("ok",false),"composite A/B disk save: "+str(saved.get("error","ok")))
+		if not check(cold!=null,"independent cold source initializes"): return false
+		var loaded:Dictionary=db.load_session(cold,"composite")
+		check(loaded.get("ok",false),"composite A/B disk restore: "+str(loaded.get("error","ok")))
+		check(cold.snapshot()==final,"cold physical state, wallet, ledger and journal unchanged")
+		check(cold.alpha_item_history(F3.ROOT)==history,"cold replay preserves physical lineage and appraisal dates")
+		var reopened:Dictionary=cold.alpha_item_history(F3.ROOT,F3.RETURN)
+		check(reopened.prior_offers.size()==2 and reopened.prior_offers[0].amount==70 and reopened.prior_offers[1].amount==100,"current visit excluded without reordering earlier proposals")
+		# Explicitly reverse the insertion order of this dictionary only.
+		# Same canonical state, same commands, no injected economic facts.
+		var reordered:Dictionary=final.duplicate(true)
+		var old_rows:Dictionary=reordered.alpha_shop.appraisal.visits
+		var keys:Array=old_rows.keys()
+		keys.reverse()
+		var reversed_rows:Dictionary={}
+		for id:String in keys: reversed_rows[id]=old_rows[id]
+		reordered.alpha_shop.appraisal.visits=reversed_rows
+		check(cold.restore(reordered) and cold.snapshot()==final and cold.alpha_item_history(F3.ROOT)==history,"dictionary order cannot alter actual appraisal history")
 		return true
 	return false
 

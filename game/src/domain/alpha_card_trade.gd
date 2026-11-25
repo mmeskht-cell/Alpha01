@@ -11,6 +11,7 @@ const CONFIG_PATH: String = "res://data/alpha_b2/cards_pilot_1.json"
 const CLAIMS_PATH: String = "res://data/alpha_b2/customer_claims_1.json"
 const SURFACE_CHOICES := {"material":["unknown","metal","plastic","paper","fabric","glass"],"exterior":["unknown","minimal","moderate","severe"]}
 const F3Trial = preload("res://src/domain/b3_f3_composite_trial.gd")
+const F3Receipt = preload("res://src/domain/receipt_primitives.gd")
 const MAX_OFFERS: int = 3
 const MAX_OBSERVATIONS: int = 8
 const ACTIONS: Array = ["alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge"]
@@ -369,6 +370,10 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 ## A proposal can exist without a completed transfer.
 static func prior_disclosures(state: Dictionary,item_id: String,current_visit: String) -> Array:
 	var records: Array = []
+	# JSON canonicalization sorts dictionary keys. For the new composite
+	# profile, actual receipt revisions, not visit-key insertion order,
+	# define the chronological sequence of historical proposals.
+	var ordered:bool=F3Trial.enabled(state.alpha_shop.profile) and item_id==F3Trial.ROOT
 	var visits: Dictionary = state.get("alpha_shop",{}).get("appraisal",{}).get("visits",{})
 	for visit_id: String in visits:
 		var row: Dictionary = visits[visit_id]
@@ -377,10 +382,20 @@ static func prior_disclosures(state: Dictionary,item_id: String,current_visit: S
 			var facts: Array = []
 			for observation: Dictionary in offer.get("revealed",[]):
 				var fact:Dictionary={"slot":observation.slot,"value":observation.value}
-				if F3Trial.enabled(state.alpha_shop.profile) and item_id==F3Trial.ROOT:
+				if ordered:
 					fact["current"]=F3Trial.observation_current(state,item_id,observation)
 				facts.append(fact)
-			records.append({"amount":offer.amount,"currency":offer.currency,"response":offer.response,"facts":facts,"assessment":offer.get("private_assessment",{}).duplicate(),"observed_slots":offer.get("observed_slots",[]).duplicate()})
+			var record:Dictionary={"amount":offer.amount,"currency":offer.currency,"response":offer.response,"facts":facts,"assessment":offer.get("private_assessment",{}).duplicate(),"observed_slots":offer.get("observed_slots",[]).duplicate()}
+			if ordered:
+				var rev:int=F3Receipt.receipt_revision(state,offer.get("action_id",""))
+				var journal:Array=state.alpha_shop.commands
+				if rev<1 or rev>journal.size(): continue
+				var cmd:Dictionary=journal[rev-1]
+				if cmd.type!="alpha_price_offer" or cmd.action_id!=offer.action_id or cmd.payload.get("amount")!=offer.amount or not F3Receipt.matches_receipt(state,cmd.action_id,cmd.type,cmd.payload,rev): continue
+				record["revision"]=rev
+			records.append(record)
+	if ordered:
+		records.sort_custom(func(a:Dictionary,b:Dictionary)->bool:return int(a.revision)<int(b.revision))
 	return records
 
 static func trade_gate(state: Dictionary, payload: Dictionary) -> String:
