@@ -4,6 +4,7 @@ const Review = preload("res://scenes/app/alpha_b3_r2_art_review.tscn")
 const ProductSource = preload("res://src/content/b3_spatial_week_seed.gd")
 const ProductSession = preload("res://src/domain/game_session.gd")
 const ProductRepo = preload("res://src/persistence/save_repository.gd")
+const PRODUCT_SLOT := "spatial_week_v1"
 const ProductPlanner = preload("res://src/domain/alpha_b3_visit_randomizer.gd")
 const ProductCommission = preload("res://src/domain/alpha_commission.gd")
 const ProductService = preload("res://src/domain/alpha_service_custody.gd")
@@ -42,13 +43,13 @@ func install_product(resolution: Vector2i) -> bool:
 	if not check(initial.initialize(source.defs,source.state,false,false,{},source.alpha_profile),"valid initial product authority"): return false
 	var location := "user://zt_rebuild/r2_product_"+str(resolution.y)+"_"+str(Time.get_ticks_usec())
 	var db := ProductRepo.new(location)
-	if not check(db.save_session(initial,"b3_week_candidate_v1").get("ok",false),"save genuine revision-zero product fixture"): return false
+	if not check(db.save_session(initial,PRODUCT_SLOT).get("ok",false),"save genuine revision-zero product fixture"): return false
 	print("R2_PRODUCT_NATIVE_SEED ",seed_value," resolution=",resolution.y)
 	host = Review.instantiate()
 	host.save_directory_override = location
 	root.add_child(host)
 	await frames()
-	return check(host.session!=null and not host._blocked and host._intro and host.session.snapshot()==initial.snapshot(),"native product opens genuine saved initial profile with intro") and check(host.theme!=null and host.theme.default_font!=null and host.theme.default_font.has_char(0xD55C) and host.theme.default_font.has_char(0xAE00),"verified Korean UI font supports Hangul glyphs")
+	return check(host.session!=null and not host._blocked and not host._intro and host._slot()==PRODUCT_SLOT and host.session.snapshot()==initial.snapshot(),"native product resumes the exact seeded revision-zero profile without replaying intro") and check(host.theme!=null and host.theme.default_font!=null and host.theme.default_font.has_char(0xD55C) and host.theme.default_font.has_char(0xAE00),"verified Korean UI font supports Hangul glyphs")
 
 func run() -> void:
 	var args := OS.get_cmdline_user_args()
@@ -71,7 +72,9 @@ func actions(steps: Array) -> bool:
 	return true
 
 func shop_route(resolution: Vector2i,refund: bool) -> bool:
-	if not await actions([["intro_skip","DAY_PREP"],["alpha_open","OPEN_IDLE"],["alpha_next_customer","CUSTOMER_ENTER"],["alpha_ack_entry","CUSTOMER_ACTIVE"]]): return false
+	# This route starts from a real saved revision-zero profile. Fresh five-beat
+	# intro and revision-zero resume are independently exercised by the menu and week routes.
+	if not await actions([["alpha_open","OPEN_IDLE"],["alpha_next_customer","CUSTOMER_ENTER"],["alpha_ack_entry","CUSTOMER_ACTIVE"]]): return false
 	await capture("r2_c7_marcus_"+str(resolution.y),resolution)
 	if not await actions([["alpha_contract_decline","CUSTOMER_ACTIVE"],["alpha_finish_customer","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"],["alpha_next_customer","CUSTOMER_ENTER"],["alpha_ack_entry","CUSTOMER_ACTIVE"],["alpha_exchange_contact","CUSTOMER_ACTIVE"]]): return false
 	if not await choose_radio_offer_100(): return false

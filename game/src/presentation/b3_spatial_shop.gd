@@ -146,7 +146,7 @@ func _ready() -> void:
 		sound.prime(int(session.snapshot().revision))
 		# Resume the current ambient mix; loading never emits a transaction cue.
 		sound.set_phase("workshop" if session.alpha_view().get("phase","")=="EVENING_WORK" else "shop")
-	if continuing and not _blocked and session!=null and int(session.snapshot().revision)>0:
+	if continuing and not _blocked:
 		_intro = false
 		refresh()
 
