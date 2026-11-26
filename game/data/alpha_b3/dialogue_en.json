@@ -1,0 +1,160 @@
+{
+  "version": 1,
+  "subjects": {
+    "wear_detail": "wear",
+    "display_damage_detail": "surface damage",
+    "casing_detail": "case",
+    "material_detail": "material",
+    "batch_detail": "markings",
+    "function_detail": "function",
+    "condition_detail": "function",
+    "basic_function_v1": "function",
+    "f3_part_a": "module A",
+    "f3_part_b": "module B"
+  },
+  "voices": {
+    "ian": 0,
+    "marcus": 0
+  },
+  "lines": {
+    "challenge_topic": [
+      "You mean the {topic}? I'll take another look."
+    ],
+    "challenge_plain": [
+      "Is that so? I'll take another look."
+    ],
+    "withdraw_topic": [
+      "I see. You're taking back what you said about the {topic}."
+    ],
+    "withdraw_plain": [
+      "Understood. You're taking that back."
+    ],
+    "reaffirm_topic": [
+      "You stand by what you said about the {topic}?"
+    ],
+    "reaffirm_plain": [
+      "You still stand by what you said?"
+    ],
+    "accept_buy": [
+      "All right. I'll let it go for that.",
+      "Fine. I'll sell for that.",
+      "Then we have a deal."
+    ],
+    "accept_sell": [
+      "All right. I'll buy it for that.",
+      "That price works for me.",
+      "I'll take it, then."
+    ],
+    "decline_remembered": [
+      "I remember what you said about the {topic}. The price still doesn't work.",
+      "I heard you about the {topic}. I still can't do that price.",
+      "You mentioned the {topic}. I still can't agree to that."
+    ],
+    "decline_topic": [
+      "I take your point about the {topic}. That price is still difficult.",
+      "Because of the {topic}? I still can't agree to that.",
+      "I hear you about the {topic}. The price is off."
+    ],
+    "decline_withdrawn": [
+      "You took that back earlier. I can't agree to this price."
+    ],
+    "decline_buy": [
+      "I'd rather keep it at that price.",
+      "I can't let it go for that.",
+      "Could you go a little higher?"
+    ],
+    "decline_sell": [
+      "That's more than I can pay.",
+      "I can't buy it at that price.",
+      "Could you go a little lower?"
+    ],
+    "return_traded": [
+      "We traded before. I thought I'd stop by again.",
+      "I came back after our last deal.",
+      "Hello. Remember our last trade?"
+    ],
+    "return_commission": [
+      "You took care of my last order."
+    ],
+    "return_service": [
+      "I picked up the last thing you repaired for me."
+    ],
+    "return_declined": [
+      "We couldn't agree on the price last time."
+    ],
+    "return_accepted": [
+      "We agreed on a price last time and left it at that."
+    ],
+    "opening_buy": [
+      "Would you take a look at this?",
+      "Would you buy this from me?",
+      "Hello. I've got something to sell."
+    ],
+    "opening_sell": [
+      "Can I buy this?",
+      "This one's for sale, right?",
+      "Hello. I'd like to buy this."
+    ],
+    "bid_open": [
+      "Would you take {amount} VKC for this?"
+    ],
+    "bid_return": [
+      "I can do {amount} VKC today. We couldn't agree last time."
+    ],
+    "purpose_fx": [
+      "I'd like to change some money. The terms are on this slip."
+    ],
+    "purpose_service_intake": [
+      "Can I leave this with you for a repair?"
+    ],
+    "purpose_service_return": [
+      "I'm here to collect the thing I left with you."
+    ],
+    "purpose_commission_intake": [
+      "There's something I'd like you to find for me."
+    ],
+    "purpose_commission_return": [
+      "I'm here for the thing I ordered."
+    ],
+    "purpose_contract": [
+      "Let's go over the terms."
+    ],
+    "purpose_pawn": [
+      "Could I leave this watch as collateral?"
+    ],
+    "service_accepted": [
+      "I'll leave it here, then."
+    ],
+    "service_delivered": [
+      "I've got it. Thank you."
+    ],
+    "service_returned": [
+      "I'll take it with me, then."
+    ],
+    "commission_accepted": [
+      "I'll come back on the day we agreed."
+    ],
+    "commission_delivered": [
+      "That's what I ordered. Thank you."
+    ],
+    "request_declined": [
+      "I see. We can't make that work."
+    ],
+    "paper_settled": [
+      "That matches the slip."
+    ],
+    "exit_purchase": [
+      "Here you are. I hope it's useful."
+    ],
+    "exit_delivered": [
+      "I've got it. I'll be on my way."
+    ],
+    "exit_farewell": [
+      "I'll be on my way, then."
+    ],
+    "opening_g01": [
+      "Hello. Would you take a look at this radio?"
+    ]
+  },
+  "actor_lines": {}
+}

@@ -1,12 +1,12 @@
 extends Control
 ## Startup shell. The actual integrated candidate stays the sole game authority.
 ## Menu and settings are presentation only; no command, clock or save mutation.
+## Game audio initializes before the title is displayed. Keep its one score
+## player alive across lobby <-> gameplay; later add explicit in-game track routing.
 const GameScene=preload("res://scenes/app/integrated_b_candidate.tscn")
 const AlphaScene=preload("res://scenes/app/alpha_playtest_candidate.tscn")
 const B1ScenePath="res://scenes/app/alpha_b1.tscn"
 const B2Entry = preload("res://src/presentation/b2_launch_route.gd")
-const B2CardsScenePath="res://scenes/app/alpha_b2_cards.tscn"
-const B2CommissionScenePath="res://scenes/app/alpha_b2_commission.tscn"
 const CampaignScene=preload("res://scenes/app/alpha42_mechanics_host.tscn")
 const HoldScene=preload("res://scenes/app/alpha_hold_market_host.tscn")
 const Street=preload("res://src/presentation/menu_street.gd")
@@ -151,10 +151,11 @@ func _build_buttons()->void:
 	_clear_buttons()
 	_loading=false
 	_button("menu_new",tr_key("menu.new"),_new_game)
+	_button("menu_f5_counter",game.word("크라벤스크 상점 · 새 카운터 후보","Kravensk Shop · Counter Preview"),_open_f5_counter)
 	_button("menu_spatial_week","크라벤스크 상점 · 첫 주 시작 / 이어하기",_open_spatial_week)
 	_button("menu_b1","신규 영업 프로필 · B1",func()->void: get_tree().change_scene_to_file(B1ScenePath))
-	_button("menu_b2_cards","물품 감정·흥정 · B2 시험",func()->void: get_tree().change_scene_to_file(B2CardsScenePath))
-	_button("menu_b2_commission","고객 의뢰 · B2 시험",func()->void: get_tree().change_scene_to_file(B2CommissionScenePath))
+	# One source-bound B2 counter; the three former pilot scenes and saves remain.
+	# The legacy menu_new/menu_continue/slot paths above and below are unchanged.
 	_button("menu_b2_unified","통합 영업 · B2 기술 시험",func()->void: get_tree().change_scene_to_file(B2Entry.SCENE_PATH))
 	_continue=_button("menu_continue",tr_key("menu.continue"),_continue_game)
 	_load=_button("menu_load",tr_key("menu.load"),_show_slots)
@@ -283,3 +284,7 @@ func _unhandled_input(event:InputEvent)->void:
 func _open_spatial_week() -> void:
 	game._feedback_audio.remember_score_position()
 	get_tree().change_scene_to_file("res://scenes/app/alpha_b3_week_candidate.tscn")
+
+func _open_f5_counter() -> void:
+	game._feedback_audio.remember_score_position()
+	get_tree().change_scene_to_file("res://scenes/app/alpha_b3_f5_counter.tscn")

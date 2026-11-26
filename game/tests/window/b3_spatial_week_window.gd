@@ -23,8 +23,39 @@ func finish() -> void:
 	call_deferred("quit", 0 if failures == 0 else 1)
 
 
+func visible_action(id: String) -> bool:
+	var action_node := host.find_child(id,true,false) as Control
+	return action_node!=null and action_node.is_visible_in_tree()
+
+func counter_key(key: Key) -> void:
+	for pressed: bool in [true,false]:
+		var event := InputEventKey.new()
+		event.keycode = key
+		event.pressed = pressed
+		root.push_input(event,true)
+	await frames()
+
+func start_counter_appraisal(use_space: bool = false) -> bool:
+	var before: Dictionary = host.session.snapshot()
+	if use_space:
+		await counter_key(KEY_SPACE)
+	else:
+		if not await click_navigation(host,"specimen"): return false
+	return check(host.zoom and not visible_action("offer") and host.session.snapshot()==before,"appraisal input changes the view only, with no offer control")
+
+func leave_counter_appraisal(use_key: bool = false) -> bool:
+	var before: Dictionary = host.session.snapshot()
+	if use_key:
+		await counter_key(KEY_F)
+	else:
+		if not await click_navigation(host,"finish_appraisal"): return false
+	return check(not host.zoom and visible_action("counter_offer") and host.session.snapshot()==before,"return to the same customer and specimen without an authority change")
+
 ## Same protected 100 VKC fixture; actual native pointer controls only.
 func choose_radio_offer_100() -> bool:
+	if not visible_action("counter_offer"):
+		if not host.zoom and not await start_counter_appraisal(): return false
+		if not await leave_counter_appraisal(): return false
 	var before: Dictionary = host.session.snapshot()
 	if not await click_navigation(host,"counter_offer"): return false
 	if not await click_navigation(host,"basis_catalog_selvar_r18"): return false
@@ -71,7 +102,8 @@ func run() -> void:
 				await finish()
 				return
 		check(host.session.alpha_view().active.id=="visit_g01","real G01 immediately follows Marcus")
-		if not await click_navigation(host,"specimen"):
+		check(not visible_action("offer") and not visible_action("notes") and not visible_action("apply_tool"),"presented item precedes any appraisal or price controls")
+		if not await start_counter_appraisal(true):
 			await finish()
 			return
 		var before_book: Dictionary = host.session.snapshot()
@@ -84,7 +116,7 @@ func run() -> void:
 		var target: Button = host.find_child("apply_tool",true,false)
 		if target != null and target.text=="뒤집어 조사":
 			await click_navigation(host,"apply_tool")
-		if not await click("apply_tool","CUSTOMER_ACTIVE") or not await click("fact_"+str(tool.id),"CUSTOMER_ACTIVE"):
+		if not await click("apply_tool","CUSTOMER_ACTIVE") or not await leave_counter_appraisal(true) or not await click("fact_"+str(tool.id),"CUSTOMER_ACTIVE"):
 			await finish()
 			return
 		if not await choose_radio_offer_100():

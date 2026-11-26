@@ -35,7 +35,7 @@ func _w18_route(resolution: Vector2i) -> bool:
 	for step: Array in [["alpha_open","OPEN_IDLE"],["alpha_next_customer","CUSTOMER_ENTER"],["alpha_ack_entry","CUSTOMER_ACTIVE"],["alpha_contract_decline","CUSTOMER_ACTIVE"],["alpha_finish_customer","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"],["alpha_next_customer","CUSTOMER_ENTER"],["alpha_ack_entry","CUSTOMER_ACTIVE"]]:
 		if not await click(step[0],step[1]): return false
 	if not check(host.session.alpha_view().active.id=="visit_g01","actual G01 radio visit after Marcus"): return false
-	if not await click_navigation(host,"specimen"): return false
+	if not await start_counter_appraisal(): return false
 	var prior: Dictionary = host.session.snapshot()
 	if not await click_navigation(host,"notes"): return false
 	await capture("01_initial_book"+suffix,resolution)
@@ -51,12 +51,13 @@ func _w18_route(resolution: Vector2i) -> bool:
 	if not check(found,"visible wear tool in paged tray"): return false
 	if not await click_navigation(host,"tool_wear_detail"): return false
 	if not await click("apply_tool","CUSTOMER_ACTIVE"): return false
-	if not await click("fact_wear_detail","CUSTOMER_ACTIVE"): return false
 	await capture("02_observation_and_slip"+suffix,resolution)
 	if not await click_navigation(host,"notes"): return false
 	if not await click_navigation(host,"book_surface"): return false
 	await capture("03_surface_reference"+suffix,resolution)
 	if not await click_navigation(host,"close_drawer"): return false
+	if not await leave_counter_appraisal(): return false
+	if not await click("fact_wear_detail","CUSTOMER_ACTIVE"): return false
 	if not await choose_radio_offer_100(): return false
 	if not await click("offer","CUSTOMER_ACTIVE"): return false
 	await capture("04_public_offer"+suffix,resolution)

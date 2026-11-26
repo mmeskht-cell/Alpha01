@@ -27,6 +27,7 @@ func desk_day(resolution: Vector2i) -> bool:
 	await capture("w19_counter"+suffix,resolution)
 	if not await click("alpha_exchange_contact","CUSTOMER_ACTIVE"): return false
 	var initial: Dictionary=host.session.snapshot()
+	if not await start_counter_appraisal(true): return false
 	if not await click_navigation(host,"tool_wear_detail"): return false
 	if not await click("apply_tool","CUSTOMER_ACTIVE"): return false
 	var observed: Dictionary=host.session.snapshot()
@@ -35,6 +36,7 @@ func desk_day(resolution: Vector2i) -> bool:
 	if not await click_navigation(host,"notes"): return false
 	await capture("w19_loupe_book"+suffix,resolution)
 	if not await click_navigation(host,"close_drawer"): return false
+	if not await leave_counter_appraisal(): return false
 	if not await click("fact_wear_detail","CUSTOMER_ACTIVE"): return false
 	if not await choose_radio_offer_100(): return false
 	if not await click("offer","CUSTOMER_ACTIVE"): return false

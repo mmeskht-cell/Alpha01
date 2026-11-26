@@ -185,7 +185,7 @@ jobs:
           fatal='SCRIPT ERROR:|^ERROR:|^FAIL:|ObjectDB instances were leaked|Leaked instance:|resources still in use at exit'
           result=0
           route() {
-            local script="$1" marker="$2" final_capture="$3"
+            local script="$1" marker="$2" final_capture="$3" resolutions="${4:-720 1080}"
             local dest="$GITHUB_WORKSPACE/evidence/f5/$script"
             local rc=0
             mkdir -p "$dest"
@@ -194,7 +194,7 @@ jobs:
               echo "F5_ROUTE_FAIL $script exit=$rc"
               result=1
             else
-              for resolution in 720 1080; do
+              for resolution in $resolutions; do
                 if ! find "$dest" -maxdepth 1 -type f -name "${final_capture}_${resolution}*.png" -size +0c | grep -q .; then
                   echo "F5_ROUTE_MISSING_FINAL_CAPTURE $script $resolution"
                   result=1
@@ -206,6 +206,7 @@ jobs:
           route b3_r2_private_art_review_window B3_SPATIAL_WEEK_WINDOW r2_c3_settled
           route b3_r2_product_integration_window B3_SPATIAL_WEEK_WINDOW r2_c7_week_complete
           route b3_f2_private_market_window B3_F2_PRIVATE_MARKET_WINDOW f2_v2_resumed
+          route b3_f5_civilian_pointer_window B3_SPATIAL_WEEK_WINDOW f5_civilian_restored "720"
           exit "$result"
       - name: Preserve screenshots and logs
         if: always()

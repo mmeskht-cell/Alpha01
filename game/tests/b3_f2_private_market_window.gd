@@ -74,7 +74,11 @@ func f2_counter(resolution:Vector2i,fixture:RefCounted)->bool:
 	await capture("f2_v2_news_"+str(resolution.y),resolution)
 	if not await click_navigation(host,"close_drawer"): return false
 	if not check(host.drawer.is_empty() and host.session.snapshot()==before,"return to identical counter and customer"): return false
+	if not await start_counter_appraisal(true) or not await leave_counter_appraisal(): return false
+	var quick_quote := host.find_child("use_counter_quote",true,false) as Button
+	if not check(quick_quote!=null and quick_quote.is_visible_in_tree() and "%d VKC"%bid in quick_quote.text,"public quote is directly accessible before opening a book"): return false
 	if not await click_navigation(host,"counter_offer"): return false
+	if not await click_navigation(host,"market_leaf"): return false
 	var notice:=host.find_child("market_notice",true,false) as Label
 	if not check(notice!=null and "항구 · 전지" in notice.text and "공방 구역 · 공구" in notice.text and "거래 자료 부족" in notice.text,"seven-group dated public bulletin on actual offer page"): return false
 	await reveal_action("customer_bid")
@@ -95,6 +99,11 @@ func f2_counter(resolution:Vector2i,fixture:RefCounted)->bool:
 	var agreed:Dictionary=host.session.snapshot()
 	if not check(host.session.alpha_view().appraisal.accepted.get("amount")==bid and agreed.wallets==before.wallets and agreed.items==before.items and agreed.ledger==before.ledger,"real agreement does not settle assets"): return false
 	await capture("f2_v2_agreed_"+str(resolution.y),resolution)
+	await release_host()
+	if not await f2_install(location): return false
+	if not check(host.session.snapshot()==agreed and visible_action("settle_trade") and not visible_action("offer") and not visible_action("reappraise"),"cold agreement restores confirmation without reopening the price offer"): return false
+	await counter_key(KEY_SPACE)
+	if not check(host.session.snapshot()==agreed and visible_action("settle_trade"),"Space never changes or settles a restored agreement"): return false
 	if not await click("settle_trade","CUSTOMER_EXIT"): return false
 	var paid:Dictionary=host.session.snapshot()
 	if not check(paid.items.BAT02.owner_id=="G11" and paid.items.BAT02.basis.VKC==40 and paid.wallets.player.VKC==before.wallets.player.VKC+bid and paid.wallets.G11.VKC==before.wallets.G11.VKC-bid and paid.ledger.size()==before.ledger.size()+1,"one actual UI sale with real cost basis and finite balances"): return false

@@ -5,7 +5,7 @@ var part_page := 0
 var last_root := ""
 var view_key := ""
 ## A visible slot accepts only candidates supplied by the composition authority.
-func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog: Resource,copy: Dictionary,translate: Callable,preview: Callable,restore_quote: Dictionary = {},drop_part: Callable = Callable()) -> void:
+func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog: Resource,copy: Dictionary,translate: Callable,preview: Callable,restore_quote: Dictionary = {},drop_part: Callable = Callable(), drag_scale: float = 1.0) -> void:
 	if root_id!=last_root:
 		last_root = root_id
 		slot_page = 0
@@ -21,7 +21,7 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 	var work := self
 	var header := HBoxContainer.new()
 	work.add_child(header)
-	var redraw := func()->void: populate(root_id,composition,items,catalog,copy,translate,preview,restore_quote,drop_part)
+	var redraw := func()->void: populate(root_id,composition,items,catalog,copy,translate,preview,restore_quote,drop_part,drag_scale)
 	var restore := Button.new()
 	restore.name = "repair"
 	restore.text = copy.repair
@@ -74,9 +74,20 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 			var detach: Dictionary = slot.get("detach",{})
 			socket.name = "detach_"+child
 			socket.disabled = detach.is_empty()
-			socket.tooltip_text = str(copy.detach) if not detach.is_empty() else "분리할 수 있는 창고 자리 또는 권한 없음"
-			socket.pressed.connect(func()->void:preview.call("spatial_detach",detach.duplicate(true)))
+			socket.tooltip_text = "창고로 끌어 놓거나 눌러 분리 위치를 미리 봅니다." if not detach.is_empty() else "분리할 수 있는 창고 자리 또는 권한 없음"
+			socket.pressed.connect(func()->void:
+				if not detach.is_empty(): preview.call("spatial_detach",detach.duplicate(true)))
+			if civilian_pair and not detach.is_empty() and drop_part.is_valid():
+				socket.set_drag_forwarding(func(_at:Vector2)->Variant:
+					var piece := Button.new()
+					piece.text = str(translate.call("b2.item."+model))
+					piece.icon = socket.icon
+					piece.custom_minimum_size = Vector2(156,44)*drag_scale
+					piece.mouse_filter = Control.MOUSE_FILTER_IGNORE
+					socket.set_drag_preview(piece)
+					return {"detach":detach.duplicate(true),"item":root_id,"origin":detach.inventory,"revision":composition.revision},Callable(),Callable())
 		else:
+			socket.name = "work_socket_"+tag if not tag.is_empty() else "work_socket"
 			socket.text = str(copy.empty_slot) if slot_title.is_empty() else slot_title+" · 빈 자리"
 			var candidates := {}
 			var alternatives := HBoxContainer.new()
@@ -106,8 +117,8 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 					part_page=(part_page+1)%choices.size()
 					redraw.call())
 			socket.set_drag_forwarding(Callable(),func(_at:Vector2,data:Variant)->bool:
-				return data is Dictionary and candidates.has(data.get("item","")),func(_at:Vector2,data:Variant)->void:
-				if data is Dictionary and candidates.has(data.get("item","")):
+				return data is Dictionary and not data.has("detach") and candidates.has(data.get("item","")),func(_at:Vector2,data:Variant)->void:
+				if data is Dictionary and not data.has("detach") and candidates.has(data.get("item","")):
 					var payload: Dictionary = candidates[data.item].duplicate(true)
 					if drop_part.is_valid(): drop_part.call(payload,data)
 					else: preview.call("spatial_attach",payload))

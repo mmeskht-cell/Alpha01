@@ -174,6 +174,8 @@ func intake_service_if_offered(resolution: Vector2i) -> bool:
 		var view: Dictionary = host.session.alpha_view()
 		var has_job: bool = view.services.entries.any(func(job:Dictionary)->bool:return job.item_id=="W001" and job.can_accept)
 		if has_job:
+			var subtitle := host.find_child("Utterance",true,false) as Label
+			if not check(subtitle!=null and subtitle.is_visible_in_tree() and "맡기" in subtitle.text and not visible_action("offer"),"service intake has its own speech and starts with service paperwork"): return false
 			if not await click_navigation(host,"visitor_papers"): return false
 			if not await click("b2_service_accept","CUSTOMER_ACTIVE"): return false
 			await capture("r2_c7_service_intake_"+str(resolution.y),resolution)

@@ -106,6 +106,7 @@ func drag_between(source: Control,target: Control) -> bool:
 func counter_drag(resolution: Vector2i) -> bool:
 	for step: Array in [["intro_skip","DAY_PREP"],["alpha_open","OPEN_IDLE"],["alpha_next_customer","CUSTOMER_ENTER"],["alpha_ack_entry","CUSTOMER_ACTIVE"],["alpha_contract_decline","CUSTOMER_ACTIVE"],["alpha_finish_customer","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"],["alpha_next_customer","CUSTOMER_ENTER"],["alpha_ack_entry","CUSTOMER_ACTIVE"]]:
 		if not await click(step[0],step[1]): return false
+	if not await start_counter_appraisal(true): return false
 	var wear := host.find_child("tool_wear_detail",true,false) as Control
 	for page in range(4):
 		if is_instance_valid(wear) and wear.is_visible_in_tree(): break
@@ -115,6 +116,7 @@ func counter_drag(resolution: Vector2i) -> bool:
 	var before: int = host.session.snapshot().revision
 	if not await drag_between(host.find_child("tool_wear_detail",true,false),host.find_child("specimen",true,false)): return false
 	if not check(host.session.snapshot().revision==before+1,"one real drag inspection"): return false
+	if not await leave_counter_appraisal(): return false
 	if not await drag_between(host.find_child("fact_wear_detail",true,false),host.find_child("attachment_pocket",true,false)): return false
 	if not check(host.session.snapshot().revision==before+2,"one attachment change"): return false
 	var found := false
@@ -136,6 +138,10 @@ func valuation_update_route(resolution: Vector2i) -> bool:
 		if not await click_navigation(host,"ratio_minus_5"): return false
 	var amount := host.find_child("offer_amount",true,false) as Label
 	if not check(amount!=null and amount.text=="100 VKC" and host.offer_ratio==500 and host.session.snapshot()==initial,"initial 50 percent offer is read-only"): return false
+	var basis_before: Dictionary = host.offer_basis.duplicate(true)
+	var facts_before: Array = host.session.alpha_view().appraisal.cards
+	if not await click_navigation(host,"reappraise"): return false
+	if not check(host.zoom and host.session.snapshot()==initial and host.offer_basis==basis_before and host.offer_ratio==500 and not visible_action("offer"),"re-appraisal retains private draft and opens the same visit"): return false
 	if not await click_navigation(host,"notes"): return false
 	if not await click_navigation(host,"book_surface"): return false
 	if not await click_navigation(host,"surface_judgment_open"): return false
@@ -143,6 +149,8 @@ func valuation_update_route(resolution: Vector2i) -> bool:
 	var judged: Dictionary = host.session.snapshot()
 	if not check(judged.revision==initial.revision+1 and judged.wallets==initial.wallets and judged.ledger==initial.ledger and judged.items==initial.items,"new private judgment changes only authorized record"): return false
 	if not await click_navigation(host,"close_drawer"): return false
+	if not await leave_counter_appraisal(true): return false
+	if not check(host.session.alpha_view().appraisal.cards==facts_before and host.offer_basis==basis_before and host.offer_ratio==500,"re-appraisal keeps existing observation cards and original price basis"): return false
 	amount = host.find_child("offer_amount",true,false) as Label
 	var basis := host.find_child("counter_offer",true,false) as Button
 	if not check(amount!=null and amount.text=="100 VKC" and basis!=null and basis.text.contains("160"),"old offer frozen while new appraisal shown"): return false

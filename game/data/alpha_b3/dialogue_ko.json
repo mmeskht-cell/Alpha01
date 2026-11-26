@@ -96,10 +96,64 @@
       "안녕하세요. 이걸 좀 사고 싶은데요."
     ],
     "bid_return": [
-      "지난번엔 값이 안 맞았죠. 오늘은 {amount} VKC에 사겠습니다."
+      "오늘은 {amount} VKC면 살 수 있어요. 지난번엔 값이 안 맞았죠."
     ],
     "bid_open": [
-      "이 물건을 사러 왔습니다. {amount} VKC면 어떻습니까?"
+      "{amount} VKC에 사고 싶은데요. 어떻습니까?"
+    ],
+    "purpose_fx": [
+      "현지 돈으로 바꾸고 싶습니다. 조건을 적어 왔어요."
+    ],
+    "purpose_service_intake": [
+      "이 물건을 맡기려고요. 고쳐주실 수 있습니까?"
+    ],
+    "purpose_service_return": [
+      "맡겨 둔 물건 찾으러 왔습니다."
+    ],
+    "purpose_commission_intake": [
+      "구해 주셨으면 하는 물건이 있습니다."
+    ],
+    "purpose_commission_return": [
+      "부탁드린 물건을 받으러 왔습니다."
+    ],
+    "purpose_contract": [
+      "이 조건으로 한 번 얘기해 봅시다."
+    ],
+    "purpose_pawn": [
+      "시계를 담보로 맡길 수도 있을까요?"
+    ],
+    "service_accepted": [
+      "그럼 여기 두고 가겠습니다."
+    ],
+    "service_delivered": [
+      "받았습니다. 고맙습니다."
+    ],
+    "service_returned": [
+      "그럼 물건은 제가 가져가겠습니다."
+    ],
+    "commission_accepted": [
+      "그럼 약속한 날에 들르겠습니다."
+    ],
+    "commission_delivered": [
+      "주문한 물건 맞습니다. 고맙습니다."
+    ],
+    "request_declined": [
+      "알겠습니다. 조건이 맞지 않네요."
+    ],
+    "paper_settled": [
+      "네, 전표대로 처리됐군요."
+    ],
+    "exit_purchase": [
+      "여기 있습니다. 잘 쓰세요."
+    ],
+    "exit_delivered": [
+      "받았습니다. 그럼 가보겠습니다."
+    ],
+    "exit_farewell": [
+      "그럼 이만 가보겠습니다."
+    ],
+    "opening_g01": [
+      "안녕하세요. 이 라디오 한번 봐주시겠어요?"
     ]
   },
   "actor_lines": {}

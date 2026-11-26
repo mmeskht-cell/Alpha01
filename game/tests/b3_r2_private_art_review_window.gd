@@ -82,6 +82,8 @@ func review_negotiation(resolution: Vector2i) -> bool:
 		if not check(host.reading_scale==percent and host.session.snapshot()==before,"reading size is local"): return false
 		if percent!=100:
 			if not await click_navigation(host,"notes"): return false
+			var subtitle := host.find_child("counter_subtitle",true,false) as Control
+			if not check(subtitle!=null and subtitle.is_visible_in_tree() and not subtitle.get_global_rect().intersects(book.get_global_rect()),"caption and physical book occupy separate regions at enlarged scale"): return false
 			await capture("r2_c2_reference_"+str(percent)+"_"+str(resolution.y),resolution)
 			if not await click_navigation(host,"close_drawer"): return false
 	if not await click("offer","CUSTOMER_ACTIVE"): return false
@@ -100,6 +102,9 @@ func review_negotiation(resolution: Vector2i) -> bool:
 	var agreed: Dictionary = host.session.alpha_view().appraisal.accepted
 	if not check(agreed.get("amount",0)==95 and agreed.get("currency")=="VKC","wear evidence enables the authored 95 VKC agreement"): return false
 	await capture("r2_c3_agreed_95_"+str(resolution.y),resolution)
+	var subtitle_zone := host.find_child("counter_subtitle",true,false) as Control
+	var confirm := host.find_child("settle_trade",true,false) as Control
+	if not check(subtitle_zone!=null and confirm!=null and not subtitle_zone.get_global_rect().intersects(confirm.get_global_rect()),"visible agreement action stays clear of customer speech"): return false
 	if not await click("settle_trade","CUSTOMER_EXIT"): return false
 	var paid: Dictionary = host.session.snapshot()
 	if not check(paid.ledger.size()==before.ledger.size()+1 and paid.items.R001.owner_id=="player" and paid.wallets.player.VKC==before.wallets.player.VKC-95,"one real settlement at the agreed amount"): return false
