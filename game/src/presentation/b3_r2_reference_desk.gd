@@ -4,6 +4,9 @@ signal page_requested(index: int)
 signal closed
 var scroll: ScrollContainer
 var pages: VBoxContainer
+## The mounted book is 441 logical pixels wide. Reserve a real readable body
+## even when all of its first-page buttons use autowrap (zero text minimum width).
+const PAGE_MIN_WIDTH := 376.0
 var tabs: Array[Button] = []
 var close_button: Button
 
@@ -39,10 +42,12 @@ func _ready() -> void:
 	scroll = ScrollContainer.new()
 	scroll.follow_focus = true
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	book.add_child(scroll)
 	pages = VBoxContainer.new()
 	pages.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pages.custom_minimum_size.x = PAGE_MIN_WIDTH
 	scroll.add_child(pages)
 	visibility_changed.connect(_update_close_action)
 	_update_close_action()

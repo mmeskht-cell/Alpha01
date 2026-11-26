@@ -1831,7 +1831,7 @@ func _surface_page(pages: VBoxContainer,v: Dictionary) -> void:
 		return
 	if not judgment_leaf: return
 	var choices: Dictionary = preload("res://src/domain/alpha_card_trade.gd").SURFACE_CHOICES
-	var groups := ["exterior","material"] if r2_room_active else ["material","exterior"]
+	var groups := ["exterior","material"]
 	for group: String in groups:
 		var values: Array = choices[group]
 		var saved := str(v.appraisal.surface_judgments.get(group,"unknown"))
@@ -1842,25 +1842,21 @@ func _surface_page(pages: VBoxContainer,v: Dictionary) -> void:
 		if group=="material":
 			var caption := Label.new()
 			caption.text = "내 재질 판단 · "+str(labels[selected_index])
-			if r2_room_active:
-				pages.add_child(caption)
-				pages.move_child(caption,row.get_index())
-				caption.custom_minimum_size.y = 25
-			else:
-				row.add_child(caption)
+			pages.add_child(caption)
+			pages.move_child(caption,row.get_index())
+			caption.custom_minimum_size.y = 25
 			var step := Button.new()
 			step.text = "표본 재질로 기록"
 			step.custom_minimum_size.y = 44
-			if r2_room_active:
-				step.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-				step.custom_minimum_size.x = 180
+			step.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			step.custom_minimum_size.x = 180
 			row.add_child(step)
 			step.pressed.connect(func()->void:
 				_submit("alpha_hypothesis",{"slot":"material","judgment":reference_material}))
 			var clear := Button.new()
 			clear.text = "보류"
 			clear.custom_minimum_size.y = 44
-			if r2_room_active: clear.custom_minimum_size.x = 88
+			clear.custom_minimum_size.x = 88
 			row.add_child(clear)
 			clear.pressed.connect(func()->void: _submit("alpha_hypothesis",{"slot":"material","judgment":"unknown"}))
 		else:
@@ -1869,7 +1865,7 @@ func _surface_page(pages: VBoxContainer,v: Dictionary) -> void:
 				grade.name = "exterior_"+str(values[index])
 				grade.text = str(labels[index])
 				grade.tooltip_text = "내 외관 판단"
-				grade.custom_minimum_size.y = 44
+				grade.custom_minimum_size = Vector2(44,44)
 				grade.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 				row.add_child(grade)
 				_paper_face(grade,index==selected_index)

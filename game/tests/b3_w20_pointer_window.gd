@@ -145,6 +145,12 @@ func valuation_update_route(resolution: Vector2i) -> bool:
 	if not await click_navigation(host,"notes"): return false
 	if not await click_navigation(host,"book_surface"): return false
 	if not await click_navigation(host,"surface_judgment_open"): return false
+	var grade := host.find_child("exterior_moderate",true,false) as Button
+	var book_scroll: ScrollContainer = host.r2_book.scroll
+	if not check(is_instance_valid(grade) and grade.is_visible_in_tree() and grade.size.x>=44 and grade.size.y>=44,"exterior judgment has a usable physical hit target"): return false
+	var center := grade.get_global_transform_with_canvas() * (grade.size*0.5)
+	if not check(book_scroll.get_global_rect().has_point(center) and host.r2_book.pages.size.x>=376,"exterior judgment is within the expanded book viewport"): return false
+	await capture("w20_judgment_ready_"+str(resolution.y),resolution)
 	if not await click("exterior_moderate","CUSTOMER_ACTIVE"): return false
 	var judged: Dictionary = host.session.snapshot()
 	if not check(judged.revision==initial.revision+1 and judged.wallets==initial.wallets and judged.ledger==initial.ledger and judged.items==initial.items,"new private judgment changes only authorized record"): return false
