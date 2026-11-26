@@ -477,7 +477,7 @@ func _rebuild_stage() -> void:
 		if drawer=="notes": drawer = ""
 	_room(5 if v.phase == "EVENING_WORK" else 1,not v.active.is_empty())
 	if r2_review_mode and r2_layers.is_empty() and not zoom: words("R2 검토 자산 누락 · 기존 화면",660,64,490,36,15)
-	var overhead := v.phase=="CUSTOMER_ACTIVE" and counter_step==CounterStep.APPRAISAL
+	var overhead: bool = v.phase=="CUSTOMER_ACTIVE" and counter_step==CounterStep.APPRAISAL
 	counter_view.aim(overhead,reduce_motion)
 	if overhead:
 		paper(0,0,1280,64,Color("#1a1713c4")).mouse_filter = Control.MOUSE_FILTER_IGNORE
