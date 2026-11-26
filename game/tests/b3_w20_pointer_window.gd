@@ -52,6 +52,9 @@ func sync_pointer(point: Vector2) -> bool:
 	return false
 
 func drag_between(source: Control,target: Control) -> bool:
+	return await drag_with_result(source,target,true)
+
+func drag_with_result(source: Control,target: Control,expected: bool) -> bool:
 	if not check(is_instance_valid(source) and is_instance_valid(target),"drag endpoints exist"): return false
 	if not check(source.is_visible_in_tree() and target.is_visible_in_tree(),"drag endpoints visible"): return false
 	var start := source.get_global_transform_with_canvas()*(source.size*0.5)
@@ -101,7 +104,7 @@ func drag_between(source: Control,target: Control) -> bool:
 			print("W20_DRAG_OVER dragging=",root.gui_is_dragging()," hover=",str(over.get_path()) if is_instance_valid(over) else "none"," payload=",payload," actual=",root.get_mouse_position()," target_local=",target.get_local_mouse_position())
 	await frames()
 	print("W20_DRAG_END started=",saw_drag," successful=",root.gui_is_drag_successful()," revision=",host.session.snapshot().revision)
-	return check(saw_drag,"real GUI drag started") and check(root.gui_is_drag_successful(),"real GUI drop accepted")
+	return check(saw_drag,"real GUI drag started") and check(root.gui_is_drag_successful()==expected,"real GUI drop accepted" if expected else "real GUI drop rejected")
 
 func counter_drag(resolution: Vector2i) -> bool:
 	for step: Array in [["intro_skip","DAY_PREP"],["alpha_open","OPEN_IDLE"],["alpha_next_customer","CUSTOMER_ENTER"],["alpha_ack_entry","CUSTOMER_ACTIVE"],["alpha_contract_decline","CUSTOMER_ACTIVE"],["alpha_finish_customer","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"],["alpha_next_customer","CUSTOMER_ENTER"],["alpha_ack_entry","CUSTOMER_ACTIVE"]]:

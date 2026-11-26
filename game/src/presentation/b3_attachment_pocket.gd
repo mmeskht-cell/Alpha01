@@ -1,6 +1,8 @@
 extends Label
 
 signal attach(slot: String)
+const PaperProp = preload("res://src/presentation/b3_paper_prop.gd")
+var _paper: PaperProp
 var visit := ""
 var item_id := ""
 var cards: Dictionary
@@ -10,8 +12,13 @@ var _ready_for_card: StyleBoxFlat
 
 func _ready() -> void:
 	if use_desk_finish:
-		_rest = _edge(Color("#483d32"),Color("#978165"))
-		_ready_for_card = _edge(Color("#5d4935"),Color("#dab37c"))
+		_paper = PaperProp.new()
+		_paper.form = "card"
+		_paper.show_behind_parent = true
+		add_child(_paper)
+		add_theme_color_override("font_color",PaperProp.INK)
+		_rest = _edge(Color.TRANSPARENT,Color.TRANSPARENT)
+		_ready_for_card = _edge(Color("#a9804f42"),Color("#946236"))
 	# Legacy pocket has no R2 hover styles; processing is opt-in on drag.
 	set_process(false)
 
@@ -34,12 +41,13 @@ func bind(visit_id: String,slips: Dictionary,owner_item: String = "") -> void:
 	for slot: String in cards:
 		if cards[slot].selected: selected.append(str(cards[slot].caption))
 		if cards[slot].get("public",false): shown.append(str(cards[slot].caption))
-	text = "손님에게 카드 제시"
+	text = "여기에 근거 카드 놓기"
 	if use_desk_finish:
+		_paper.size = size
 		if not selected.is_empty() and not shown.is_empty():
 			text = "제시 예정 %d장  /  공개 중 %d장"%[selected.size(),shown.size()]
 		elif not selected.is_empty():
-			text = "제시 예정 %d장 · 가격 제안과 함께 공개"%selected.size()
+			text = "이 근거 %d장을 값과 함께 건넵니다"%selected.size()
 		elif not shown.is_empty():
 			text = "손님에게 보여 준 근거 %d장"%shown.size()
 		elif cards.is_empty():

@@ -5,6 +5,7 @@ extends Control
 ## player alive across lobby <-> gameplay; later add explicit in-game track routing.
 const GameScene=preload("res://scenes/app/integrated_b_candidate.tscn")
 const AlphaScene=preload("res://scenes/app/alpha_playtest_candidate.tscn")
+const F5_SCENE_PATH := "res://scenes/app/alpha_b3_f5_counter.tscn"
 const B1ScenePath="res://scenes/app/alpha_b1.tscn"
 const B2Entry = preload("res://src/presentation/b2_launch_route.gd")
 const CampaignScene=preload("res://scenes/app/alpha42_mechanics_host.tscn")
@@ -287,4 +288,8 @@ func _open_spatial_week() -> void:
 
 func _open_f5_counter() -> void:
 	game._feedback_audio.remember_score_position()
-	get_tree().change_scene_to_file("res://scenes/app/alpha_b3_f5_counter.tscn")
+	var resource := load(F5_SCENE_PATH) as PackedScene
+	var candidate := resource.instantiate()
+	if not save_directory_override.is_empty():
+		candidate.set("save_directory_override",save_directory_override.path_join("f5_counter"))
+	get_tree().change_scene_to_node(candidate)

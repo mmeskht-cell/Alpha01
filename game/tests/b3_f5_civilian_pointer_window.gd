@@ -53,7 +53,7 @@ func civilian_work(resolution: Vector2i,location: String,before: Dictionary) -> 
 	var module := host.find_child("detach_"+Trial.BAD,true,false) as Control
 	if not await drag_between(module,grid): return false
 	if not check(host.draft.get("kind")=="spatial_detach" and host.draft.result.ok and host.session.snapshot()==before,"dragging an installed module produces a read-only preview"): return false
-	await capture("f5_civilian_detach_preview",resolution)
+	await capture("f5_civilian_detach_preview_"+str(resolution.y),resolution)
 	if not await click_navigation(host,"discard_draft"): return false
 	if not check(host.session.snapshot()==before and before.items[Trial.BAD].parent_id==Trial.ROOT,"cancel retains the real attachment"): return false
 	if not await drag_between(host.find_child("detach_"+Trial.BAD,true,false),grid): return false
@@ -68,7 +68,11 @@ func civilian_work(resolution: Vector2i,location: String,before: Dictionary) -> 
 	if not check(full_area.has_point(Vector2i(int(split.items[Trial.BAD].x),int(split.items[Trial.BAD].y))) and not blocked.get("ok",false) and blocked.get("error")=="inventory_placement" and not live.slots[1].attach.has(expected) and host.session.snapshot()==split,"expanding receiver correctly refuses overlap with its detached module"): return false
 	var blocked_drag := {"item":Trial.SPARE,"origin":"player_stock","revision":split.revision}
 	if not check(not socket.call("accepts",blocked_drag),"socket refuses a geometrically blocked replacement"): return false
-	await capture("f5_civilian_attach_blocked",resolution)
+	var blocked_spare := host.find_child("stock_"+Trial.SPARE,true,false) as Control
+	if not await drag_with_result(blocked_spare,socket,false): return false
+	var reason := host.find_child("attach_rejection",true,false) as Label
+	if not check(reason!=null and reason.is_visible_in_tree() and "빈 칸" in reason.text and host.draft.is_empty() and host.session.snapshot()==split,"rejected spare names the authority's placement failure without creating a draft"): return false
+	await capture("f5_civilian_attach_blocked_"+str(resolution.y),resolution)
 	# Move the existing detached piece to a valid cell outside the completed
 	# footprint. Neither the obstruction nor the part is silently removed.
 	var destination := Vector2i(-1,-1)
@@ -103,7 +107,7 @@ func civilian_work(resolution: Vector2i,location: String,before: Dictionary) -> 
 	var stale := data.duplicate(true)
 	stale.revision = int(split.revision)-1
 	if not check(not socket.call("accepts",stale),"visible socket refuses stale drag data"): return false
-	await capture("f5_civilian_attach_ready",resolution)
+	await capture("f5_civilian_attach_ready_"+str(resolution.y),resolution)
 	if not await drag_between(spare,socket): return false
 	if not check(host.draft.get("kind")=="spatial_attach" and host.draft.result.ok and host.session.snapshot()==split,"grid-to-socket drop previews actual replacement"): return false
 	if not await click("confirm_work","EVENING_WORK"): return false
@@ -115,7 +119,7 @@ func civilian_work(resolution: Vector2i,location: String,before: Dictionary) -> 
 	for id: String in [Trial.ROOT,"F3R01_A",Trial.BAD,Trial.SPARE]:
 		basis += int(completed.items[id].basis.VKC)
 	if not check(completed.items[Trial.SPARE].parent_id==Trial.ROOT and completed.items[Trial.ROOT].restored and basis==90 and completed.wallets.player.VKC==before.wallets.player.VKC-5 and completed.ledger==before.ledger and history.work_records.size()==3,"attach and restore preserve cost and write one work record per operation"): return false
-	await capture("f5_civilian_restored",resolution)
+	await capture("f5_civilian_restored_"+str(resolution.y),resolution)
 	await release_host()
 	await f5_install(location)
 	return check(host.session!=null and not host._blocked and host.session.snapshot()==completed and host.session.alpha_item_history(Trial.ROOT)==history,"cold resume retains the real module and three work records")

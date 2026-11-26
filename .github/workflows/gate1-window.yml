@@ -207,6 +207,7 @@ jobs:
           route b3_r2_product_integration_window B3_SPATIAL_WEEK_WINDOW r2_c7_week_complete
           route b3_f2_private_market_window B3_F2_PRIVATE_MARKET_WINDOW f2_v2_resumed
           route b3_f5_civilian_pointer_window B3_SPATIAL_WEEK_WINDOW f5_civilian_restored "720"
+          route b3_f5_menu_counter_window B3_SPATIAL_WEEK_WINDOW f5_menu_resumed
           exit "$result"
       - name: Preserve screenshots and logs
         if: always()

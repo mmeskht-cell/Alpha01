@@ -11,19 +11,38 @@ class AttachSocket extends Button:
 	var options: Dictionary = {}
 	var revision: int = -1
 	var receiver: Callable
+	var refusal: Callable
+	var refusal_label: Label
+	var refused_piece := ""
 
 	func accepts(data: Variant) -> bool:
 		return data is Dictionary and not data.has("detach") and data.get("origin","")=="player_stock" and data.get("revision",-1)==revision and options.has(str(data.get("item","")))
 
 	func _can_drop_data(_at: Vector2,data: Variant) -> bool:
-		return accepts(data)
+		if accepts(data):
+			if refusal_label and not refused_piece.is_empty():
+				refusal_label.text = ""
+				refused_piece = ""
+			return true
+		if refusal.is_valid() and refusal_label and data is Dictionary and not data.has("detach") and data.get("origin")=="player_stock" and data.get("revision",-1)==revision and get_viewport().gui_is_dragging():
+			var child := str(data.get("item",""))
+			if not child.is_empty() and child!=refused_piece:
+				refused_piece = child
+				refusal_label.text = str(refusal.call(child,revision))
+				refusal_label.tooltip_text = refusal_label.text
+		return false
+
+	func _notification(what: int) -> void:
+		if what==NOTIFICATION_DRAG_BEGIN and refusal_label and not refused_piece.is_empty():
+			refused_piece = ""
+			refusal_label.text = ""
 
 	func _drop_data(_at: Vector2,data: Variant) -> void:
 		if accepts(data) and receiver.is_valid():
 			receiver.call(options[str(data.item)].duplicate(true),data)
 
 ## A visible slot accepts only candidates supplied by the composition authority.
-func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog: Resource,copy: Dictionary,translate: Callable,preview: Callable,restore_quote: Dictionary = {},drop_part: Callable = Callable(), drag_scale: float = 1.0) -> void:
+func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog: Resource,copy: Dictionary,translate: Callable,preview: Callable,restore_quote: Dictionary = {},drop_part: Callable = Callable(), drag_scale: float = 1.0, attachment_reason: Callable = Callable()) -> void:
 	if root_id!=last_root:
 		last_root = root_id
 		slot_page = 0
@@ -39,7 +58,7 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 	var work := self
 	var header := HBoxContainer.new()
 	work.add_child(header)
-	var redraw := func()->void: populate(root_id,composition,items,catalog,copy,translate,preview,restore_quote,drop_part,drag_scale)
+	var redraw := func()->void: populate(root_id,composition,items,catalog,copy,translate,preview,restore_quote,drop_part,drag_scale,attachment_reason)
 	var restore := Button.new()
 	restore.name = "repair"
 	restore.text = copy.repair
@@ -116,13 +135,17 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 			part_page = clampi(part_page,0,maxi(0,choices.size()-1))
 			if choices.is_empty():
 				socket.tooltip_text = "현재 장착 가능한 물품이 없습니다. 호환 여부와 조립 후 본체가 차지할 빈 공간을 확인하세요."
-				if civilian_pair:
-					socket.text += " · 장착 불가"
-					var guidance := Label.new()
-					guidance.text = "호환 부품과 조립 후 본체 공간을 확인하세요."
-					guidance.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-					guidance.custom_minimum_size.y = 44
-					work.add_child(guidance)
+				if civilian_pair: socket.text += " · 장착 불가"
+			if attachment_reason.is_valid():
+				var guidance := Label.new()
+				guidance.name = "attach_rejection"
+				guidance.add_theme_color_override("font_color",Color("#f2cda2"))
+				guidance.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+				guidance.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				work.add_child(guidance)
+				target.refusal_label = guidance
+				target.refusal = func(piece_id: String,revision: int)->String:
+					return str(attachment_reason.call(root_id,piece_id,revision))
 			for option: Dictionary in choices:
 				var part := str(option.child_id)
 				target.options[part] = option.duplicate(true)

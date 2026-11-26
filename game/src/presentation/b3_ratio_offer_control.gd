@@ -3,6 +3,9 @@ extends VBoxContainer
 ## Host owns the visit-scoped draft and supplies a player-visible basis.
 signal ratio_changed(value: int)
 const Quote = preload("res://src/presentation/b3_ratio_offer.gd")
+const PaperProp = preload("res://src/presentation/b3_paper_prop.gd")
+var move_ink := true
+var _ink_motion: Tween
 var _basis: Dictionary = {}
 var _ratio: int = 1000
 var _amount: Label
@@ -52,6 +55,11 @@ func _change(delta: int) -> void:
 	if next==_ratio: return
 	_ratio = next
 	_render()
+	if move_ink:
+		if _ink_motion and _ink_motion.is_valid(): _ink_motion.kill()
+		_amount.self_modulate.a = 0.62
+		_ink_motion = create_tween()
+		_ink_motion.tween_property(_amount,"self_modulate:a",1.0,0.14)
 	ratio_changed.emit(_ratio)
 
 func _render() -> void:
@@ -64,19 +72,23 @@ func _render() -> void:
 		"public_quote": title = "손님 공개 요구가 기준"
 		"personal_provisional": title = "내 임시 평가액 기준"
 	tooltip_text = ("%s · %d %s" % [title,int(_basis.amount),str(_basis.currency)]) if not _basis.is_empty() else title
-	_amount.text = ("%d %s" % [proposed_amount(),str(_basis.get("currency",""))]) if valid else "제안 기준 없음"
+	_amount.text = ("%d %s" % [proposed_amount(),str(_basis.get("currency",""))]) if valid else "—"
 	_percent.text = "%.1f%%" % (float(_ratio)/10.0) if valid else "—"
 	for i: int in range(_buttons.size()):
 		var delta: int = [-50,-1,1,50][i]
 		_buttons[i].disabled = not valid or Quote.shift(_basis,_ratio,delta)==_ratio
 
 
-func present_as_receipt(enabled: bool) -> void:
-	if enabled==_amount.has_theme_color_override("font_color"): return
-	_amount.add_theme_font_size_override("font_size",24 if enabled else 20)
-	if enabled:
+func present_as_receipt(enabled: bool,reading_scale: int = 100) -> void:
+	var was_paper := _amount.has_theme_color_override("font_color")
+	if not enabled and not was_paper: return
+	# The handwritten sum and ratio share a fixed-height row on the slip.
+	_amount.add_theme_font_size_override("font_size",clampi(roundi(24.0*reading_scale/100.0),24,27) if enabled else 20)
+	_percent.add_theme_font_size_override("font_size",clampi(roundi(14.0*reading_scale/100.0),14,16) if enabled else 14)
+	if enabled and not was_paper:
+		for button: Button in _buttons: PaperProp.ink_action(button)
 		_amount.add_theme_color_override("font_color",Color("#302820"))
 		_percent.add_theme_color_override("font_color",Color("#554734"))
-	else:
+	elif not enabled:
 		_amount.remove_theme_color_override("font_color")
 		_percent.remove_theme_color_override("font_color")

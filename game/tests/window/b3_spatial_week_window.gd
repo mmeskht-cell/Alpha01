@@ -35,13 +35,19 @@ func counter_key(key: Key) -> void:
 		root.push_input(event,true)
 	await frames()
 
+func wait_for_counter_view() -> void:
+	if not host.reduce_motion: await create_timer(0.30).timeout
+	await frames()
+
 func start_counter_appraisal(use_space: bool = false) -> bool:
 	var before: Dictionary = host.session.snapshot()
 	if use_space:
 		await counter_key(KEY_SPACE)
 	else:
 		if not await click_navigation(host,"specimen"): return false
-	return check(host.zoom and not visible_action("offer") and host.session.snapshot()==before,"appraisal input changes the view only, with no offer control")
+	await wait_for_counter_view()
+	return (check(host.counter_view.is_visible_in_tree() and is_equal_approx(host.counter_view.pitch,1.0) and not host.scenery.is_visible_in_tree(),"physical tabletop fills the downward view")
+		and check(host.zoom and not visible_action("offer") and host.session.snapshot()==before,"appraisal input changes the view only, with no offer control"))
 
 func leave_counter_appraisal(use_key: bool = false) -> bool:
 	var before: Dictionary = host.session.snapshot()
@@ -49,7 +55,9 @@ func leave_counter_appraisal(use_key: bool = false) -> bool:
 		await counter_key(KEY_F)
 	else:
 		if not await click_navigation(host,"finish_appraisal"): return false
-	return check(not host.zoom and visible_action("counter_offer") and host.session.snapshot()==before,"return to the same customer and specimen without an authority change")
+	await wait_for_counter_view()
+	return (check(host.scenery.is_visible_in_tree() and not host.counter_view.is_visible_in_tree(),"raise head to the front room")
+		and check(not host.zoom and visible_action("counter_offer") and host.session.snapshot()==before,"return to the same customer and specimen without an authority change"))
 
 ## Same protected 100 VKC fixture; actual native pointer controls only.
 func choose_radio_offer_100() -> bool:
