@@ -3,6 +3,7 @@ extends SceneTree
 const Seed = preload("res://src/content/alpha_b2_seed.gd")
 const Session = preload("res://src/domain/game_session.gd")
 const Story = preload("res://src/domain/alpha_story_projection.gd")
+const Rules = preload("res://src/domain/value_rules.gd")
 var checks: int = 0
 var failures: int = 0
 
@@ -22,9 +23,9 @@ func _initialize() -> void:
 	var authored: Dictionary = {}
 	for beat: Dictionary in config.get("beats",[]):
 		authored[beat.id]=beat
-	check(authored.get("S01_G01_OPEN",{})=={"id":"S01_G01_OPEN","kind":"customer_open","day":1,"visit_id":"visit_g01","actor_id":"G01","item_id":"R001","text_key":"b2.story.s01.g01"}
-		and authored.get("S03_RAD1_PAID",{})=={"id":"S03_RAD1_PAID","kind":"contract_fact","first_day":4,"last_day":5,"contract_id":"rad1_first","status":"paid","text_key":"b2.story.s03.paid"}
-		and authored.get("S03_RAD1_DEFAULT",{})=={"id":"S03_RAD1_DEFAULT","kind":"contract_fact","first_day":4,"last_day":5,"contract_id":"rad1_first","status":"defaulted","text_key":"b2.story.s03.default"},"original three authored story records remain exact")
+	check(Rules.canonical(authored.get("S01_G01_OPEN",{}))==Rules.canonical({"id":"S01_G01_OPEN","kind":"customer_open","day":1,"visit_id":"visit_g01","actor_id":"G01","item_id":"R001","text_key":"b2.story.s01.g01"})
+		and Rules.canonical(authored.get("S03_RAD1_PAID",{}))==Rules.canonical({"id":"S03_RAD1_PAID","kind":"contract_fact","first_day":4,"last_day":5,"contract_id":"rad1_first","status":"paid","text_key":"b2.story.s03.paid"})
+		and Rules.canonical(authored.get("S03_RAD1_DEFAULT",{}))==Rules.canonical({"id":"S03_RAD1_DEFAULT","kind":"contract_fact","first_day":4,"last_day":5,"contract_id":"rad1_first","status":"defaulted","text_key":"b2.story.s03.default"}),"original three authored story records remain exact")
 	var extended: Dictionary = config.duplicate(true)
 	extended.beats.append({"id":"S03_EXTRA_WINDOW","kind":"contract_fact","first_day":6,"last_day":6,"contract_id":"rad1_first","status":"paid","text_key":"b2.story.s03.paid"})
 	check(not Story.validate(extended).is_empty(),"additional nonoverlapping story record accepted without new code")
