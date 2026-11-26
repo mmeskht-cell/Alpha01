@@ -2087,6 +2087,16 @@ func _queue_inventory_drop(kind: String,destination: Variant,data: Variant) -> v
 	var state: Dictionary = session.snapshot()
 	var item: Dictionary = state.items.get(selected,{})
 	if item.is_empty() or item.inventory!=data.get("origin"): return
+	if kind=="attach":
+		if drawer!="stock" or storage!="player_stock" or session.alpha_view().phase!="EVENING_WORK" or not destination is Dictionary: return
+		if data.has("detach") or data.get("revision",-1)!=state.revision or destination.get("child_id")!=data.get("item"): return
+		var live: Dictionary = session.composition_options(str(destination.get("root_id","")),"player_stock")
+		var allowed := false
+		for slot: Dictionary in live.get("slots",[]):
+			if slot.get("attach",[]).has(destination):
+				allowed = true
+				break
+		if not allowed: return
 	inventory_drop = {"kind":kind,"value":destination,"item":selected,"revision":state.revision,"storage":storage,"detach":data.get("detach",{})}
 	_flush_inventory_drop.call_deferred()
 
@@ -2114,7 +2124,7 @@ func _flush_inventory_drop() -> void:
 
 func _inventory_cell_valid(data: Variant) -> bool:
 	if not data is Dictionary or data.get("item")!=selected: return false
-	if not data.has("detach"): return true
+	if not data.has("detach"): return data.get("revision",session.snapshot().revision)==session.snapshot().revision
 	return storage=="player_stock" and session.alpha_view().phase=="EVENING_WORK" and data.get("revision")==session.snapshot().revision
 
 func _detachment_at(candidate: Dictionary,target: Vector2i) -> Dictionary:
@@ -2238,7 +2248,7 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 				preview.custom_minimum_size = bounds
 				preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
 				token.set_drag_preview(preview)
-			return {"item":id,"origin":item.inventory},func(at:Vector2,data:Variant)->bool:
+			return {"item":id,"origin":item.inventory,"revision":int(s.revision)},func(at:Vector2,data:Variant)->bool:
 				if not r2_review_mode or not _inventory_cell_valid(data): return false
 				_hover_inventory_cell(Vector2i(item.x,item.y)+Vector2i((at/cell).floor()),data.get("detach",{}))
 				return true,func(at:Vector2,data:Variant)->void:

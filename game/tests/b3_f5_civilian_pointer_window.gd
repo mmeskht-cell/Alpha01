@@ -53,6 +53,15 @@ func civilian_work(resolution: Vector2i,location: String,before: Dictionary) -> 
 	var spare := host.find_child("stock_"+Trial.SPARE,true,false) as Control
 	var socket := host.find_child("work_socket_"+Trial.PART_B,true,false) as Control
 	if not check(is_instance_valid(socket) and socket.is_visible_in_tree(),"replacement available in the existing socket"): return false
+	var live: Dictionary = host.session.composition_options(Trial.ROOT,"player_stock")
+	var expected := {"actor":"player","root_id":Trial.ROOT,"child_id":Trial.SPARE}
+	if not check(live.slots[1].attach.has(expected),"authority projects the exact spare as an eligible attachment"): return false
+	var data := {"item":Trial.SPARE,"origin":"player_stock","revision":split.revision}
+	if not check(socket.call("accepts",data),"visible socket accepts the current projected spare"): return false
+	var stale := data.duplicate(true)
+	stale.revision = int(split.revision)-1
+	if not check(not socket.call("accepts",stale),"visible socket refuses stale drag data"): return false
+	await capture("f5_civilian_attach_ready",resolution)
 	if not await drag_between(spare,socket): return false
 	if not check(host.draft.get("kind")=="spatial_attach" and host.draft.result.ok and host.session.snapshot()==split,"grid-to-socket drop previews actual replacement"): return false
 	if not await click("confirm_work","EVENING_WORK"): return false

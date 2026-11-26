@@ -4,6 +4,24 @@ var slot_page := 0
 var part_page := 0
 var last_root := ""
 var view_key := ""
+
+# Keep the projected options on the actual drop target, not in transient loop
+# closures. A drag is a read-only request tied to the displayed revision.
+class AttachSocket extends Button:
+	var options: Dictionary = {}
+	var revision: int = -1
+	var receiver: Callable
+
+	func accepts(data: Variant) -> bool:
+		return data is Dictionary and not data.has("detach") and data.get("origin","")=="player_stock" and data.get("revision",-1)==revision and options.has(str(data.get("item","")))
+
+	func _can_drop_data(_at: Vector2,data: Variant) -> bool:
+		return accepts(data)
+
+	func _drop_data(_at: Vector2,data: Variant) -> void:
+		if accepts(data) and receiver.is_valid():
+			receiver.call(options[str(data.item)].duplicate(true),data)
+
 ## A visible slot accepts only candidates supplied by the composition authority.
 func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog: Resource,copy: Dictionary,translate: Callable,preview: Callable,restore_quote: Dictionary = {},drop_part: Callable = Callable(), drag_scale: float = 1.0) -> void:
 	if root_id!=last_root:
@@ -62,7 +80,7 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 		var child := str(slot.item_id)
 		var tag := str(slot.get("tag",""))
 		var slot_title: String = {"f3_module_a":"모듈 A","f3_module_b":"모듈 B"}.get(tag,"")
-		var socket := Button.new()
+		var socket := AttachSocket.new() if child.is_empty() else Button.new()
 		socket.custom_minimum_size = Vector2(0,44)
 		socket.expand_icon = true
 		socket.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -89,7 +107,9 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 		else:
 			socket.name = "work_socket_"+tag if not tag.is_empty() else "work_socket"
 			socket.text = str(copy.empty_slot) if slot_title.is_empty() else slot_title+" · 빈 자리"
-			var candidates := {}
+			var target := socket as AttachSocket
+			target.revision = int(composition.get("revision",-1))
+			target.mouse_filter = Control.MOUSE_FILTER_STOP
 			var alternatives := HBoxContainer.new()
 			work.add_child(alternatives)
 			var choices: Array = slot.get("attach",[])
@@ -97,7 +117,7 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 			if choices.is_empty(): socket.tooltip_text = "이 위치에 넣을 수 있는 창고 물품이 없습니다."
 			for option: Dictionary in choices:
 				var part := str(option.child_id)
-				candidates[part] = option
+				target.options[part] = option.duplicate(true)
 				if option!=choices[part_page]: continue
 				var button := Button.new()
 				button.name = "attach_"+part
@@ -116,9 +136,6 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 				cycle.pressed.connect(func()->void:
 					part_page=(part_page+1)%choices.size()
 					redraw.call())
-			socket.set_drag_forwarding(Callable(),func(_at:Vector2,data:Variant)->bool:
-				return data is Dictionary and not data.has("detach") and candidates.has(data.get("item","")),func(_at:Vector2,data:Variant)->void:
-				if data is Dictionary and not data.has("detach") and candidates.has(data.get("item","")):
-					var payload: Dictionary = candidates[data.item].duplicate(true)
-					if drop_part.is_valid(): drop_part.call(payload,data)
-					else: preview.call("spatial_attach",payload))
+			target.receiver = func(payload:Dictionary,data:Variant)->void:
+				if drop_part.is_valid(): drop_part.call(payload,data)
+				else: preview.call("spatial_attach",payload)
