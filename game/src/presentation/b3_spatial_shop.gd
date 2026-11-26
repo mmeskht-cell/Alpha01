@@ -522,6 +522,10 @@ func _rebuild_stage() -> void:
 			action("ledger","장부 · 계약",32,126,164,44,func()->void: open_drawer("ledger"))
 	if v.phase in ["DAY_PREP","OPEN_IDLE","EVENING_WORK"]:
 		action("news",_text("spatial.news"),548,597,150,46,func()->void: open_drawer("news"))
+	elif v.phase == "CUSTOMER_ACTIVE" and not zoom:
+		# Read-only bulletin access in the free header, not over evidence cards.
+		var bulletin := action("news",_text("spatial.news"),720,12,190,42,func()->void: open_drawer("news"))
+		bulletin.tooltip_text = "현재 응대와 가격 제안을 유지한 채 게시된 소식 확인"
 	if v.phase == "EVENING_WORK":
 		_desk_object("phone","phone","전화기",Rect2(942,403,178,149) if r2_room_active else Rect2(944,336,177,148),func()->void:open_drawer("phone"))
 		_desk_object("address_book","book","연락처 수첩",Rect2(741,417,170,124) if r2_room_active else Rect2(721,350,178,132),func()->void:open_drawer("phone"))

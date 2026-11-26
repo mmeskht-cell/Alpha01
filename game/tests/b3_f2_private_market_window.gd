@@ -70,8 +70,10 @@ func f2_counter(resolution:Vector2i,fixture:RefCounted)->bool:
 	if not check(speech!=null and speech.is_visible_in_tree() and ("%d VKC"%bid) in speech.text,"actual counter speech reveals only current bid"): return false
 	await capture("f2_v2_counter_"+str(resolution.y),resolution)
 	if not await click_navigation(host,"news"): return false
+	if not check(host.drawer=="news" and host.session.snapshot()==before,"bulletin opens during actual active visit without changing authority"): return false
 	await capture("f2_v2_news_"+str(resolution.y),resolution)
 	if not await click_navigation(host,"close_drawer"): return false
+	if not check(host.drawer.is_empty() and host.session.snapshot()==before,"return to identical counter and customer"): return false
 	if not await click_navigation(host,"counter_offer"): return false
 	var notice:=host.find_child("market_notice",true,false) as Label
 	if not check(notice!=null and "항구 · 전지" in notice.text and "공방 구역 · 공구" in notice.text and "거래 자료 부족" in notice.text,"seven-group dated public bulletin on actual offer page"): return false
@@ -83,6 +85,12 @@ func f2_counter(resolution:Vector2i,fixture:RefCounted)->bool:
 	if not await click_navigation(host,"close_drawer"): return false
 	var amount:=host.find_child("offer_amount",true,false) as Label
 	if not check(amount!=null and amount.text==("%d VKC"%bid) and host.session.snapshot()==before,"explicit ratio basis remains read-only at 100 percent"): return false
+	var selected_basis: Dictionary = host.offer_basis.duplicate(true)
+	var selected_ratio: int = host.offer_ratio
+	if not await click_navigation(host,"news"): return false
+	if not await click_navigation(host,"close_drawer"): return false
+	amount = host.find_child("offer_amount",true,false) as Label
+	if not check(host.offer_basis==selected_basis and host.offer_ratio==selected_ratio and amount!=null and amount.text==("%d VKC"%bid) and host.session.snapshot()==before,"bulletin round trip retains selected offer basis, ratio, amount and authoritative state"): return false
 	if not await click("offer","CUSTOMER_ACTIVE"): return false
 	var agreed:Dictionary=host.session.snapshot()
 	if not check(host.session.alpha_view().appraisal.accepted.get("amount")==bid and agreed.wallets==before.wallets and agreed.items==before.items and agreed.ledger==before.ledger,"real agreement does not settle assets"): return false
