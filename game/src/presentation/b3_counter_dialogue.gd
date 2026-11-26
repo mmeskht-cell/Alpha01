@@ -10,6 +10,8 @@ static func subject(slot: String) -> String:
 		"material_detail": return "재질"
 		"batch_detail": return "표식"
 		"function_detail","condition_detail","basic_function_v1": return "작동 상태"
+		"f3_part_a": return "모듈 A 관찰"
+		"f3_part_b": return "모듈 B 관찰"
 	return ""
 
 ## Stable expression variants only; not personality stats or economic modifiers.

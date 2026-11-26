@@ -32,7 +32,25 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 	header.add_child(restore)
 	restore.custom_minimum_size.y = 44
 	restore.pressed.connect(func()->void:preview.call("spatial_restore_item",{"actor":"player","item_id":root_id}))
-	if slots.size()>1:
+	var civilian_pair: bool = slots.size()==2 and str(slots[0].get("tag",""))=="f3_module_a" and str(slots[1].get("tag",""))=="f3_module_b"
+	if civilian_pair:
+		# Read only the authorized composition projection. Occupancy is not a functional judgment.
+		for index: int in range(slots.size()):
+			var slot_info: Dictionary = slots[index]
+			var occupied: bool = not str(slot_info.get("item_id","")).is_empty()
+			var selector := Button.new()
+			selector.name = "work_slot_"+str(index)
+			selector.text = ("A" if index==0 else "B")+(" 장착" if occupied else " 빈자리")
+			selector.toggle_mode = true
+			selector.set_pressed_no_signal(index==slot_page)
+			selector.custom_minimum_size = Vector2(84,44)
+			header.add_child(selector)
+			selector.pressed.connect(func()->void:
+				slot_page=index
+				part_page=0
+				view_key=""
+				redraw.call())
+	elif slots.size()>1:
 		var next := Button.new()
 		next.text = "작업 위치 %d/%d ›"%[slot_page+1,slots.size()]
 		header.add_child(next)

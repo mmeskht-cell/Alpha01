@@ -123,7 +123,10 @@ func _ready() -> void:
 	super._ready()
 	if theme!=null: theme.merge_with(preload("res://src/presentation/b3_shop_theme.tres"))
 	add_child(sound)
-	if session != null: sound.prime(int(session.snapshot().revision))
+	if session != null:
+		sound.prime(int(session.snapshot().revision))
+		# Resume the current ambient mix; loading never emits a transaction cue.
+		sound.set_phase("workshop" if session.alpha_view().get("phase","")=="EVENING_WORK" else "shop")
 	if continuing and not _blocked:
 		_intro = false
 		refresh()
@@ -868,6 +871,9 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 		interaction.add_child(counter_item)
 	var item_area := Rect2(470,385,314,167) if r2_room_active else Rect2(324,390,460,166)
 	if r2_room_active and str(a.item_id)=="R001": item_area = Rect2(498,365,248,188)
+	# Keep the same model and grounded lower edge. Enlarge only within the free desk area.
+	if r2_room_active and zoom:
+		item_area = Rect2(462,312,322,241)
 	counter_item.call("present",texture,item_area)
 	interaction.move_child(counter_item,-1)
 	var specimen := counter_item
@@ -888,7 +894,7 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 			return _tool_drop_allowed(at/focus_item.size,data,v,a),func(at:Vector2,data:Variant)->void:
 			if _tool_drop_allowed(at/focus_item.size,data,v,a): _queue_counter_drop("inspect",str(data.tool),v,a))
 		focus_item.flat = true
-		focus_item.tooltip_text = "물품 살펴보기"
+		focus_item.tooltip_text = "도구를 선택해 물품에 적용" if zoom else "물품 가까이 살펴보기"
 		focus_item.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	var lens_toggle := _desk_action("lens","표본 접기" if lens_open else "표본 보기",Rect2(36,352,146,44) if r2_room_active else Rect2(51,324,136,44),func()->void:
 		lens_open = not lens_open
@@ -2171,6 +2177,15 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 				preview.size = bounds
 				preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
 				_inventory_sprite(preview,texture,bounds,rotated)
+				if texture==null:
+					var caption := Label.new()
+					caption.text = token.tooltip_text
+					caption.size = bounds
+					caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+					caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+					caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+					caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+					preview.add_child(caption)
 				token.set_drag_preview(preview)
 				inventory_drag_preview = preview
 			else:
@@ -2231,9 +2246,12 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 		refresh())
 	if not draft.is_empty():
 		var pending: Dictionary = draft.payload
-		if pending.has("x") and pending.has("y") and draft.kind in ["alpha_display","alpha_withdraw_display","spatial_move"]:
-			var dims: Array = session.spatial_dimensions(selected)
-			var footprint := Vector2i(int(dims[1] if rotated else dims[0]),int(dims[0] if rotated else dims[1]))
+		if pending.has("x") and pending.has("y") and draft.kind in ["alpha_display","alpha_withdraw_display","spatial_move","spatial_detach"]:
+			# A detached civilian component occupies its own footprint, not the parent footprint.
+			var preview_id := str(pending.child_id) if draft.kind=="spatial_detach" else selected
+			var dims: Array = session.spatial_dimensions(preview_id)
+			var preview_rotated := bool(pending.get("rotated",false))
+			var footprint := Vector2i(int(dims[1] if preview_rotated else dims[0]),int(dims[0] if preview_rotated else dims[1]))
 			var visible := Rect2i(int(pending.x),int(pending.y),footprint.x,footprint.y).intersection(Rect2i(0,0,int(spec.width),int(spec.height)))
 			var ghost := paper(76+visible.position.x*cell,160+visible.position.y*cell,visible.size.x*cell,visible.size.y*cell,Color("#77bc8c88") if draft.result.ok else Color("#d4665488"))
 			ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -2315,10 +2333,11 @@ func _inventory_difference(state: Dictionary,pending: Dictionary) -> String:
 		if draft.kind=="spatial_attach": return title+"   /   별도 보관 → 본체에 결합"
 		if draft.kind=="spatial_detach": return title+"   /   본체 → 창고 %d행 %d열"%[int(pending.y)+1,int(pending.x)+1]
 	if draft.kind in ["spatial_restore_item","alpha_service_repair"]:
-		var before_cash: Dictionary = state.wallets.player
-		var cost_vkc := int(before_cash.VKC)-int(draft.result.VKC)
-		var cost_usd := int(before_cash.USD)-int(draft.result.USD)
-		return "작업비 %d VKC / %d USD\n소유권과 보관은 그대로입니다."%[cost_vkc,cost_usd]
+		# spatial_action_preview returns signed wallet deltas, not ending balances.
+		var delta_vkc := int(draft.result.VKC)
+		var delta_usd := int(draft.result.USD)
+		var cash_caption := "작업 지출 %d VKC / %d USD"%[-delta_vkc,-delta_usd] if delta_vkc<=0 and delta_usd<=0 else "현금 변동 %+d VKC / %+d USD"%[delta_vkc,delta_usd]
+		return cash_caption+"\n소유권과 보관은 그대로입니다."
 	if draft.kind=="spatial_discard": return "확정하면 물품은 영구 제거됩니다. 기존 거래와 작업 기록은 보존됩니다."
 	return "작업 후 상태는 확정하면 기록됩니다."
 
@@ -2365,7 +2384,8 @@ func _hover_cell(target: Vector2i,spec: Dictionary,cell: float) -> void:
 		var reason := "spatial.error."+str(plan.result.get("error",""))
 		placement_hint.text = ("배치 가능" if plan.result.ok else _text(reason if _strings.has(reason) else "spatial.error.permission"))+" · %d×%d"%[footprint.x,footprint.y]
 	var bounds := Rect2i(target,footprint).intersection(Rect2i(0,0,int(spec.width),int(spec.height)))
-	hover_ghost = paper(76+target.x*cell,160+target.y*cell,bounds.size.x*cell,bounds.size.y*cell,Color("#77bc8c66") if plan.result.ok else Color("#d4665466"))
+	if not bounds.has_area(): return
+	hover_ghost = paper(76+bounds.position.x*cell,160+bounds.position.y*cell,bounds.size.x*cell,bounds.size.y*cell,Color("#77bc8c66") if plan.result.ok else Color("#d4665466"))
 	hover_ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func _place_selection(target: Vector2i) -> void:
@@ -2428,6 +2448,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			inventory_drag_preview.size = Vector2(previous.y,previous.x)
 			var image := inventory_drag_preview.get_node("ItemArt") as Sprite2D
 			_inventory_sprite(inventory_drag_preview,image.texture,inventory_drag_preview.size,rotated)
+			for child in inventory_drag_preview.get_children():
+				if child is Label: child.size = inventory_drag_preview.size
 			_clear_hover()
 			get_viewport().set_input_as_handled()
 			return
