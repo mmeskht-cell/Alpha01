@@ -1747,7 +1747,8 @@ func _ledger_workspace(v: Dictionary,current: Dictionary) -> void:
 			_board_line(pages,"p_"+str(payment.action_id),"D%d · %s → %s · %d %s"%[payment.day,_actor_label(payment.from),_actor_label(payment.to),payment.amount,payment.currency])
 
 func _show_r2_book(v: Dictionary) -> void:
-	var book_rect := Rect2(805,103,445,444) if zoom else Rect2(796,366,453,338)
+	# Preserve the 376-unit readable page plus the spine, outer margins and scrollbar.
+	var book_rect := Rect2(805,103,465,444) if zoom else Rect2(796,366,465,338)
 	r2_book = r2_controls.mount(interaction,"r2_reference_desk",book_rect,func()->Control:
 		var desk := R2Book.new()
 		desk.closed.connect(func()->void:

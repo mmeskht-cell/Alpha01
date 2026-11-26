@@ -6,7 +6,7 @@ signal closed
 var scroll: ScrollContainer
 var pages: VBoxContainer
 ## Keep the fold and page margins while wrapping the longest entry within the paper.
-const PAGE_MIN_WIDTH := 362.0
+const PAGE_MIN_WIDTH := 376.0
 var tabs: Array[Button] = []
 var close_button: Button
 
