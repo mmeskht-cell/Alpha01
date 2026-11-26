@@ -1196,8 +1196,8 @@ func _counter_speech(v: Dictionary) -> String:
 	var public_context: Dictionary = v.get("npc_context",{})
 	if v.has("customer_bid_vkc") and public_context.get("current_offer",{}).is_empty() and public_context.get("latest_spoken",{}).is_empty():
 		if public_context.get("prior",{}).get("outcome","")=="departed":
-			return "지난번엔 값이 안 맞았죠. 오늘은 %d VKC에 사겠습니다."%v.customer_bid_vkc
-		return "이 물건을 사러 왔습니다. %d VKC면 어떻습니까?"%v.customer_bid_vkc
+			return CounterDialogue.bid("bid_return",int(v.customer_bid_vkc),str(v.active.actor_id))
+		return CounterDialogue.bid("bid_open",int(v.customer_bid_vkc),str(v.active.actor_id))
 	if r2_room_active and v.active.id=="visit_g01":
 		if public_context.get("current_offer",{}).is_empty() and public_context.get("latest_spoken",{}).is_empty() and public_context.get("prior",{}).is_empty():
 			return str(captions.g01)

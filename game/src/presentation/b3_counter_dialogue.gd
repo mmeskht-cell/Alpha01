@@ -1,27 +1,81 @@
 extends RefCounted
-## B3 speech uses only the public NPC projection and the public trade direction.
-## No item truth, private notes, hidden prices, random wallet/intent inference.
+## Select speech from the public projection only; text is independent of game rules.
+const PATH = "res://data/alpha_b3/dialogue_ko.json"
+const Rules = preload("res://src/domain/value_rules.gd")
+const REQUIRED = ["challenge_topic","challenge_plain","withdraw_topic","withdraw_plain","reaffirm_topic","reaffirm_plain","accept_buy","accept_sell","decline_remembered","decline_topic","decline_withdrawn","decline_buy","decline_sell","return_traded","return_commission","return_service","return_declined","return_accepted","opening_buy","opening_sell","bid_return","bid_open"]
+const TOPIC_KEYS = ["challenge_topic","withdraw_topic","reaffirm_topic","decline_remembered","decline_topic"]
+const AMOUNT_KEYS = ["bid_return","bid_open"]
+static var _catalog: Dictionary = {}
+static var _loaded: bool = false
+
+static func validate(raw: Variant) -> bool:
+	if not Rules.keys(raw,["version","subjects","voices","lines","actor_lines"]) or raw.version!=1:
+		return false
+	if not raw.subjects is Dictionary or not raw.voices is Dictionary or not raw.lines is Dictionary or not raw.actor_lines is Dictionary:
+		return false
+	for key: Variant in raw.subjects:
+		var label: Variant = raw.subjects[key]
+		if not Rules.identifier(key) or not label is String or label.is_empty() or label.length()>120 or "{" in label or "}" in label:
+			return false
+	for key: Variant in raw.voices:
+		if not Rules.identifier(key) or not Rules.integer(raw.voices[key],0,63):
+			return false
+	for key: String in REQUIRED:
+		if not raw.lines.has(key): return false
+	for key: Variant in raw.lines:
+		if not Rules.identifier(key) or not _valid_rows(str(key),raw.lines[key]): return false
+	for actor: Variant in raw.actor_lines:
+		if not Rules.identifier(actor) or not raw.actor_lines[actor] is Dictionary: return false
+		for key: Variant in raw.actor_lines[actor]:
+			if key not in REQUIRED or not _valid_rows(str(key),raw.actor_lines[actor][key]): return false
+	return true
+
+static func _valid_rows(key: String, rows: Variant) -> bool:
+	if not rows is Array or rows.is_empty() or rows.size()>64: return false
+	var token: String = "{topic}" if key in TOPIC_KEYS else ("{amount}" if key in AMOUNT_KEYS else "")
+	for row: Variant in rows:
+		if not row is String or row.strip_edges().is_empty() or row.length()>512: return false
+		var rest: String = row
+		if not token.is_empty():
+			if row.count(token)!=1: return false
+			rest = row.replace(token,"")
+		if "{" in rest or "}" in rest: return false
+	return true
+
+static func _data() -> Dictionary:
+	if not _loaded:
+		_loaded = true
+		var raw: Variant = JSON.parse_string(FileAccess.get_file_as_string(PATH))
+		if validate(raw):
+			_catalog = raw
+		else:
+			push_error("Invalid B3 dialogue catalog: "+PATH)
+	return _catalog
 
 static func subject(slot: String) -> String:
-	match slot:
-		"wear_detail": return "사용 흔적"
-		"display_damage_detail": return "표면 손상"
-		"casing_detail": return "외장 상태"
-		"material_detail": return "재질"
-		"batch_detail": return "표식"
-		"function_detail","condition_detail","basic_function_v1": return "작동 상태"
-		"f3_part_a": return "모듈 A 관찰"
-		"f3_part_b": return "모듈 B 관찰"
-	return ""
+	return str(_data().get("subjects",{}).get(slot,""))
 
-## Stable expression variants only; not personality stats or economic modifiers.
-## The empty actor ID retains the original canonical test phrases.
-static func voice(actor_id: String) -> int:
-	if actor_id.is_empty() or actor_id in ["ian","marcus"]: return 0
-	return actor_id.sha256_text().left(6).hex_to_int()%3
+## Stable variants; no economic or NPC state change. Existing three-way selection is preserved.
+static func voice(actor_id: String, count: int = 3) -> int:
+	if count<=1 or actor_id.is_empty(): return 0
+	var overrides: Dictionary = _data().get("voices",{})
+	if overrides.has(actor_id): return int(overrides[actor_id])%count
+	return actor_id.sha256_text().left(6).hex_to_int()%count
 
-static func phrase(actor_id: String, variants: Array[String]) -> String:
-	return variants[voice(actor_id)]
+static func _rows(key: String, actor_id: String) -> Array:
+	var catalog := _data()
+	return catalog.get("actor_lines",{}).get(actor_id,{}).get(key,catalog.get("lines",{}).get(key,[]))
+
+static func _say(key: String, actor_id: String, topic: String = "") -> String:
+	var rows: Array = _rows(key,actor_id)
+	if rows.is_empty(): return ""
+	return str(rows[voice(actor_id,rows.size())]).replace("{topic}",topic)
+
+static func bid(key: String, amount: int, actor_id: String = "") -> String:
+	if key not in AMOUNT_KEYS: return ""
+	var rows: Array = _rows(key,actor_id)
+	if rows.is_empty(): return ""
+	return str(rows[voice(actor_id,rows.size())]).replace("{amount}",str(amount))
 
 static func line(context: Dictionary, we_buy: bool, actor_id: String = "") -> String:
 	var latest: Dictionary = context.get("latest_spoken",{})
@@ -29,14 +83,14 @@ static func line(context: Dictionary, we_buy: bool, actor_id: String = "") -> St
 	var topic := subject(str(latest.get("slot","")))
 	match str(latest.get("kind","")):
 		"challenge":
-			return "그 %s 말씀이군요. 제가 다시 확인해 보겠습니다."%topic if not topic.is_empty() else "그렇습니까? 다시 확인해 보겠습니다."
+			return _say("challenge_topic",actor_id,topic) if not topic.is_empty() else _say("challenge_plain",actor_id)
 		"withdraw":
-			return "아, %s에 대한 말씀은 취소하시는 거군요."%topic if not topic.is_empty() else "알겠습니다. 그 말씀은 취소하시는 거군요."
+			return _say("withdraw_topic",actor_id,topic) if not topic.is_empty() else _say("withdraw_plain",actor_id)
 		"reaffirm":
-			return "%s에 대해서는 아까 말씀대로라는 거죠?"%topic if not topic.is_empty() else "그 말씀은 여전히 유효하다는 거죠?"
+			return _say("reaffirm_topic",actor_id,topic) if not topic.is_empty() else _say("reaffirm_plain",actor_id)
 	if not offer.is_empty():
 		if offer.get("response")=="accepted":
-			return phrase(actor_id,["좋습니다. 그 가격에 넘기죠.","됐습니다. 그 가격에 팔죠.","그럼 그렇게 합시다."]) if we_buy else phrase(actor_id,["좋아요. 그 가격이면 사겠습니다.","그 가격이면 됐습니다. 살게요.","알겠습니다. 그걸로 주세요."])
+			return _say("accept_buy",actor_id) if we_buy else _say("accept_sell",actor_id)
 		if offer.get("response")!="declined": return ""
 		var evidence: Array = offer.get("public_slots",[])
 		var remembered := false
@@ -46,17 +100,17 @@ static func line(context: Dictionary, we_buy: bool, actor_id: String = "") -> St
 		for slot: Variant in evidence:
 			topic = subject(str(slot))
 			if topic.is_empty(): continue
-			if remembered: return phrase(actor_id,["아까 %s 얘기는 기억합니다. 그래도 그 가격은 어렵군요.","%s 얘기는 들었습니다. 그래도 가격은 안 맞네요.","아까 %s 말씀하셨죠. 그래도 그 가격은 좀 그렇습니다."])%topic
-			return phrase(actor_id,["%s 말씀은 알겠습니다. 그래도 그 가격은 좀 어렵군요.","%s 때문이라구요? 그래도 그 가격은 어렵습니다.","%s 얘기는 알겠는데, 그 가격은 좀 그렇네요."])%topic
+			if remembered: return _say("decline_remembered",actor_id,topic)
+			return _say("decline_topic",actor_id,topic)
 		if not offer.get("withdrawn_slots",[]).is_empty():
-			return "아까 그 말씀은 취소하셨잖아요. 그 가격은 어렵겠습니다."
-		return phrase(actor_id,["그 돈에 넘기기는 좀 아깝군요.","그 값에는 못 넘기겠습니다.","조금 더 받을 수는 없을까요?"]) if we_buy else phrase(actor_id,["그 가격은 제게 좀 부담스럽습니다.","그 가격에는 사기 어렵습니다.","조금만 낮춰주실 수 없나요?"])
+			return _say("decline_withdrawn",actor_id)
+		return _say("decline_buy",actor_id) if we_buy else _say("decline_sell",actor_id)
 	var prior: Dictionary = context.get("prior",{})
 	match str(prior.get("outcome","")):
-		"traded": return phrase(actor_id,["지난번에 거래했었죠. 다시 들렀습니다.","지난번에 여기서 거래했죠. 또 왔습니다.","안녕하세요. 지난번 거래 기억하시죠?"])
-		"commission_delivered": return "지난번 부탁은 잘 처리해 주셨죠."
-		"service_delivered": return "지난번 맡긴 물건은 잘 받았습니다."
+		"traded": return _say("return_traded",actor_id)
+		"commission_delivered": return _say("return_commission",actor_id)
+		"service_delivered": return _say("return_service",actor_id)
 	var old: Dictionary = prior.get("offer",{})
-	if old.get("response")=="declined": return "지난번에는 가격이 맞지 않았었죠."
-	if old.get("response")=="accepted": return "지난번에는 가격만 정하고 끝났었죠."
-	return phrase(actor_id,["이 물건 좀 봐주시겠어요?","이것 좀 사주시겠습니까?","안녕하세요. 물건 좀 팔려고요."]) if we_buy else phrase(actor_id,["이 물건, 살 수 있을까요?","이거 팔고 계시는 거죠?","안녕하세요. 이걸 좀 사고 싶은데요."])
+	if old.get("response")=="declined": return _say("return_declined",actor_id)
+	if old.get("response")=="accepted": return _say("return_accepted",actor_id)
+	return _say("opening_buy",actor_id) if we_buy else _say("opening_sell",actor_id)

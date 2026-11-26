@@ -52,5 +52,22 @@ func _initialize() -> void:
 	var secret := public.duplicate(true)
 	secret["private_reading"]="SECRET"
 	check(Dialogue.line(public,true,"G02")==Dialogue.line(secret,true,"G02") and Dialogue.line(public,true,"G02").contains("재질"),"variant remains grounded in public topic")
+	var catalog: Variant = JSON.parse_string(FileAccess.get_file_as_string(Dialogue.PATH))
+	check(Dialogue.validate(catalog),"external dialogue catalog schema valid")
+	var extended: Dictionary = catalog.duplicate(true)
+	extended.lines.opening_buy.append("추가 인사")
+	check(Dialogue.validate(extended),"additional wording needs no code change")
+	extended.actor_lines["G01"]={"opening_buy":["인물별 인사"]}
+	check(Dialogue.validate(extended),"per-actor wording is supported by the data schema")
+	var invalid_actor: Dictionary = extended.duplicate(true)
+	invalid_actor.actor_lines.G01["challenge_topic"]=["잘못된 {amount}"]
+	check(not Dialogue.validate(invalid_actor),"actor override must preserve the public substitution contract")
+	extended.lines.challenge_topic=["관찰 {unknown}"]
+	check(not Dialogue.validate(extended),"invalid substitution token rejected")
+	var missing: Dictionary = catalog.duplicate(true)
+	missing.lines.erase("accept_buy")
+	check(not Dialogue.validate(missing),"required dialogue missing is rejected")
+	check(Dialogue.bid("bid_open",123).contains("123 VKC"),"public quote renders actual amount")
+	check(Dialogue.subject("f3_part_a")=="모듈 A 관찰","public civilian component topic retained")
 	print("B3_PUBLIC_DIALOGUE: ",checks," checks, ",failures," failures")
 	quit(1 if failures>0 else 0)

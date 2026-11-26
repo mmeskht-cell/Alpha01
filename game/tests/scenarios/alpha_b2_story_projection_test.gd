@@ -19,7 +19,20 @@ func go(s: RefCounted, action: String) -> bool:
 
 func _initialize() -> void:
 	var config: Dictionary = Story.config()
-	check(config.get("beats",[]).size()==3,"only authored S01 greeting and two factual S03 states are registered")
+	var authored: Dictionary = {}
+	for beat: Dictionary in config.get("beats",[]):
+		authored[beat.id]=beat
+	check(authored.get("S01_G01_OPEN",{})=={"id":"S01_G01_OPEN","kind":"customer_open","day":1,"visit_id":"visit_g01","actor_id":"G01","item_id":"R001","text_key":"b2.story.s01.g01"}
+		and authored.get("S03_RAD1_PAID",{})=={"id":"S03_RAD1_PAID","kind":"contract_fact","first_day":4,"last_day":5,"contract_id":"rad1_first","status":"paid","text_key":"b2.story.s03.paid"}
+		and authored.get("S03_RAD1_DEFAULT",{})=={"id":"S03_RAD1_DEFAULT","kind":"contract_fact","first_day":4,"last_day":5,"contract_id":"rad1_first","status":"defaulted","text_key":"b2.story.s03.default"},"original three authored story records remain exact")
+	var extended: Dictionary = config.duplicate(true)
+	extended.beats.append({"id":"S03_EXTRA_WINDOW","kind":"contract_fact","first_day":6,"last_day":6,"contract_id":"rad1_first","status":"paid","text_key":"b2.story.s03.paid"})
+	check(not Story.validate(extended).is_empty(),"additional nonoverlapping story record accepted without new code")
+	extended.beats.append({"id":"S03_DUPLICATE_WINDOW","kind":"contract_fact","first_day":6,"last_day":7,"contract_id":"rad1_first","status":"paid","text_key":"b2.story.s03.paid"})
+	check(Story.validate(extended).is_empty(),"overlapping same contract status rejected")
+	var invalid: Dictionary = config.duplicate(true)
+	invalid.beats.append({"id":"BAD","kind":"arbitrary_command","text_key":"b2.story.s03.paid"})
+	check(Story.validate(invalid).is_empty(),"unknown event kind cannot introduce game effect")
 	var data: Dictionary=Seed.content()
 	var s:=Session.new()
 	if not check(not data.is_empty() and s.initialize(data.defs,data.state,false,false,{},data.alpha_profile),"real B2 source initializes"):

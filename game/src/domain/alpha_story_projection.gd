@@ -1,14 +1,20 @@
 extends RefCounted
-## Read-only source-bound representative S01/S03 dialogue. This is not
-## STORY_EVENT_SPEC's 26-slot campaign engine, a quest, or a new NPC visit.
+## Read-only authored narrative projection. Supported event kinds may be extended by data.
+## This is not a quest executor, a new visit, or a source of economic effects.
 const Rules = preload("res://src/domain/value_rules.gd")
 const PATH: String = "res://data/alpha_b2/story_source_beats_1.json"
 
+const MAX_BEATS: int = 256
+
 static func config() -> Dictionary:
 	var value: Variant = JSON.parse_string(FileAccess.get_file_as_string(PATH))
-	if not Rules.keys(value, ["version","beats"]) or value.version != 1 or not value.beats is Array or value.beats.size() != 3:
+	return validate(value)
+
+static func validate(value: Variant) -> Dictionary:
+	if not Rules.keys(value, ["version","beats"]) or value.version != 1 or not value.beats is Array or value.beats.size() > MAX_BEATS:
 		return {}
 	var ids: Dictionary = {}
+	var triggers: Dictionary = {}
 	for entry: Variant in value.beats:
 		if not entry is Dictionary:
 			return {}
@@ -26,9 +32,16 @@ static func config() -> Dictionary:
 		if entry.kind == "customer_open":
 			if not Rules.integer(entry.day, 1, 42) or not Rules.identifier(entry.visit_id) or not Rules.identifier(entry.actor_id) or not Rules.identifier(entry.item_id):
 				return {}
+			var trigger := Rules.canonical([entry.kind,entry.day,entry.visit_id,entry.actor_id,entry.item_id])
+			if triggers.has(trigger): return {}
+			triggers[trigger] = true
 		else:
 			if not Rules.integer(entry.first_day, 1, 42) or not Rules.integer(entry.last_day, int(entry.first_day), 42) or not Rules.identifier(entry.contract_id) or entry.status not in ["paid", "defaulted"]:
 				return {}
+			for day: int in range(int(entry.first_day),int(entry.last_day)+1):
+				var trigger := Rules.canonical([entry.kind,day,entry.contract_id,entry.status])
+				if triggers.has(trigger): return {}
+				triggers[trigger] = true
 	return value
 
 static func view(state: Dictionary) -> Dictionary:
