@@ -37,8 +37,18 @@ func civilian_work(resolution: Vector2i,location: String,before: Dictionary) -> 
 	if not await click_navigation(host,"stock_"+Trial.ROOT): return false
 	if not await click_navigation(host,"work_slot_1"): return false
 	var composition: Dictionary = host.session.composition_options(Trial.ROOT,"player_stock")
-	var placement: Dictionary = composition.slots[1].detach
-	if not check(not placement.is_empty(),"existing authority exposes a free cell for the actual module"): return false
+	# The complete receiver is larger than the disassembled receiver. Exercise
+	# the genuine newly freed cells first, then clear them by moving the part.
+	var body: Dictionary = before.items[Trial.ROOT]
+	var dimensions: Array = host.session.spatial_dimensions(Trial.ROOT)
+	var full_size := Vector2i(int(dimensions[1] if body.rotated else dimensions[0]),int(dimensions[0] if body.rotated else dimensions[1]))
+	var full_area := Rect2i(Vector2i(int(body.x),int(body.y)),full_size)
+	var placement: Dictionary = {}
+	for option: Dictionary in composition.slots[1].detach_positions:
+		if full_area.has_point(Vector2i(int(option.x),int(option.y))):
+			placement = option
+			break
+	if not check(not placement.is_empty(),"authority offers a newly freed cell inside the former full footprint"): return false
 	var grid := host.find_child("cell_%d_%d"%[placement.x,placement.y],true,false) as Control
 	var module := host.find_child("detach_"+Trial.BAD,true,false) as Control
 	if not await drag_between(module,grid): return false
@@ -50,12 +60,44 @@ func civilian_work(resolution: Vector2i,location: String,before: Dictionary) -> 
 	if not await click("confirm_work","EVENING_WORK"): return false
 	var split: Dictionary = host.session.snapshot()
 	if not check(split.items[Trial.BAD].parent_id=="" and split.items[Trial.BAD].owner_id=="player" and split.items.size()==before.items.size(),"one real detach preserves item identity and ownership"): return false
-	var spare := host.find_child("stock_"+Trial.SPARE,true,false) as Control
-	var socket := host.find_child("work_socket_"+Trial.PART_B,true,false) as Control
-	if not check(is_instance_valid(socket) and socket.is_visible_in_tree(),"replacement available in the existing socket"): return false
-	var live: Dictionary = host.session.composition_options(Trial.ROOT,"player_stock")
 	var expected := {"actor":"player","root_id":Trial.ROOT,"child_id":Trial.SPARE}
-	if not check(live.slots[1].attach.has(expected),"authority projects the exact spare as an eligible attachment"): return false
+	var live: Dictionary = host.session.composition_options(Trial.ROOT,"player_stock")
+	var blocked: Dictionary = host.session.spatial_action_preview("spatial_attach",expected)
+	var socket := host.find_child("work_socket_"+Trial.PART_B,true,false) as Control
+	if not check(is_instance_valid(socket) and socket.is_visible_in_tree(),"empty physical socket remains visible"): return false
+	if not check(full_area.has_point(Vector2i(int(split.items[Trial.BAD].x),int(split.items[Trial.BAD].y))) and not blocked.get("ok",false) and blocked.get("error")=="inventory_placement" and not live.slots[1].attach.has(expected) and host.session.snapshot()==split,"expanding receiver correctly refuses overlap with its detached module"): return false
+	var blocked_drag := {"item":Trial.SPARE,"origin":"player_stock","revision":split.revision}
+	if not check(not socket.call("accepts",blocked_drag),"socket refuses a geometrically blocked replacement"): return false
+	await capture("f5_civilian_attach_blocked",resolution)
+	# Move the existing detached piece to a valid cell outside the completed
+	# footprint. Neither the obstruction nor the part is silently removed.
+	var destination := Vector2i(-1,-1)
+	var stock: Dictionary = split.inventories.player_stock
+	for y: int in range(int(stock.height)):
+		for x: int in range(int(stock.width)):
+			var point := Vector2i(x,y)
+			if full_area.has_point(point): continue
+			var move := {"actor":"player","item_id":Trial.BAD,"inventory":"player_stock","x":x,"y":y,"rotated":false}
+			if host.session.spatial_action_preview("spatial_move",move).get("ok",false):
+				destination = point
+				break
+		if destination.x>=0: break
+	if not check(destination.x>=0 and host.session.snapshot()==split,"a real legal clearance cell exists without mutation"): return false
+	var obstruction := host.find_child("stock_"+Trial.BAD,true,false) as Control
+	var clearance := host.find_child("cell_%d_%d"%[destination.x,destination.y],true,false) as Control
+	if not await drag_between(obstruction,clearance): return false
+	if not check(host.draft.get("kind")=="spatial_move" and host.draft.result.ok and host.session.snapshot()==split,"moving the obstruction is an explicit read-only placement preview"): return false
+	if not await click("confirm_work","EVENING_WORK"): return false
+	var cleared: Dictionary = host.session.snapshot()
+	if not check(cleared.items[Trial.BAD].x==destination.x and cleared.items[Trial.BAD].y==destination.y and cleared.items.size()==split.items.size() and cleared.wallets==split.wallets and cleared.ledger==split.ledger,"one confirmed movement clears expansion space without loss or payment"): return false
+	if not await click_navigation(host,"stock_"+Trial.ROOT): return false
+	if not await click_navigation(host,"work_slot_1"): return false
+	split = cleared
+	var spare := host.find_child("stock_"+Trial.SPARE,true,false) as Control
+	socket = host.find_child("work_socket_"+Trial.PART_B,true,false) as Control
+	if not check(is_instance_valid(socket) and socket.is_visible_in_tree(),"cleared physical socket remains visible"): return false
+	live = host.session.composition_options(Trial.ROOT,"player_stock")
+	if not check(host.session.spatial_action_preview("spatial_attach",expected).get("ok",false) and live.slots[1].attach.has(expected) and host.session.snapshot()==split,"clearing the footprint restores the exact spare to the authorized attachment list"): return false
 	var data := {"item":Trial.SPARE,"origin":"player_stock","revision":split.revision}
 	if not check(socket.call("accepts",data),"visible socket accepts the current projected spare"): return false
 	var stale := data.duplicate(true)

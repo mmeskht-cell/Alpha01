@@ -114,7 +114,15 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 			work.add_child(alternatives)
 			var choices: Array = slot.get("attach",[])
 			part_page = clampi(part_page,0,maxi(0,choices.size()-1))
-			if choices.is_empty(): socket.tooltip_text = "이 위치에 넣을 수 있는 창고 물품이 없습니다."
+			if choices.is_empty():
+				socket.tooltip_text = "현재 장착 가능한 물품이 없습니다. 호환 여부와 조립 후 본체가 차지할 빈 공간을 확인하세요."
+				if civilian_pair:
+					socket.text += " · 장착 불가"
+					var guidance := Label.new()
+					guidance.text = "호환 부품과 조립 후 본체 공간을 확인하세요."
+					guidance.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+					guidance.custom_minimum_size.y = 44
+					work.add_child(guidance)
 			for option: Dictionary in choices:
 				var part := str(option.child_id)
 				target.options[part] = option.duplicate(true)
