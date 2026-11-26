@@ -1,6 +1,54 @@
 extends "res://tests/b3_w20_pointer_window.gd"
 ## Authored private integration walk. Requires permission to run and original R2 art.
 const Review = preload("res://scenes/app/alpha_b3_r2_art_review.tscn")
+const ProductSource = preload("res://src/content/b3_spatial_week_seed.gd")
+const ProductSession = preload("res://src/domain/game_session.gd")
+const ProductRepo = preload("res://src/persistence/save_repository.gd")
+const ProductPlanner = preload("res://src/domain/alpha_b3_visit_randomizer.gd")
+const ProductCommission = preload("res://src/domain/alpha_commission.gd")
+const ProductService = preload("res://src/domain/alpha_service_custody.gd")
+
+## Choose a reproducible authored seed for this particular pledge/FX route.
+## Use the real planner with conservative eligibility and potential returns
+## protected. Never alter a live campaign or inject a visitor into its plan.
+func product_seed() -> int:
+	var source: Dictionary = ProductSource.content(101)
+	if source.is_empty(): return -1
+	var profile: Dictionary = source.alpha_profile
+	for candidate: int in range(101,613):
+		var suitable := true
+		for pair: Array in [[2,"watch_a"],[7,"alpha_b3_fx_broker_d7"]]:
+			var day: int = pair[0]
+			var rows: Array = profile.days[day-1]
+			var available: Dictionary = {}
+			var locked: Array = []
+			for row: Dictionary in rows:
+				var id: String = row.id
+				available[id] = true
+				if id in profile.visit_random.locked_ids or ProductCommission.is_return_visit(id,str(profile.commission_profile_id)) or ProductService.is_return_visit(id,str(profile.service_profile_id)):
+					locked.append(id)
+			var plan: Dictionary = ProductPlanner.plan(rows,available,locked,candidate,day)
+			if not plan.get("ok",false) or not plan.visits.any(func(row: Dictionary)->bool: return row.id==pair[1]):
+				suitable = false
+				break
+		if suitable: return candidate
+	return -1
+
+func install_product(resolution: Vector2i) -> bool:
+	var seed_value: int = product_seed()
+	if not check(seed_value>0,"reproducible authored pledge and FX seed exists"): return false
+	var source: Dictionary = ProductSource.content(seed_value)
+	var initial := ProductSession.new()
+	if not check(initial.initialize(source.defs,source.state,false,false,{},source.alpha_profile),"valid initial product authority"): return false
+	var location := "user://zt_rebuild/r2_product_"+str(resolution.y)+"_"+str(Time.get_ticks_usec())
+	var db := ProductRepo.new(location)
+	if not check(db.save_session(initial,"b3_week_candidate_v1").get("ok",false),"save genuine revision-zero product fixture"): return false
+	print("R2_PRODUCT_NATIVE_SEED ",seed_value," resolution=",resolution.y)
+	host = Review.instantiate()
+	host.save_directory_override = location
+	root.add_child(host)
+	await frames()
+	return check(host.session!=null and not host._blocked and host._intro and host.session.snapshot()==initial.snapshot(),"native product opens genuine saved initial profile with intro") and check(host.theme!=null and host.theme.default_font!=null and host.theme.default_font.has_char(0xD55C) and host.theme.default_font.has_char(0xAE00),"verified Korean UI font supports Hangul glyphs")
 
 func run() -> void:
 	var args := OS.get_cmdline_user_args()
@@ -10,7 +58,7 @@ func run() -> void:
 	out = args[0]
 	for resolution: Vector2i in [Vector2i(1280,720),Vector2i(1920,1080)]:
 		if not await configure_native_window(resolution): break
-		if not await install(Review,"r2_product_"+str(resolution.y)): break
+		if not await install_product(resolution): break
 		if not await shop_route(resolution,resolution.y==720):
 			check(false,"complete product integration route "+str(resolution.y))
 			break
@@ -152,7 +200,10 @@ func next_morning() -> bool:
 	return await actions([["alpha_close","CLOSE_SETTLE"],["alpha_settle","EVENING_WORK"],["alpha_next_day","NEXT_DAY"],["alpha_prepare_day","DAY_PREP"],["alpha_open","OPEN_IDLE"]])
 
 func serve_until(visit_id: String) -> bool:
-	for index in range(8):
+	for index in range(10):
+		if not check(int(host.session.alpha_view().remaining)>0,"authored fixture still has a visit before "+visit_id):
+			print("R2_PRODUCT_PLAN_DIAGNOSTIC day=",host.session.alpha_view().day," target=",visit_id," plan=",host.session.snapshot().alpha_shop.random_visits.plan)
+			return false
 		if not await actions([["alpha_next_customer","CUSTOMER_ENTER"],["alpha_ack_entry","CUSTOMER_ACTIVE"]]): return false
 		if host.session.alpha_view().active.id==visit_id: return true
 		if not await actions([["alpha_finish_customer","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]]): return false

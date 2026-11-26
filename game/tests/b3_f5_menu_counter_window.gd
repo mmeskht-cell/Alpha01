@@ -105,7 +105,7 @@ func inspect_and_offer(resolution: Vector2i) -> bool:
 	return true
 
 func menu_route(resolution: Vector2i) -> bool:
-	var directory := "user://zt_rebuild/f5_menu_"+str(resolution.y)+"_"+str(Time.get_ticks_usec())
+	var directory := "user://zt_rebuild/demo7/f5_menu_"+str(resolution.y)+"_"+str(Time.get_ticks_usec())
 	if not await open_f5(directory) or not await enter_first_item(resolution) or not await inspect_and_offer(resolution): return false
 	var settled: Dictionary = host.session.snapshot()
 	await release_host()
