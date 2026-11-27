@@ -21,11 +21,9 @@ func _ready() -> void:
 	add_child(book)
 	var header := HBoxContainer.new()
 	book.add_child(header)
-	var titles := ["모델","표면","가격·기록","덮기"]
-	for index in range(titles.size()):
+	for index in range(4):
 		var tab := Button.new()
 		tab.name = ["book_models","book_surface","book_prices","r2_book_close_inactive"][index]
-		tab.text = titles[index]
 		tab.custom_minimum_size = Vector2(44,44)
 		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tab.toggle_mode = index<3
@@ -33,7 +31,7 @@ func _ready() -> void:
 			if index<3: page_requested.emit(index)
 			else: closed.emit())
 		PaperProp.ink_action(tab)
-		tab.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		tab.autowrap_mode = TextServer.AUTOWRAP_OFF
 		header.add_child(tab)
 		if index<3: tabs.append(tab)
 		else: close_button = tab
@@ -56,9 +54,14 @@ func _draw() -> void:
 func _update_close_action() -> void:
 	close_button.name = "close_drawer" if is_visible_in_tree() else "r2_book_close_inactive"
 
-func select_page(index: int, percent: int) -> void:
+func select_page(index: int, percent: int, language: String, claims: bool = false) -> void:
+	var titles := ["Models","Surface","Prices","Close"] if language=="en" else ["모델","표면","시세","덮기"]
+	if claims: titles[1] = "Claims" if language=="en" else "손님 말"
+	close_button.text = titles[3]
 	for i in range(tabs.size()):
+		tabs[i].text = titles[i]
 		tabs[i].set_pressed_no_signal(i==index)
-		PaperProp.ink_action(tabs[i],i==index)
+		PaperProp.ink_action(tabs[i],i==index,6.0)
+	PaperProp.ink_action(close_button,false,6.0)
 	for child: Button in tabs[0].get_parent().get_children():
 		child.add_theme_font_size_override("font_size",roundi(16.0*percent/100.0))

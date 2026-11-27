@@ -6,37 +6,84 @@ const MATERIALS = ["metal","plastic","paper","fabric","glass"]
 const MATERIAL_NAMES = ["금속","플라스틱","종이","직물","유리"]
 const SLOTS = ["material_detail","wear_detail","display_damage_detail"]
 const SLOT_NAMES = ["표면 무늬","외장 마모","표시부 훼손"]
+const SURFACE_SIZE := 256
 static var _cache: Dictionary = {}
 
 static func observation_slots(cards: Array) -> Array:
 	var slots: Array = []
 	for slot: String in SLOTS:
 		for card: Dictionary in cards:
-			if card.get("slot")==slot:
+			if card.get("slot")==slot and card.get("surface_current",true):
 				slots.append(slot)
 				break
 	return slots
 
-static func observed(cards: Array, slot: String, seed_value: int) -> Dictionary:
+static func observed(cards: Array, slot: String, seed_value: int, profiles: Dictionary = {}) -> Dictionary:
 	if slot not in SLOTS:
 		return {}
 	var value: String = ""
 	for card: Dictionary in cards:
-		if card.get("slot")==slot:
+		if card.get("slot")==slot and card.get("surface_current",true):
 			value = str(card.get("value",""))
 			break
+	var profile: Dictionary = profiles.get(slot,{})
+	var family: String = str(profile.get("family",""))
+	var target := str(profile.get("target",""))
+	if family in MATERIALS and not target.is_empty() and not value.is_empty():
+		if slot=="material_detail":
+			# Only combine wear from the same already-observed surface.
+			var wear: Dictionary = profiles.get("wear_detail",{})
+			if wear.get("family")==family and wear.get("target")==target:
+				var combined: Dictionary = observed(cards,"wear_detail",seed_value,profiles)
+				if not combined.is_empty(): return combined
+			return {"base":family,"overlay":"","caption":"표면 질감 관찰","caption_en":"Observed surface texture"}
+		if value.is_valid_float():
+			var observed_intensity := value.to_float()
+			if is_finite(observed_intensity) and observed_intensity>=0.0 and observed_intensity<=100.0:
+				return _material_wear(family,target,seed_value,observed_intensity)
 	if slot=="material_detail":
 		if value not in ["parallel","cross"]:
 			return {}
-		return {"base":value,"overlay":"","opacity":0.0,"turns":0,"caption":"평행한 표면 무늬" if value=="parallel" else "교차하는 표면 무늬"}
+		return {"base":value,"overlay":"","opacity":0.0,"turns":0,
+			"caption":"평행한 표면 무늬" if value=="parallel" else "교차하는 표면 무늬",
+			"caption_en":"Parallel surface pattern" if value=="parallel" else "Crossed surface pattern"}
 	if not value.is_valid_float():
 		return {}
 	var intensity: float = value.to_float()
 	if not is_finite(intensity) or intensity<0.0 or intensity>100.0:
 		return {}
 	var key: int = posmod(seed_value ^ slot.hash(),16)
-	var caption: String = "이 관찰에서 뚜렷한 훼손 신호 없음" if intensity==0.0 else ("국소적인 훼손 흔적" if intensity<=25.0 else ("여러 곳의 훼손 흔적" if intensity<=65.0 else "넓은 훼손 흔적"))
-	return {"base":"neutral","overlay":"neutral_wear_"+str(key%4+1) if intensity>0.0 else "","opacity":0.0 if intensity==0.0 else 0.24+0.76*intensity/100.0,"turns":floori(float(key)/4.0),"coverage":0.45+0.55*intensity/100.0,"caption":caption}
+	var sample := _wear_caption(intensity)
+	sample.merge({"base":"neutral","overlay":"neutral_wear_"+str(key%4+1) if intensity>0.0 else "",
+		"opacity":0.0 if intensity==0.0 else 0.24+0.76*intensity/100.0,
+		"turns":key >> 2,"coverage":0.45+0.55*intensity/100.0})
+	return sample
+
+static func _wear_caption(intensity: float) -> Dictionary:
+	if intensity==0.0:
+		return {"caption":"뚜렷한 훼손 흔적 없음","caption_en":"No distinct marks in this view"}
+	if intensity<=25.0:
+		return {"caption":"한 부분에 모인 흔적","caption_en":"Marks clustered in one area"}
+	if intensity<=65.0:
+		return {"caption":"여러 곳에 흩어진 흔적","caption_en":"Marks scattered across the surface"}
+	return {"caption":"넓게 퍼진 흔적","caption_en":"Marks across much of the surface"}
+
+## Leave room for different placements even at the top of the observed range.
+static func _material_wear(family: String,target: String,seed_value: int,intensity: float) -> Dictionary:
+	var sample := _wear_caption(intensity)
+	sample["base"] = family
+	sample["overlay"] = ""
+	if intensity==0.0: return sample
+	var geometry := ("%d/%s"%[seed_value,target]).sha256_text()
+	var key := geometry.left(2).hex_to_int()
+	var proportion := intensity/100.0
+	sample.merge({"overlay":family+"_wear_"+str((key & 3)+1),
+		"turns":(key >> 2) & 3,"mirrored":bool(key & 16),
+		"coverage":lerpf(0.39,0.88,proportion)+0.04*float(geometry.substr(2,2).hex_to_int())/255.0,
+		"opacity":lerpf(0.30,1.0,proportion),
+		"offset_x":float(geometry.substr(4,2).hex_to_int())/255.0,
+		"offset_y":float(geometry.substr(6,2).hex_to_int())/255.0},true)
+	return sample
 
 ## These are labelled reference swatches, not an item-specific reading.
 static func reference_sample(material: String, grade: int,variant_index: int=0) -> Dictionary:
@@ -70,12 +117,19 @@ static func texture_for(sample: Dictionary) -> Texture2D:
 	var overlay_texture: Texture2D = ResourceLoader.load(path,"Texture2D") as Texture2D
 	if overlay_texture==null:
 		return null
-	var cache_key: String = JSON.stringify([base_key,overlay,sample.get("turns",0),sample.get("opacity",0.0),sample.get("coverage",1.0)])
+	var turns := posmod(int(sample.get("turns",0)),4)
+	var mirrored := bool(sample.get("mirrored",false))
+	var extent := clampi(roundi(SURFACE_SIZE*float(sample.get("coverage",1.0))),1,SURFACE_SIZE)
+	var available := SURFACE_SIZE-extent
+	var offset := Vector2i(roundi(available*clampf(float(sample.get("offset_x",0.5)),0.0,1.0)),
+		roundi(available*clampf(float(sample.get("offset_y",0.5)),0.0,1.0)))
+	var opacity := clampf(float(sample.get("opacity",0.0)),0.0,1.0)
+	var cache_key := JSON.stringify([base_key,overlay,turns,mirrored,opacity,extent,offset.x,offset.y])
 	if _cache.has(cache_key):
 		return _cache[cache_key] as Texture2D
 	var image: Image = base.get_image()
 	var marks: Image = overlay_texture.get_image()
-	if image==null or marks==null or image.get_size()!=marks.get_size() or image.get_size()!=Vector2i(256,256):
+	if image==null or marks==null or image.get_size()!=marks.get_size() or image.get_size()!=Vector2i(SURFACE_SIZE,SURFACE_SIZE):
 		return null
 	if image.is_compressed() and image.decompress()!=OK:
 		return null
@@ -83,18 +137,21 @@ static func texture_for(sample: Dictionary) -> Texture2D:
 		return null
 	image.convert(Image.FORMAT_RGBA8)
 	marks.convert(Image.FORMAT_RGBA8)
-	for i: int in range(posmod(int(sample.get("turns",0)),4)):
+	if mirrored: marks.flip_x()
+	for i: int in range(turns):
 		marks.rotate_90(CLOCKWISE)
-	var extent: int = clampi(roundi(256.0*float(sample.get("coverage",1.0))),1,256)
 	marks.resize(extent,extent,Image.INTERPOLATE_NEAREST)
-	var opacity: float = clampf(float(sample.get("opacity",0.0)),0.0,1.0)
-	for y: int in range(marks.get_height()):
-		for x: int in range(marks.get_width()):
-			var pixel: Color = marks.get_pixel(x,y)
-			pixel.a *= opacity
+	# Reduce abrupt seams from overlays that have paint at their crop edge.
+	var feather := maxi(1,roundi(extent*0.025))
+	for y in range(extent):
+		var edge_y := mini(y,extent-1-y)
+		for x in range(extent):
+			var edge := mini(edge_y,mini(x,extent-1-x))
+			var pixel := marks.get_pixel(x,y)
+			if pixel.a==0.0: continue
+			pixel.a *= opacity*minf(1.0,float(edge)/float(feather))
 			marks.set_pixel(x,y,pixel)
-	var offset: int = floori(float(256-extent)/2.0)
-	image.blend_rect(marks,Rect2i(Vector2i.ZERO,marks.get_size()),Vector2i(offset,offset))
+	image.blend_rect(marks,Rect2i(Vector2i.ZERO,marks.get_size()),offset)
 	var texture: Texture2D = ImageTexture.create_from_image(image)
 	# Bounded transient presentation cache; never serialized.
 	if _cache.size()>=24:

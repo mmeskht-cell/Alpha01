@@ -290,6 +290,7 @@ func _open_f5_counter() -> void:
 	game._feedback_audio.remember_score_position()
 	var resource := load(F5_SCENE_PATH) as PackedScene
 	var candidate := resource.instantiate()
+	candidate.set("title_preferences",game._prefs.duplicate(true))
 	if not save_directory_override.is_empty():
 		candidate.set("save_directory_override",save_directory_override.path_join("f5_counter"))
 	get_tree().change_scene_to_node(candidate)

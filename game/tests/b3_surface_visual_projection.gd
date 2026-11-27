@@ -35,5 +35,70 @@ func _initialize() -> void:
 		var low: Dictionary = Surface.reference_sample(material,0)
 		var high: Dictionary = Surface.reference_sample(material,2)
 		check("reference examples distinct "+material,low.base==material and high.coverage>low.coverage and high.opacity>low.opacity)
+	# Authored profiles are allowed only for matching acquired surface facts.
+	var profiles := {"material_detail":{"family":"metal","target":"shell"},"wear_detail":{"family":"metal","target":"shell"}}
+	var metal: Dictionary = Surface.observed(cards,"wear_detail",42,profiles)
+	check("authored metal uses matching overlay",metal.base=="metal" and str(metal.overlay).begins_with("metal_wear_"))
+	check("same shell material and wear combine",Surface.observed(cards,"material_detail",42,profiles)==metal)
+	check("unobserved wear not synthesized",Surface.observed([cards[0]],"material_detail",42,profiles).get("overlay")=="")
+	check("no unobserved profile reveal",Surface.observed([],"material_detail",42,profiles).is_empty())
+	check("new same seed deterministic",metal==Surface.observed(cards,"wear_detail",42,profiles))
+	var varied: Dictionary = Surface.observed(cards,"wear_detail",43,profiles)
+	check("different seed changes placement",metal.offset_x!=varied.offset_x or metal.offset_y!=varied.offset_y)
+	var other := profiles.duplicate(true)
+	other.wear_detail.target = "different"
+	check("different targets never combined",Surface.observed(cards,"material_detail",42,other).get("overlay")=="")
+	var stale := [{"slot":"wear_detail","value":"43","surface_current":false}]
+	check("historical card cannot supply a current texture",Surface.observation_slots(stale).is_empty()
+		and Surface.observed(stale,"wear_detail",42,profiles).is_empty())
+	var maximum := [{"slot":"wear_detail","value":"100"}]
+	var extreme: Dictionary = Surface.observed(maximum,"wear_detail",42,profiles)
+	var relocated: Dictionary = Surface.observed(maximum,"wear_detail",43,profiles)
+	var extreme_frame := _overlay_frame(extreme)
+	var relocated_frame := _overlay_frame(relocated)
+	check("maximum damage leaves space for seeded placement",extreme_frame.position!=relocated_frame.position
+		and Rect2i(0,0,256,256).encloses(extreme_frame) and Rect2i(0,0,256,256).encloses(relocated_frame))
+	check("maximum damage placement changes actual pixels",_pixels(extreme)!=_pixels(relocated))
+	check("missing or unrelated overlay does not fabricate a clean plate",Surface.texture_for({"base":"glass","overlay":"metal_wear_1"})==null)
+	for family: String in Surface.MATERIALS:
+		var typed := {"wear_detail":{"family":family,"target":"shell"}}
+		var observed: Dictionary = Surface.observed(cards,"wear_detail",42,typed)
+		check("matching material "+family,observed.base==family and str(observed.overlay).begins_with(family+"_wear_"))
+		var clear: Dictionary = Surface.observed([{"slot":"wear_detail","value":"0"}],"wear_detail",42,typed)
+		check("zero damage "+family,clear.get("overlay")=="")
+		var pristine := _pixels(clear)
+		var live_pixels := _pixels(observed)
+		check("visible current marks "+family,not pristine.is_empty() and live_pixels.size()==pristine.size() and live_pixels!=pristine)
+		var previous := pristine
+		for grade in range(3):
+			var pixels := _pixels(Surface.reference_sample(family,grade))
+			check("distinct pixels for reference %s grade %d"%[family,grade],pixels.size()==pristine.size() and pixels!=previous)
+			previous = pixels
+	var Domain = preload("res://src/domain/appraisal_surface_profiles.gd")
+	var item := {"def_id":"portable_radio","provenance_id":"demo_R001","field_versions":{"functional":0,"restored":0,"composition":0}}
+	var fact := {"slot":"wear_detail","value":43,"kind":"fact","version":item.field_versions.duplicate()}
+	check("domain no unread profile",Domain.project("R001",item,{}).is_empty())
+	check("domain authored acquired wear",Domain.project("R001",item,{"wear_detail":fact}).get("wear_detail",{}).get("family")=="metal")
+	check("domain foreign item blocked",Domain.project("R003",item,{"wear_detail":fact}).is_empty())
+	var wrong := fact.duplicate(true)
+	wrong.value = 44
+	check("domain does not extrapolate an authored wear state",Domain.project("R001",item,{"wear_detail":wrong}).is_empty())
+	check("domain does not move a fact between slots",Domain.project("R001",item,{"display_damage_detail":fact}).is_empty())
+	fact.version.functional = 1
+	check("domain stale profile blocked",Domain.project("R001",item,{"wear_detail":fact}).is_empty())
 	print("B3 surface projection: %d checks, %d failures"%[checks,failures])
 	quit(1 if failures>0 else 0)
+
+func _overlay_frame(sample: Dictionary) -> Rect2i:
+	var extent := roundi(256.0*float(sample.coverage))
+	var room := 256-extent
+	return Rect2i(roundi(room*float(sample.offset_x)),roundi(room*float(sample.offset_y)),extent,extent)
+
+func _pixels(sample: Dictionary) -> PackedByteArray:
+	var texture := Surface.texture_for(sample)
+	if texture==null: return PackedByteArray()
+	var image := texture.get_image()
+	if image==null or (image.is_compressed() and image.decompress()!=OK): return PackedByteArray()
+	image.clear_mipmaps()
+	image.convert(Image.FORMAT_RGBA8)
+	return image.get_data()

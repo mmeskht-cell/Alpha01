@@ -6,6 +6,7 @@ const TURN_TIME := 0.26
 const PAD := Rect2(287,161,516,433)
 var front: Control
 var wood: Texture2D
+var overhead_wood: Texture2D
 var overhead := false
 var pitch := 0.0
 var _turn: Tween
@@ -45,7 +46,10 @@ func _draw() -> void:
 	var timber := PackedVector2Array([Vector2(-28,edge),Vector2(1308,edge),Vector2(1328,720),Vector2(-48,720)])
 	draw_rect(Rect2(0,0,1280,edge),Color(0.10,0.085,0.071,pitch))
 	draw_colored_polygon(timber,Color("#584534"))
-	if wood:
+	if overhead_wood:
+		var top_uv := PackedVector2Array([Vector2.ZERO,Vector2(1,0),Vector2.ONE,Vector2(0,1)])
+		draw_polygon(timber,PackedColorArray([Color.WHITE]),top_uv,overhead_wood)
+	elif wood:
 		# Reproject the opaque face of the approved R2 counter without its
 		# transparent upper half or the illuminated front fascia.
 		var uv := PackedVector2Array([Vector2(0.015,0.586),Vector2(0.985,0.586),Vector2(0.985,0.900),Vector2(0.015,0.900)])
@@ -58,6 +62,8 @@ func _draw() -> void:
 	draw_rect(Rect2(0,edge,1280,13),Color("#261c16"))
 	draw_line(Vector2(0,edge+13),Vector2(1280,edge+13),Color("#aa8055"),2)
 	draw_rect(Rect2(0,edge+15,1280,19),Color("#1d151075"))
+	# Spill from the existing warm shop lamp on the upper-right side.
+	draw_polygon(timber,PackedColorArray([Color("#29425018"),Color("#e7ad681f"),Color("#8f684710"),Color("#201a1851")]))
 	_draw_pad()
 
 func _draw_pad() -> void:

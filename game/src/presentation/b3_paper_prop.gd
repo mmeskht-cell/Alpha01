@@ -22,13 +22,18 @@ static func draw_on(canvas: CanvasItem, extent: Vector2, crease: String) -> void
 	match crease:
 		"receipt": stock = Color("#e2d3ae")
 		"notes": stock = Color("#d0bc94")
-		"file": stock = Color("#c6b18c")
+		"file","order": stock = Color("#c6b18c")
+		"contract": stock = Color("#d8c6a5")
+		"intake": stock = Color("#c7c8af")
+		"pawn": stock = Color("#cbba93")
+		"exchange": stock = Color("#cdccba")
 		"news": stock = Color("#b2a58a")
 		"marked": stock = Color("#dfc497")
+		"shown": stock = Color("#c2c6ad")
 		"book":
 			_book(canvas,w,h)
 			return
-	if crease in ["file","news"]:
+	if crease in ["file","contract","order","news"]:
 		var leaf := PackedVector2Array([Vector2(11,0),Vector2(w-14,1),Vector2(w-1,h-17),Vector2(w-19,h-2),Vector2(1,h-10)])
 		canvas.draw_colored_polygon(leaf,Color("#a28c6e"))
 	canvas.draw_colored_polygon(shape,stock)
@@ -39,7 +44,22 @@ static func draw_on(canvas: CanvasItem, extent: Vector2, crease: String) -> void
 	if crease in ["price","receipt","file","notes"]:
 		var y := roundf(h*0.31)
 		canvas.draw_line(Vector2(17,y),Vector2(w-18,y-2),Color("#8a6c4c59"))
-	if crease=="marked":
+	match crease:
+		"contract":
+			canvas.draw_line(Vector2(24,55),Vector2(w-25,55),Color("#826644"),2)
+			canvas.draw_line(Vector2(24,h-62),Vector2(w-25,h-62),Color("#826644"))
+		"intake":
+			canvas.draw_line(Vector2(16,12),Vector2(16,h-14),Color("#587064"),3)
+			canvas.draw_line(Vector2(24,55),Vector2(w-23,55),Color("#718479"),2)
+		"pawn":
+			canvas.draw_line(Vector2(16,h-55),Vector2(w-13,h-55),Color("#846346"),2)
+			canvas.draw_circle(Vector2(w-32,27),9,Color("#a78b66"),false,2)
+		"exchange":
+			canvas.draw_line(Vector2(22,55),Vector2(w-20,55),Color("#627473"),2)
+			canvas.draw_line(Vector2(22,h-61),Vector2(w-20,h-61),Color("#627473"),2)
+	if crease=="shown":
+		canvas.draw_line(Vector2(14,17),Vector2(14,h-15),Color("#51674b"),3)
+	elif crease=="marked":
 		canvas.draw_line(Vector2(14,20),Vector2(14,h-17),Color("#8d592c"),2)
 	elif crease=="news":
 		canvas.draw_line(Vector2(w*0.49,8),Vector2(w*0.51,h-10),Color("#78694f89"))
@@ -61,14 +81,14 @@ static func _book(canvas: CanvasItem, w: float,h: float) -> void:
 	canvas.draw_line(Vector2(50,65),Vector2(w-23,65),Color("#9e8561"),1)
 	canvas.draw_colored_polygon(PackedVector2Array([Vector2(w-56,2),Vector2(w-40,2),Vector2(w-39,29),Vector2(w-48,24),Vector2(w-55,29)]),Color("#85644c"))
 
-static func ink_action(button: Button, marked: bool = false) -> void:
+static func ink_action(button: Button, marked: bool = false, padding: float = 8.0) -> void:
 	for state: String in ["normal","hover","pressed","disabled","focus"]:
 		var style := StyleBoxFlat.new()
 		style.bg_color = Color.TRANSPARENT if state in ["normal","disabled","focus"] else Color("#94693d2d")
 		style.border_color = Color("#785537") if marked or state!="normal" else Color("#9a7e576c")
 		style.border_width_bottom = 2 if state!="disabled" else 0
-		style.content_margin_left = 8
-		style.content_margin_right = 8
+		style.content_margin_left = padding
+		style.content_margin_right = padding
 		button.add_theme_stylebox_override(state,style)
 	for key: String in ["font_color","font_hover_color","font_pressed_color","font_focus_color","font_hover_pressed_color"]:
 		button.add_theme_color_override(key,INK)

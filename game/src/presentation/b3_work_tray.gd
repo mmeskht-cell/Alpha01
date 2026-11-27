@@ -41,6 +41,18 @@ class AttachSocket extends Button:
 		if accepts(data) and receiver.is_valid():
 			receiver.call(options[str(data.item)].duplicate(true),data)
 
+func _socket_face(socket: Button,occupied: bool) -> void:
+	for state: String in ["normal","hover","pressed","disabled"]:
+		var inset := StyleBoxFlat.new()
+		inset.bg_color = Color("#39463b") if occupied else Color("#272b27")
+		if state=="hover": inset.bg_color = inset.bg_color.lightened(0.12)
+		inset.border_color = Color("#9aab87") if occupied else Color("#867353")
+		inset.border_width_left = 3
+		inset.border_width_bottom = 2
+		inset.content_margin_left = 8
+		inset.content_margin_right = 8
+		socket.add_theme_stylebox_override(state,inset)
+
 ## A visible slot accepts only candidates supplied by the composition authority.
 func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog: Resource,copy: Dictionary,translate: Callable,preview: Callable,restore_quote: Dictionary = {},drop_part: Callable = Callable(), drag_scale: float = 1.0, attachment_reason: Callable = Callable()) -> void:
 	if root_id!=last_root:
@@ -77,10 +89,12 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 			var occupied: bool = not str(slot_info.get("item_id","")).is_empty()
 			var selector := Button.new()
 			selector.name = "work_slot_"+str(index)
-			selector.text = ("A" if index==0 else "B")+(" 장착" if occupied else " 빈자리")
+			selector.text = ("A" if index==0 else "B")+("  ■" if occupied else "  □")
+			selector.tooltip_text = ("장착: "+str(translate.call("b2.item."+str(items[slot_info.item_id].def_id)))) if occupied and items.has(slot_info.item_id) else "빈 부품 자리"
 			selector.toggle_mode = true
 			selector.set_pressed_no_signal(index==slot_page)
 			selector.custom_minimum_size = Vector2(84,44)
+			_socket_face(selector,occupied)
 			header.add_child(selector)
 			selector.pressed.connect(func()->void:
 				slot_page=index
@@ -100,8 +114,9 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 		var tag := str(slot.get("tag",""))
 		var slot_title: String = {"f3_module_a":"모듈 A","f3_module_b":"모듈 B"}.get(tag,"")
 		var socket := AttachSocket.new() if child.is_empty() else Button.new()
-		socket.custom_minimum_size = Vector2(0,44)
+		socket.custom_minimum_size = Vector2(0,50 if civilian_pair else 44)
 		socket.expand_icon = true
+		_socket_face(socket,not child.is_empty())
 		socket.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		work.add_child(socket)
 		if items.has(child):
@@ -125,7 +140,7 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 					return {"detach":detach.duplicate(true),"item":root_id,"origin":detach.inventory,"revision":composition.revision},Callable(),Callable())
 		else:
 			socket.name = "work_socket_"+tag if not tag.is_empty() else "work_socket"
-			socket.text = str(copy.empty_slot) if slot_title.is_empty() else slot_title+" · 빈 자리"
+			socket.text = "□   "+(str(copy.empty_slot) if slot_title.is_empty() else slot_title+" · 빈 자리")
 			var target := socket as AttachSocket
 			target.revision = int(composition.get("revision",-1))
 			target.mouse_filter = Control.MOUSE_FILTER_STOP

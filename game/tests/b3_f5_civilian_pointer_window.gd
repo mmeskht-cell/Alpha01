@@ -53,6 +53,10 @@ func civilian_work(resolution: Vector2i,location: String,before: Dictionary) -> 
 	var module := host.find_child("detach_"+Trial.BAD,true,false) as Control
 	if not await drag_between(module,grid): return false
 	if not check(host.draft.get("kind")=="spatial_detach" and host.draft.result.ok and host.session.snapshot()==before,"dragging an installed module produces a read-only preview"): return false
+	var origin := host.find_child("inventory_origin",true,false) as Control
+	var destination_mark := host.find_child("inventory_destination",true,false) as Control
+	if not check(origin!=null and destination_mark!=null and origin.is_visible_in_tree() and destination_mark.is_visible_in_tree(),
+		"detach preview distinguishes the live root footprint and proposed destination"): return false
 	await capture("f5_civilian_detach_preview_"+str(resolution.y),resolution)
 	if not await click_navigation(host,"discard_draft"): return false
 	if not check(host.session.snapshot()==before and before.items[Trial.BAD].parent_id==Trial.ROOT,"cancel retains the real attachment"): return false

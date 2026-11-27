@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "specimens": {
+    "R001": {
+      "def_id": "portable_radio",
+      "provenance": "demo_R001",
+      "surfaces": {
+        "material_detail": {
+          "family": "metal",
+          "target": "shell",
+          "expected": "parallel"
+        },
+        "wear_detail": {
+          "family": "metal",
+          "target": "shell",
+          "expected": "43"
+        },
+        "display_damage_detail": {
+          "family": "glass",
+          "target": "display",
+          "expected": "12"
+        }
+      }
+    },
+    "R003": {
+      "def_id": "portable_radio",
+      "provenance": "demo_R003",
+      "surfaces": {
+        "material_detail": {
+          "family": "plastic",
+          "target": "shell",
+          "expected": "cross"
+        },
+        "wear_detail": {
+          "family": "plastic",
+          "target": "shell",
+          "expected": "70"
+        },
+        "display_damage_detail": {
+          "family": "glass",
+          "target": "display",
+          "expected": "34"
+        }
+      }
+    }
+  }
+}

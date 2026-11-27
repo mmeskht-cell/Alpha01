@@ -31,7 +31,7 @@ func _edge(fill: Color, rim: Color) -> StyleBoxFlat:
 	edge.content_margin_right = 9
 	return edge
 
-func bind(visit_id: String,slips: Dictionary,owner_item: String = "") -> void:
+func bind(visit_id: String,slips: Dictionary,owner_item: String = "",language: String = "ko") -> void:
 	name = "attachment_pocket"
 	visit = visit_id
 	item_id = owner_item
@@ -45,19 +45,28 @@ func bind(visit_id: String,slips: Dictionary,owner_item: String = "") -> void:
 	if use_desk_finish:
 		_paper.size = size
 		if not selected.is_empty() and not shown.is_empty():
-			text = "제시 예정 %d장  /  공개 중 %d장"%[selected.size(),shown.size()]
+			text = "대기 %d장  /  공개 %d장"%[selected.size(),shown.size()]
 		elif not selected.is_empty():
-			text = "이 근거 %d장을 값과 함께 건넵니다"%selected.size()
+			text = "값과 함께 건넬 근거 %d장"%selected.size()
 		elif not shown.is_empty():
-			text = "손님에게 보여 준 근거 %d장"%shown.size()
+			text = "손님에게 공개한 근거 %d장"%shown.size()
 		elif cards.is_empty():
 			text = "감정한 근거를 여기에 제시"
+		if language=="en":
+			text = "Lay evidence here"
+			if not selected.is_empty() and not shown.is_empty():
+				text = "To show %d  /  Shown %d"%[selected.size(),shown.size()]
+			elif not selected.is_empty():
+				text = "With next offer · %d"%selected.size()
+			elif not shown.is_empty():
+				text = "Shown to customer · %d"%shown.size()
 	else:
 		if not selected.is_empty(): text = "제시 예정 · "+", ".join(selected)
 		elif not shown.is_empty(): text = "공개한 근거 · "+", ".join(shown)
 		elif cards.is_empty(): text = "아직 제시할 감정 카드 없음"
 	text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	tooltip_text = "제시 예정: "+", ".join(selected)+"\n공개된 근거: "+", ".join(shown)
+	tooltip_text = ("With next offer: " if language=="en" else "제시 예정: ")+", ".join(selected)+\
+		("\nShown to customer: " if language=="en" else "\n공개된 근거: ")+", ".join(shown)
 	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	mouse_filter = Control.MOUSE_FILTER_STOP

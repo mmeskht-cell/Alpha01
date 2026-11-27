@@ -3,15 +3,17 @@ extends "res://src/presentation/b3_f3_shop.gd"
 const Preferences = preload("res://src/presentation/ui_preferences.gd")
 const TITLE_PREFERENCES := "user://zt_rebuild/demo7/civilian_condition_v2/ui_preferences.json"
 var counter_preferences: Dictionary
+var title_preferences: Dictionary
 
 func _slot() -> String:
 	return "b3_f5_counter_v1"
 
 func _ready() -> void:
 	var own_path := save_directory_override.path_join("ui_preferences.json")
-	var title := Preferences.read(TITLE_PREFERENCES)
+	var title := Preferences.read(TITLE_PREFERENCES) if title_preferences.is_empty() else Preferences.normalize(title_preferences)
 	counter_preferences = Preferences.read(own_path) if FileAccess.file_exists(own_path) else title.duplicate(true)
 	counter_language = title.language
+	counter_preferences.language = counter_language
 	reading_scale = roundi(float(counter_preferences.font_size)*100.0/16.0)
 	reduce_motion = not counter_preferences.motion
 	AudioServer.set_bus_mute(0,not counter_preferences.sound)

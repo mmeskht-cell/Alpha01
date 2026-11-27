@@ -11,6 +11,7 @@ const CONFIG_PATH: String = "res://data/alpha_b2/cards_pilot_1.json"
 const CLAIMS_PATH: String = "res://data/alpha_b2/customer_claims_1.json"
 const SURFACE_CHOICES := {"material":["unknown","metal","plastic","paper","fabric","glass"],"exterior":["unknown","minimal","moderate","severe"]}
 const F3Trial = preload("res://src/domain/b3_f3_composite_trial.gd")
+const SurfaceProfiles = preload("res://src/domain/appraisal_surface_profiles.gd")
 const F3Receipt = preload("res://src/domain/receipt_primitives.gd")
 const MAX_OFFERS: int = 3
 const MAX_OBSERVATIONS: int = 8
@@ -424,10 +425,14 @@ static func view(state: Dictionary) -> Dictionary:
 	if context.is_empty():
 		return {}
 	var row: Dictionary = _row(state,context)
+	var tools: Array = _tool_rows(state,context.item_id)
+	var surface_facts: Dictionary = {}
 	var options: Array = []
-	for tool: Dictionary in _tool_rows(state,context.item_id):
+	for tool: Dictionary in tools:
 		if not row.observed.has(tool.id):
 			options.append(tool)
+		elif row.item_id==context.item_id and SurfaceProfiles.current_fact(tool.id,row.observed[tool.id],context.item):
+			surface_facts[tool.id] = row.observed[tool.id]
 	var cards: Array = []
 	var public: Dictionary = public_history(row)
 	for slot: String in row.observed:
@@ -435,17 +440,20 @@ static func view(state: Dictionary) -> Dictionary:
 		var value_signal: String = _value_signal(slot, observation.value)
 		var helps_shop: bool = (value_signal == "negative" and context.visit.buyer=="player") or (value_signal == "positive" and context.visit.seller=="player")
 		var effect: String = "unknown" if value_signal in ["unknown","neutral"] else ("helps" if helps_shop else "hurts")
-		cards.append({"slot":slot,"text_key":"b2.inspect." + slot,"value":str(observation.value),
+		var card := {"slot":slot,"text_key":"b2.inspect." + slot,"value":str(observation.value),
 			"kind":observation.kind,"selected":slot in row.selected,
 			"value_signal":value_signal,"shop_effect":effect,
 			"ever_disclosed":slot in public.known_slots,
-			"public_active":slot in public.active_slots})
+			"public_active":slot in public.active_slots}
+		if slot in SurfaceProfiles.SLOTS:
+			card["surface_current"] = surface_facts.has(slot)
+		cards.append(card)
 	var history: Array = []
 	for offer: Dictionary in row.offers:
 		history.append({"amount":offer.amount,"currency":offer.currency,
 			"response":offer.response,"public_cards":offer.revealed.duplicate(true)})
 	var hypotheses: Array = []
-	for tool: Dictionary in _tool_rows(state,context.item_id):
+	for tool: Dictionary in tools:
 		if str(tool.id) in ["function_detail","condition_detail"]:
 			hypotheses.append({"slot":str(tool.id),"kind":"hypothesis",
 				"judgment":str(row.get("hypotheses",{}).get(tool.id,"unknown"))})
@@ -466,6 +474,7 @@ static func view(state: Dictionary) -> Dictionary:
 	var result:Dictionary={"offer_currency":currency,"item_id":context.item_id,"def_id":context.item.def_id,"we_buy":context.visit.buyer=="player",
 		"surface_seed":("%s/%s"%[state.alpha_shop.profile.get("visit_random",{}).get("seed",0),context.item_id]).sha256_text().left(8).hex_to_int(),
 		"surface_judgments":row.get("hypotheses",{}).duplicate(),
+		"surface_profiles":SurfaceProfiles.project(context.item_id,context.item,surface_facts),
 		"tools": options,"cards":cards,"offers":history,"hypotheses":hypotheses,
 		"customer_claims":claims,"statements":row.get("statements",[]).duplicate(true),
 		"claim_challenges":row.get("claim_challenges",[]).duplicate(true),
