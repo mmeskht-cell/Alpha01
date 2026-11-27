@@ -72,6 +72,23 @@ func actions(steps: Array) -> bool:
 		if not await click(step[0],step[1]): return false
 	return true
 
+# The desk and stock views deliberately crop transparent margins. Validate the
+# actual visible resource and its exact occupied bounds, not object identity alone.
+func exact_model_face(shown: Texture2D, original: Texture2D) -> bool:
+	if shown==null or original==null: return false
+	var pixels := original.get_image()
+	if pixels==null or pixels.is_empty(): return false
+	var used := pixels.get_used_rect()
+	if not used.has_area(): return false
+	if used.size==pixels.get_size():
+		return shown==original
+	if not shown is AtlasTexture: return false
+	var crop := shown as AtlasTexture
+	return crop.atlas==original and crop.region==Rect2(used) and crop.margin==Rect2()
+
+func visible_model(node: TextureRect, original: Texture2D) -> bool:
+	return is_instance_valid(node) and node.is_visible_in_tree() and node.size.x>0 and node.size.y>0 and exact_model_face(node.texture,original)
+
 func shop_route(resolution: Vector2i,refund: bool) -> bool:
 	# This route starts from a real saved revision-zero profile. Fresh five-beat
 	# intro and revision-zero resume are independently exercised by the menu and week routes.
@@ -103,18 +120,23 @@ func shop_route(resolution: Vector2i,refund: bool) -> bool:
 	if not await serve_until("watch_a"): return false
 	var watch: Texture2D = CounterArt.ITEMS.model_texture("fictional_watch_p2","counter","WAT02")
 	var visitor := host.standing_actor as TextureRect
-	if not check(visitor!=null and visitor.texture==CounterArt.customer_texture("G04")
-		and host.counter_item.texture==watch and host.session.spatial_dimensions("WAT02")==[1,1],
-		"G04 and the shared Meridian face are visible at the real one-cell pledge visit"): return false
+	var portrait := CounterArt.customer_texture("G04")
 	await capture("r2_c7_pledge_"+str(resolution.y),resolution)
+	var correct_actor := check(host.session.alpha_view().active.actor_id=="G04" and portrait!=null and is_instance_valid(visitor) and visitor.is_visible_in_tree() and visitor.texture==portrait and visitor.size.x>0 and visitor.size.y>0,
+		"real G04 pledge visit displays its nonempty authored portrait")
+	var correct_face := check(visible_model(host.counter_item,watch),
+		"real pledge counter displays the original Meridian face or its exact alpha crop")
+	var correct_grid := check(host.session.spatial_dimensions("WAT02")==[1,1],"pledge watch retains its authoritative one-cell footprint")
+	if not (correct_actor and correct_face and correct_grid): return false
 	var before: Dictionary = host.session.snapshot()
 	if not await start_counter_appraisal(true): return false
-	if not check(host.counter_item.texture==watch,"watch appraisal uses the same model face as the counter"): return false
+	if not check(visible_model(host.counter_item,watch),"watch appraisal displays the same model face and exact crop as the counter"): return false
 	if not await click_navigation(host,"turn_item"): return false
 	var back: Texture2D = CounterArt.ITEMS.model_texture("fictional_watch_p2","inspection","WAT02",true)
-	if not check(back!=null and back!=watch and host.counter_item.texture==back and host.session.snapshot()==before,
-		"watch flip exposes the matching caseback without a state change"): return false
 	await capture("r2_c7_watch_caseback_"+str(resolution.y),resolution)
+	var correct_back := check(back!=null and back!=watch and visible_model(host.counter_item,back),"watch flip displays the distinct authored caseback and exact crop")
+	var unchanged := check(host.session.snapshot()==before,"watch flip and inspection navigation do not change authority")
+	if not (correct_back and unchanged): return false
 	if not await leave_counter_appraisal(true): return false
 	if not await actions([["week_pledge","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]]): return false
 	if not check(host.session.snapshot().items.WAT02.inventory=="pawn_grid" and host.session.snapshot().wallets.player.VKC==before.wallets.player.VKC-40,"pledge retains custody and exact principal"): return false
@@ -124,10 +146,11 @@ func shop_route(resolution: Vector2i,refund: bool) -> bool:
 	var stock := host.find_child("stock_WAT02",true,false) as Button
 	var stock_art := stock.get_node_or_null("ItemArt") as Sprite2D if stock else null
 	var detail := host.find_child("inventory_specimen",true,false) as TextureRect
-	if not check(stock_art!=null and stock_art.texture is AtlasTexture and stock_art.texture.atlas==watch
-		and detail!=null and detail.texture==stock_art.texture and host.session.snapshot()==pledged,
-		"pawn inventory and detail crop the same shared watch face without changing custody"): return false
 	await capture("r2_c7_watch_pawn_inventory_"+str(resolution.y),resolution)
+	var grid_face := check(is_instance_valid(stock_art) and stock_art.is_visible_in_tree() and exact_model_face(stock_art.texture,watch),"pawn grid displays the exact shared face or alpha crop")
+	var detail_face := check(visible_model(detail,watch) and is_instance_valid(stock_art) and detail.texture==stock_art.texture,"pawn detail displays the same cached model face as the grid")
+	var custody_unchanged := check(host.session.snapshot()==pledged,"pawn grid and detail inspection do not change custody or authority")
+	if not (grid_face and detail_face and custody_unchanged): return false
 	if not await click_navigation(host,"close_drawer"): return false
 	if not await next_morning(): return false
 	if not refund:
@@ -157,8 +180,9 @@ func shop_route(resolution: Vector2i,refund: bool) -> bool:
 	if not await actions([["alpha_settle","EVENING_WORK"],["alpha_next_day","NEXT_DAY"],["alpha_prepare_day","DAY_PREP"],["alpha_open","OPEN_IDLE"]]): return false
 	if not await next_morning() or not await next_morning(): return false
 	if not await serve_until("alpha_b3_fx_broker_d7"): return false
-	if not check(host.standing_actor.texture==CounterArt.customer_texture("alpha_broker")
-		and host.standing_actor.texture!=CounterArt.customer_texture("G04"),"the FX visit uses its authored broker portrait"): return false
+	var broker := CounterArt.customer_texture("alpha_broker")
+	var broker_node := host.standing_actor as TextureRect
+	if not check(broker!=null and broker!=portrait and is_instance_valid(broker_node) and broker_node.is_visible_in_tree() and broker_node.texture==broker and broker_node.size.x>0 and broker_node.size.y>0,"the FX visit displays its distinct authored broker portrait"): return false
 	if not await click_navigation(host,"visitor_papers"): return false
 	await capture("r2_c7_fx_quote_"+str(resolution.y),resolution)
 	var funds: Dictionary = host.session.snapshot().wallets.player
