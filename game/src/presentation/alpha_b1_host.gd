@@ -42,6 +42,7 @@ const SAVE_SLOT = "alpha_b1_profile_v3"
 var session: RefCounted
 var _repo: RefCounted
 var _strings: Dictionary = {}
+var launch_intent := "" # Set by the product title only.
 var _intro: bool = true
 var _intro_page: int = 0
 var _blocked: bool = false
@@ -91,6 +92,11 @@ func _ready() -> void:
 			_message = "랜덤 방문 저장 시드를 검증하지 못했습니다: " + str(selected_seed.get("error", "invalid"))
 			refresh()
 			return
+		if (launch_intent=="new" and not selected_seed.new) or (launch_intent=="load" and selected_seed.new):
+			_blocked = true
+			_message = "요청한 저장 슬롯의 상태가 바뀌었습니다."
+			refresh()
+			return
 		random_seed = int(selected_seed.seed)
 	var source: Dictionary = {}
 	if b3_m7_mode:
@@ -111,10 +117,13 @@ func _ready() -> void:
 				location = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/b3_week_candidate" if week_candidate else "user://zt_rebuild/alpha_b3_m7_interest" if b3_m7_mode else "user://zt_rebuild/alpha_b3_random_m5")
 			_repo = Repo.new(location)
 			var loaded: Dictionary = _repo.load_session(session, _slot())
-			if loaded.get("ok", false):
+			if launch_intent=="new" and loaded.get("ok",false):
+				_blocked = true
+				_message = "새 게임 슬롯에 다른 저장이 생겼습니다."
+			elif loaded.get("ok", false):
 				# M5 persists its seed at revision zero before the intro is shown.
 				_intro = b3_random_mode and int(session.snapshot().revision) == 0
-			elif FileAccess.file_exists(location.path_join(_slot() + ".a.json")) or FileAccess.file_exists(location.path_join(_slot() + ".b.json")):
+			elif launch_intent=="load" or FileAccess.file_exists(location.path_join(_slot() + ".a.json")) or FileAccess.file_exists(location.path_join(_slot() + ".b.json")):
 				_blocked = true
 				_message = "기존 저장의 무결성이 확인되지 않아 새 게임으로 덮어쓰지 않습니다."
 			elif b3_random_mode:

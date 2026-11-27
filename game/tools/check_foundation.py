@@ -80,6 +80,8 @@ if args.scope in ('all', 'gate1'):
     tests += ['scenarios/npc_generated_visits_test', 'scenarios/npc_bargaining_policy_test', 'scenarios/calendar_merchant_contracts_test', 'scenarios/alpha42_production_runtime_test', 'scenarios/alpha_hold_market_test', 'scenarios/alpha_content_growth_test', 'scenarios/npc_visit_slots_test', 'scenarios/calendar_exchange_market_test', 'scenarios/regional_market_flow_test', 'scenarios/world_region_npc_continuity_test', 'scenarios/long_history_retention_test', 'unit/world_causal_trace_test', 'unit/appraisal_primitives_test', 'unit/gate2_p2_public_catalog_test', 'unit/gate2_p2_observation_prep_test', 'scenarios/gate2_p2_observation_authority_test', 'scenarios/gate2_p2_assessment_authority_test', 'scenarios/gate2_p2_deck_authority_test', 'scenarios/gate2_p2_generic_panel_test', 'scenarios/gate2_p2_customer_claims_test', 'scenarios/gate2_p2_price_offer_test', 'unit/inspection_profile_test', 'scenarios/gate1_opening_test', 'scenarios/gate1_appraisal_test', 'scenarios/gate1_trade_test', 'unit/inspection_interaction_test', 'scenarios/gate2_p1_card_test', 'scenarios/gate1_material_test', 'scenarios/component_appraisal_test', 'scenarios/component_retention_regions_test', 'scenarios/customer_inspection_test', 'scenarios/appraisal_audit_test', 'scenarios/gate1_2_test', 'scenarios/gate1_3_test', 'scenarios/campaign_composite_pilot_test', 'scenarios/component_market_test', 'unit/day_one_inventory_test', 'scenarios/gate1_scene_smoke_test']
 if args.scope in ('all', 'gate1', 'regression'):
     tests += ['b3_known_estimate_read_model', 'b3_surface_visual_projection', 'b3_ratio_offer_projection', 'b3_public_dialogue_projection']
+if args.scope in ('all', 'regression'):
+    tests += ['b3_campaign_catalog_test']
 demo_parts = ('canonical', 'civilian', 'condition_v1', 'condition_v2', 'alpha')
 for test in tests:
     command = [engine, '--headless', '--path', str(root), '--script', f'res://tests/{test}.gd']
@@ -103,6 +105,8 @@ for test in tests:
         commands.extend(command + ['--', part] for part in (
             'return', 'empty', 'cancel', 'redeem', 'extend',
             'forfeit', 'market', 'combined', 'shortage'))
+    elif test == 'b3_campaign_catalog_test':
+        commands.extend(command + ['--', *part] for part in (('source',), ('compat',), ('repair',), ('week', '101')))
     elif test == 'scenarios/alpha_b3_integrated_week_test':
         # Nine unchanged seven-day paths, one bounded Godot process per route.
         commands.extend(command + ['--', part] for part in (
@@ -129,7 +133,7 @@ for index, command in enumerate(commands, start=1):
     if report:
         (report / f'{index:02d}.started.json').write_text(json.dumps({'command': command, 'started_utc': datetime.now(timezone.utc).isoformat()}, indent=2), encoding='utf-8')
     try:
-        result = subprocess.run(command, capture_output=True, text=True, timeout=180 if any('gate2_demo_integration_test.gd' in str(part) for part in command) else (90 if any('campaign_capacity_test.gd' in str(part) or 'gate2_demo_host_test.gd' in str(part) or 'alpha_b1_contract_boundary_test.gd' in str(part) or 'alpha_b2_commission_test.gd' in str(part) or 'alpha_b2_named_parity_test.gd' in str(part) or 'alpha_b2_service_custody_test.gd' in str(part) for part in command) else 45), encoding='utf-8', errors='replace')
+        result = subprocess.run(command, capture_output=True, text=True, timeout=180 if any('gate2_demo_integration_test.gd' in str(part) or 'b3_campaign_catalog_test.gd' in str(part) for part in command) else (90 if any('campaign_capacity_test.gd' in str(part) or 'gate2_demo_host_test.gd' in str(part) or 'alpha_b1_contract_boundary_test.gd' in str(part) or 'alpha_b2_commission_test.gd' in str(part) or 'alpha_b2_named_parity_test.gd' in str(part) or 'alpha_b2_service_custody_test.gd' in str(part) for part in command) else 45), encoding='utf-8', errors='replace')
     except subprocess.TimeoutExpired as exc:
         def decoded(value):
             return value.decode('utf-8', errors='replace') if isinstance(value, bytes) else (value or '')

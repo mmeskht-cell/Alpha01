@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "groups": {
+    "food": [
+      {"id": "CS01", "model": "food_01_sardines", "category": "food", "width": 1, "height": 1, "purchase": 8, "sale": 11, "market": "market_food", "family": "metal", "target": "can_exterior", "wear": 18, "functional": false, "repair": 0},
+      {"id": "CS02", "model": "food_02_canned_meat", "category": "food", "width": 1, "height": 1, "purchase": 12, "sale": 16, "market": "market_food", "family": "metal", "target": "can_exterior", "wear": 34, "functional": false, "repair": 0},
+      {"id": "CS03", "model": "food_03_hardtack", "category": "food", "width": 2, "height": 1, "purchase": 7, "sale": 10, "market": "market_food", "family": "paper", "target": "outer_wrapper", "wear": 42, "functional": false, "repair": 0},
+      {"id": "CS04", "model": "food_05_oats", "category": "food", "width": 2, "height": 1, "purchase": 8, "sale": 11, "market": "market_food", "family": "paper", "target": "outer_package", "wear": 26, "functional": false, "repair": 0},
+      {"id": "CS09", "model": "food_04_canned_beans", "category": "food", "width": 1, "height": 1, "purchase": 8, "sale": 12, "market": "market_food", "family": "metal", "target": "can_lid", "wear": 22, "functional": false, "repair": 0},
+      {"id": "CS10", "model": "food_06_pasta", "category": "food", "width": 2, "height": 1, "purchase": 7, "sale": 10, "market": "market_food", "family": "paper", "target": "outer_box", "wear": 31, "functional": false, "repair": 0},
+      {"id": "CS11", "model": "food_07_instant_soup", "category": "food", "width": 1, "height": 1, "purchase": 6, "sale": 9, "market": "market_food", "family": "", "target": "outer_package", "wear": 0, "functional": false, "repair": 0},
+      {"id": "CS12", "model": "food_08_pickled_vegetables", "category": "food", "width": 1, "height": 1, "purchase": 9, "sale": 13, "market": "market_food", "family": "glass", "target": "jar", "wear": 19, "functional": false, "repair": 0},
+      {"id": "CS13", "model": "food_09_milk_powder", "category": "food", "width": 1, "height": 1, "purchase": 14, "sale": 19, "market": "market_food", "family": "metal", "target": "can_lid", "wear": 25, "functional": false, "repair": 0},
+      {"id": "CS14", "model": "food_10_instant_coffee", "category": "food", "width": 1, "height": 1, "purchase": 13, "sale": 18, "market": "market_food", "family": "", "target": "outer_package", "wear": 0, "functional": false, "repair": 0}
+    ],
+    "essentials": [
+      {"id": "CS05", "model": "medical_01_field_bandage", "category": "medical", "width": 1, "height": 1, "purchase": 9, "sale": 12, "market": "market_medical", "family": "paper", "target": "outer_wrapper", "wear": 24, "functional": false, "repair": 0},
+      {"id": "CS06", "model": "medical_04_antiseptic", "category": "medical", "width": 1, "height": 1, "purchase": 10, "sale": 14, "market": "market_medical", "family": "paper", "target": "bottle_label", "wear": 28, "functional": false, "repair": 0},
+      {"id": "CS07", "model": "medical_10_water_tablets", "category": "medical", "width": 1, "height": 1, "purchase": 7, "sale": 10, "market": "market_medical", "family": "paper", "target": "bottle_label", "wear": 22, "functional": false, "repair": 0},
+      {"id": "CS08", "model": "medical_08_candles", "category": "consumable", "width": 2, "height": 1, "purchase": 6, "sale": 9, "market": "market_hygiene", "family": "paper", "target": "outer_wrapper", "wear": 36, "functional": false, "repair": 0},
+      {"id": "CS15", "model": "medical_02_first_aid_kit", "category": "medical", "market": "market_medical", "width": 2, "height": 2, "purchase": 21, "sale": 30, "family": "", "target": "outer_case", "wear": 0, "functional": false, "repair": 0},
+      {"id": "CS16", "model": "medical_03_painkillers", "category": "medical", "market": "market_medical", "width": 1, "height": 1, "purchase": 8, "sale": 12, "family": "paper", "target": "outer_box", "wear": 27, "functional": false, "repair": 0},
+      {"id": "CS17", "model": "medical_05_syringe_kit", "category": "medical", "market": "market_medical", "width": 2, "height": 1, "purchase": 11, "sale": 16, "family": "", "target": "outer_package", "wear": 0, "functional": false, "repair": 0},
+      {"id": "CS18", "model": "medical_07_matches", "category": "consumable", "market": "market_hygiene", "width": 1, "height": 1, "purchase": 4, "sale": 7, "family": "paper", "target": "outer_box", "wear": 29, "functional": false, "repair": 0},
+      {"id": "CS19", "model": "medical_09_tooth_powder", "category": "consumable", "market": "market_hygiene", "width": 1, "height": 1, "purchase": 7, "sale": 11, "family": "", "target": "outer_package", "wear": 0, "functional": false, "repair": 0}
+    ],
+    "hardware": [
+      {"id": "CS20", "model": "utility_02_flashlight", "category": "civilian_electronics", "market": "port_electronics", "width": 2, "height": 1, "purchase": 24, "sale": 34, "family": "", "target": "outer_body", "wear": 0, "functional": true, "repair": 5},
+      {"id": "CS21", "model": "utility_04_power_bank", "category": "civilian_electronics", "market": "port_electronics", "width": 2, "height": 1, "purchase": 27, "sale": 39, "family": "", "target": "outer_body", "wear": 0, "functional": true, "repair": 6},
+      {"id": "CS22", "model": "utility_06_pliers", "category": "tool", "market": "workshop_tools", "width": 2, "height": 1, "purchase": 16, "sale": 25, "family": "metal", "target": "jaws", "wear": 39, "functional": true, "repair": 0},
+      {"id": "CS23", "model": "utility_07_electrical_tape", "category": "consumable", "market": "workshop_goods", "width": 1, "height": 1, "purchase": 5, "sale": 9, "family": "", "target": "outer_wrapper", "wear": 0, "functional": false, "repair": 0},
+      {"id": "CS24", "model": "utility_09_recorder", "category": "civilian_electronics", "market": "port_electronics", "width": 2, "height": 1, "purchase": 30, "sale": 44, "family": "", "target": "outer_body", "wear": 0, "functional": true, "repair": 7}
+    ]
+  }
+}

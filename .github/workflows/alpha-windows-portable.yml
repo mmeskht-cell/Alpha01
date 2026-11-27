@@ -10,6 +10,11 @@ on:
       - 'game/scenes/app/alpha42_mechanics_menu.tscn'
       - 'game/scenes/app/alpha_hold_market_menu.tscn'
       - 'game/src/presentation/main_menu.gd'
+      - 'game/scenes/app/main_menu.tscn'
+      - 'game/src/presentation/b3_campaign_title.gd'
+      - 'game/src/presentation/b3_campaign_shop.gd'
+      - 'game/src/content/b3_integrated_campaign_seed.gd'
+      - 'game/data/alpha_b3/integrated_catalog_v1.json'
       - 'game/src/application/demo7_runtime.gd'
       - 'game/src/content/civilian_candidate_seed.gd'
       - 'game/src/domain/campaign_visit_queue.gd'
@@ -44,7 +49,7 @@ jobs:
           "GODOT_GUI_EXE=$($gui.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           & $exe.FullName --version
           if ($LASTEXITCODE -ne 0) { throw 'Pinned console engine version failed' }
-      - name: Prepare isolated alpha entry point
+      - name: Prepare actual product entry point
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -55,10 +60,8 @@ jobs:
           $cfg = 'game/project.godot'
           $before = [IO.File]::ReadAllText((Resolve-Path $cfg))
           $source = 'run/main_scene="res://scenes/app/main_menu.tscn"'
-          $target = 'run/main_scene="res://scenes/app/alpha_playtest_menu.tscn"'
           if (-not $before.Contains($source)) { throw 'Unexpected Godot main scene' }
-          $after = $before.Replace($source,$target)
-          [IO.File]::WriteAllText((Resolve-Path $cfg),$after,(New-Object System.Text.UTF8Encoding($false)))
+          # Preserve the actual project main scene. Legacy menus are explicit smoke targets.
       - name: Windows actual Godot import and startup smoke
         shell: pwsh
         run: |
@@ -69,14 +72,14 @@ jobs:
           & $env:GODOT_EXE --headless --path game --quit-after 6 2>&1 | Tee-Object -FilePath win-launch.log
           if ($LASTEXITCODE -ne 0) { throw 'Windows alpha startup failed' }
           if (Select-String -Path win-launch.log -Pattern 'SCRIPT ERROR:|^ERROR:|^FAIL:' -Quiet) { throw 'Windows alpha startup diagnostics' }
-          if (-not (Select-String -Path win-launch.log -Pattern 'ZT_MAIN_MENU_READY' -Quiet)) { throw 'Alpha startup proof missing' }
-          foreach ($scene in @('alpha42_mechanics_menu','alpha_hold_market_menu')) {
+          if (-not (Select-String -Path win-launch.log -Pattern 'ZT_B3_CAMPAIGN_TITLE_READY' -Quiet)) { throw 'Integrated B3 startup proof missing' }
+          foreach ($scene in @('alpha_playtest_menu','alpha42_mechanics_menu','alpha_hold_market_menu')) {
             $log = "win-$scene.log"
             & $env:GODOT_EXE --headless --path game "res://scenes/app/$scene.tscn" --quit-after 6 2>&1 | Tee-Object -FilePath $log
             if ($LASTEXITCODE -ne 0) { throw "Windows $scene startup failed" }
             if (Select-String -Path $log -Pattern 'SCRIPT ERROR:|^ERROR:|^FAIL:' -Quiet) { throw "Windows $scene startup diagnostics" }
             if (-not (Select-String -Path $log -Pattern 'ZT_MAIN_MENU_READY' -Quiet)) { throw "Windows $scene menu not ready" }
-            if (-not (Select-String -Path $log -Pattern 'ZT_SPATIAL_COUNTER_READY' -Quiet)) { throw "Windows $scene gameplay host not ready" }
+            if ($scene -ne 'alpha_playtest_menu' -and -not (Select-String -Path $log -Pattern 'ZT_SPATIAL_COUNTER_READY' -Quiet)) { throw "Windows $scene gameplay host not ready" }
           }
 
       - name: Assemble source-backed portable developer build
@@ -101,7 +104,7 @@ jobs:
             'Portable Godot editor-runtime developer build; NOT a released Windows export.',
             'Launch with Launch Alpha.cmd. Saves remain in Godot user data.',
             "Source commit: $env:GITHUB_SHA",
-            'CI smoke: pinned Godot 4.7.2 Windows import plus alpha menu, 42-day menu, holding-market menu.',
+            'CI smoke: pinned Godot 4.7.2 Windows import plus integrated B3 product title and explicit legacy menus.',
             'Not a human playtest, rendered pointer check, or physical PC certification.'
           ) -join $nl
           [IO.File]::WriteAllText((Join-Path $root 'README_DEBUG.txt'),$notes,[Text.Encoding]::ASCII)
@@ -117,6 +120,7 @@ jobs:
             Exit-Not-Included-Alpha-Win-Portable.zip
             win-import.log
             win-launch.log
+            win-alpha_playtest_menu.log
             win-alpha42_mechanics_menu.log
             win-alpha_hold_market_menu.log
           if-no-files-found: warn

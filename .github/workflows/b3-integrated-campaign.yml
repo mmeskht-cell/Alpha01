@@ -1,0 +1,134 @@
+name: B3 integrated campaign product checks
+on:
+  workflow_dispatch:
+  push:
+    branches: [development]
+    paths:
+      - '.github/workflows/b3-integrated-campaign.yml'
+      - 'game/data/alpha_b3/integrated_catalog_v1.json'
+      - 'game/scenes/app/b3_campaign_shop.tscn'
+      - 'game/scenes/app/main_menu.tscn'
+      - 'game/src/content/b3_campaign_slots.gd'
+      - 'game/src/content/b3_integrated_campaign_seed.gd'
+      - 'game/src/domain/b3_integrated_catalog.gd'
+      - 'game/src/presentation/b3_campaign_*.gd'
+      - 'game/tests/b3_campaign_*.gd'
+      - 'game/tests/fixtures/b3_campaign_play.gd'
+      - 'game/tools/check_b3_campaign_matrix.py'
+permissions:
+  contents: read
+concurrency:
+  group: zt-integrated-campaign
+  cancel-in-progress: false
+jobs:
+  actual-turnover:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Prepare exact campaign source and pinned engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence "$RUNNER_TEMP/zt-campaign"
+          printf 'commit=%s\nrun=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > evidence/identity.txt
+          git rev-parse HEAD:game | tee evidence/game-tree.txt
+          curl -fL --retry 2 --max-time 120 -o "$RUNNER_TEMP/zt-campaign/engine.zip" 'https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip'
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/zt-campaign/engine.zip" | sha256sum -c -
+          unzip -q "$RUNNER_TEMP/zt-campaign/engine.zip" -d "$RUNNER_TEMP/zt-campaign"
+          engine="$RUNNER_TEMP/zt-campaign/Godot_v4.7.2-stable_linux.x86_64"
+          chmod +x "$engine"
+          python3 game/tools/prepare_runtime_assets.py
+          python3 game/tools/localization.py
+          export XDG_DATA_HOME="$RUNNER_TEMP/zt-campaign-data"
+          export XDG_CONFIG_HOME="$RUNNER_TEMP/zt-campaign-config"
+          "$engine" --headless --editor --path game --import --quit 2>&1 | tee evidence/import.log
+          if grep -Eq 'SCRIPT ERROR:|^ERROR:|^FAIL:' evidence/import.log; then exit 1; fi
+      - name: Real seven-day catalog transaction coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          engine="$RUNNER_TEMP/zt-campaign/Godot_v4.7.2-stable_linux.x86_64"
+          python3 game/tools/check_b3_campaign_matrix.py --godot "$engine" --out "$GITHUB_WORKSPACE/evidence/catalog-matrix" | tee evidence/matrix.log
+          test -s evidence/catalog-matrix/coverage.json
+      - name: Preserve turnover and seed evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: integrated-catalog-matrix-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 3
+  native-product:
+    strategy:
+      fail-fast: false
+      matrix:
+        resolution: [720, 1080]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Prepare exact campaign source and pinned engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence "$RUNNER_TEMP/zt-campaign"
+          printf 'commit=%s\nrun=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > evidence/identity.txt
+          git rev-parse HEAD:game | tee evidence/game-tree.txt
+          curl -fL --retry 2 --max-time 120 -o "$RUNNER_TEMP/zt-campaign/engine.zip" 'https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip'
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/zt-campaign/engine.zip" | sha256sum -c -
+          unzip -q "$RUNNER_TEMP/zt-campaign/engine.zip" -d "$RUNNER_TEMP/zt-campaign"
+          engine="$RUNNER_TEMP/zt-campaign/Godot_v4.7.2-stable_linux.x86_64"
+          chmod +x "$engine"
+          python3 game/tools/prepare_runtime_assets.py
+          python3 game/tools/localization.py
+          export XDG_DATA_HOME="$RUNNER_TEMP/zt-campaign-data"
+          export XDG_CONFIG_HOME="$RUNNER_TEMP/zt-campaign-config"
+          "$engine" --headless --editor --path game --import --quit 2>&1 | tee evidence/import.log
+          if grep -Eq 'SCRIPT ERROR:|^ERROR:|^FAIL:' evidence/import.log; then exit 1; fi
+      - name: Actual product title and category trade routes
+        shell: bash
+        env:
+          RESOLUTION: ${{ matrix.resolution }}
+        run: |
+          set -euo pipefail
+          export XDG_DATA_HOME="$RUNNER_TEMP/zt-campaign-data"
+          export XDG_CONFIG_HOME="$RUNNER_TEMP/zt-campaign-config"
+          export LIBGL_ALWAYS_SOFTWARE=1
+          engine="$RUNNER_TEMP/zt-campaign/Godot_v4.7.2-stable_linux.x86_64"
+          result=0
+          for route in menu food essentials hardware sealed; do
+            dest="$GITHUB_WORKSPACE/evidence/$route"
+            mkdir -p "$dest"
+            rc=0
+            timeout 300s xvfb-run -a -s '-screen 0 1920x1080x24' "$engine" --path game --audio-driver Dummy --script res://tests/b3_campaign_product_window.gd -- "$dest" "$RESOLUTION" "$route" 2>&1 | tee "$dest/window.log" || rc=$?
+            if [ "$rc" -ne 0 ] || ! grep -Eq '^B3_CAMPAIGN_PRODUCT_WINDOW: [1-9][0-9]* checks, 0 failures' "$dest/window.log" || grep -Eq 'SCRIPT ERROR:|^ERROR:|^FAIL:|ObjectDB instances were leaked|Leaked instance:|resources still in use at exit' "$dest/window.log"; then
+              echo "CAMPAIGN_ROUTE_FAIL $RESOLUTION/$route exit=$rc"
+              result=1
+              continue
+            fi
+            if [ "$route" = menu ]; then
+              pattern="campaign_continued_${RESOLUTION}.png"
+            else
+              pattern="campaign_resold_*_${RESOLUTION}.png"
+            fi
+            if ! find "$dest" -maxdepth 1 -type f -name "$pattern" -size +0c | grep -q .; then
+              echo "CAMPAIGN_CAPTURE_MISSING $RESOLUTION/$route"
+              result=1
+            else
+              echo "CAMPAIGN_ROUTE_PASS $RESOLUTION/$route"
+            fi
+          done
+          exit "$result"
+      - name: Preserve native screenshots and logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: integrated-campaign-native-${{ matrix.resolution }}-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 3

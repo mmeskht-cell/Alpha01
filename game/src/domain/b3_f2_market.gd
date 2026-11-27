@@ -5,6 +5,7 @@ const Flow = preload("res://src/domain/regional_market_flow.gd")
 const Receipts = preload("res://src/domain/receipt_primitives.gd")
 const Clock = preload("res://src/domain/business_clock.gd")
 const Cards = preload("res://src/domain/alpha_card_trade.gd")
+const Catalog = preload("res://src/domain/b3_integrated_catalog.gd")
 # Test policy only. A cautious G11 bids below G07 under identical public conditions.
 const BUYER_OFFSETS = {"G07":0,"G11":-2}
 const BIDS = ["battery_sale","alpha_b3_g11_battery_d4","alpha_b3_g11_battery_d5"]
@@ -61,6 +62,8 @@ static func regional(profile:Dictionary)->bool:
 	return profile.get("battery_market") in ["regional_regular_v1","regional_late_v1"] or expanded(profile)
 
 static func market_key(profile:Dictionary, item_id:String)->String:
+	var catalog_market := Catalog.market_key(profile,item_id)
+	if not catalog_market.is_empty(): return catalog_market
 	if expanded(profile) and EXTRA_MARKETS.has(item_id): return str(EXTRA_MARKETS[item_id])
 	return str(ITEM_MARKETS.get(item_id,""))
 
@@ -113,6 +116,7 @@ static func shortage(profile:Dictionary, day:int)->bool:
 
 static func market_shortage(profile:Dictionary, market:String, day:int)->bool:
 	if market=="port_battery": return shortage(profile,day)
+	if Catalog.enabled(profile) and ((market=="market_food" and day in [3,4]) or (market=="market_medical" and day in [5,6])): return true
 	if profile.get("battery_market") not in ["regional_late_v1","regional_late_v2"]: return false
 	if expanded(profile) and ((market=="workshop_tools" and day in [5,6]) or (market=="workshop_goods" and day==5) or (market=="market_hygiene" and day==7)): return true
 	return (market=="port_electronics" and day==7) or (market=="market_radio" and day==6)
@@ -179,6 +183,10 @@ static func open_day(state:Dictionary, rows:Array)->void:
 	var past := market_history(state,day)
 	var delayed := shortage(a.profile,day)
 	for slot:Dictionary in rows:
+		var catalog_item := Catalog.visit_item(a.profile,slot.id)
+		if not catalog_item.is_empty():
+			_open_catalog_quote(state,slot,catalog_item,past)
+			continue
 		if slot.id==SUPPLIER:
 			if not state.visits[slot.id].scope.completed:
 				state.visits[slot.id].prices.BAT02 = {"VKC":0,"USD":1} if delayed else {"VKC":40,"USD":0}
@@ -207,10 +215,29 @@ static func open_day(state:Dictionary, rows:Array)->void:
 		var premium:int = 8 if market_shortage(a.profile,market,day) else 0
 		visit.prices[item_id].VKC = Flow.bounded_quote(base,base+premium,int(past.flows.get(market,0)),3,6,personal)
 
+static func _open_catalog_quote(state: Dictionary,slot: Dictionary,item_id: String,past: Dictionary) -> void:
+	var shop: Dictionary = state.alpha_shop
+	var visit: Dictionary = state.visits[slot.id]
+	if visit.scope.completed: return
+	var base := Catalog.price_basis(shop.profile,slot.id)
+	var market := market_key(shop.profile,item_id)
+	var buying: bool = visit.buyer=="player"
+	var actor: String = slot.actor_id
+	var history := prior_terms(shop,actor)
+	var repeat_customer: bool = past.customers.has(actor)
+	var personal := int(SELLER_OFFSETS.get(actor,0))-history-(1 if repeat_customer else 0) if buying else int(buyer_policy(actor).get("offset",0))+history+(1 if repeat_customer else 0)
+	var premium := maxi(1,roundi(base*0.10)) if market_shortage(shop.profile,market,int(shop.day)) else 0
+	visit.prices[item_id].VKC = Flow.bounded_quote(base,base+premium,int(past.flows.get(market,0)),1,3,personal)
+
 ## Optional regional buyers may preserve a modest cash reserve. A past public
 ## refusal raises the reserve, not the wallet. No protected contract uses it.
 static func eligible(state:Dictionary, visit_id:String)->bool:
 	var a:Dictionary = state.alpha_shop
+	var item_id := Catalog.visit_item(a.profile,visit_id)
+	if not item_id.is_empty() and visit_id.ends_with("_sale"):
+		var sale: Dictionary = state.visits[visit_id]
+		var minimum_cash := Catalog.BUYER_RESERVE + (5 if prior_terms(a,sale.buyer)<0 else 0)
+		return int(state.wallets[sale.buyer].VKC)>=int(sale.prices[item_id].VKC)+minimum_cash
 	if not regional(a.profile) or (not REGIONAL_BIDS.has(visit_id) and not (expanded(a.profile) and EXTRA_BIDS.has(visit_id))): return true
 	var rule:Array = bid_rule(a.profile,visit_id)
 	var visit:Dictionary = state.visits[visit_id]
@@ -221,6 +248,10 @@ static func eligible(state:Dictionary, visit_id:String)->bool:
 static func public_bid(state:Dictionary, appraisal:Dictionary)->int:
 	var a:Dictionary = state.alpha_shop
 	if a.phase!="CUSTOMER_ACTIVE" or appraisal.is_empty() or appraisal.get("we_buy",true): return 0
+	var item_id := Catalog.visit_item(a.profile,a.active)
+	if not item_id.is_empty() and appraisal.get("item_id")==item_id:
+		var catalog_visit: Dictionary = state.visits[a.active]
+		return 0 if catalog_visit.scope.completed else int(catalog_visit.prices[item_id].VKC)
 	var rule:Array = bid_rule(a.profile,a.active)
 	if rule.is_empty() or appraisal.get("item_id")!=rule[0]: return 0
 	var visit:Dictionary = state.visits[a.active]
@@ -233,6 +264,8 @@ static func bulletin(state:Dictionary)->String:
 		var lines:Array[String] = []
 		var labels:Dictionary = MARKET_LABELS.duplicate()
 		if expanded(state.alpha_shop.profile): labels.merge(EXTRA_LABELS)
+		if Catalog.enabled(state.alpha_shop.profile):
+			labels.merge({"market_food":"시장 구역 · 식량","market_medical":"시장 구역 · 의료용품"})
 		for market:String in labels:
 			var supply:String = "납품 지연" if market_shortage(state.alpha_shop.profile,market,day) else "정상 공급 공지"
 			var count:int = int(past.counts.get(market,0))

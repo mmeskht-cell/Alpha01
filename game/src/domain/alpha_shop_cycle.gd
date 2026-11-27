@@ -16,6 +16,7 @@ const Objects = preload("res://src/domain/object_schema.gd")
 const BatteryMarket = preload("res://src/domain/b3_f2_market.gd")
 const F3Trial = preload("res://src/domain/b3_f3_composite_trial.gd")
 const CivilianSupply = preload("res://src/domain/b3_civilian_supply.gd")
+const IntegratedCatalog = preload("res://src/domain/b3_integrated_catalog.gd")
 const ACTIONS: Array = ["alpha_reprice_display", "alpha_open", "alpha_next_customer", "alpha_ack_entry", "alpha_finish_customer", "alpha_ack_exit", "alpha_close", "alpha_settle", "alpha_next_day", "alpha_prepare_day", "alpha_exchange_contact", "alpha_display", "alpha_withdraw_display", "alpha_trade", "alpha_contract_accept", "alpha_contract_decline", "alpha_contract_pay", "alpha_contract_extend", "alpha_inspect", "alpha_card_toggle", "alpha_price_offer", "alpha_hypothesis", "alpha_statement_retract", "alpha_statement_reaffirm", "alpha_claim_challenge", "alpha_commission_accept", "alpha_commission_decline", "alpha_commission_reserve", "alpha_commission_cancel", "alpha_commission_deliver", "alpha_service_accept", "alpha_service_decline", "alpha_service_repair", "alpha_service_deliver", "alpha_service_return_unpaid", "alpha_fx_trade", "alpha_salvage_dispatch", "alpha_salvage_cancel","week_pledge","week_redeem","week_extend","spatial_move","spatial_restore_item","spatial_attach","spatial_detach","spatial_discard","alpha_composite_consent"]
 const PHASES: Array = ["DAY_PREP", "OPEN_IDLE", "CUSTOMER_ENTER", "CUSTOMER_ACTIVE", "CUSTOMER_EXIT", "CLOSE_SETTLE", "EVENING_WORK", "NEXT_DAY", "COMPLETE"]
 
@@ -41,6 +42,9 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 	if profile is Dictionary and profile.has("civilian_supply"):
 		if not CivilianSupply.seed_valid(state,profile): return false
 		keys.append("civilian_supply")
+	if profile is Dictionary and profile.has("integrated_catalog"):
+		if not IntegratedCatalog.seed_valid(state,profile): return false
+		keys.append("integrated_catalog")
 	if profile is Dictionary and profile.has("battery_market"):
 		if not profile.has("spatial_opening") or profile.battery_market not in BatteryMarket.PROFILES: return false
 		if not BatteryMarket.seed_valid(state,profile): return false
@@ -651,6 +655,9 @@ static func view(state: Dictionary) -> Dictionary:
 			result["market_bulletin"] = BatteryMarket.bulletin(state)
 			var public_bid:int = BatteryMarket.public_bid(state,result.appraisal)
 			if public_bid>0: result["customer_bid_vkc"] = public_bid
+			var catalog_item := IntegratedCatalog.visit_item(a.profile,a.active)
+			if a.phase=="CUSTOMER_ACTIVE" and not catalog_item.is_empty() and result.appraisal.get("we_buy",false):
+				result["customer_ask_vkc"] = int(state.visits[a.active].prices[catalog_item].VKC)
 		if F3Trial.enabled(a.profile) and a.phase=="CUSTOMER_ACTIVE" and a.active==F3Trial.SELL and not result.appraisal.is_empty():
 			result["customer_bid_vkc"]=int(state.visits[a.active].prices[F3Trial.ROOT].VKC)
 		result["currency_terms"] = B3Currency.view(state)

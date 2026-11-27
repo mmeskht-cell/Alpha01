@@ -1,0 +1,163 @@
+extends "res://tests/b3_r2_product_integration_window.gd"
+const Slots = preload("res://src/content/b3_campaign_slots.gd")
+const Catalog = preload("res://src/domain/b3_integrated_catalog.gd")
+const Play = preload("res://tests/fixtures/b3_campaign_play.gd")
+const TitlePreferences = preload("res://src/presentation/ui_preferences.gd")
+const TARGETS := {"food":"CS01","essentials":"CS05","hardware":"CS20","sealed":"CS17"}
+const TEST_SIZES := {"720":Vector2i(1280,720),"1080":Vector2i(1920,1080)}
+var title: Control
+
+func boot_title(location: String) -> bool:
+	var scene: String = ProjectSettings.get_setting("application/run/main_scene")
+	if not check(scene=="res://scenes/app/main_menu.tscn","use production project entry"):
+		return false
+	title = (load(scene) as PackedScene).instantiate()
+	title.set("save_directory_override",location)
+	root.add_child(title)
+	current_scene = title
+	await frames()
+	return check(title.find_child("menu_new",true,false)!=null and title.find_child("menu_f5_counter",true,false)==null
+		and title.find_child("menu_civilian_supply",true,false)==null and title.find_child("menu_spatial_week",true,false)==null
+		and title.find_child("technical_profiles",true,false)==null,"one product campaign in the real title")
+
+func wait_for_shop(action_id: String) -> bool:
+	if not await click_navigation(title,action_id): return false
+	await create_timer(0.32).timeout
+	await frames()
+	host = current_scene as Control
+	return check(is_instance_valid(host) and host.name=="B3CampaignShop" and host.session!=null and not host._blocked and host._slot()==Slots.KEY,"real title action opens regular B3 campaign")
+
+func to_title() -> bool:
+	if not await click_navigation(host,"preferences") or not await click_navigation(host,"return_title"):
+		return false
+	await create_timer(0.32).timeout
+	await frames()
+	title = current_scene as Control
+	return check(is_instance_valid(title) and title.find_child("menu_new",true,false)!=null and title.find_child("menu_civilian_supply",true,false)==null,"counter returns to the same product title")
+
+func damaged_slot(location: String,index: int) -> String:
+	var path := Slots.directory(location,index)
+	if DirAccess.make_dir_recursive_absolute(path)!=OK: return ""
+	path = path.path_join(Slots.KEY+".a.json")
+	var file := FileAccess.open(path,FileAccess.WRITE)
+	if file==null: return ""
+	file.store_string("{damaged")
+	file.close()
+	return path
+
+func menu_route(size: Vector2i,location: String) -> bool:
+	var corrupt := damaged_slot(location,0)
+	if not check(not corrupt.is_empty(),"fixture contains an occupied corrupt slot"): return false
+	var prefs := TitlePreferences.defaults()
+	prefs.font_size = 24
+	prefs.motion = false
+	prefs.language = "ko" if size.y==720 else "en"
+	if not check(TitlePreferences.write(Slots.preferences_path(location),prefs),"title settings fixture"): return false
+	if not await boot_title(location): return false
+	var resume := title.find_child("menu_continue",true,false) as Button
+	if not check(resume!=null and resume.disabled,"continue requires strictly valid save"): return false
+	for key: String in ["menu_new","menu_continue","menu_load","menu_settings","menu_quit"]:
+		var button := title.find_child(key,true,false) as Button
+		if not check(button!=null and root.get_visible_rect().encloses(button.get_global_rect()) and button.size.y>=48,"title pointer target "+key): return false
+	await capture("campaign_title_"+str(size.y)+"_"+str(prefs.language),size)
+	if not await click_navigation(title,"menu_load"): return false
+	var bad := title.find_child("menu_slot_1",true,false) as Button
+	if not check(bad!=null and bad.disabled,"unusable generation is labelled and disabled"): return false
+	if not await click_navigation(title,"menu_slot_back") or not await wait_for_shop("menu_new"): return false
+	var initial: Dictionary = host.session.snapshot()
+	if not check(host.save_directory_override==Slots.directory(location,1) and host.reading_scale==150 and host.counter_language==prefs.language and host.reduce_motion,"new campaign skips occupied damage and receives title preferences"): return false
+	if not check(initial.alpha_shop.profile.integrated_catalog==1 and not initial.alpha_shop.profile.has("civilian_supply") and initial.wallets.player.VKC==180,"normal opening is the integrated source"): return false
+	for beat in range(5):
+		if not await click_navigation(host,"intro_next"): return false
+	if not await click("alpha_open","OPEN_IDLE"): return false
+	var progressed: Dictionary = host.session.snapshot()
+	if not await to_title() or not await wait_for_shop("menu_continue"): return false
+	if not check(host.session.snapshot()==progressed and not host._intro,"continue cold-replays actual played snapshot"): return false
+	if not await to_title() or not await click_navigation(title,"menu_load") or not await wait_for_shop("menu_slot_2"): return false
+	if not check(host.session.snapshot()==progressed and FileAccess.get_file_as_string(corrupt)=="{damaged","explicit load replays and preserves damaged slot bytes"): return false
+	await capture("campaign_continued_"+str(size.y),size)
+	return true
+
+func settle_quote() -> bool:
+	return await click_navigation(host,"use_counter_quote") and await actions([["offer","CUSTOMER_ACTIVE"],["settle_trade","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]])
+
+func appraise_model(target: String,row: Dictionary,model: Texture2D,size: Vector2i) -> bool:
+	if not check(host.session.alpha_view().appraisal.item_id==target and visible_model(host.counter_item,model),"matching counter specimen "+target): return false
+	if not await start_counter_appraisal(): return false
+	if not check(visible_model(host.counter_item,model),"same physical article in inspection "+target): return false
+	if row.functional:
+		if not await click_navigation(host,"tool_function_detail") or not await click("apply_tool","CUSTOMER_ACTIVE"): return false
+		if not check(host.session.alpha_view().appraisal.cards.any(func(card: Dictionary)->bool: return card.slot=="function_detail" and not card.public_active),"private function observation "+target): return false
+	elif not str(row.family).is_empty():
+		if not await inspect_product_surface("wear_detail",row.family): return false
+	else:
+		if not await click_navigation(host,"tool_identity") or not await click("apply_tool","CUSTOMER_ACTIVE"): return false
+		if not check(host.session.alpha_view().appraisal.surface_profiles.is_empty(),"uncertain sealed packaging has no fabricated specimen projection"): return false
+	await capture("campaign_appraised_"+target+"_"+str(size.y),size)
+	return await leave_counter_appraisal()
+
+func product_route(target: String,size: Vector2i,location: String) -> bool:
+	var route := Play.trade_witness(target)
+	if not check(not route.is_empty(),"real opening plan produces both counterparties "+target): return false
+	var session := Play.fresh(route.source)
+	if not check(session!=null and session.restore(route.buy),"genuine pre-purchase replay fixture"): return false
+	var prefs := TitlePreferences.defaults()
+	prefs.language = "ko" if size.y==720 else "en"
+	prefs.font_size = 24
+	prefs.motion = false
+	if not check(TitlePreferences.write(Slots.preferences_path(location),prefs) and ProductRepo.new(Slots.directory(location,0)).save_session(session,Slots.KEY).get("ok",false),"isolated profile and preferences ready"): return false
+	if not await boot_title(location) or not await wait_for_shop("menu_continue"): return false
+	if not check(host.session.snapshot()==route.buy and host.reading_scale==150 and host.counter_language==prefs.language,"product cold-load with 150% and chosen language"): return false
+	var row: Dictionary = Catalog.models()[target]
+	var specimen: Texture2D = CounterArt.ITEMS.model_texture(row.model,"inspection",target)
+	var ask: int = int(host.session.alpha_view().customer_ask_vkc)
+	if not await appraise_model(target,row,specimen,size) or not await settle_quote(): return false
+	var purchased: Dictionary = host.session.snapshot()
+	if not check(purchased.items[target].owner_id=="player" and purchased.items[target].basis.VKC==ask,"physical purchase and cost basis"): return false
+	if not await click_navigation(host,"stockroom") or not await click_navigation(host,"stock_"+target): return false
+	var token := host.find_child("stock_"+target,true,false) as Control
+	var sprite := token.get_node_or_null("ItemArt") as Sprite2D if token else null
+	if not check(sprite!=null and sprite.is_visible_in_tree() and exact_model_face(sprite.texture,CounterArt.ITEMS.model_texture(row.model,"stock",target)),"stock image keeps exact same model "+target): return false
+	if not await click_navigation(host,"tab_storefront_grid") or not await click_navigation(host,"cell_0_0") or not await click("confirm_work","OPEN_IDLE"): return false
+	if not check(host.session.snapshot().items[target].inventory=="storefront_grid","the real shelf holds the purchased article"): return false
+	await capture("campaign_display_"+target+"_"+str(size.y),size)
+	if not await click_navigation(host,"close_drawer"): return false
+	for day: int in range(int(purchased.alpha_shop.day),int(route.sale_day)):
+		if not await next_morning(): return false
+	if not await serve_until(Catalog.visit_id(target,false)): return false
+	var bid: int = int(host.session.alpha_view().customer_bid_vkc)
+	if not check(visible_model(host.counter_item,specimen),"repeat presentation preserves same specimen "+target): return false
+	if not await start_counter_appraisal() or not await leave_counter_appraisal() or not await settle_quote(): return false
+	var final: Dictionary = host.session.snapshot()
+	var buyer: String = route.source.state.visits[Catalog.visit_id(target,false)].buyer
+	if not check(final.items[target].owner_id==buyer and final.items[target].provenance_id==route.buy.items[target].provenance_id and final.items[target].basis.VKC==ask
+		and final.wallets.player.VKC==route.buy.wallets.player.VKC-ask+bid
+		and final.wallets[buyer].VKC==route.buy.wallets[buyer].VKC-bid+(ask if buyer==route.buy.items[target].owner_id else 0)
+		and final.ledger.size()==route.buy.ledger.size()+2,"actual finite settlements and lineage for "+target): return false
+	await capture("campaign_resold_"+target+"_"+str(size.y),size)
+	return true
+
+func run() -> void:
+	var args := OS.get_cmdline_user_args()
+	if args.size()!=3 or not TEST_SIZES.has(args[1]) or (args[2]!="menu" and not TARGETS.has(args[2])) or DirAccess.make_dir_recursive_absolute(args[0])!=OK:
+		quit(2)
+		return
+	out = args[0]
+	var resolution: Vector2i = TEST_SIZES[args[1]]
+	var location := "user://zt_rebuild/integrated_native_%s_%s_%d"%[args[1],args[2],Time.get_ticks_usec()]
+	if await configure_native_window(resolution):
+		var passed := false
+		if args[2]=="menu":
+			passed = await menu_route(resolution,location)
+		else:
+			passed = await product_route(TARGETS[args[2]],resolution,location)
+		check(passed,"complete native product route "+args[1]+"/"+args[2])
+	if is_instance_valid(title) and title==current_scene:
+		title.get("_sound").shutdown_audio()
+		await create_timer(0.25).timeout
+		title.queue_free()
+		await frames()
+	await release_host()
+	print("B3_CAMPAIGN_PRODUCT_WINDOW: ",checks," checks, ",failures," failures")
+	Node.print_orphan_nodes()
+	call_deferred("quit",0 if checks>0 and failures==0 else 1)

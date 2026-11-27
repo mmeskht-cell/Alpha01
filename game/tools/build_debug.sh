@@ -130,6 +130,9 @@ if [[ "$PROFILE" == gate2_condition_v2 || "$PROFILE" == integrated_b_eval ]]; th
   grep -F 'ZT_DEMO_HOST_READY' "$OUT/packboot.log"
   grep -F 'ZT_SPATIAL_COUNTER_READY' "$OUT/packboot.log"
   echo 'gate2_spatial_packboot=PASS' | tee -a "$OUT/status.txt"
+else
+  grep -Fx 'ZT_B3_CAMPAIGN_TITLE_READY' "$OUT/packboot.log"
+  echo 'b3_campaign_default_packboot=PASS' | tee -a "$OUT/status.txt"
 fi
 echo 'packboot=PASS' | tee -a "$OUT/status.txt"
 export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$TMP/disposable-debug.keystore"

@@ -29,18 +29,26 @@ func profile_for(item_id:String,role:String)->Profile:
 # The isolated civilian receiver uses the approved new radio model, never R001.
 # Module B uses the approved control-module image. Module A has a separate model entry.
 # These bindings are presentation only and cannot alter the definition or item identity.
-const CIVILIAN_MODEL_ART = {"f3_receiver_v1":"utility_01_field_radio","f3_module_b":"utility_10_control_module"}
-const BATTERY_ART := "utility_03_aa_batteries"
+const CIVILIAN_MODEL_ART = {
+	"f3_receiver_v1":"utility_01_field_radio",
+	"battery":"utility_03_aa_batteries",
+	"demo_tool":"utility_05_wrench",
+	"demo_hygiene":"medical_06_soap",
+	"demo_electronics":"utility_08_multimeter",
+	"f3_module_b":"utility_10_control_module"
+}
 
 func model_texture(model: String,role: String,item_id: String="",back: bool=false) -> Texture2D:
 	var entry: Dictionary = model_art.get(model,{})
+	# R001 and R003 share a historical definition but have distinct specimens.
+	if model=="portable_radio" and item_id=="R003":
+		if role=="overhead" or back: return null
+		var specimen := profile_for(item_id,role)
+		return specimen.texture if specimen else null
 	if role=="overhead":
 		# A distinct approved take of the same model. No generic or stock art fallback.
 		return entry.get("overhead_back" if back else "overhead") as Texture2D
-	if model=="battery":
-		var approved := CivilianVisuals.texture_for(BATTERY_ART,role)
-		if approved: return approved
-	# Exact candidate art keys only. Do not pretend a missing food image is electronics.
+	# Keep the same approved model in all three presentation roles.
 	if CIVILIAN_MODEL_ART.has(model): return CivilianVisuals.texture_for(str(CIVILIAN_MODEL_ART[model]),role,back)
 	if FoodVisuals.LABELS.has(model): return FoodVisuals.texture_for(model,role,back)
 	if CivilianVisuals.LABELS.has(model): return CivilianVisuals.texture_for(model,role,back)

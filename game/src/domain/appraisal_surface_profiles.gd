@@ -1,6 +1,7 @@
 extends RefCounted
 ## Authored visual surface profiles are additive presentation facts.
 ## Never derive material from a legacy pattern, model, hypothesis or seed.
+const Catalog = preload("res://src/domain/b3_integrated_catalog.gd")
 const PATH := "res://data/alpha_b3/surface_profiles_v1.json"
 const FAMILIES := ["metal","plastic","paper","fabric","glass"]
 const SLOTS := ["material_detail","wear_detail","display_damage_detail"]
@@ -9,8 +10,14 @@ static func current_fact(slot: String, fact: Dictionary, item: Dictionary) -> bo
 	return slot in SLOTS and fact.get("slot")==slot and fact.get("kind")=="fact" \
 		and fact.has("version") and fact.get("version")==item.get("field_versions")
 
-static func project(item_id: String,item: Dictionary,observed: Dictionary) -> Dictionary:
+static func project(item_id: String,item: Dictionary,observed: Dictionary,profile: Dictionary={}) -> Dictionary:
 	if observed.is_empty(): return {}
+	var row := Catalog.specimen(profile,item_id,item)
+	if not row.is_empty():
+		var fact: Dictionary = observed.get("wear_detail",{})
+		if row.family in FAMILIES and current_fact("wear_detail",fact,item) and fact.get("value")==Catalog.wear(profile,row):
+			return {"wear_detail":{"family":row.family,"target":row.target}}
+		return {}
 	var document: Variant = JSON.parse_string(FileAccess.get_file_as_string(PATH))
 	if not document is Dictionary or document.get("version")!=1:
 		return {}
@@ -42,6 +49,10 @@ static func from_document(document: Dictionary,item_id: String,item: Dictionary,
 static func authored_readings(profile: Dictionary,item_id: String,item: Dictionary) -> Dictionary:
 	if not profile.has("spatial_opening") or profile.get("week_proposal")!="first_week_proposal_1":
 		return {}
+	var catalog_row := Catalog.specimen(profile,item_id,item)
+	if not catalog_row.is_empty():
+		if catalog_row.family not in FAMILIES: return {}
+		return {"wear_detail":{"value":Catalog.wear(profile,catalog_row),"side":"front"}}
 	if item.get("field_versions")!={"functional":0,"restored":0,"composition":0}:
 		return {}
 	var document: Variant = JSON.parse_string(FileAccess.get_file_as_string(PATH))

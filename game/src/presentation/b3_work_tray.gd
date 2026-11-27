@@ -54,14 +54,14 @@ func _socket_face(socket: Button,occupied: bool) -> void:
 		socket.add_theme_stylebox_override(state,inset)
 
 ## A visible slot accepts only candidates supplied by the composition authority.
-func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog: Resource,copy: Dictionary,translate: Callable,preview: Callable,restore_quote: Dictionary = {},drop_part: Callable = Callable(), drag_scale: float = 1.0, attachment_reason: Callable = Callable()) -> void:
+func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog: Resource,copy: Dictionary,translate: Callable,preview: Callable,restore_quote: Dictionary = {},drop_part: Callable = Callable(), drag_scale: float = 1.0, attachment_reason: Callable = Callable(), show_repair: bool = true) -> void:
 	if root_id!=last_root:
 		last_root = root_id
 		slot_page = 0
 		part_page = 0
 	var slots: Array = composition.get("slots",[])
 	slot_page = clampi(slot_page,0,maxi(0,slots.size()-1))
-	var key := JSON.stringify([root_id,composition,slot_page,part_page,restore_quote])
+	var key := JSON.stringify([root_id,composition,slot_page,part_page,restore_quote,show_repair])
 	if key==view_key: return
 	view_key = key
 	for node in get_children():
@@ -70,17 +70,18 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 	var work := self
 	var header := HBoxContainer.new()
 	work.add_child(header)
-	var redraw := func()->void: populate(root_id,composition,items,catalog,copy,translate,preview,restore_quote,drop_part,drag_scale,attachment_reason)
-	var restore := Button.new()
-	restore.name = "repair"
-	restore.text = copy.repair
-	restore.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	if not restore_quote.is_empty():
-		restore.tooltip_text = "작업비 · %d VKC / %d USD"%[int(restore_quote.VKC),int(restore_quote.USD)]
-		if int(restore_quote.USD)==0: restore.text = str(copy.repair)+" · %d VKC"%int(restore_quote.VKC)
-	header.add_child(restore)
-	restore.custom_minimum_size.y = 44
-	restore.pressed.connect(func()->void:preview.call("spatial_restore_item",{"actor":"player","item_id":root_id}))
+	var redraw := func()->void: populate(root_id,composition,items,catalog,copy,translate,preview,restore_quote,drop_part,drag_scale,attachment_reason,show_repair)
+	if show_repair:
+		var restore := Button.new()
+		restore.name = "repair"
+		restore.text = copy.repair
+		restore.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		if not restore_quote.is_empty():
+			restore.tooltip_text = "작업비 · %d VKC / %d USD"%[int(restore_quote.VKC),int(restore_quote.USD)]
+			if int(restore_quote.USD)==0: restore.text = str(copy.repair)+" · %d VKC"%int(restore_quote.VKC)
+		header.add_child(restore)
+		restore.custom_minimum_size.y = 44
+		restore.pressed.connect(func()->void:preview.call("spatial_restore_item",{"actor":"player","item_id":root_id}))
 	var civilian_pair: bool = slots.size()==2 and str(slots[0].get("tag",""))=="f3_module_a" and str(slots[1].get("tag",""))=="f3_module_b"
 	if civilian_pair:
 		# Read only the authorized composition projection. Occupancy is not a functional judgment.

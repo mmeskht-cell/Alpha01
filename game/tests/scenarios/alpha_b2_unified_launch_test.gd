@@ -20,7 +20,7 @@ func _initialize() -> void:
 func _run() -> void:
 	if not check(ResourceLoader.exists(Entry.SCENE_PATH) and ResourceLoader.exists(Entry.TITLE_SCENE_PATH)
 			and Entry.SCENE_PATH == "res://scenes/app/alpha_b2_service_multi.tscn"
-			and Entry.TITLE_SCENE_PATH == "res://scenes/app/main_menu.tscn",
+			and Entry.TITLE_SCENE_PATH == "res://scenes/app/legacy_development_menu.tscn",
 			"shared B2 entry and title-return paths resolve to exact existing scenes"):
 		quit(1)
 		return

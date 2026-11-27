@@ -1163,6 +1163,17 @@ func _replace_component(state:Dictionary,p:Dictionary,action_id:String)->String:
 ## Public abstract civilian composition affordances. Never expose private condition,
 ## internal values, or items outside player custody. Detached candidate only;
 ## actual mutation always goes through execute and its complete validation.
+## The shop may show the authored fee for owned stock without revealing
+## its actual function. The same action still checks evening, condition and cash.
+func alpha_stock_restore_cost(id: String) -> Dictionary:
+	if not _alpha_mode or _state.alpha_shop.phase!="EVENING_WORK" or not _state.items.has(id):
+		return {}
+	var item: Dictionary = _state.items[id]
+	if item.inventory!="player_stock" or not _can_change(_state,id,"player"):
+		return {}
+	var def: Dictionary = _definitions[item.def_id]
+	return def.restore_cost.duplicate(true) if def.restorable else {}
+
 func composition_options(root_id:String,inventory:String)->Dictionary:
 	if not _state.items.has(root_id) or not _state.inventories.has(inventory):
 		return {}

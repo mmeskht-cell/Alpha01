@@ -1,6 +1,6 @@
 extends "res://tests/b3_w20_pointer_window.gd"
 ## Actual title entry and normal F5 A/B generations, with a fresh directory per native resolution.
-const Title = preload("res://scenes/app/main_menu.tscn")
+const Title = preload("res://scenes/app/legacy_development_menu.tscn")
 const Preferences = preload("res://src/presentation/ui_preferences.gd")
 const Surface = preload("res://src/presentation/surface_visuals.gd")
 const F5_SLOT := "b3_f5_counter_v1"

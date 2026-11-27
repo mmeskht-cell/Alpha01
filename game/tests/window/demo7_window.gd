@@ -61,7 +61,11 @@ func run()->void:
 	if not check(path=="res://scenes/app/main_menu.tscn","actual default menu"):
 		quit(1)
 		return
-	var shell:Control=(load(path) as PackedScene).instantiate()
+	var compatibility_path := "res://scenes/app/legacy_development_menu.tscn"
+	if not check(ResourceLoader.exists(compatibility_path),"legacy slot and settings route stays available for development"):
+		quit(1)
+		return
+	var shell:Control=(load(compatibility_path) as PackedScene).instantiate()
 	shell.save_directory_override="user://zt_rebuild/demo7/menu_window_"+str(Time.get_ticks_usec())
 	host=shell
 	root.add_child(shell)

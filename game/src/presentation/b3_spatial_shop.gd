@@ -149,7 +149,7 @@ func _ready() -> void:
 		sound.prime(int(session.snapshot().revision))
 		# Resume the current ambient mix; loading never emits a transaction cue.
 		sound.set_phase("workshop" if session.alpha_view().get("phase","")=="EVENING_WORK" else "shop")
-	if continuing and not _blocked:
+	if continuing and not _blocked and (launch_intent!="load" or int(session.snapshot().revision)>0):
 		_intro = false
 		refresh()
 
@@ -1135,7 +1135,7 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 	specimen.set_drag_forwarding(Callable(),func(at:Vector2,data:Variant)->bool:
 		return _tool_drop_allowed(at/specimen.size,data,v,a),func(at:Vector2,data:Variant)->void:
 		if _tool_drop_allowed(at/specimen.size,data,v,a): _queue_counter_drop("inspect",str(data.tool),v,a))
-	if Art.ITEMS.model_art.get(str(a.def_id),{}).has("back"):
+	if id!="R003" and Art.ITEMS.model_art.get(str(a.def_id),{}).has("back"):
 		_desk_action("turn_item",_counter_copy("뒤집기","Turn over"),Rect2(593,599,168,44),func()->void:
 			reverse = not reverse
 			if chosen_tool in SurfaceVisuals.SLOTS:
@@ -1463,6 +1463,8 @@ func _counter_speech(v: Dictionary,purposes: Array[String] = []) -> String:
 		if public_context.get("prior",{}).get("outcome","")=="departed":
 			return CounterDialogue.bid("bid_return",int(v.customer_bid_vkc),actor,counter_language)
 		return CounterDialogue.bid("bid_open",int(v.customer_bid_vkc),actor,counter_language)
+	if v.has("customer_ask_vkc") and public_context.get("current_offer",{}).is_empty() and public_context.get("latest_spoken",{}).is_empty():
+		return _counter_copy("이 물건은 %d VKC 받고 싶어요.","I'm asking %d VKC for it.")%int(v.customer_ask_vkc)
 	if counter_step==CounterStep.NEGOTIATION and public_context.get("current_offer",{}).is_empty() and public_context.get("latest_spoken",{}).is_empty():
 		# Contextual transition, not a repeat of the opening purpose or a fabricated quote.
 		return _counter_copy("어느 정도로 생각하세요?","What price did you have in mind?")
@@ -1488,8 +1490,9 @@ func _drop_card_at_counter(slot: String) -> void:
 
 func _public_offer_basis(v: Dictionary) -> Dictionary:
 	var currency := str(v.appraisal.offer_currency)
-	if v.has("customer_bid_vkc"):
-		return RatioQuote.basis({},currency,{"kind":"public_quote","source":"customer_at_counter","amount":v.customer_bid_vkc,"currency":"VKC"})
+	if v.has("customer_bid_vkc") or v.has("customer_ask_vkc"):
+		var amount: int = int(v.get("customer_bid_vkc",v.get("customer_ask_vkc",0)))
+		return RatioQuote.basis({},currency,{"kind":"public_quote","source":"customer_at_counter","amount":amount,"currency":"VKC"})
 	if not v.appraisal.we_buy:
 		var tag: Dictionary = Alpha.displayed_ask(session.snapshot(),str(v.appraisal.item_id))
 		return RatioQuote.basis({},currency,{"kind":"posted_ask","source":"player_displayed_ask","amount":tag.get("amount",0),"currency":tag.get("currency","")})
@@ -2664,14 +2667,17 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 			tray = WorkTray.new()
 			place(tray,746,459,420,150)
 		var composition: Dictionary = session.composition_options(root_id,"player_stock")
+		var catalog_campaign: bool = s.alpha_shop.profile.has("integrated_catalog")
 		var restore: Dictionary = composition.get("restore_cost",{}) if r2_review_mode else {}
+		if catalog_campaign:
+			restore = session.alpha_stock_restore_cost(root_id)
 		tray.populate(root_id,composition,s.items,Art.ITEMS,desk_copy,_text,func(kind:String,payload:Dictionary)->void:
 			selected = root_id
 			_preview(kind,payload),restore,func(payload:Dictionary,data:Variant)->void:
 				if r2_review_mode: _queue_inventory_drop("attach",payload,data)
 				else:
 					selected = root_id
-					_preview("spatial_attach",payload),stage.scale.x,_attachment_rejection)
+					_preview("spatial_attach",payload),stage.scale.x,_attachment_rejection,not catalog_campaign or not restore.is_empty())
 	if draft.is_empty() and v.phase=="EVENING_WORK" and item.status=="custody_service":
 		for job: Dictionary in v.services.entries:
 			if job.get("item_id")==selected and job.can_repair:
@@ -2863,6 +2869,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 func _store_counter_preferences() -> void:
 	pass
 
+func _title_destination() -> Node:
+	var scene := load("res://scenes/app/legacy_development_menu.tscn") as PackedScene
+	return scene.instantiate()
+
 func _return_to_title() -> void:
 	if _leaving_title:
 		return
@@ -2874,7 +2884,7 @@ func _return_to_title() -> void:
 	sound.shutdown_audio()
 	await get_tree().create_timer(0.25).timeout
 	if is_inside_tree():
-		get_tree().change_scene_to_file("res://scenes/app/main_menu.tscn")
+		get_tree().change_scene_to_node(_title_destination())
 
 func _slide(node: Control, offset: Vector2, duration: float) -> void:
 	if reduce_motion or not is_instance_valid(node): return

@@ -12,6 +12,7 @@ const CLAIMS_PATH: String = "res://data/alpha_b2/customer_claims_1.json"
 const SURFACE_CHOICES := {"material":["unknown","metal","plastic","paper","fabric","glass"],"exterior":["unknown","minimal","moderate","severe"]}
 const F3Trial = preload("res://src/domain/b3_f3_composite_trial.gd")
 const SurfaceProfiles = preload("res://src/domain/appraisal_surface_profiles.gd")
+const IntegratedCatalog = preload("res://src/domain/b3_integrated_catalog.gd")
 const F3Receipt = preload("res://src/domain/receipt_primitives.gd")
 const MAX_OFFERS: int = 3
 const MAX_OBSERVATIONS: int = 8
@@ -114,6 +115,9 @@ static func _tool_rows(state: Dictionary, item_id: String) -> Array:
 		return []
 	var item: Dictionary = state.items[item_id]
 	var options: Array = [{"id":"identity","text_key":"b2.inspect.identity","kind":"fact"}]
+	var catalog_item := IntegratedCatalog.specimen(state.alpha_shop.profile,item_id,item)
+	if catalog_item.get("functional",false):
+		options.append({"id":"function_detail","text_key":"b2.inspect.function_detail","kind":"fact"})
 	if F3Trial.enabled(state.alpha_shop.profile) and item.def_id==F3Trial.MODEL:
 		options.append({"id":"function_detail","text_key":"b2.inspect.function_detail","kind":"fact"})
 		var consent:Dictionary=state.alpha_shop.appraisal.visits.get(state.alpha_shop.active,{}).get("composite_consent",{})
@@ -145,6 +149,8 @@ static func _reading(state: Dictionary, item_id: String, slot: String) -> Dictio
 	var item: Dictionary = state.items[item_id]
 	if slot == "identity":
 		return {"slot": slot, "value": item.def_id, "kind": "fact", "version": item.field_versions.duplicate(true)}
+	if slot=="function_detail" and IntegratedCatalog.specimen(state.alpha_shop.profile,item_id,item).get("functional",false):
+		return {"slot":slot,"value":_inspected_value(item,{"source_field":"functional"}),"kind":"fact","version":item.field_versions.duplicate(true)}
 	if F3Trial.enabled(state.alpha_shop.profile) and item.def_id==F3Trial.MODEL and slot=="function_detail":
 		return {"slot":slot,"value":F3Trial.signal_value(state,item_id),"kind":"fact","version":item.field_versions.duplicate(true)}
 	if F3Trial.enabled(state.alpha_shop.profile) and item.def_id==F3Trial.MODEL and slot in ["f3_part_a","f3_part_b"]:
@@ -231,6 +237,19 @@ static func _source_offer_action(row: Dictionary, slot: String) -> String:
 			if str(fact.slot) == slot:
 				result = str(offer.action_id)
 	return result
+
+static func _catalog_counteroffer(state: Dictionary,context: Dictionary,row: Dictionary,basis: int,offered: int) -> bool:
+	if IntegratedCatalog.visit_item(state.alpha_shop.profile,context.visit_id).is_empty() or not row.accepted.is_empty():
+		return false
+	var item: Dictionary = context.item
+	var function_fact: Dictionary = row.observed.get("function_detail",{})
+	var function_current: bool = "function_detail" in row.selected and function_fact.get("version")==item.field_versions
+	var wear_fact: Dictionary = row.observed.get("wear_detail",{})
+	var damaged: bool = "wear_detail" in row.selected and SurfaceProfiles.current_fact("wear_detail",wear_fact,item) and int(wear_fact.get("value",0))>=30
+	var margin := clampi(roundi(basis*0.10),1,3)
+	if context.visit.buyer=="player":
+		return basis>offered and basis-offered<=margin and (damaged or (function_current and function_fact.get("value")=="inoperable"))
+	return offered>basis and offered-basis<=margin and function_current and function_fact.get("value")=="serviceable"
 
 static func apply(state: Dictionary, command: Dictionary) -> String:
 	var context: Dictionary = _visit_context(state)
@@ -351,6 +370,8 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 			var accepted: bool = p.amount == original
 			var approved: Dictionary = config().negotiation_terms.get(context.visit_id,{})
 			if not approved.is_empty() and p.amount == approved.improved_amount and approved.required_slot in row.selected:
+				accepted = true
+			if _catalog_counteroffer(state,context,row,original,int(p.amount)):
 				accepted = true
 			# An agreement is not valid if its actual buyer cannot afford it.
 			# _transfer separately revalidates the wallet on final settlement.
@@ -485,7 +506,7 @@ static func view(state: Dictionary) -> Dictionary:
 	var result:Dictionary={"offer_currency":currency,"item_id":context.item_id,"def_id":context.item.def_id,"we_buy":context.visit.buyer=="player",
 		"surface_seed":("%s/%s"%[state.alpha_shop.profile.get("visit_random",{}).get("seed",0),context.item_id]).sha256_text().left(8).hex_to_int(),
 		"surface_judgments":row.get("hypotheses",{}).duplicate(),
-		"surface_profiles":SurfaceProfiles.project(context.item_id,context.item,surface_facts),
+		"surface_profiles":SurfaceProfiles.project(context.item_id,context.item,surface_facts,state.alpha_shop.profile),
 		"tools": options,"cards":cards,"offers":history,"hypotheses":hypotheses,
 		"customer_claims":claims,"statements":row.get("statements",[]).duplicate(true),
 		"claim_challenges":row.get("claim_challenges",[]).duplicate(true),
