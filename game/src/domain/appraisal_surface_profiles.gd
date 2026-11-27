@@ -48,7 +48,9 @@ static func authored_readings(profile: Dictionary,item_id: String,item: Dictiona
 	if not document is Dictionary or document.get("version")!=1: return {}
 	var specimen: Dictionary = document.get("specimens",{}).get(item_id,{})
 	if not specimen.get("authored",false) or specimen.get("def_id")!=item.get("def_id") or specimen.get("provenance")!=item.get("provenance_id"): return {}
-	if specimen.has("requires_supply") and profile.get("civilian_supply")!=specimen.requires_supply: return {}
+	if specimen.has("requires_supply"):
+		var supply_version: Variant = profile.get("civilian_supply")
+		if supply_version not in [1,2] or int(supply_version)<int(specimen.requires_supply): return {}
 	var result := {}
 	for slot: String in SLOTS:
 		var surface: Dictionary = specimen.get("surfaces",{}).get(slot,{})

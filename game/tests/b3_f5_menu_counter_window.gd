@@ -24,6 +24,48 @@ func open_f5(directory: String, language: String = "ko") -> bool:
 		and host._slot()==F5_SLOT and host.save_directory_override==directory.path_join("f5_counter")
 		and host.counter_language==language,"real F5 menu entry opens the isolated F5 profile, save and title language")
 
+func open_supply(directory: String,version: int,language: String) -> bool:
+	var preferences := Preferences.defaults()
+	preferences.language=language
+	var path := directory.path_join("ui_preferences.json")
+	if not FileAccess.file_exists(path):
+		if not check(Preferences.write(path,preferences),"write civilian title preferences"): return false
+	var title := Title.instantiate() as Control
+	title.save_directory_override=directory
+	root.add_child(title)
+	current_scene=title
+	await frames()
+	var entry := title.find_child("menu_civilian_supply",true,false) as Button
+	if not check(entry!=null and root.get_visible_rect().encloses(entry.get_global_rect()) and entry.size.y>=48,"civilian title entry fits native viewport"): return false
+	if not await click_navigation(title,"menu_civilian_supply") or not await click_navigation(title,"menu_supply_v"+str(version)): return false
+	host=current_scene as Control
+	var suffix := "civilian_supply_v2" if version==2 else "civilian_supply"
+	return check(host!=null and host.session!=null and not host._blocked and host._slot()=="b3_civilian_supply_v"+str(version)
+		and host.save_directory_override==directory.path_join(suffix) and host.counter_language==language
+		and host.session.snapshot().alpha_shop.profile.civilian_supply==version,"title opens selected civilian version with isolated save and language")
+
+func supply_menu_route(resolution: Vector2i) -> bool:
+	var directory := "user://zt_rebuild/demo7/civilian_menu_"+str(resolution.y)+"_"+str(Time.get_ticks_usec())
+	var language := "ko" if resolution.y==720 else "en"
+	if not await open_supply(directory,1,language): return false
+	var original: Dictionary=host.session.snapshot()
+	await release_host()
+	if not await open_supply(directory,2,language): return false
+	for beat in range(5):
+		if not check(host._intro and host._intro_page==beat,"expanded intro beat "+str(beat)): return false
+		if not await click_navigation(host,"intro_next"): return false
+	if not await click("alpha_open","OPEN_IDLE"): return false
+	var expanded: Dictionary=host.session.snapshot()
+	await capture("civilian_v2_menu_open_"+str(resolution.y),resolution)
+	await release_host()
+	if not await open_supply(directory,2,language): return false
+	if not check(not host._intro and host.session.snapshot()==expanded,"expanded title reentry restores actual played generation"): return false
+	await release_host()
+	if not await open_supply(directory,1,language): return false
+	if not check(host.session.snapshot()==original,"original civilian version unaffected by expanded play"): return false
+	await release_host()
+	return true
+
 func enter_first_item(resolution: Vector2i) -> bool:
 	var before: Dictionary = host.session.snapshot()
 	for beat in range(5):
@@ -268,5 +310,8 @@ func run() -> void:
 			break
 		if not await english_reading_route(resolution):
 			check(false,"English reference retains its usable layout at "+str(resolution.y))
+			break
+		if not await supply_menu_route(resolution):
+			check(false,"complete isolated civilian menu route "+str(resolution.y))
 			break
 	await finish()

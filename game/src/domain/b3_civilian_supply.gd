@@ -5,18 +5,26 @@ const Objects = preload("res://src/domain/object_schema.gd")
 const Grid = preload("res://src/domain/grid_primitives.gd")
 const Rules = preload("res://src/domain/value_rules.gd")
 const PATH := "res://data/alpha_b3/civilian_supply_v1.json"
+const PATH_V2 := "res://data/alpha_b3/civilian_supply_v2.json"
 const ACTORS := ["G01","G02","G03","G04","G05","G06","G07","G08","G09","G10","G11","G12"]
 
-static func config() -> Array:
-	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(PATH))
-	if not data is Dictionary or data.get("version")!=1 or not data.get("items") is Array or data.items.size()!=8: return []
+static func config(version: int = 1) -> Array:
+	if version not in [1,2]: return []
+	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(PATH if version==1 else PATH_V2))
+	if not data is Dictionary or data.get("version")!=version or not data.get("items") is Array or data.items.size()!=(8 if version==1 else 14): return []
 	return data.items
 
-static func selected(seed_value: int) -> Array:
-	var all := config()
-	if all.size()!=8: return []
+static func selected(seed_value: int,version: int = 1) -> Array:
+	var all := config(version)
+	if all.is_empty(): return []
 	var index := posmod(seed_value,4)
-	return [all[index],all[(index+1)%4],all[4+index],all[4+(index+1)%4]]
+	if version==1:
+		return [all[index],all[(index+1)%4],all[4+index],all[4+(index+1)%4]]
+	var food: Array = all.filter(func(row:Dictionary)->bool:return row.category=="food")
+	var other: Array = all.filter(func(row:Dictionary)->bool:return row.category!="food")
+	if food.size()!=10 or other.size()!=4: return []
+	var f := posmod(seed_value,10)
+	return [food[f],food[(f+1)%10],other[index],other[(index+1)%4]]
 
 static func money(amount: int) -> Dictionary:
 	return {"VKC":amount,"USD":0}
@@ -44,14 +52,14 @@ static func _add_visit(state: Dictionary,profile: Dictionary,row: Dictionary,day
 		"opens":(day-1)*1440,"expires":(day-1)*1440+600,"allow_inspection":true}
 	profile.days[day-1].append({"id":id,"actor_id":actor,"kind":"regular","purpose_key":"alpha.purpose.trade","contact_offer":false})
 
-static func extend(source: Dictionary) -> Dictionary:
+static func extend(source: Dictionary,version: int = 1) -> Dictionary:
 	if source.is_empty(): return {}
 	var next := source.duplicate(true)
 	var state: Dictionary = next.state
 	var profile: Dictionary = next.alpha_profile
 	if profile.get("f3_composite_trial")!=1 or profile.has("civilian_supply"): return {}
-	var all := config()
-	if all.size()!=8: return {}
+	var all := config(version)
+	if all.is_empty(): return {}
 	for row: Dictionary in all:
 		if next.defs.has(row.model): return {}
 		var def := Objects.definition({"def_id":row.model,"category":row.category,"localization_key":"item."+str(row.model),"render_key":row.model,"width":row.width,"height":row.height})
@@ -59,7 +67,7 @@ static func extend(source: Dictionary) -> Dictionary:
 		next.defs[row.model] = def
 	var reserved := {}
 	var new_counts := {}
-	for row: Dictionary in selected(int(profile.visit_random.seed)):
+	for row: Dictionary in selected(int(profile.visit_random.seed),version):
 		var allocated := false
 		for buy_day: int in range(1,7):
 			if allocated: break
@@ -84,12 +92,13 @@ static func extend(source: Dictionary) -> Dictionary:
 						allocated = true
 						break
 		if not allocated: return {}
-	profile["civilian_supply"] = 1
+	profile["civilian_supply"] = version
 	return next if seed_valid(state,profile) else {}
 
 static func seed_valid(state: Dictionary,profile: Dictionary) -> bool:
-	if profile.get("civilian_supply")!=1 or profile.get("f3_composite_trial")!=1 or not profile.get("visit_random") is Dictionary: return false
-	var active := selected(int(profile.visit_random.seed))
+	if profile.get("civilian_supply") not in [1,2] or profile.get("f3_composite_trial")!=1 or not profile.get("visit_random") is Dictionary: return false
+	var version := int(profile.civilian_supply)
+	var active := selected(int(profile.visit_random.seed),version)
 	if active.size()!=4: return false
 	var active_ids: Array = []
 	var reserved := {}
@@ -116,6 +125,6 @@ static func seed_valid(state: Dictionary,profile: Dictionary) -> bool:
 			if not profile.days[day].any(func(slot:Dictionary)->bool:return slot.id==id and slot.actor_id==actor and slot.kind=="regular"): return false
 			daily[day] = int(daily.get(day,0))+1
 			if daily[day]>2: return false
-	for row: Dictionary in config():
+	for row: Dictionary in config(version):
 		if row.id not in active_ids and (state.items.has(row.id) or state.visits.has("civilian_"+str(row.id)+"_buy") or state.visits.has("civilian_"+str(row.id)+"_sale")): return false
 	return true

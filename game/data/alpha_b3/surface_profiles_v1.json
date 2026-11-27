@@ -176,6 +176,104 @@
           "expected": 24
         }
       }
+    },
+    "CS09": {
+      "def_id": "food_04_canned_beans",
+      "provenance": "civilian_supply_CS09",
+      "authored": true,
+      "requires_supply": 2,
+      "surfaces": {
+        "wear_detail": {
+          "family": "metal",
+          "target": "can_lid",
+          "side": "front",
+          "expected": 22
+        }
+      }
+    },
+    "CS10": {
+      "def_id": "food_06_pasta",
+      "provenance": "civilian_supply_CS10",
+      "authored": true,
+      "requires_supply": 2,
+      "surfaces": {
+        "wear_detail": {
+          "family": "paper",
+          "target": "outer_box",
+          "side": "front",
+          "expected": 31
+        }
+      }
+    },
+    "CS12": {
+      "def_id": "food_08_pickled_vegetables",
+      "provenance": "civilian_supply_CS12",
+      "authored": true,
+      "requires_supply": 2,
+      "surfaces": {
+        "wear_detail": {
+          "family": "glass",
+          "target": "jar",
+          "side": "front",
+          "expected": 19
+        }
+      }
+    },
+    "CS13": {
+      "def_id": "food_09_milk_powder",
+      "provenance": "civilian_supply_CS13",
+      "authored": true,
+      "requires_supply": 2,
+      "surfaces": {
+        "wear_detail": {
+          "family": "metal",
+          "target": "can_lid",
+          "side": "front",
+          "expected": 25
+        }
+      }
+    },
+    "CS06": {
+      "def_id": "medical_04_antiseptic",
+      "provenance": "civilian_supply_CS06",
+      "authored": true,
+      "requires_supply": 2,
+      "surfaces": {
+        "wear_detail": {
+          "family": "paper",
+          "target": "bottle_label",
+          "side": "front",
+          "expected": 28
+        }
+      }
+    },
+    "CS07": {
+      "def_id": "medical_10_water_tablets",
+      "provenance": "civilian_supply_CS07",
+      "authored": true,
+      "requires_supply": 2,
+      "surfaces": {
+        "wear_detail": {
+          "family": "paper",
+          "target": "bottle_label",
+          "side": "front",
+          "expected": 22
+        }
+      }
+    },
+    "CS08": {
+      "def_id": "medical_08_candles",
+      "provenance": "civilian_supply_CS08",
+      "authored": true,
+      "requires_supply": 2,
+      "surfaces": {
+        "wear_detail": {
+          "family": "paper",
+          "target": "outer_wrapper",
+          "side": "front",
+          "expected": 36
+        }
+      }
     }
   }
 }

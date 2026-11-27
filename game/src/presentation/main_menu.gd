@@ -6,6 +6,8 @@ extends Control
 const GameScene=preload("res://scenes/app/integrated_b_candidate.tscn")
 const AlphaScene=preload("res://scenes/app/alpha_playtest_candidate.tscn")
 const F5_SCENE_PATH := "res://scenes/app/alpha_b3_f5_counter.tscn"
+const SUPPLY_SCENE_PATH := "res://scenes/app/alpha_b3_civilian_supply.tscn"
+const SUPPLY_V2_SCENE_PATH := "res://scenes/app/alpha_b3_civilian_supply_v2.tscn"
 const B1ScenePath="res://scenes/app/alpha_b1.tscn"
 const B2Entry = preload("res://src/presentation/b2_launch_route.gd")
 const CampaignScene=preload("res://scenes/app/alpha42_mechanics_host.tscn")
@@ -153,11 +155,17 @@ func _build_buttons()->void:
 	_loading=false
 	_button("menu_new",tr_key("menu.new"),_new_game)
 	_button("menu_f5_counter",game.word("크라벤스크 상점 · 새 카운터 후보","Kravensk Shop · Counter Preview"),_open_f5_counter)
+	_button("menu_civilian_supply",game.word("크라벤스크 상점 · 생활 물자","Kravensk Shop · Civilian Supplies"),_show_supply_versions)
 	_button("menu_spatial_week","크라벤스크 상점 · 첫 주 시작 / 이어하기",_open_spatial_week)
-	_button("menu_b1","신규 영업 프로필 · B1",func()->void: get_tree().change_scene_to_file(B1ScenePath))
-	# One source-bound B2 counter; the three former pilot scenes and saves remain.
-	# The legacy menu_new/menu_continue/slot paths above and below are unchanged.
-	_button("menu_b2_unified","통합 영업 · B2 기술 시험",func()->void: get_tree().change_scene_to_file(B2Entry.SCENE_PATH))
+	# Keep the original menu row count and both legacy technical entries.
+	var pilots := HBoxContainer.new()
+	pilots.name="technical_profiles"
+	_buttons.add_child(pilots)
+	var b1 := _button("menu_b1",game.word("B1 기술 시험","B1 Preview"),func()->void: get_tree().change_scene_to_file(B1ScenePath))
+	var b2 := _button("menu_b2_unified",game.word("B2 기술 시험","B2 Preview"),func()->void: get_tree().change_scene_to_file(B2Entry.SCENE_PATH))
+	for node:Button in [b1,b2]:
+		node.reparent(pilots)
+		node.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	_continue=_button("menu_continue",tr_key("menu.continue"),_continue_game)
 	_load=_button("menu_load",tr_key("menu.load"),_show_slots)
 	if alpha_playtest:
@@ -293,4 +301,21 @@ func _open_f5_counter() -> void:
 	candidate.set("title_preferences",game._prefs.duplicate(true))
 	if not save_directory_override.is_empty():
 		candidate.set("save_directory_override",save_directory_override.path_join("f5_counter"))
+	get_tree().change_scene_to_node(candidate)
+
+func _show_supply_versions() -> void:
+	_clear_buttons()
+	_loading=true
+	_status.text=game.word("콘텐츠 버전마다 별도 저장을 사용합니다.","Each content version has a separate save.")
+	_button("menu_supply_v2",game.word("생활 물자 확장판 · 시작 / 이어하기","Expanded Supplies · Start / Continue"),func()->void: _open_supply(2))
+	_button("menu_supply_v1",game.word("생활 물자 초기판 · 시작 / 이어하기","Original Supplies · Start / Continue"),func()->void: _open_supply(1))
+	_button("menu_supply_back",tr_key("menu.back"),_back_from_slots)
+
+func _open_supply(version: int) -> void:
+	game._feedback_audio.remember_score_position()
+	var resource := load(SUPPLY_V2_SCENE_PATH if version==2 else SUPPLY_SCENE_PATH) as PackedScene
+	var candidate := resource.instantiate()
+	candidate.set("title_preferences",game._prefs.duplicate(true))
+	if not save_directory_override.is_empty():
+		candidate.set("save_directory_override",save_directory_override.path_join("civilian_supply_v2" if version==2 else "civilian_supply"))
 	get_tree().change_scene_to_node(candidate)

@@ -3,6 +3,7 @@ extends SceneTree
 const Surface = preload("res://src/presentation/surface_visuals.gd")
 const Supply = preload("res://src/domain/b3_civilian_supply.gd")
 const SupplySeed = preload("res://src/content/b3_civilian_supply_seed.gd")
+const SupplyV2 = preload("res://src/content/b3_civilian_supply_v2_seed.gd")
 const Baseline = preload("res://src/content/b3_f3_composite_seed.gd")
 const Session = preload("res://src/domain/game_session.gd")
 const Art = preload("res://src/presentation/native_v23_art.gd")
@@ -146,6 +147,40 @@ func _initialize() -> void:
 				var evidence := {"slot":"wear_detail","kind":"fact","value":readings.wear_detail.value,"version":actual.field_versions.duplicate(true)}
 				check("actual authored wrapper projects "+str(row.id),not Domain.project(row.id,actual,{"wear_detail":evidence}).is_empty())
 	check("eight models across four seeds",seen.size()==8)
+	var expanded_seen := {}
+	for seed_value: int in range(101,111):
+		var expanded: Dictionary = SupplyV2.content(seed_value)
+		var original: Dictionary = SupplySeed.content(seed_value)
+		check("v2 deterministic nonempty source "+str(seed_value),not expanded.is_empty() and expanded==SupplyV2.content(seed_value))
+		if expanded.is_empty() or original.is_empty(): continue
+		var base: Dictionary = Baseline.content(seed_value)
+		check("expanded profiles preserve all base wallets and old goods",expanded.state.wallets==base.state.wallets and base.state.items.keys().all(func(id:String)->bool:return expanded.state.items.get(id)==base.state.items[id]))
+		check("four packages and eight possible visits in expanded week",expanded.state.items.size()==base.state.items.size()+4 and expanded.state.visits.size()==base.state.visits.size()+8 and expanded.alpha_profile.civilian_supply==2)
+		var active := Session.new()
+		var ready := active.initialize(expanded.defs,expanded.state,false,false,{},expanded.alpha_profile)
+		check("expanded session accepts real seed "+str(seed_value),ready)
+		for row: Dictionary in Supply.selected(seed_value,2):
+			expanded_seen[row.id]=true
+			check("exact expanded stock and inspection art "+str(row.model),Art.ITEMS.model_texture(row.model,"stock")!=null and Art.ITEMS.model_texture(row.model,"inspection")!=null)
+			var actual: Dictionary=expanded.state.items[row.id]
+			var readings: Dictionary=Domain.authored_readings(expanded.alpha_profile,row.id,actual)
+			if row.id not in ["CS11","CS14"]:
+				check("expanded authored wrapper available "+str(row.id),readings.has("wear_detail"))
+			else:
+				check("unresolved packaging does not invent material "+str(row.id),readings.is_empty())
+			if row.id in ["CS06","CS07","CS08","CS09","CS10","CS11","CS12","CS13","CS14"]:
+				check("v1 does not acquire v2 wrapper evidence",Domain.authored_readings(original.alpha_profile,row.id,actual).is_empty())
+		if seed_value==104 and ready:
+			var disk: RefCounted=Repo.new("user://zt_rebuild/civilian_supply_v2_fixed_"+str(Time.get_ticks_usec()))
+			var prior := Session.new()
+			var old_ready := prior.initialize(original.defs,original.state,false,false,{},original.alpha_profile)
+			check("v1 remains valid and both independent slots save",old_ready and disk.save_session(prior,"supply_v1").get("ok",false) and disk.save_session(active,"supply_v2").get("ok",false))
+			var prior_state: Dictionary=prior.snapshot()
+			check("v2 generation cannot load into v1 session",not disk.load_session(prior,"supply_v2").get("ok",false) and prior.snapshot()==prior_state)
+			var resumed := Session.new()
+			check("v2 isolated resume exact",resumed.initialize(expanded.defs,expanded.state,false,false,{},expanded.alpha_profile) and disk.load_session(resumed,"supply_v2").get("ok",false) and resumed.snapshot()==active.snapshot())
+			check("v1 slot still resumes exact",disk.load_session(prior,"supply_v1").get("ok",false) and prior.snapshot()==prior_state)
+	check("fourteen models across ten seeds",expanded_seen.size()==14)
 	print("B3 surface projection: %d checks, %d failures"%[checks,failures])
 	quit(1 if failures>0 else 0)
 
