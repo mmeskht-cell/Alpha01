@@ -12,21 +12,13 @@ static func material_name(family: String, language: String) -> String:
 
 func bind(family: String, variant: int, language: String) -> void:
 	var english := language=="en"
-	var header := HBoxContainer.new()
-	add_child(header)
-	var title := Label.new()
-	title.text = "Reference plates" if english else "재질 표본"
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header.add_child(title)
-	var next := Button.new()
-	next.name = "next_surface_plate"
-	next.text = ("Plate %d/4 ›" if english else "도판 %d/4 ›")%(variant+1)
-	next.custom_minimum_size = Vector2(44,44)
-	next.pressed.connect(func()->void: plate_requested.emit(family,(variant+1)%4))
-	header.add_child(next)
-
-	var index_strip := HBoxContainer.new()
-	index_strip.add_theme_constant_override("separation",2)
+	# Six equal cells across two rows: five families and the independent plate turn.
+	# Avoid squeezing five translated labels into a single 376-unit row at 150%.
+	add_theme_constant_override("separation",4)
+	var index_strip := GridContainer.new()
+	index_strip.columns = 3
+	index_strip.add_theme_constant_override("h_separation",2)
+	index_strip.add_theme_constant_override("v_separation",2)
 	add_child(index_strip)
 	for material: String in Visuals.MATERIALS:
 		var tab := Button.new()
@@ -39,6 +31,14 @@ func bind(family: String, variant: int, language: String) -> void:
 		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tab.pressed.connect(func()->void: plate_requested.emit(material,variant))
 		index_strip.add_child(tab)
+	var next := Button.new()
+	next.name = "next_surface_plate"
+	next.text = ("Plate %d/4 ›" if english else "도판 %d/4 ›")%(variant+1)
+	next.custom_minimum_size = Vector2(44,44)
+	next.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	next.set_meta("book_tab",true)
+	next.pressed.connect(func()->void: plate_requested.emit(family,(variant+1)%4))
+	index_strip.add_child(next)
 
 	var plates := HBoxContainer.new()
 	plates.add_theme_constant_override("separation",6)

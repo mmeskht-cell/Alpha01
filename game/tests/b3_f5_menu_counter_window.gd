@@ -77,7 +77,9 @@ func comparison_controls_fit() -> bool:
 	for id: String in controls:
 		var target := host.find_child(id,true,false) as Button
 		if not check(target!=null and target.is_visible_in_tree() and target.size.x>=44 and target.size.y>=44
-			and viewport.encloses(target.get_global_rect()),"reference or judgment fits without scrolling: "+id): return false
+			and viewport.encloses(target.get_global_rect()),"reference or judgment fits without scrolling: "+id):
+			print("F5_COMPARISON_GEOMETRY id=%s scale=%d language=%s scroll=%s target=%s pages=%s"%[id,host.reading_scale,host.counter_language,viewport,target.get_global_rect() if target else Rect2(),host.r2_book.pages.get_global_rect()])
+			return false
 	return true
 
 func toggle_counter_motion() -> bool:

@@ -18,6 +18,7 @@ func _ready() -> void:
 	cover.content_margin_bottom = 19
 	add_theme_stylebox_override("panel",cover)
 	var book := VBoxContainer.new()
+	book.add_theme_constant_override("separation",4)
 	add_child(book)
 	var header := HBoxContainer.new()
 	book.add_child(header)
@@ -42,6 +43,7 @@ func _ready() -> void:
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	book.add_child(scroll)
 	pages = VBoxContainer.new()
+	pages.add_theme_constant_override("separation",4)
 	pages.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	pages.custom_minimum_size.x = PAGE_MIN_WIDTH
 	scroll.add_child(pages)

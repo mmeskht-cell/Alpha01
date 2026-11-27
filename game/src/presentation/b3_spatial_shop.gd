@@ -726,9 +726,9 @@ func _appraisal_controls(v: Dictionary) -> void:
 		words(_counter_copy("안쪽도 보세요.","You can look inside.") if a.composite_access=="granted" else _counter_copy("겉만 봐 주세요.","Only the outside, please."),499,102,285,44,16)
 	if not a.cards.is_empty():
 		var recorded: Dictionary = a.cards.back()
-		var record := _desk_paper("card",Rect2(849,579,371,77))
-		_ink_label(record,_counter_copy("내 기록","My note"),Rect2(22,6,314,24),14)
-		var fact := _ink_label(record,_card_caption(recorded),Rect2(22,28,330,44),14)
+		var record := _desk_paper("card",Rect2(307,649,482,65))
+		_ink_label(record,_counter_copy("내 기록","My note"),Rect2(18,5,445,22),14)
+		var fact := _ink_label(record,_card_caption(recorded),Rect2(18,25,445,36),14)
 		fact.max_lines_visible = 2
 		motion_subjects["observation"] = record
 
@@ -1444,7 +1444,8 @@ func _counter_speech(v: Dictionary,purposes: Array[String] = []) -> String:
 			return CounterDialogue.bid("bid_return",int(v.customer_bid_vkc),actor,counter_language)
 		return CounterDialogue.bid("bid_open",int(v.customer_bid_vkc),actor,counter_language)
 	if counter_step==CounterStep.NEGOTIATION and public_context.get("current_offer",{}).is_empty() and public_context.get("latest_spoken",{}).is_empty():
-		return ""
+		# Contextual transition, not a repeat of the opening purpose or a fabricated quote.
+		return _counter_copy("어느 정도로 생각하세요?","What price did you have in mind?")
 	if r2_room_active and v.active.id=="visit_g01":
 		if public_context.get("current_offer",{}).is_empty() and public_context.get("latest_spoken",{}).is_empty() and public_context.get("prior",{}).is_empty():
 			return str(captions.g01) if counter_language=="ko" else CounterDialogue.situation("opening_g01",actor,counter_language)
@@ -1452,7 +1453,7 @@ func _counter_speech(v: Dictionary,purposes: Array[String] = []) -> String:
 
 
 func _counter_caption(speech: String) -> void:
-	var subtitle := r2_controls.mount(interaction,"counter_subtitle",Rect2(796,67,434,106),func()->Control:
+	var subtitle := r2_controls.mount(interaction,"counter_subtitle",Rect2(796,60,434,110),func()->Control:
 		return CounterSubtitle.new()) as CounterSubtitle
 	subtitle.bind(speech,reading_scale,_counter_copy("다음 대사","Next subtitle"))
 	subtitle.visible = not speech.is_empty()
@@ -1839,7 +1840,7 @@ func _ledger_workspace(v: Dictionary,current: Dictionary) -> void:
 
 func _show_r2_book(v: Dictionary) -> void:
 	# Preserve the 376-unit readable page plus the spine, outer margins and scrollbar.
-	var book_rect := Rect2(800,92,465,481) if zoom else Rect2(796,180,465,355)
+	var book_rect := Rect2(800,92,465,555) if zoom else Rect2(796,184,465,351)
 	r2_book = r2_controls.mount(interaction,"r2_reference_desk",book_rect,func()->Control:
 		var desk := R2Book.new()
 		desk.closed.connect(func()->void:
@@ -2007,6 +2008,7 @@ func _surface_page(pages: VBoxContainer,v: Dictionary) -> void:
 	var grades := [_counter_copy("보류","Defer"),_counter_copy("경미","Light"),_counter_copy("보통","Medium"),_counter_copy("심함","Heavy")]
 	var exterior: Array = choices.exterior
 	var grade_row := HBoxContainer.new()
+	grade_row.add_theme_constant_override("separation",2)
 	var assessment := Button.new()
 	assessment.name = "surface_judgment_open"
 	assessment.text = _counter_copy("내 판단 · 외관","My assessment · Wear")
@@ -2019,8 +2021,9 @@ func _surface_page(pages: VBoxContainer,v: Dictionary) -> void:
 		var value := str(exterior[i])
 		_book_option(grade_row,"exterior_"+value,grades[i],value==judgments.get("exterior","unknown"),func()->void:
 			_record_hypothesis("exterior",value))
+		grade_row.get_child(i).set_meta("book_tab",true)
 	var saved := str(judgments.get("material","unknown"))
-	_book_chapter(pages,_counter_copy("내 판단 · 재질  /  ","My material  /  ")+SurfaceLeaf.material_name(saved,counter_language))
+	_book_chapter(pages,_counter_copy("재질 판단 · ","Material · ")+SurfaceLeaf.material_name(saved,counter_language))
 	var material_row := HBoxContainer.new()
 	pages.add_child(material_row)
 	var sample_name := SurfaceLeaf.material_name(reference_material,counter_language)
