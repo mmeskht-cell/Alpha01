@@ -1,6 +1,13 @@
 extends SceneTree
 ## W15 synthetic projection checks; run only in the later integrated pass.
 const Surface = preload("res://src/presentation/surface_visuals.gd")
+const Supply = preload("res://src/domain/b3_civilian_supply.gd")
+const SupplySeed = preload("res://src/content/b3_civilian_supply_seed.gd")
+const Baseline = preload("res://src/content/b3_f3_composite_seed.gd")
+const Session = preload("res://src/domain/game_session.gd")
+const Art = preload("res://src/presentation/native_v23_art.gd")
+const Repo = preload("res://src/persistence/save_repository.gd")
+const Domain = preload("res://src/domain/appraisal_surface_profiles.gd")
 var checks: int = 0
 var failures: int = 0
 
@@ -74,7 +81,6 @@ func _initialize() -> void:
 			var pixels := _pixels(Surface.reference_sample(family,grade))
 			check("distinct pixels for reference %s grade %d"%[family,grade],pixels.size()==pristine.size() and pixels!=previous)
 			previous = pixels
-	var Domain = preload("res://src/domain/appraisal_surface_profiles.gd")
 	var item := {"def_id":"portable_radio","provenance_id":"demo_R001","field_versions":{"functional":0,"restored":0,"composition":0}}
 	var fact := {"slot":"wear_detail","value":43,"kind":"fact","version":item.field_versions.duplicate()}
 	check("domain no unread profile",Domain.project("R001",item,{}).is_empty())
@@ -106,11 +112,6 @@ func _initialize() -> void:
 		var reading := {"slot":"wear_detail","value":readings.get("wear_detail",{}).get("value"),"kind":"fact","version":sample_item.field_versions.duplicate(true)}
 		var projected := Domain.project(example[0],sample_item,{"wear_detail":reading})
 		check("authored real SKU "+example[0],readings.size()==1 and projected.get("wear_detail",{}).get("family")==example[3])
-	var Supply = preload("res://src/domain/b3_civilian_supply.gd")
-	var SupplySeed = preload("res://src/content/b3_civilian_supply_seed.gd")
-	var Baseline = preload("res://src/content/b3_f3_composite_seed.gd")
-	var Session = preload("res://src/domain/game_session.gd")
-	var Art = preload("res://src/presentation/native_v23_art.gd")
 	var seen := {}
 	for seed_value: int in [101,102,103,104]:
 		var source: Dictionary = SupplySeed.content(seed_value)
@@ -124,8 +125,7 @@ func _initialize() -> void:
 		var initialized := session.initialize(source.defs,source.state,false,false,{},source.alpha_profile)
 		check("expanded real session initializes "+session.initialization_error(),initialized)
 		if initialized and seed_value==104:
-			var Repo = preload("res://src/persistence/save_repository.gd")
-			var disk := Repo.new("user://zt_rebuild/civilian_supply_fixed_"+str(Time.get_ticks_usec()))
+			var disk: RefCounted = Repo.new("user://zt_rebuild/civilian_supply_fixed_"+str(Time.get_ticks_usec()))
 			check("isolated revision-zero save",disk.save_session(session,"civilian_supply").get("ok",false))
 			var resumed := Session.new()
 			var ready := resumed.initialize(source.defs,source.state,false,false,{},source.alpha_profile)

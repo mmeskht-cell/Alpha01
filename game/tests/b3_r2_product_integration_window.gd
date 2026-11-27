@@ -163,7 +163,7 @@ func civilian_supply_route(resolution: Vector2i) -> bool:
 	if not await start_counter_appraisal(true) or not await leave_counter_appraisal(true) or not await civilian_price(resale): return false
 	if not await actions([["offer","CUSTOMER_ACTIVE"],["settle_trade","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]]): return false
 	var end: Dictionary = host.session.snapshot()
-	var recorded := end.ledger.filter(func(entry:Dictionary)->bool:return target in entry.root_ids)
+	var recorded: Array = end.ledger.filter(func(entry:Dictionary)->bool:return target in entry.root_ids)
 	if not check(end.items[target].owner_id==sale.buyer and end.items[target].provenance_id==row.provenance_id and recorded.size()==2
 		and end.wallets.player.VKC==source.state.wallets.player.VKC-cost+resale and end.items.size()==source.state.items.size(),"civilian resale conserves identity and records exactly two settlements"): return false
 	for currency: String in ["VKC","USD"]:
