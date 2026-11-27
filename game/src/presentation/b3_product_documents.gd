@@ -167,7 +167,7 @@ func _draw_detail(group: Dictionary,rows: Array) -> void:
 	if details.is_valid(): details.call(right)
 	elif current_record.is_empty(): _line(right,"왼쪽에서 기록을 고르세요.",body_size)
 	for label: Label in right.find_children("*","Label",true,false):
-		label.add_theme_font_size_override("font_size",body_size)
+		label.add_theme_font_size_override("font_size",heading_size if label.has_meta("document_heading") else body_size)
 		label.add_theme_color_override("font_color",Color("#30271f"))
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	for button: Button in right.find_children("*","Button",true,false):

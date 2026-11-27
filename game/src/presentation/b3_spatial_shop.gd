@@ -777,14 +777,14 @@ func _pawn_ticket(state: Dictionary,minimized: bool) -> void:
 	var pawn: Dictionary = state.alpha_shop.week_pawn
 	if pawn.status!="available": return
 	if minimized:
-		var shortcut := _desk_action("week_pledge",_counter_copy("시계 담보  ·  %d VKC","Pledge watch  ·  %d VKC")%WeekPawn.PRINCIPAL.VKC,Rect2(803,226,208,44),func()->void: _submit("week_pledge"))
-		# Both pledge layouts retain one visit-scoped desk control. Restore the
-		# normal desk styling when leaving the paper ticket.
-		for style: String in ["normal","hover","pressed","disabled","focus"]:
-			shortcut.remove_theme_stylebox_override(style)
-		for color: String in ["font_color","font_hover_color","font_pressed_color","font_focus_color","font_hover_pressed_color","font_disabled_color"]:
-			shortcut.remove_theme_color_override(color)
-		shortcut.tooltip_text = "갚을 돈 %d VKC · %d일차까지"%[WeekPawn.REPAYMENT.VKC,pawn.due]
+		# Keep the same visit-scoped control on a physical slip alongside
+		# the other request papers, not floating in front of the customer.
+		var slip := _desk_paper("pawn",Rect2(246,507,198,47))
+		slip.name = "pledge_counter_slip"
+		slip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var shortcut := _desk_action("week_pledge",_counter_copy("담보 · %d VKC","Pledge · %d VKC")%WeekPawn.PRINCIPAL.VKC,Rect2(250,508,190,44),func()->void: _submit("week_pledge"))
+		PaperProp.ink_action(shortcut,false,4.0)
+		shortcut.tooltip_text = _counter_copy("갚을 돈 %d VKC · %d일차까지","Repayment %d VKC · by day %d")%[WeekPawn.REPAYMENT.VKC,pawn.due]
 		return
 	var sheet := _desk_paper("pawn",Rect2(32,555,314,144))
 	_ink_label(sheet,"시계 담보  ·  %d VKC"%WeekPawn.PRINCIPAL.VKC,Rect2(20,11,272,38),17)
@@ -1808,7 +1808,15 @@ func _pawn_folio(page: VBoxContainer,v: Dictionary,state: Dictionary) -> void:
 	var pawn: Dictionary = state.alpha_shop.week_pawn
 	if pawn.status=="available": return
 	var title := _receipt_items(state,["WAT02"])
-	_board_line(page,"pledge",title+" · "+_text("week."+str(pawn.status))+" · 기한 %d일차"%pawn.due)
+	var divider := HSeparator.new()
+	page.add_child(divider)
+	var heading := _board_line(page,"pledge_heading",_counter_copy("담보 전표","Pledge receipt"),true)
+	heading.set_meta("document_heading",true)
+	_board_line(page,"pledge",title+" · "+_text("week."+str(pawn.status)))
+	_board_line(page,"pledge_party",_counter_copy("계약 상대 · ","Counterparty · ")+_record_alias(state,"G04"))
+	_board_line(page,"pledge_principal",_counter_copy("최초 지급액 · %d VKC","Principal paid · %d VKC")%WeekPawn.PRINCIPAL.VKC)
+	_board_line(page,"pledge_terms",_counter_copy("약정 상환액 · %d VKC","Agreed repayment · %d VKC")%WeekPawn.REPAYMENT.VKC)
+	_board_line(page,"pledge_due",_counter_copy("약정 기한 · %d일차","Agreed due date · Day %d")%pawn.due)
 	var pledge_item: Dictionary = state.items.get("WAT02",state.tombstones.get("WAT02",{}))
 	var image := Art.ITEMS.model_texture(str(pledge_item.get("def_id","")),"inspection")
 	if image:

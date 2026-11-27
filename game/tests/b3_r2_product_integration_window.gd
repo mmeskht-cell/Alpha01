@@ -165,6 +165,13 @@ func shop_route(resolution: Vector2i,refund: bool) -> bool:
 	if not check(inspected.items==before.items and inspected.wallets==before.wallets and inspected.ledger==before.ledger,"watch surface observations preserve goods, cash and ledger"): return false
 	if not await leave_counter_appraisal(true): return false
 	await capture("r2_c7_pledge_negotiation_"+str(resolution.y),resolution)
+	var slip := host.find_child("pledge_counter_slip",true,false) as Control
+	var tray := host.find_child("attachment_pocket",true,false) as Control
+	var request := host.find_child("visitor_papers",true,false) as Control
+	if not check(slip!=null and slip.is_visible_in_tree() and is_instance_valid(pledge_button) and slip.get_global_rect().encloses(pledge_button.get_global_rect())
+		and tray!=null and not slip.get_global_rect().intersects(tray.get_global_rect())
+		and request!=null and not slip.get_global_rect().intersects(request.get_global_rect())
+		and not slip.get_global_rect().intersects(host.counter_item.get_global_rect()),"pledge action sits on its own counter slip without covering the evidence, request or item"): return false
 	if not check(is_instance_valid(pledge_button) and pledge_button.is_visible_in_tree() and host.find_child("week_pledge",true,false)==pledge_button and host.find_children("week_pledge","Button",true,false).size()==1,"negotiation restores the same unique pledge control"): return false
 	if not await actions([["week_pledge","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]]): return false
 	if not check(not visible_action("week_pledge"),"settled pledge control no longer visible"): return false
@@ -195,8 +202,13 @@ func shop_route(resolution: Vector2i,refund: bool) -> bool:
 		await capture("r2_c4_goods_return_"+str(resolution.y),resolution)
 		if not await actions([["alpha_finish_customer","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]]): return false
 	if not await click("alpha_close","CLOSE_SETTLE"): return false
+	var before_document: Dictionary = host.session.snapshot()
 	if not await click_navigation(host,"ledger"): return false
 	if not await click_navigation(host,"folio_contracts"): return false
+	for row: Array in [["pledge_principal","40 VKC"],["pledge_terms","45 VKC"],["pledge_due","4"]]:
+		var field := host.find_child(row[0],true,false) as Label
+		if not check(field!=null and field.is_visible_in_tree() and field.text.contains(row[1]),"pledge document separates authoritative term "+row[0]): return false
+	if not check(host.session.snapshot()==before_document,"opening pledge document does not change authority"): return false
 	var pledge_image := host.find_child("pledge_specimen",true,false) as TextureRect
 	if not check(pledge_image!=null and pledge_image.is_visible_in_tree() and pledge_image.texture==watch,
 		"pawn document shows the same front model used on the counter"): return false
