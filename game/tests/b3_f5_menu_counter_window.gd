@@ -80,6 +80,15 @@ func comparison_controls_fit() -> bool:
 			and viewport.encloses(target.get_global_rect()),"reference or judgment fits without scrolling: "+id):
 			print("F5_COMPARISON_GEOMETRY id=%s scale=%d language=%s scroll=%s target=%s pages=%s"%[id,host.reading_scale,host.counter_language,viewport,target.get_global_rect() if target else Rect2(),host.r2_book.pages.get_global_rect()])
 			return false
+	for id: String in ["exterior_minimal","exterior_moderate","exterior_severe","exterior_unknown"]:
+		var grade := host.find_child(id,true,false) as Button
+		if not check(grade!=null and grade.autowrap_mode==TextServer.AUTOWRAP_OFF and grade.size.x>=grade.get_minimum_size().x,
+			"wear judgment stays on one full readable line: "+id): return false
+	for id: String in ["reference_base_caption","reference_wear_0_caption","reference_wear_1_caption","reference_wear_2_caption"]:
+		var caption := host.find_child(id,true,false) as Label
+		if not check(caption!=null and caption.is_visible_in_tree() and caption.autowrap_mode==TextServer.AUTOWRAP_OFF
+			and caption.size.x>=caption.get_minimum_size().x and viewport.encloses(caption.get_global_rect()),
+			"reference caption fits without splitting or clipping: "+id): return false
 	return true
 
 func toggle_counter_motion() -> bool:

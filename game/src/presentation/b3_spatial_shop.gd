@@ -1905,11 +1905,11 @@ func _refresh_r2_book_body(pages: VBoxContainer,v: Dictionary, offset: int) -> v
 	_book_body(pages,v)
 	for button: Button in pages.find_children("*","Button",true,false):
 		button.add_theme_font_size_override("font_size",roundi(16.0*reading_scale/100.0))
-		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		button.autowrap_mode = TextServer.AUTOWRAP_OFF if button.has_meta("book_single_line") else TextServer.AUTOWRAP_WORD_SMART
 		button.custom_minimum_size.y = maxf(44,button.custom_minimum_size.y)
 		PaperProp.ink_action(button,button.toggle_mode and button.button_pressed,4.0 if button.has_meta("book_tab") else 8.0)
 	for label: Label in pages.find_children("*","Label",true,false):
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.autowrap_mode = TextServer.AUTOWRAP_OFF if label.has_meta("book_single_line") else TextServer.AUTOWRAP_WORD_SMART
 		label.add_theme_font_size_override("font_size",roundi(16.0*reading_scale/100.0))
 	drawer_scroll = offset
 	r2_book.scroll.set_deferred("scroll_vertical",offset)
@@ -2055,6 +2055,7 @@ func _surface_page(pages: VBoxContainer,v: Dictionary) -> void:
 		_book_option(grade_row,"exterior_"+value,grades[i],value==judgments.get("exterior","unknown"),func()->void:
 			_record_hypothesis("exterior",value))
 		grade_row.get_child(i).set_meta("book_tab",true)
+		grade_row.get_child(i).set_meta("book_single_line",true)
 	var saved := str(judgments.get("material","unknown"))
 	_book_chapter(pages,_counter_copy("재질 판단 · ","Material · ")+SurfaceLeaf.material_name(saved,counter_language))
 	var material_row := HBoxContainer.new()

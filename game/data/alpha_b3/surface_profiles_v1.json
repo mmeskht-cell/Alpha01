@@ -93,6 +93,19 @@
           "expected": 52
         }
       }
+    },
+    "HY05": {
+      "def_id": "demo_hygiene",
+      "provenance": "demo_HY05",
+      "authored": true,
+      "surfaces": {
+        "wear_detail": {
+          "family": "paper",
+          "target": "outer_wrapper",
+          "side": "front",
+          "expected": 46
+        }
+      }
     }
   }
 }

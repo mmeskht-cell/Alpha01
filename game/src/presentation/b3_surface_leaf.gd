@@ -27,6 +27,7 @@ func bind(family: String, variant: int, language: String) -> void:
 		tab.toggle_mode = true
 		tab.set_pressed_no_signal(material==family)
 		tab.set_meta("book_tab",true)
+		tab.set_meta("book_single_line",true)
 		tab.custom_minimum_size = Vector2(44,44)
 		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tab.pressed.connect(func()->void: plate_requested.emit(material,variant))
@@ -62,6 +63,8 @@ func _swatch(plates: HBoxContainer,id: String,caption: String,texture: Texture2D
 	plate.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	column.add_child(plate)
 	var label := Label.new()
+	label.name = id+"_caption"
+	label.set_meta("book_single_line",true)
 	label.text = caption if texture else ("Missing" if language=="en" else "미반입")
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(label)

@@ -100,7 +100,7 @@ func _initialize() -> void:
 	check("no unacquired watch surfaces",Domain.project("WAT02",watch,{}).is_empty())
 	watch.field_versions.restored = 1
 	check("changed watch has no fabricated current reading",Domain.authored_readings(first_week,"WAT02",watch).is_empty() and Domain.project("WAT02",watch,acquired).is_empty())
-	for example: Array in [["BAT02","battery","demo_BAT02","plastic"],["TL04","demo_tool","demo_TL04","metal"]]:
+	for example: Array in [["BAT02","battery","demo_BAT02","plastic"],["TL04","demo_tool","demo_TL04","metal"],["HY05","demo_hygiene","demo_HY05","paper"]]:
 		var sample_item := {"def_id":example[1],"provenance_id":example[2],"field_versions":{"functional":0,"restored":0,"composition":0}}
 		var readings := Domain.authored_readings(first_week,example[0],sample_item)
 		var reading := {"slot":"wear_detail","value":readings.get("wear_detail",{}).get("value"),"kind":"fact","version":sample_item.field_versions.duplicate(true)}
