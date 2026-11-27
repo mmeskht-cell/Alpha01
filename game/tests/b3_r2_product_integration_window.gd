@@ -115,6 +115,7 @@ func civilian_supply_route(resolution: Vector2i) -> bool:
 	var target := "CS01" if resolution.y==720 else "CS05"
 	var source := supply_seed(target)
 	if not check(not source.is_empty(),"real seeded civilian purchase and later buyer can both be selected"): return false
+	print("CIVILIAN_SUPPLY_NATIVE_SEED ",source.alpha_profile.visit_random.seed," target=",target," resolution=",resolution.y)
 	var initial := ProductSession.new()
 	if not check(initial.initialize(source.defs,source.state,false,false,{},source.alpha_profile),"new civilian source initializes"): return false
 	var row: Dictionary = source.state.items[target]
@@ -426,7 +427,13 @@ func serve_until(visit_id: String) -> bool:
 			print("R2_PRODUCT_PLAN_DIAGNOSTIC day=",host.session.alpha_view().day," target=",visit_id," plan=",host.session.snapshot().alpha_shop.random_visits.plan)
 			return false
 		if not await actions([["alpha_next_customer","CUSTOMER_ENTER"],["alpha_ack_entry","CUSTOMER_ACTIVE"]]): return false
-		if host.session.alpha_view().active.id==visit_id: return true
+		var live: Dictionary = host.session.alpha_view()
+		if live.active.id==visit_id: return true
+		# Marcus requires an explicit contract decision before departure.
+		# Use the same real decline control as the existing product route.
+		if live.active.id=="alpha_marcus_intro" and live.contracts.get("rad1_first",{}).get("can_accept",false):
+			if not await click("alpha_contract_decline","CUSTOMER_ACTIVE"): return false
+		print("R2_VISIT_PASS day=",live.day," visit=",live.active.id," target=",visit_id)
 		if not await actions([["alpha_finish_customer","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]]): return false
 	return check(false,"fixture visit reached")
 
