@@ -90,6 +90,14 @@ func appraise_model(target: String,row: Dictionary,model: Texture2D,size: Vector
 		if not check(host.session.alpha_view().appraisal.cards.any(func(card: Dictionary)->bool: return card.slot=="function_detail" and not card.public_active),"private function observation "+target): return false
 	elif not str(row.family).is_empty():
 		if not await inspect_product_surface("wear_detail",row.family): return false
+		await frames()
+		var caption := host.find_child("surface_caption",true,false) as Label
+		var fold := host.find_child("lens",true,false) as Button
+		var release := host.find_child("close_mat",true,false) as Button
+		if not check(caption!=null and fold!=null and release!=null and caption.is_visible_in_tree() and fold.is_visible_in_tree() and release.is_visible_in_tree()
+			and caption.get_visible_line_count()==caption.get_line_count()
+			and caption.get_global_rect().end.y<=minf(fold.get_global_rect().position.y,release.get_global_rect().position.y)
+			and not fold.get_global_rect().intersects(release.get_global_rect()),"150 percent surface reading and lens actions remain separate "+target): return false
 	else:
 		if not await click_navigation(host,"tool_identity") or not await click("apply_tool","CUSTOMER_ACTIVE"): return false
 		if not check(host.session.alpha_view().appraisal.surface_profiles.is_empty(),"uncertain sealed packaging has no fabricated specimen projection"): return false

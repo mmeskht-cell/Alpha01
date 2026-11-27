@@ -36,7 +36,7 @@ static func observed(cards: Array, slot: String, seed_value: int, profiles: Dict
 			if wear.get("family")==family and wear.get("target")==target:
 				var combined: Dictionary = observed(cards,"wear_detail",seed_value,profiles)
 				if not combined.is_empty(): return combined
-			return {"base":family,"overlay":"","caption":"표면 질감 관찰","caption_en":"Observed surface texture"}
+			return {"base":family,"overlay":"","caption":"표면 질감 관찰","caption_en":"Observed texture"}
 		if value.is_valid_float():
 			var observed_intensity := value.to_float()
 			if is_finite(observed_intensity) and observed_intensity>=0.0 and observed_intensity<=100.0:
@@ -46,7 +46,7 @@ static func observed(cards: Array, slot: String, seed_value: int, profiles: Dict
 			return {}
 		return {"base":value,"overlay":"","opacity":0.0,"turns":0,
 			"caption":"평행한 표면 무늬" if value=="parallel" else "교차하는 표면 무늬",
-			"caption_en":"Parallel surface pattern" if value=="parallel" else "Crossed surface pattern"}
+			"caption_en":"Parallel pattern" if value=="parallel" else "Crossed pattern"}
 	if not value.is_valid_float():
 		return {}
 	var intensity: float = value.to_float()
@@ -61,12 +61,12 @@ static func observed(cards: Array, slot: String, seed_value: int, profiles: Dict
 
 static func _wear_caption(intensity: float) -> Dictionary:
 	if intensity==0.0:
-		return {"caption":"뚜렷한 훼손 흔적 없음","caption_en":"No distinct marks in this view"}
+		return {"caption":"뚜렷한 훼손 흔적 없음","caption_en":"No distinct marks"}
 	if intensity<=25.0:
-		return {"caption":"한 부분에 모인 흔적","caption_en":"Marks clustered in one area"}
+		return {"caption":"한 부분에 모인 흔적","caption_en":"Localized marks"}
 	if intensity<=65.0:
-		return {"caption":"여러 곳에 흩어진 흔적","caption_en":"Marks scattered across the surface"}
-	return {"caption":"넓게 퍼진 흔적","caption_en":"Marks across much of the surface"}
+		return {"caption":"여러 곳에 흩어진 흔적","caption_en":"Scattered marks"}
+	return {"caption":"넓게 퍼진 흔적","caption_en":"Widespread marks"}
 
 ## Leave room for different placements even at the top of the observed range.
 static func _material_wear(family: String,target: String,seed_value: int,intensity: float) -> Dictionary:

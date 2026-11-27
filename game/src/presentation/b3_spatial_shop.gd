@@ -1284,13 +1284,16 @@ func _appraisal_surface(a: Dictionary) -> void:
 	text.max_lines_visible = 3 if not image else 2
 
 	if lens_open or not available.is_empty():
-		var toggle := _desk_action("lens",_counter_copy("표본 접기","Fold plate") if lens_open else _counter_copy("표본 보기","Show plate"),Rect2(36,402,119,44),func()->void:
+		var toggle := _desk_action("lens",_counter_copy("표본 접기","Fold") if lens_open else _counter_copy("표본 보기","Show"),Rect2(36,402,119,44),func()->void:
 			lens_open = not lens_open
 			refresh()
 			_slide(motion_subjects.get("sample"),Vector2(0,5),0.14))
 		toggle.flat = true
+		toggle.tooltip_text = _counter_copy("표본 접기","Fold surface plate") if lens_open else _counter_copy("표본 보기","Show surface plate")
 	if not chosen_tool.is_empty():
-		_desk_action("close_mat",_counter_copy("도구 놓기","Release tool"),Rect2(157,402,133,44),_release_appraisal_tool).flat = true
+		var release := _desk_action("close_mat",_counter_copy("도구 놓기","Release"),Rect2(157,402,133,44),_release_appraisal_tool)
+		release.flat = true
+		release.tooltip_text = _counter_copy("도구 놓기","Release selected tool")
 
 func _release_appraisal_tool() -> void:
 	chosen_tool = ""

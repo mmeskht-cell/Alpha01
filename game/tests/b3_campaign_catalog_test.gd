@@ -245,7 +245,38 @@ func repair() -> void:
 		and after.items[target].basis.VKC==before.items[target].basis.VKC+cost.VKC
 		and after.wallets.player.VKC==before.wallets.player.VKC-cost.VKC
 		and after.ledger==before.ledger and after.object_events.back().expenses==cost,"paid repair updates same article, basis and work record")
-	check(not s.execute(Play.command(s,"spatial_restore_item",request)).get("ok",false) and s.snapshot()==after,"repair cannot be collected twice")
+	if not check(not s.execute(Play.command(s,"spatial_restore_item",request)).get("ok",false) and s.snapshot()==after,"repair cannot be collected twice"): return
+	# A repair changes the authoritative function, not the historic disclosure.
+	# Reappraise at the actual later customer visit, never reuse a prior card as current.
+	var purchase_id := Catalog.visit_id(target,true)
+	var sale_id := Catalog.visit_id(target,false)
+	var historic: Dictionary = after.alpha_shop.appraisal.visits[purchase_id].duplicate(true)
+	if not check(historic.observed.function_detail.value=="inoperable" and historic.observed.function_detail.version.functional!=after.items[target].field_versions.functional
+		and not historic.offers.is_empty(),"repair preserves the earlier faulty observation and its version"): return
+	if not check(Play.display(s,target),"repaired physical item goes on the finite shelf"): return
+	var first_day := int(after.alpha_shop.day)
+	var sale_day := int(route.sale_day)
+	if not check(sale_day>first_day and Play.sequence(s,["alpha_next_day","alpha_prepare_day","alpha_open"]),"real following day opens after repair"): return
+	for day: int in range(first_day+1,sale_day):
+		if not check(Play.advance(s),"advance toward actual resale day %d"%day): return
+	if not check(Play.reach(s,sale_id),"funded later buyer enters for the repaired item"): return
+	var projected: Dictionary = s.alpha_view().appraisal
+	if not check(projected.item_id==target and projected.cards.is_empty() and projected.tools.any(func(tool:Dictionary)->bool:return tool.id=="function_detail"),"new visit requires a new private function observation"): return
+	if not check(Play.go(s,"alpha_inspect",{"slot":"function_detail"}),"explicitly reappraise the repaired specimen"): return
+	var renewed: Dictionary = s.snapshot()
+	var current: Dictionary = renewed.alpha_shop.appraisal.visits[sale_id].observed.function_detail
+	if not check(current.value=="serviceable" and current.version.functional==renewed.items[target].field_versions.functional
+		and renewed.alpha_shop.appraisal.visits[purchase_id]==historic
+		and s.alpha_view().appraisal.cards.any(func(card:Dictionary)->bool:return card.slot=="function_detail" and card.value=="serviceable" and not card.public_active),"current function differs while earlier private/public history is unchanged"): return
+	trade = Play.transfer(s,target)
+	if not check(not trade.is_empty() and Play.go(s,"alpha_card_toggle",{"slot":"function_detail","selected":true})
+		and Play.go(s,"alpha_price_offer",{"amount":trade.amount}) and Play.go(s,"alpha_trade",trade) and Play.go(s,"alpha_ack_exit"),"reappraised repaired item settles with the real buyer"): return
+	var final: Dictionary = s.snapshot()
+	if not check(final.items[target].owner_id==trade.buyer and final.items[target].provenance_id==before.items[target].provenance_id
+		and final.alpha_shop.appraisal.visits[purchase_id]==historic and final.ledger.size()==after.ledger.size()+1,"same identity and immutable historic appraisal survive resale"): return
+	var disk := Repo.new("user://zt_rebuild/catalog_reappraisal_%d"%Time.get_ticks_usec())
+	var replay := Play.fresh(route.source)
+	check(disk.save_session(s,Slots.KEY).get("ok",false) and disk.load_session(replay,Slots.KEY).get("ok",false) and replay.snapshot()==final,"repair and both versioned observations survive cold exact replay")
 
 func _initialize() -> void:
 	var arguments := OS.get_cmdline_user_args()
