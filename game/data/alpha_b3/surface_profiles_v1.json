@@ -106,6 +106,76 @@
           "expected": 46
         }
       }
+    },
+    "CS01": {
+      "def_id": "food_01_sardines",
+      "provenance": "civilian_supply_CS01",
+      "authored": true,
+      "requires_supply": 1,
+      "surfaces": {
+        "wear_detail": {
+          "family": "metal",
+          "target": "can_exterior",
+          "side": "front",
+          "expected": 18
+        }
+      }
+    },
+    "CS02": {
+      "def_id": "food_02_canned_meat",
+      "provenance": "civilian_supply_CS02",
+      "authored": true,
+      "requires_supply": 1,
+      "surfaces": {
+        "wear_detail": {
+          "family": "metal",
+          "target": "can_exterior",
+          "side": "front",
+          "expected": 34
+        }
+      }
+    },
+    "CS03": {
+      "def_id": "food_03_hardtack",
+      "provenance": "civilian_supply_CS03",
+      "authored": true,
+      "requires_supply": 1,
+      "surfaces": {
+        "wear_detail": {
+          "family": "paper",
+          "target": "outer_wrapper",
+          "side": "front",
+          "expected": 42
+        }
+      }
+    },
+    "CS04": {
+      "def_id": "food_05_oats",
+      "provenance": "civilian_supply_CS04",
+      "authored": true,
+      "requires_supply": 1,
+      "surfaces": {
+        "wear_detail": {
+          "family": "paper",
+          "target": "outer_package",
+          "side": "front",
+          "expected": 26
+        }
+      }
+    },
+    "CS05": {
+      "def_id": "medical_01_field_bandage",
+      "provenance": "civilian_supply_CS05",
+      "authored": true,
+      "requires_supply": 1,
+      "surfaces": {
+        "wear_detail": {
+          "family": "paper",
+          "target": "outer_wrapper",
+          "side": "front",
+          "expected": 24
+        }
+      }
     }
   }
 }

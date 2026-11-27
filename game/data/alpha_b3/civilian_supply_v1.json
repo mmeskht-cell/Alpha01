@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "CS01",
+      "model": "food_01_sardines",
+      "category": "food",
+      "width": 1,
+      "height": 1,
+      "purchase": 8,
+      "sale": 11
+    },
+    {
+      "id": "CS02",
+      "model": "food_02_canned_meat",
+      "category": "food",
+      "width": 1,
+      "height": 1,
+      "purchase": 12,
+      "sale": 16
+    },
+    {
+      "id": "CS03",
+      "model": "food_03_hardtack",
+      "category": "food",
+      "width": 1,
+      "height": 1,
+      "purchase": 7,
+      "sale": 10
+    },
+    {
+      "id": "CS04",
+      "model": "food_05_oats",
+      "category": "food",
+      "width": 1,
+      "height": 1,
+      "purchase": 8,
+      "sale": 11
+    },
+    {
+      "id": "CS05",
+      "model": "medical_01_field_bandage",
+      "category": "medical",
+      "width": 1,
+      "height": 1,
+      "purchase": 9,
+      "sale": 12
+    },
+    {
+      "id": "CS06",
+      "model": "medical_04_antiseptic",
+      "category": "medical",
+      "width": 1,
+      "height": 1,
+      "purchase": 10,
+      "sale": 14
+    },
+    {
+      "id": "CS07",
+      "model": "medical_10_water_tablets",
+      "category": "medical",
+      "width": 1,
+      "height": 1,
+      "purchase": 7,
+      "sale": 10
+    },
+    {
+      "id": "CS08",
+      "model": "medical_08_candles",
+      "category": "consumable",
+      "width": 1,
+      "height": 1,
+      "purchase": 6,
+      "sale": 9
+    }
+  ]
+}

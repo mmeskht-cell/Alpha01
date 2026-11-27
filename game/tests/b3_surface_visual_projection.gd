@@ -106,6 +106,46 @@ func _initialize() -> void:
 		var reading := {"slot":"wear_detail","value":readings.get("wear_detail",{}).get("value"),"kind":"fact","version":sample_item.field_versions.duplicate(true)}
 		var projected := Domain.project(example[0],sample_item,{"wear_detail":reading})
 		check("authored real SKU "+example[0],readings.size()==1 and projected.get("wear_detail",{}).get("family")==example[3])
+	var Supply = preload("res://src/domain/b3_civilian_supply.gd")
+	var SupplySeed = preload("res://src/content/b3_civilian_supply_seed.gd")
+	var Baseline = preload("res://src/content/b3_f3_composite_seed.gd")
+	var Session = preload("res://src/domain/game_session.gd")
+	var Art = preload("res://src/presentation/native_v23_art.gd")
+	var seen := {}
+	for seed_value: int in [101,102,103,104]:
+		var source: Dictionary = SupplySeed.content(seed_value)
+		var base: Dictionary = Baseline.content(seed_value)
+		check("civilian supply source exists "+str(seed_value),not source.is_empty())
+		if source.is_empty(): continue
+		check("civilian expansion deterministic "+str(seed_value),source==SupplySeed.content(seed_value))
+		check("old wallets and original items unchanged",source.state.wallets==base.state.wallets and base.state.items.keys().all(func(id:String)->bool:return source.state.items.get(id)==base.state.items[id]))
+		check("four finite additional packages",source.state.items.size()==base.state.items.size()+4 and source.state.visits.size()==base.state.visits.size()+8)
+		var session := Session.new()
+		var initialized := session.initialize(source.defs,source.state,false,false,{},source.alpha_profile)
+		check("expanded real session initializes "+session.initialization_error(),initialized)
+		if initialized and seed_value==104:
+			var Repo = preload("res://src/persistence/save_repository.gd")
+			var disk := Repo.new("user://zt_rebuild/civilian_supply_fixed_"+str(Time.get_ticks_usec()))
+			check("isolated revision-zero save",disk.save_session(session,"civilian_supply").get("ok",false))
+			var resumed := Session.new()
+			var ready := resumed.initialize(source.defs,source.state,false,false,{},source.alpha_profile)
+			check("same content save resumes exact snapshot",ready and disk.load_session(resumed,"civilian_supply").get("ok",false) and resumed.snapshot()==session.snapshot())
+			var legacy := Session.new()
+			if legacy.initialize(base.defs,base.state,false,false,{},base.alpha_profile):
+				var unchanged := legacy.snapshot()
+				check("expanded save rejected by legacy source without mutation",not disk.load_session(legacy,"civilian_supply").get("ok",false) and legacy.snapshot()==unchanged)
+			else:
+				check("legacy source remains valid",false)
+		for row: Dictionary in Supply.selected(seed_value):
+			seen[row.id] = true
+			check("real matching counter and stock art "+str(row.model),Art.ITEMS.model_texture(row.model,"counter")!=null and Art.ITEMS.model_texture(row.model,"stock")!=null)
+			var actual: Dictionary = source.state.items[row.id]
+			check("package cannot appear in old profile",Domain.authored_readings(base.alpha_profile,row.id,actual).is_empty())
+			var readings := Domain.authored_readings(source.alpha_profile,row.id,actual)
+			if not readings.is_empty():
+				var evidence := {"slot":"wear_detail","kind":"fact","value":readings.wear_detail.value,"version":actual.field_versions.duplicate(true)}
+				check("actual authored wrapper projects "+str(row.id),not Domain.project(row.id,actual,{"wear_detail":evidence}).is_empty())
+	check("eight models across four seeds",seen.size()==8)
 	print("B3 surface projection: %d checks, %d failures"%[checks,failures])
 	quit(1 if failures>0 else 0)
 

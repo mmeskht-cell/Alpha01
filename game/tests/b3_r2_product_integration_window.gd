@@ -7,6 +7,10 @@ const ProductRepo = preload("res://src/persistence/save_repository.gd")
 const CounterArt = preload("res://src/presentation/native_v23_art.gd")
 const ProductSurface = preload("res://src/presentation/surface_visuals.gd")
 const PRODUCT_SLOT := "spatial_week_v1"
+const SupplyReview = preload("res://scenes/app/alpha_b3_civilian_supply.tscn")
+const SupplySource = preload("res://src/content/b3_civilian_supply_seed.gd")
+const SupplyRules = preload("res://src/domain/b3_civilian_supply.gd")
+const SUPPLY_SLOT := "b3_civilian_supply_v1"
 const ProductPlanner = preload("res://src/domain/alpha_b3_visit_randomizer.gd")
 const ProductCommission = preload("res://src/domain/alpha_commission.gd")
 const ProductService = preload("res://src/domain/alpha_service_custody.gd")
@@ -66,7 +70,110 @@ func run() -> void:
 			check(false,"complete product integration route "+str(resolution.y))
 			break
 		await release_host()
+		if not await civilian_supply_route(resolution):
+			check(false,"complete isolated civilian supply route "+str(resolution.y))
+			break
+		await release_host()
 	await finish()
+
+## Test planning does not inject visitors. Pick a seed where the real planner
+## selects the target even with every candidate assumed eligible.
+func supply_seed(target: String) -> Dictionary:
+	for seed_value: int in range(104,168,4):
+		var source: Dictionary = SupplySource.content(seed_value)
+		if source.is_empty(): continue
+		var profile: Dictionary = source.alpha_profile
+		var included := true
+		for suffix: String in ["_buy","_sale"]:
+			var id := "civilian_"+target+suffix
+			var day := floori(float(source.state.visits[id].opens)/1440.0)+1
+			var rows: Array = profile.days[day-1]
+			var eligible := {}
+			var locked: Array = []
+			for row: Dictionary in rows:
+				eligible[row.id] = true
+				if row.id in profile.visit_random.locked_ids or (day==1 and row.id=="visit_g01") or ProductCommission.is_return_visit(row.id,str(profile.commission_profile_id)) or ProductService.is_return_visit(row.id,str(profile.service_profile_id)):
+					locked.append(row.id)
+			var plan: Dictionary = ProductPlanner.plan(rows,eligible,locked,seed_value,day)
+			if not plan.get("ok",false) or not plan.visits.any(func(row:Dictionary)->bool:return row.id==id):
+				included = false
+				break
+		if included: return source
+	return {}
+
+func civilian_price(amount: int) -> bool:
+	if not await click_navigation(host,"counter_offer"): return false
+	await reveal_action("provisional_plus_1")
+	for index in range(amount-1):
+		if not await click_navigation(host,"provisional_plus_1"): return false
+	await reveal_action("basis_provisional")
+	if not await click_navigation(host,"basis_provisional") or not await click_navigation(host,"close_drawer"): return false
+	var visible_amount := host.find_child("offer_amount",true,false) as Label
+	return check(visible_amount!=null and visible_amount.text=="%d VKC"%amount,"player-authored provisional amount reaches actual offer docket")
+
+func civilian_supply_route(resolution: Vector2i) -> bool:
+	var target := "CS01" if resolution.y==720 else "CS05"
+	var source := supply_seed(target)
+	if not check(not source.is_empty(),"real seeded civilian purchase and later buyer can both be selected"): return false
+	var initial := ProductSession.new()
+	if not check(initial.initialize(source.defs,source.state,false,false,{},source.alpha_profile),"new civilian source initializes"): return false
+	var row: Dictionary = source.state.items[target]
+	var buy_id := "civilian_"+target+"_buy"
+	var sale_id := "civilian_"+target+"_sale"
+	var buy: Dictionary = source.state.visits[buy_id]
+	var sale: Dictionary = source.state.visits[sale_id]
+	var buy_day := floori(float(buy.opens)/1440.0)+1
+	var sale_day := floori(float(sale.opens)/1440.0)+1
+	var cost := int(buy.prices[target].VKC)
+	var resale := int(sale.prices[target].VKC)
+	var location := "user://zt_rebuild/civilian_supply_native_"+str(resolution.y)+"_"+str(Time.get_ticks_usec())
+	var disk := ProductRepo.new(location)
+	if not check(disk.save_session(initial,SUPPLY_SLOT).get("ok",false),"new content isolated save slot"): return false
+	host = SupplyReview.instantiate()
+	host.save_directory_override = location
+	host.title_preferences = {"language":"ko"}
+	root.add_child(host)
+	await frames()
+	if not check(host.session!=null and not host._blocked and not host._intro and host.session.snapshot()==initial.snapshot(),"new scene reloads exact genuine civilian seed"): return false
+	if not await click("alpha_open","OPEN_IDLE"): return false
+	for day in range(1,buy_day):
+		if not await next_morning(): return false
+	if not await serve_until(buy_id): return false
+	var model: Texture2D = CounterArt.ITEMS.model_texture(row.def_id,"inspection",target)
+	if not check(host.session.alpha_view().appraisal.item_id==target and visible_model(host.counter_item,model),"actual civilian package on counter uses exact authored art"): return false
+	if not await start_counter_appraisal(true): return false
+	if not await inspect_product_surface("wear_detail","metal" if target=="CS01" else "paper"): return false
+	await capture("civilian_supply_observed_"+str(resolution.y),resolution)
+	if not await leave_counter_appraisal(true) or not await civilian_price(cost): return false
+	if not await actions([["offer","CUSTOMER_ACTIVE"],["settle_trade","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]]): return false
+	var bought: Dictionary = host.session.snapshot()
+	if not check(bought.items[target].owner_id=="player" and bought.items[target].basis.VKC==cost and bought.wallets.player.VKC==source.state.wallets.player.VKC-cost,"real civilian purchase changes owner, basis and cash once"): return false
+	if not await click_navigation(host,"stockroom") or not await click_navigation(host,"stock_"+target): return false
+	var token := host.find_child("stock_"+target,true,false) as Button
+	var sprite := token.get_node_or_null("ItemArt") as Sprite2D if token else null
+	var stock_art: Texture2D = CounterArt.ITEMS.model_texture(row.def_id,"stock",target)
+	if not check(sprite!=null and sprite.is_visible_in_tree() and exact_model_face(sprite.texture,stock_art),"same civilian package visible in stock grid"): return false
+	if not await click_navigation(host,"tab_storefront_grid") or not await click_navigation(host,"cell_0_0") or not await click("confirm_work","OPEN_IDLE"): return false
+	await capture("civilian_supply_display_"+str(resolution.y),resolution)
+	if not await click_navigation(host,"close_drawer"): return false
+	for day in range(buy_day,sale_day):
+		if not await next_morning(): return false
+	if not await serve_until(sale_id): return false
+	if not check(host.session.alpha_view().appraisal.item_id==target and visible_model(host.counter_item,model),"later real buyer sees same physical package"): return false
+	if not await start_counter_appraisal(true) or not await leave_counter_appraisal(true) or not await civilian_price(resale): return false
+	if not await actions([["offer","CUSTOMER_ACTIVE"],["settle_trade","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]]): return false
+	var end: Dictionary = host.session.snapshot()
+	var recorded := end.ledger.filter(func(entry:Dictionary)->bool:return target in entry.root_ids)
+	if not check(end.items[target].owner_id==sale.buyer and end.items[target].provenance_id==row.provenance_id and recorded.size()==2
+		and end.wallets.player.VKC==source.state.wallets.player.VKC-cost+resale and end.items.size()==source.state.items.size(),"civilian resale conserves identity and records exactly two settlements"): return false
+	for currency: String in ["VKC","USD"]:
+		var original := 0
+		var current := 0
+		for wallet: Dictionary in source.state.wallets.values(): original += int(wallet[currency])
+		for wallet: Dictionary in end.wallets.values(): current += int(wallet[currency])
+		if not check(original==current,"civilian trade conserves total "+currency): return false
+	await capture("civilian_supply_resold_"+str(resolution.y),resolution)
+	return true
 
 func actions(steps: Array) -> bool:
 	for step: Array in steps:
