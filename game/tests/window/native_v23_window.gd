@@ -820,7 +820,7 @@ func canonical_day_one()->void:
 	if not check(host.runtime.view().visits.active=="watch_a","D2 watch precedes civilian purchase"):
 		return
 	# A new appraisal opens looking down at the item. Use the real gaze switch.
-	if not await verify_live_specimen("WAT02","watch_wat02_native_pilot.svg","book_watch_wear_comparison"):
+	if not await verify_live_specimen("WAT02","meridian_watch_front.png","book_watch_wear_comparison"):
 		return
 	var before_gaze:Dictionary=host.runtime.snapshot()
 	if not await click("workspace_toggle"):
@@ -836,7 +836,7 @@ func canonical_day_one()->void:
 		return
 	await create_timer(0.4).timeout
 	check(host._spatial.visible and not host._app.visible and host.runtime.snapshot()==basic_before,"native opt-in shares physical appraisal without state change")
-	check(host._spatial._item.texture.resource_path.ends_with("battery_counter_pilot.svg"),"battery uses own art not radio")
+	check(host._spatial._item.texture.resource_path.ends_with("utility_03_aa_batteries_256.png"),"battery uses own art not radio")
 	var tool:=button("select_tool_basic_function_v1")
 	check(tool!=null and tool.icon!=null,"functional tool has physical icon")
 	await capture("native-basic-battery-tools")
@@ -901,7 +901,7 @@ func canonical_day_one()->void:
 		return
 	if not check(host.runtime.view().visits.active=="radio3_buy","actual D3 R003 seller after optional gear declined"):
 		return
-	if not await verify_live_specimen("R003","radio_r003_native_pilot.svg","book_radio_wear_comparison"):
+	if not await verify_live_specimen("R003","civilian_radio_r003.png","book_radio_wear_comparison"):
 		return
 	# One real R003 material inspection through the existing authority.
 	var before_material:Dictionary=host.runtime.snapshot()
@@ -938,7 +938,13 @@ func verify_live_specimen(id:String,asset:String,comparison_id:String)->bool:
 	verify_book_bounds()
 	await capture("native-specimen-"+id+"-comparison")
 	if id=="WAT02":
-		check(FileAccess.get_file_as_string("res://assets/art/items/watch_wat02_native_pilot.svg").contains("case_parallel_grain"),"visible WAT02 case striation is authored onto public art")
+		check(FileAccess.get_file_as_string("res://tests/fixtures/art/watch_wat02_native_pilot.svg").contains("case_parallel_grain"),"archived WAT02 art preserves the authored visible case striation fixture")
+		var watch_image: Image = host._spatial._item.texture.get_image()
+		var watch_profile = preload("res://src/presentation/native_v23_art.gd").item_profile("WAT02","inspection")
+		var bounds: Rect2 = watch_profile.regions.material_detail
+		var size := Vector2(watch_image.get_size())
+		check(watch_image.get_pixelv(Vector2i(bounds.get_center()*size)).a>0.9,
+			"replacement watch material crop lands on the opaque case sprite")
 		for comparison:String in ["book_watch_case_comparison","book_watch_function_comparison","book_watch_mark_comparison"]:
 			if not await click("book_slot_next") or not await click("book_reference"):
 				return false
@@ -1143,14 +1149,27 @@ func verify_shared_item_profiles()->void:
 	check(not crop_profile.valid(),"invalid crop geometry rejected")
 	var radio=art.item_profile("R003","inspection")
 	var watch=art.item_profile("WAT02","inspection")
-	check(radio.texture.resource_path.ends_with("radio_r003_native_pilot.svg") and radio.texture!=art.RADIO_PROFILE.texture,"R003 distinct visible native specimen, not opening radio art")
-	check(watch.texture.resource_path.ends_with("watch_wat02_native_pilot.svg"),"WAT02 distinct native dial illustration")
+	check(radio.texture.resource_path.ends_with("civilian_radio_r003.png") and radio.texture!=art.RADIO_PROFILE.texture,"R003 distinct visible native specimen, not opening radio art")
+	check(watch.texture.resource_path.ends_with("meridian_watch_front.png"),"WAT02 distinct native dial illustration")
 	check(not radio.regions.has("casing_detail") and not radio.regions.has("batch_detail") and not watch.regions.has("batch_detail"),"unseen identification marks remain explicit off-image tests")
 	var shell:Rect2=radio.regions.material_detail
 	var wear:Rect2=radio.regions.wear_detail
 	var screen:Rect2=radio.regions.display_damage_detail
 	check(shell.end.x<=0.26 and shell.position.y>=0.27 and not shell.intersects(wear) and not shell.intersects(screen),"R003 shell, visible wear and display geometry are separate")
 	check(art.stock_texture({"id":"unknown_art_test"})==null,"unknown stock uses text fallback")
+	check(art.item_profile("unknown_art_test","counter")==null and art.item_profile("unknown_art_test","inspection")==null,
+		"unknown specimen never borrows the electronics art")
+	var portraits: Dictionary = {}
+	for actor: String in ["G02","G03","G04","G05","G06","G07","G08","G09","G10","G11","G12","alpha_broker"]:
+		var portrait: Texture2D = art.customer_texture(actor)
+		check(portrait!=null and portrait.get_size()==Vector2(170,157) and not portraits.has(portrait)
+			and portrait==art.customer_texture(actor),"distinct, stable public portrait "+actor)
+		portraits[portrait] = true
+	check(art.customer_texture("marcus")==null and art.customer_texture("ian")==null and art.customer_texture("unknown")==null,
+		"unassigned portraits stay empty without an unrelated fallback")
+	for role: String in ["counter","inspection","stock"]:
+		check(art.ITEMS.model_texture("fictional_watch_p2",role,"WAT02")==watch.texture,
+			"Meridian face uses the same source across "+role)
 	check(host.runtime.snapshot()==before,"catalog projection cannot mutate game")
 
 

@@ -8,6 +8,7 @@ const ThemeSource=preload("res://src/presentation/ui_theme.gd")
 const Appraisal=preload("res://src/presentation/generic_appraisal_panel.gd")
 const History=preload("res://src/presentation/generic_trade_history.gd")
 const HistoryBrowser=preload("res://src/presentation/native_history_browser.gd")
+const CounterArt=preload("res://src/presentation/native_v23_art.gd")
 const Clock=preload("res://src/domain/business_clock.gd")
 var runtime:RefCounted
 var _body:VBoxContainer
@@ -730,10 +731,10 @@ func refresh()->void:
 						_line(tr_key("ui.copy.g01_do_you_buy_things_here_682d8d4f"))
 					if trade.visit_id=="radio_return":
 						_line(tr_key("ui.copy.g02_i_bought_this_radio_here_before_it_is_n_512d34fd"))
-					var art_path:String="res://assets/art/items/radio_face_probe_a.svg" if trade.item_id in ["R001","R003"] else ("res://assets/art/items/fictional_gear_pilot.svg" if trade.item_id=="GE03" else "")
-					if not art_path.is_empty():
+					var item_art := CounterArt.item_profile(str(trade.item_id),"counter") if trade.item_id in ["R001","R003","WAT02","GE03"] else null
+					if item_art:
 						var art:=TextureRect.new()
-						art.texture=load(art_path) as Texture2D
+						art.texture=item_art.texture
 						art.custom_minimum_size=Vector2(0,125)
 						art.expand_mode=TextureRect.EXPAND_IGNORE_SIZE
 						art.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED

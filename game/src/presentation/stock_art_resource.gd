@@ -18,7 +18,9 @@ static func resolve(visual_id: String) -> Dictionary:
 	if not raw is Dictionary or not raw.get("texture") is String or not raw.get("dimensions") is Array or raw.dimensions.size() != 2:
 		return {}
 	var path: String = raw.texture
-	if not path.begins_with("res://assets/art/items/") or ".." in path or not path.ends_with(".svg"):
+	var stock_sprite := path.begins_with("res://assets/art/items/") and path.ends_with(".png")
+	var legacy_fixture := path.begins_with("res://tests/fixtures/art/legacy_gate1/") and path.ends_with(".svg")
+	if ".." in path or not (stock_sprite or legacy_fixture):
 		return {}
 	var texture := load(path) as Texture2D
 	if texture == null or texture.get_width() != int(raw.dimensions[0]) or texture.get_height() != int(raw.dimensions[1]):

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=29 format=3]
+[gd_resource type="Resource" load_steps=39 format=3]
 
 [ext_resource type="Script" path="res://src/presentation/scene_visual_catalog.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/art/native_v23/room.png" id="2"]
@@ -6,8 +6,6 @@
 [ext_resource type="Texture2D" path="res://assets/art/native_v23/lamp.png" id="4"]
 [ext_resource type="Texture2D" path="res://assets/art/native_v23/amber_reflection.png" id="5"]
 [ext_resource type="Texture2D" path="res://assets/art/native_v23/g01.png" id="6"]
-[ext_resource type="Texture2D" path="res://assets/art/characters/g04_pilot.svg" id="7"]
-[ext_resource type="Texture2D" path="res://assets/art/characters/visitor_neutral_pilot.svg" id="8"]
 [ext_resource type="Texture2D" path="res://assets/art/native_v23/rooms/office_room.png" id="9"]
 [ext_resource type="Texture2D" path="res://assets/art/native_v23/rooms/office_foreground.png" id="10"]
 [ext_resource type="Texture2D" path="res://assets/art/native_v23/rooms/office_amber.png" id="11"]
@@ -29,6 +27,19 @@
 [ext_resource type="Texture2D" path="res://assets/art/native_v23/cold_4.png" id="27"]
 [ext_resource type="Texture2D" path="res://assets/art/native_v23/cold_5.png" id="28"]
 
+[ext_resource type="Texture2D" path="res://assets/art/characters/f5_visitors/g02.png" id="visitor_G02"]
+[ext_resource type="Texture2D" path="res://assets/art/characters/f5_visitors/g03.png" id="visitor_G03"]
+[ext_resource type="Texture2D" path="res://assets/art/characters/f5_visitors/g04.png" id="visitor_G04"]
+[ext_resource type="Texture2D" path="res://assets/art/characters/f5_visitors/g05.png" id="visitor_G05"]
+[ext_resource type="Texture2D" path="res://assets/art/characters/f5_visitors/g06.png" id="visitor_G06"]
+[ext_resource type="Texture2D" path="res://assets/art/characters/f5_visitors/g07.png" id="visitor_G07"]
+[ext_resource type="Texture2D" path="res://assets/art/characters/f5_visitors/g08.png" id="visitor_G08"]
+[ext_resource type="Texture2D" path="res://assets/art/characters/f5_visitors/g09.png" id="visitor_G09"]
+[ext_resource type="Texture2D" path="res://assets/art/characters/f5_visitors/g10.png" id="visitor_G10"]
+[ext_resource type="Texture2D" path="res://assets/art/characters/f5_visitors/g11.png" id="visitor_G11"]
+[ext_resource type="Texture2D" path="res://assets/art/characters/f5_visitors/g12.png" id="visitor_G12"]
+[ext_resource type="Texture2D" path="res://assets/art/characters/f5_visitors/alpha_broker.png" id="visitor_alpha_broker"]
+
 [resource]
 script = ExtResource("1")
 textures = {
@@ -37,8 +48,18 @@ textures = {
 "counter.lamp": ExtResource("4"),
 "counter.amber": ExtResource("5"),
 "customer.opening": ExtResource("6"),
-"customer.watch": ExtResource("7"),
-"customer.neutral": ExtResource("8"),
+"customer.G02": ExtResource("visitor_G02"),
+"customer.G03": ExtResource("visitor_G03"),
+"customer.G04": ExtResource("visitor_G04"),
+"customer.G05": ExtResource("visitor_G05"),
+"customer.G06": ExtResource("visitor_G06"),
+"customer.G07": ExtResource("visitor_G07"),
+"customer.G08": ExtResource("visitor_G08"),
+"customer.G09": ExtResource("visitor_G09"),
+"customer.G10": ExtResource("visitor_G10"),
+"customer.G11": ExtResource("visitor_G11"),
+"customer.G12": ExtResource("visitor_G12"),
+"customer.alpha_broker": ExtResource("visitor_alpha_broker"),
 "office.room": ExtResource("9"),
 "office.foreground": ExtResource("10"),
 "office.amber": ExtResource("11"),

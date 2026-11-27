@@ -8,7 +8,7 @@
       "creator": "ZONE TRADER development",
       "license": "project-internal original prototype; distribution license unassigned",
       "version": "1.0",
-      "runtime_path": "res://assets/art/items/radio_face_probe_a.svg",
+      "runtime_path": "res://tests/fixtures/art/legacy_gate1/radio_face_probe_a.svg",
       "dimensions": [
         192,
         100
@@ -23,7 +23,7 @@
         ]
       },
       "definition_id": "R001 visual fixture only",
-      "status": "placeholder"
+      "status": "legacy_regression_fixture"
     },
     {
       "asset_id": "radio_face_probe_b",
@@ -32,7 +32,7 @@
       "creator": "ZONE TRADER development",
       "license": "project-internal original prototype; distribution license unassigned",
       "version": "1.0",
-      "runtime_path": "res://assets/art/items/radio_face_probe_b.svg",
+      "runtime_path": "res://tests/fixtures/art/legacy_gate1/radio_face_probe_b.svg",
       "dimensions": [
         240,
         160
@@ -47,7 +47,7 @@
         ]
       },
       "definition_id": "R001 visual fixture only",
-      "status": "placeholder"
+      "status": "legacy_regression_fixture"
     },
     {
       "asset_id": "scene_counter_bg",
@@ -92,7 +92,7 @@
       "creator": "ZONE TRADER development",
       "license": "project-internal original prototype; distribution license unassigned",
       "version": "1.0",
-      "runtime_path": "res://assets/art/characters/g01_pilot.svg",
+      "runtime_path": "res://tests/fixtures/art/legacy_gate1/g01_pilot.svg",
       "dimensions": [
         120,
         132
@@ -101,16 +101,16 @@
         "filter": "nearest"
       },
       "definition_id": "npc_g01_base",
-      "status": "style_pilot_not_final"
+      "status": "legacy_regression_fixture"
     },
     {
-      "asset_id": "fictional_gear_pilot",
+      "asset_id": "f5_protective_case",
       "render_key": "fictional_gear",
-      "source": "Original editable SVG, restrained pixel-grid representative pilot",
-      "creator": "ZONE TRADER development",
+      "source": "Project-generated PNG sprite",
+      "creator": "EXIT NOT INCLUDED development",
       "license": "project-internal original prototype; distribution license unassigned",
       "version": "1.0",
-      "runtime_path": "res://assets/art/items/fictional_gear_pilot.svg",
+      "runtime_path": "res://assets/art/items/f5_civilian/protective_case.png",
       "dimensions": [
         192,
         128
@@ -119,7 +119,7 @@
         "filter": "nearest"
       },
       "definition_id": "fictional_gear",
-      "status": "style_pilot_not_final"
+      "status": "runtime_candidate"
     },
     {
       "asset_id": "bench_radio_shell_pilot",
@@ -128,7 +128,7 @@
       "creator": "ZONE TRADER development",
       "license": "project-internal original prototype; distribution license unassigned",
       "version": "1.0",
-      "runtime_path": "res://assets/art/items/bench_radio_shell_pilot.svg",
+      "runtime_path": "res://tests/fixtures/art/legacy_gate1/bench_radio_shell_pilot.svg",
       "dimensions": [
         192,
         128
@@ -137,7 +137,7 @@
         "filter": "nearest"
       },
       "definition_id": "bench_radio_shell",
-      "status": "style_pilot_not_final"
+      "status": "legacy_regression_fixture"
     },
     {
       "asset_id": "bench_radio_board_pilot",
@@ -146,7 +146,7 @@
       "creator": "ZONE TRADER development",
       "license": "project-internal original prototype; distribution license unassigned",
       "version": "1.0",
-      "runtime_path": "res://assets/art/items/bench_radio_board_pilot.svg",
+      "runtime_path": "res://tests/fixtures/art/legacy_gate1/bench_radio_board_pilot.svg",
       "dimensions": [
         128,
         64
@@ -155,7 +155,7 @@
         "filter": "nearest"
       },
       "definition_id": "bench_radio_board",
-      "status": "style_pilot_not_final"
+      "status": "legacy_regression_fixture"
     },
     {
       "asset_id": "bench_radio_speaker_pilot",
@@ -164,7 +164,7 @@
       "creator": "ZONE TRADER development",
       "license": "project-internal original prototype; distribution license unassigned",
       "version": "1.0",
-      "runtime_path": "res://assets/art/items/bench_radio_speaker_pilot.svg",
+      "runtime_path": "res://tests/fixtures/art/legacy_gate1/bench_radio_speaker_pilot.svg",
       "dimensions": [
         64,
         64
@@ -173,7 +173,7 @@
         "filter": "nearest"
       },
       "definition_id": "bench_radio_speaker",
-      "status": "style_pilot_not_final"
+      "status": "legacy_regression_fixture"
     },
     {
       "asset_id": "bench_radio_antenna_pilot",
@@ -182,7 +182,7 @@
       "creator": "ZONE TRADER development",
       "license": "project-internal original prototype; distribution license unassigned",
       "version": "1.0",
-      "runtime_path": "res://assets/art/items/bench_radio_antenna_pilot.svg",
+      "runtime_path": "res://tests/fixtures/art/legacy_gate1/bench_radio_antenna_pilot.svg",
       "dimensions": [
         64,
         64
@@ -191,7 +191,295 @@
         "filter": "nearest"
       },
       "definition_id": "bench_radio_antenna",
-      "status": "style_pilot_not_final"
+      "status": "legacy_regression_fixture"
+    },
+    {
+      "asset_id": "f5_meridian_watch_front",
+      "render_key": "meridian_watch_front",
+      "source": "Project-generated PNG sprite",
+      "creator": "EXIT NOT INCLUDED development",
+      "license": "project-generated art candidate; distribution review pending",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/items/f5_civilian/meridian_watch_front.png",
+      "dimensions": [
+        384,
+        200
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "fictional_watch_p2",
+      "status": "runtime_candidate"
+    },
+    {
+      "asset_id": "f5_meridian_watch_back",
+      "render_key": "meridian_watch_back",
+      "source": "Project-generated PNG sprite",
+      "creator": "EXIT NOT INCLUDED development",
+      "license": "project-generated art candidate; distribution review pending",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/items/f5_civilian/meridian_watch_back.png",
+      "dimensions": [
+        384,
+        200
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "fictional_watch_p2",
+      "status": "runtime_candidate"
+    },
+    {
+      "asset_id": "f5_civilian_radio_r003",
+      "render_key": "civilian_radio_r003",
+      "source": "Project-generated PNG sprite",
+      "creator": "EXIT NOT INCLUDED development",
+      "license": "project-generated art candidate; distribution review pending",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/items/f5_civilian/civilian_radio_r003.png",
+      "dimensions": [
+        192,
+        100
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "portable_radio",
+      "status": "runtime_candidate"
+    },
+    {
+      "asset_id": "f5_receiver_module_a",
+      "render_key": "receiver_module_a",
+      "source": "Project-generated PNG sprite",
+      "creator": "EXIT NOT INCLUDED development",
+      "license": "project-generated art candidate; distribution review pending",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/items/f5_civilian/receiver_module_a.png",
+      "dimensions": [
+        144,
+        120
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "f3_module_a",
+      "status": "runtime_candidate"
+    },
+    {
+      "asset_id": "f5_g02",
+      "render_key": "g02",
+      "source": "Project-generated PNG sprite",
+      "creator": "EXIT NOT INCLUDED development",
+      "license": "project-generated art candidate; distribution review pending",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/characters/f5_visitors/g02.png",
+      "dimensions": [
+        170,
+        157
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "G02",
+      "status": "runtime_candidate"
+    },
+    {
+      "asset_id": "f5_g03",
+      "render_key": "g03",
+      "source": "Project-generated PNG sprite",
+      "creator": "EXIT NOT INCLUDED development",
+      "license": "project-generated art candidate; distribution review pending",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/characters/f5_visitors/g03.png",
+      "dimensions": [
+        170,
+        157
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "G03",
+      "status": "runtime_candidate"
+    },
+    {
+      "asset_id": "f5_g04",
+      "render_key": "g04",
+      "source": "Project-generated PNG sprite",
+      "creator": "EXIT NOT INCLUDED development",
+      "license": "project-generated art candidate; distribution review pending",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/characters/f5_visitors/g04.png",
+      "dimensions": [
+        170,
+        157
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "G04",
+      "status": "runtime_candidate"
+    },
+    {
+      "asset_id": "f5_g05",
+      "render_key": "g05",
+      "source": "Project-generated PNG sprite",
+      "creator": "EXIT NOT INCLUDED development",
+      "license": "project-generated art candidate; distribution review pending",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/characters/f5_visitors/g05.png",
+      "dimensions": [
+        170,
+        157
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "G05",
+      "status": "runtime_candidate"
+    },
+    {
+      "asset_id": "f5_g06",
+      "render_key": "g06",
+      "source": "Project-generated PNG sprite",
+      "creator": "EXIT NOT INCLUDED development",
+      "license": "project-generated art candidate; distribution review pending",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/characters/f5_visitors/g06.png",
+      "dimensions": [
+        170,
+        157
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "G06",
+      "status": "runtime_candidate"
+    },
+    {
+      "asset_id": "f5_g07",
+      "render_key": "g07",
+      "source": "Project-generated PNG sprite",
+      "creator": "EXIT NOT INCLUDED development",
+      "license": "project-generated art candidate; distribution review pending",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/characters/f5_visitors/g07.png",
+      "dimensions": [
+        170,
+        157
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "G07",
+      "status": "runtime_candidate"
+    },
+    {
+      "asset_id": "f5_g08",
+      "render_key": "g08",
+      "source": "Project-generated PNG sprite",
+      "creator": "EXIT NOT INCLUDED development",
+      "license": "project-generated art candidate; distribution review pending",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/characters/f5_visitors/g08.png",
+      "dimensions": [
+        170,
+        157
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "G08",
+      "status": "runtime_candidate"
+    },
+    {
+      "asset_id": "f5_g09",
+      "render_key": "g09",
+      "source": "Project-generated PNG sprite",
+      "creator": "EXIT NOT INCLUDED development",
+      "license": "project-generated art candidate; distribution review pending",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/characters/f5_visitors/g09.png",
+      "dimensions": [
+        170,
+        157
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "G09",
+      "status": "runtime_candidate"
+    },
+    {
+      "asset_id": "f5_g10",
+      "render_key": "g10",
+      "source": "Project-generated PNG sprite",
+      "creator": "EXIT NOT INCLUDED development",
+      "license": "project-generated art candidate; distribution review pending",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/characters/f5_visitors/g10.png",
+      "dimensions": [
+        170,
+        157
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "G10",
+      "status": "runtime_candidate"
+    },
+    {
+      "asset_id": "f5_g11",
+      "render_key": "g11",
+      "source": "Project-generated PNG sprite",
+      "creator": "EXIT NOT INCLUDED development",
+      "license": "project-generated art candidate; distribution review pending",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/characters/f5_visitors/g11.png",
+      "dimensions": [
+        170,
+        157
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "G11",
+      "status": "runtime_candidate"
+    },
+    {
+      "asset_id": "f5_g12",
+      "render_key": "g12",
+      "source": "Project-generated PNG sprite",
+      "creator": "EXIT NOT INCLUDED development",
+      "license": "project-generated art candidate; distribution review pending",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/characters/f5_visitors/g12.png",
+      "dimensions": [
+        170,
+        157
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "G12",
+      "status": "runtime_candidate"
+    },
+    {
+      "asset_id": "f5_alpha_broker",
+      "render_key": "alpha_broker",
+      "source": "Project-generated PNG sprite",
+      "creator": "EXIT NOT INCLUDED development",
+      "license": "project-generated art candidate; distribution review pending",
+      "version": "1.0",
+      "runtime_path": "res://assets/art/characters/f5_visitors/alpha_broker.png",
+      "dimensions": [
+        170,
+        157
+      ],
+      "import_settings": {
+        "filter": "nearest"
+      },
+      "definition_id": "alpha_broker",
+      "status": "runtime_candidate"
     }
   ]
 }

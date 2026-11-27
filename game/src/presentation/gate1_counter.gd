@@ -23,7 +23,7 @@ var composite_pilot_id: String = "integrated"
 var isolated_preview_id: String = ""
 const COUNTER_BG = preload("res://assets/art/scenes/counter_pilot_bg.svg")
 const COUNTER_FG = preload("res://assets/art/scenes/counter_pilot_fg.svg")
-const CUSTOMER_G01 = preload("res://assets/art/characters/g01_pilot.svg")
+const CUSTOMER_G01 = preload("res://tests/fixtures/art/legacy_gate1/g01_pilot.svg")
 const LAYOUT: String = "res://data/campaign/gate1_1/counter_layout.json"
 var _runtime: RefCounted
 var _layout: Dictionary = {}

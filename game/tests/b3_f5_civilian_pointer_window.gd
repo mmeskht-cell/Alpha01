@@ -35,6 +35,10 @@ func civilian_work(resolution: Vector2i,location: String,before: Dictionary) -> 
 	if not check(host.session!=null and not host._blocked and host.session.snapshot()==before,"F5 resumes existing composite profile in its own slot"): return false
 	if not await click_navigation(host,"stockroom"): return false
 	if not await click_navigation(host,"stock_"+Trial.ROOT): return false
+	var module_a := host.find_child("detach_F3R01_A",true,false) as Button
+	if not check(module_a!=null and module_a.icon!=null and module_a.icon.resource_path.ends_with("receiver_module_a.png"),
+		"module A has its own linked physical sprite on the workshop socket"): return false
+	await capture("f5_civilian_module_a_"+str(resolution.y),resolution)
 	if not await click_navigation(host,"work_slot_1"): return false
 	var composition: Dictionary = host.session.composition_options(Trial.ROOT,"player_stock")
 	# The complete receiver is larger than the disassembled receiver. Exercise

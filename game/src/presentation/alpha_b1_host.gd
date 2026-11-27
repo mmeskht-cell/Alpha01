@@ -20,6 +20,7 @@ const B3_KO_PATH = "res://data/alpha_b3/ko.json"
 const Session = preload("res://src/domain/game_session.gd")
 const Alpha = preload("res://src/domain/alpha_shop_cycle.gd")
 const Repo = preload("res://src/persistence/save_repository.gd")
+const CounterArt = preload("res://src/presentation/native_v23_art.gd")
 const ThemeSource = preload("res://src/presentation/ui_theme.gd")
 const KO_PATH = "res://data/alpha_b1/ko.json"
 const B2Entry = preload("res://src/presentation/b2_launch_route.gd")
@@ -979,22 +980,11 @@ func _add_b2_card_actions(actions: VBoxContainer, v: Dictionary) -> void:
 	surface_inner.add_child(instruction)
 	# Art shows only the generic external silhouette, never private readings,
 	# hidden condition or counterparty acceptance thresholds.
-	var preview_assets: Dictionary = {
-		"portable_radio":"res://assets/art/items/radio_face_probe_a.svg",
-		"fictional_watch_p2":"res://assets/art/items/watch_wat02_native_pilot.svg",
-		"battery":"res://assets/art/items/battery_counter_pilot.svg",
-		"demo_tool":"res://assets/art/items/tool_counter_pilot.svg",
-		"demo_hygiene":"res://assets/art/items/hygiene_counter_pilot.svg",
-		"demo_electronics":"res://assets/art/items/electronics_counter_pilot.svg",
-		"fictional_gear":"res://assets/art/items/fictional_gear_pilot.svg",
-		"demo_service_10":"res://assets/art/items/fictional_gear_pilot.svg",
-		"demo_service_5":"res://assets/art/items/fictional_gear_pilot.svg"
-	}
-	var preview_path: String = str(preview_assets.get(str(a.def_id), ""))
-	if not preview_path.is_empty() and ResourceLoader.exists(preview_path):
+	var preview := CounterArt.ITEMS.model_texture(str(a.def_id),"inspection",str(a.item_id))
+	if preview:
 		var thumbnail := TextureRect.new()
 		thumbnail.name = "b2_item_art"
-		thumbnail.texture = ResourceLoader.load(preview_path) as Texture2D
+		thumbnail.texture = preview
 		thumbnail.custom_minimum_size = Vector2(0,260 if _b2_zoomed else 144)
 		thumbnail.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		thumbnail.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED

@@ -292,13 +292,14 @@ func _room(index: int,npc: bool) -> void:
 		pic(Art.ROOM,0,0,1280,720,true)
 	if npc:
 		var portrait: TextureRect
-		var approved_portrait := counter_portraits.get(actor) as Texture2D
-		if use_r2 and actor=="G01": approved_portrait = r2_layers.visitor
-		if use_r2 and approved_portrait:
-			portrait = pic(approved_portrait,470,112,340,314,true)
+		var portrait_art := counter_portraits.get(actor) as Texture2D
+		if use_r2 and actor=="G01": portrait_art = r2_layers.visitor
+		if portrait_art==null: portrait_art = Art.customer_texture(actor)
+		if use_r2:
+			portrait = pic(portrait_art,470,112,340,314,true)
 			portrait.name = "r2_visitor"
 		else:
-			portrait = pic(Art.scene_texture("customer.opening" if actor=="G01" else "customer.watch" if actor=="G04" else "customer.neutral"),525,70,260,395)
+			portrait = pic(portrait_art,525,70,260,395)
 		standing_actor = portrait
 		motion_subjects["actor"] = portrait
 		if not reduce_motion:
@@ -1788,6 +1789,18 @@ func _pawn_folio(page: VBoxContainer,v: Dictionary,state: Dictionary) -> void:
 	if pawn.status=="available": return
 	var title := _receipt_items(state,["WAT02"])
 	_board_line(page,"pledge",title+" · "+_text("week."+str(pawn.status))+" · 기한 %d일차"%pawn.due)
+	var pledge_item: Dictionary = state.items.get("WAT02",state.tombstones.get("WAT02",{}))
+	var image := Art.ITEMS.model_texture(str(pledge_item.get("def_id","")),"inspection")
+	if image:
+		var specimen := TextureRect.new()
+		specimen.name = "pledge_specimen"
+		specimen.texture = image
+		specimen.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		specimen.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		specimen.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		specimen.custom_minimum_size.y = 80
+		specimen.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		page.add_child(specimen)
 	if pawn.status=="pledged" and v.phase=="CLOSE_SETTLE" and v.day==pawn.due:
 		_button(page,"week_redeem",_text("week.redeem"),func()->void:_submit("week_redeem"))
 		if pawn.due==4: _button(page,"week_extend",_text("week.extend"),func()->void:_submit("week_extend"))
@@ -2828,7 +2841,7 @@ func _committed_motion(kind: String,payload: Dictionary,previous_actor: Texture2
 		"alpha_price_offer","alpha_claim_challenge": _slide(motion_subjects.get("actor"),Vector2(4,0),0.18)
 		"alpha_ack_exit":
 			if previous_actor:
-				var original_pose: bool = r2_room_active and (previous_actor==r2_layers.get("visitor") or counter_portraits.values().has(previous_actor))
+				var original_pose: bool = r2_room_active
 				var departing := pic(previous_actor,470 if original_pose else 525,112 if original_pose else 70,340 if original_pose else 260,314 if original_pose else 395,original_pose)
 				departing.reparent(scenery,false)
 				var foreground := scenery.get_node_or_null("r2_counter")

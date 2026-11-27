@@ -347,8 +347,8 @@ func watch_route()->void:
 	await frames()
 	if not check(host._spatial.visible and not host._app.visible and not host._counter.visible,"shared spatial watch scene"):
 		return
-	check(host._spatial._npc.texture.resource_path.ends_with("g04_pilot.svg"),"watch customer is distinct")
-	check(host._spatial._item.texture.resource_path.ends_with("watch_spatial_face_pilot.svg"),"neutral watch front art")
+	check(host._spatial._npc.texture.resource_path.ends_with("g04.png"),"watch customer is distinct")
+	check(host._spatial._item.texture.resource_path.ends_with("meridian_watch_front.png"),"neutral watch front art")
 	var prior:Dictionary=host.runtime.snapshot()
 	await capture("spatial-watch-front-ko")
 	if not await click("select_tool_wear_detail") or not await click("region_wear_detail"):
@@ -356,6 +356,7 @@ func watch_route()->void:
 	check(host.runtime.view().minute==int(prior.game_minutes)+5,"watch face observation authority")
 	if not await click("flip_item") or not await drag("select_tool_batch_detail","region_batch_detail"):
 		return
+	check(host._spatial._item.texture.resource_path.ends_with("meridian_watch_back.png"),"physical flip shows the matching Meridian caseback")
 	check(host.runtime.view().minute==int(prior.game_minutes)+10,"watch back observation authority")
 	await capture("spatial-watch-back-ko")
 	prior=host.runtime.snapshot()
@@ -384,6 +385,8 @@ func watch_route()->void:
 		if not check(v.visits.active==expected and host._spatial.visible and not host._workspace_button.visible,"fixed trade scene "+expected):
 			return
 		await capture("spatial-"+expected+"-ko")
+		if expected=="watch_sale":
+			check(host._spatial._item.texture.resource_path.ends_with("meridian_watch_front.png"),"watch resale uses the same Meridian face as purchase")
 		if expected=="battery_buy":
 			var basic_before:Dictionary=host.runtime.snapshot()
 			if not await click("spatial_basic_review"):

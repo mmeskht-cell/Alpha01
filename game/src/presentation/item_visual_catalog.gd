@@ -8,8 +8,8 @@ const CivilianVisuals=preload("res://src/presentation/approved_civilian_visuals.
 @export var item_keys:Dictionary={}
 @export var counter_keys:Dictionary={}
 @export var inspection_keys:Dictionary={}
-@export var counter_fallback:String="electronics"
-@export var inspection_fallback:String="electronics"
+@export var counter_fallback:String=""
+@export var inspection_fallback:String=""
 
 func profile_for(item_id:String,role:String)->Profile:
 	var key:String=str(item_keys.get(item_id,""))
@@ -27,7 +27,7 @@ func profile_for(item_id:String,role:String)->Profile:
 @export var model_art: Dictionary = {}
 
 # The isolated civilian receiver uses the approved new radio model, never R001.
-# Module B has the approved control-module image; module A has no distinct approved image yet.
+# Module B uses the approved control-module image. Module A has a separate model entry.
 # These bindings are presentation only and cannot alter the definition or item identity.
 const CIVILIAN_MODEL_ART = {"f3_receiver_v1":"utility_01_field_radio","f3_module_b":"utility_10_control_module"}
 const BATTERY_ART := "utility_03_aa_batteries"
@@ -42,7 +42,6 @@ func model_texture(model: String,role: String,item_id: String="",back: bool=fals
 		if approved: return approved
 	# Exact candidate art keys only. Do not pretend a missing food image is electronics.
 	if CIVILIAN_MODEL_ART.has(model): return CivilianVisuals.texture_for(str(CIVILIAN_MODEL_ART[model]),role,back)
-	if model=="f3_module_a": return null
 	if FoodVisuals.LABELS.has(model): return FoodVisuals.texture_for(model,role,back)
 	if CivilianVisuals.LABELS.has(model): return CivilianVisuals.texture_for(model,role,back)
 	if back and entry.has("back"): return entry.back as Texture2D

@@ -4,6 +4,7 @@ const Review = preload("res://scenes/app/alpha_b3_r2_art_review.tscn")
 const ProductSource = preload("res://src/content/b3_spatial_week_seed.gd")
 const ProductSession = preload("res://src/domain/game_session.gd")
 const ProductRepo = preload("res://src/persistence/save_repository.gd")
+const CounterArt = preload("res://src/presentation/native_v23_art.gd")
 const PRODUCT_SLOT := "spatial_week_v1"
 const ProductPlanner = preload("res://src/domain/alpha_b3_visit_randomizer.gd")
 const ProductCommission = preload("res://src/domain/alpha_commission.gd")
@@ -100,10 +101,34 @@ func shop_route(resolution: Vector2i,refund: bool) -> bool:
 	if not await set_inline_scale(100): return false
 	if not await actions([["alpha_next_day","NEXT_DAY"],["alpha_prepare_day","DAY_PREP"],["alpha_open","OPEN_IDLE"]]): return false
 	if not await serve_until("watch_a"): return false
+	var watch: Texture2D = CounterArt.ITEMS.model_texture("fictional_watch_p2","counter","WAT02")
+	var visitor := host.standing_actor as TextureRect
+	if not check(visitor!=null and visitor.texture==CounterArt.customer_texture("G04")
+		and host.counter_item.texture==watch and host.session.spatial_dimensions("WAT02")==[1,1],
+		"G04 and the shared Meridian face are visible at the real one-cell pledge visit"): return false
 	await capture("r2_c7_pledge_"+str(resolution.y),resolution)
 	var before: Dictionary = host.session.snapshot()
+	if not await start_counter_appraisal(true): return false
+	if not check(host.counter_item.texture==watch,"watch appraisal uses the same model face as the counter"): return false
+	if not await click_navigation(host,"turn_item"): return false
+	var back: Texture2D = CounterArt.ITEMS.model_texture("fictional_watch_p2","inspection","WAT02",true)
+	if not check(back!=null and back!=watch and host.counter_item.texture==back and host.session.snapshot()==before,
+		"watch flip exposes the matching caseback without a state change"): return false
+	await capture("r2_c7_watch_caseback_"+str(resolution.y),resolution)
+	if not await leave_counter_appraisal(true): return false
 	if not await actions([["week_pledge","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]]): return false
 	if not check(host.session.snapshot().items.WAT02.inventory=="pawn_grid" and host.session.snapshot().wallets.player.VKC==before.wallets.player.VKC-40,"pledge retains custody and exact principal"): return false
+	var pledged: Dictionary = host.session.snapshot()
+	if not await click_navigation(host,"stockroom") or not await click_navigation(host,"tab_pawn_grid"): return false
+	if not await click_navigation(host,"stock_WAT02"): return false
+	var stock := host.find_child("stock_WAT02",true,false) as Button
+	var stock_art := stock.get_node_or_null("ItemArt") as Sprite2D if stock else null
+	var detail := host.find_child("inventory_specimen",true,false) as TextureRect
+	if not check(stock_art!=null and stock_art.texture is AtlasTexture and stock_art.texture.atlas==watch
+		and detail!=null and detail.texture==stock_art.texture and host.session.snapshot()==pledged,
+		"pawn inventory and detail crop the same shared watch face without changing custody"): return false
+	await capture("r2_c7_watch_pawn_inventory_"+str(resolution.y),resolution)
+	if not await click_navigation(host,"close_drawer"): return false
 	if not await next_morning(): return false
 	if not refund:
 		if not check(host.session.snapshot().alpha_shop.outbound.tool_search.status=="delayed","D3 reports the authored delay"): return false
@@ -120,6 +145,10 @@ func shop_route(resolution: Vector2i,refund: bool) -> bool:
 	if not await click("alpha_close","CLOSE_SETTLE"): return false
 	if not await click_navigation(host,"ledger"): return false
 	if not await click_navigation(host,"folio_contracts"): return false
+	var pledge_image := host.find_child("pledge_specimen",true,false) as TextureRect
+	if not check(pledge_image!=null and pledge_image.is_visible_in_tree() and pledge_image.texture==watch,
+		"pawn document shows the same front model used on the counter"): return false
+	await capture("r2_c7_watch_pledge_document_"+str(resolution.y),resolution)
 	await reveal_action("week_redeem")
 	if not await click("week_redeem","CLOSE_SETTLE"): return false
 	if not check(host.session.snapshot().alpha_shop.week_pawn.status=="redeemed","D4 redemption through original authority"): return false
@@ -128,6 +157,8 @@ func shop_route(resolution: Vector2i,refund: bool) -> bool:
 	if not await actions([["alpha_settle","EVENING_WORK"],["alpha_next_day","NEXT_DAY"],["alpha_prepare_day","DAY_PREP"],["alpha_open","OPEN_IDLE"]]): return false
 	if not await next_morning() or not await next_morning(): return false
 	if not await serve_until("alpha_b3_fx_broker_d7"): return false
+	if not check(host.standing_actor.texture==CounterArt.customer_texture("alpha_broker")
+		and host.standing_actor.texture!=CounterArt.customer_texture("G04"),"the FX visit uses its authored broker portrait"): return false
 	if not await click_navigation(host,"visitor_papers"): return false
 	await capture("r2_c7_fx_quote_"+str(resolution.y),resolution)
 	var funds: Dictionary = host.session.snapshot().wallets.player

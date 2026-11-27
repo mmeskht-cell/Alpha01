@@ -19,6 +19,10 @@ const COLD=[preload("res://assets/art/native_v23/cold_0.png"),preload("res://ass
 static func scene_texture(key:String)->Texture2D:
 	return SCENES.texture_for(key)
 
+## Bind the same authored portrait for each visit by its public actor ID.
+static func customer_texture(actor_id: String) -> Texture2D:
+	return scene_texture("customer.opening" if actor_id=="G01" else "customer."+actor_id)
+
 static func timed_texture(group:String,index:int)->Texture2D:
 	return scene_texture(group+"."+str(clampi(index,0,5)))
 

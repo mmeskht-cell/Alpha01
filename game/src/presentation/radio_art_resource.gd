@@ -14,7 +14,7 @@ static func resolve(key: String = "") -> Dictionary:
 	if not raw is Dictionary or not raw.get("texture") is String or not raw.get("body") is Array or not raw.get("dimensions") is Array:
 		return {}
 	var path: String = raw.texture
-	if not path.begins_with("res://assets/art/items/") or ".." in path or not path.ends_with(".svg"):
+	if not path.begins_with("res://tests/fixtures/art/legacy_gate1/") or ".." in path or not path.ends_with(".svg"):
 		return {}
 	var b: Array = raw.body
 	if b.size() != 4 or raw.dimensions.size() != 2:

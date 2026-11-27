@@ -20,26 +20,11 @@ const TOOL_NAMES:Dictionary={
 }
 # Public geometric affordances, not specimen readings. The authority still
 # checks the actual tool, target, active visit, time and identity.
-const FRONT:Dictionary={
-	"wear_detail":Rect2(0.06,0.74,0.46,0.23),
-	"material_detail":Rect2(0.05,0.13,0.60,0.48),
-	"display_damage_detail":Rect2(0.70,0.12,0.26,0.27),
-	"function_detail":Rect2(0.70,0.50,0.26,0.44)
-}
-const BACK:Dictionary={
-	"casing_detail":Rect2(0.04,0.10,0.25,0.73),
-	"batch_detail":Rect2(0.32,0.29,0.48,0.33)
-}
 # Public geometric masks shared across specimen identities. Watch art is neutral.
-const WATCH_FRONT:Dictionary={
-	"wear_detail":Rect2(0.34,0.22,0.27,0.47),
-	"material_detail":Rect2(0.23,0.22,0.10,0.47),
-	"function_detail":Rect2(0.62,0.35,0.11,0.26)
-}
 const WATCH_BACK:Dictionary={
 	"batch_detail":Rect2(0.38,0.27,0.22,0.41)
 }
-# Opt-in R001 art candidate; legacy scenes keep their existing textures and masks.
+# The older R001 review scene still opts in to its isolated host profile.
 @export var preview_r001_pixel_art:bool=false
 @export var preview_native_v23:bool=false
 const NativeArt=preload("res://src/presentation/native_v23_art.gd")
@@ -118,7 +103,7 @@ func _ready()->void:
 	if preview_native_v23:
 		_native_lamp=_texture(NativeArt.scene_texture("counter.lamp"),false)
 		_native_lamp.hide()
-	_npc=_texture(preload("res://assets/art/characters/g01_pilot.svg"),true)
+	_npc=_texture(NativeArt.customer_texture("G01"),true)
 	_fg=_texture(preload("res://assets/art/scenes/counter_pilot_fg.svg"),false)
 	if preview_native_v23:
 		_native_amber=_texture(NativeArt.scene_texture("counter.amber"),false)
@@ -129,7 +114,7 @@ func _ready()->void:
 	_mat.color=Color("#33393B" if preview_native_v23 else "#303e35")
 	_mat.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	add_child(_mat)
-	_item=_texture(preload("res://assets/art/items/radio_face_probe_a.svg"),true)
+	_item=_texture(R001_PIXEL_FRONT,true)
 	_layer=Control.new()
 	_layer.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	add_child(_layer)
@@ -176,7 +161,7 @@ func _is_watch()->bool:
 	return _app.get("visit_id","")=="watch_a"
 
 func _uses_r001_pixel_art()->bool:
-	return preview_r001_pixel_art and _app.get("visit_id","")=="visit_g01" and not _plain
+	return (preview_r001_pixel_art or not preview_native_v23) and not _plain and _app.get("item_id","")=="R001"
 
 func _uses_native_r001()->bool:
 	return preview_native_v23 and _app.get("visit_id","")=="visit_g01" and not _plain
@@ -225,11 +210,12 @@ func _face_regions()->Dictionary:
 		# A missing display region remains an explicit off-image detail target,
 		# not a fake hotspot or a missing authoritative tool.
 		return profile.regions if profile!=null else {}
-	if _uses_r001_pixel_art():
+	if _is_watch() and _back:
+		return WATCH_BACK
+	if _back or _uses_r001_pixel_art():
 		return R001_PIXEL_BACK_REGIONS if _back else R001_PIXEL_FRONT_REGIONS
-	if _is_watch():
-		return WATCH_BACK if _back else WATCH_FRONT
-	return BACK if _back else FRONT
+	var radio_profile:VisualProfile=NativeArt.item_profile(str(_app.get("item_id","")),"inspection")
+	return radio_profile.regions if radio_profile else {}
 
 # A small surface may have an honest visible crop while its actual tool
 # action remains a separate accessible detail target.
@@ -313,7 +299,7 @@ func _layout_scene()->void:
 	_rect(_mat,mat)
 	_mat.modulate.a=_gaze
 	var aspect:float=4.0/3.0 if (_uses_native_counter_radio() or _uses_r001_pixel_art()) else 1.92
-	if preview_native_v23 and _item.texture!=null and _item.texture.get_height()>0:
+	if _item.texture!=null and _item.texture.get_height()>0:
 		aspect=float(_item.texture.get_width())/float(_item.texture.get_height())
 	var up:Rect2=_fit(_relative(Rect2(0.34,0.56,0.32,0.23)),aspect)
 	if _uses_native_counter_radio():
@@ -564,17 +550,16 @@ func _build()->void:
 		if not _uses_native_r001() and not _inspect and capability.get("counter_role")=="inspection":
 			profile=NativeArt.item_profile(id,"inspection")
 		_item.texture=profile.texture if profile!=null else null
-		var customer_id:String=_customer_id()
-		_npc.texture=NativeArt.scene_texture("customer.opening" if customer_id=="G01" else ("customer.watch" if customer_id=="G04" else "customer.neutral"))
 	elif _is_watch():
-		_item.texture=preload("res://assets/art/items/watch_spatial_back_pilot.svg") if _inspect and _back and not _single_view_items() else preload("res://assets/art/items/watch_spatial_face_pilot.svg")
-		_npc.texture=preload("res://assets/art/characters/g04_pilot.svg")
+		_item.texture=NativeArt.ITEMS.model_texture("fictional_watch_p2","inspection","WAT02",_inspect and _back)
+	elif _inspect and _back:
+		_item.texture=R001_PIXEL_BACK
+	elif _uses_r001_pixel_art():
+		_item.texture=R001_PIXEL_FRONT
 	else:
-		if _uses_r001_pixel_art():
-			_item.texture=R001_PIXEL_BACK if _inspect and _back else R001_PIXEL_FRONT
-		else:
-			_item.texture=preload("res://assets/art/items/radio_spatial_back_pilot.svg") if _inspect and _back and not _single_view_items() else preload("res://assets/art/items/radio_face_probe_a.svg")
-		_npc.texture=preload("res://assets/art/characters/visitor_neutral_pilot.svg") if _app.visit_id in ["radio_return","radio3_buy"] else preload("res://assets/art/characters/g01_pilot.svg")
+		var profile:VisualProfile=NativeArt.item_profile(str(_app.get("item_id","")),"inspection")
+		_item.texture=profile.texture if profile else null
+	_npc.texture=NativeArt.customer_texture(_customer_id())
 	_notebook.hide()
 	if _inspect:
 		_build_inspection()
@@ -583,32 +568,15 @@ func _build()->void:
 	_layout_scene()
 
 func _ordinary_item_art(id:String)->Texture2D:
-	if preview_native_v23:
-		var profile:VisualProfile=NativeArt.item_profile(id,"counter")
-		return profile.texture if profile!=null else null
-	match id:
-		"R001","R003":
-			return preload("res://assets/art/items/radio_face_probe_a.svg")
-		"WAT02":
-			return preload("res://assets/art/items/watch_spatial_face_pilot.svg")
-		"GE03":
-			return preload("res://assets/art/items/fictional_gear_pilot.svg")
-		"BAT02":
-			return preload("res://assets/art/items/battery_counter_pilot.svg")
-		"TL04":
-			return preload("res://assets/art/items/tool_counter_pilot.svg")
-		"HY05":
-			return preload("res://assets/art/items/hygiene_counter_pilot.svg")
-		_:
-			return preload("res://assets/art/items/electronics_counter_pilot.svg")
-	return null
+	var profile:VisualProfile=NativeArt.item_profile(id,"counter")
+	return profile.texture if profile!=null else null
 
 func _build_plain()->void:
 	var trade:Dictionary=_view.trade
 	var id:String=trade.item_id
 	var buying:bool=trade.buyer=="player"
 	var quote:Dictionary=_view.get("condition_quote",{})
-	_npc.texture=NativeArt.scene_texture("customer.neutral") if preview_native_v23 else preload("res://assets/art/characters/visitor_neutral_pilot.svg")
+	_npc.texture=NativeArt.customer_texture(_customer_id())
 	_item.texture=_ordinary_item_art(id)
 	_notebook.hide()
 	var speech:=ColorRect.new()
@@ -683,8 +651,8 @@ func _build_service()->void:
 	var terms:Dictionary=_view.visits.terms
 	var accepting:bool=terms.kind=="service_offer"
 	var complete:bool=terms.status=="complete"
-	_npc.texture=NativeArt.scene_texture("customer.neutral") if preview_native_v23 else preload("res://assets/art/characters/visitor_neutral_pilot.svg")
-	_item.texture=_ordinary_item_art(str(terms.item_id)) if preview_native_v23 else preload("res://assets/art/items/fictional_gear_pilot.svg")
+	_npc.texture=NativeArt.customer_texture(_customer_id())
+	_item.texture=NativeArt.ITEMS.model_texture("fictional_gear","counter",str(terms.item_id))
 	_notebook.hide()
 	var speech:=ColorRect.new()
 	speech.name="spatial_speech_background"

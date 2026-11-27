@@ -1,20 +1,22 @@
-[gd_resource type="Resource" load_steps=23 format=3]
+[gd_resource type="Resource" load_steps=24 format=3]
 
 [ext_resource type="Script" path="res://src/presentation/item_visual_catalog.gd" id="1"]
 [ext_resource type="Script" path="res://src/presentation/item_visual_profile.gd" id="2"]
 [ext_resource type="Resource" path="res://assets/art/profiles/radio_inspection_placeholder.tres" id="3"]
 [ext_resource type="Texture2D" path="res://assets/art/native_v23/radio_counter.png" id="4"]
-[ext_resource type="Texture2D" path="res://assets/art/items/radio_r003_native_pilot.svg" id="5"]
-[ext_resource type="Texture2D" path="res://assets/art/items/watch_wat02_native_pilot.svg" id="6"]
-[ext_resource type="Texture2D" path="res://assets/art/items/battery_counter_pilot.svg" id="7"]
-[ext_resource type="Texture2D" path="res://assets/art/items/tool_counter_pilot.svg" id="8"]
-[ext_resource type="Texture2D" path="res://assets/art/items/electronics_counter_pilot.svg" id="9"]
-[ext_resource type="Texture2D" path="res://assets/art/items/hygiene_counter_pilot.svg" id="10"]
-[ext_resource type="Texture2D" path="res://assets/art/items/fictional_gear_pilot.svg" id="11"]
+[ext_resource type="Texture2D" path="res://assets/art/items/f5_civilian/civilian_radio_r003.png" id="5"]
+[ext_resource type="Texture2D" path="res://assets/art/items/f5_civilian/meridian_watch_front.png" id="6"]
+[ext_resource type="Texture2D" path="res://assets/art/items/approved_civilian_v01/utility_03_aa_batteries_256.png" id="7"]
+[ext_resource type="Texture2D" path="res://assets/art/items/approved_civilian_v01/utility_05_wrench_256.png" id="8"]
+[ext_resource type="Texture2D" path="res://assets/art/items/approved_civilian_v01/utility_08_multimeter_256.png" id="9"]
+[ext_resource type="Texture2D" path="res://assets/art/items/approved_civilian_v01/medical_06_soap_256.png" id="10"]
+[ext_resource type="Texture2D" path="res://assets/art/items/f5_civilian/protective_case.png" id="11"]
 
 [ext_resource type="Texture2D" path="res://assets/art/items/r001_pixel_front_candidate.png" id="12"]
 [ext_resource type="Texture2D" path="res://assets/art/items/r001_pixel_back_candidate.png" id="13"]
-[ext_resource type="Texture2D" path="res://assets/art/items/watch_spatial_back_pilot.svg" id="14"]
+[ext_resource type="Texture2D" path="res://assets/art/items/f5_civilian/meridian_watch_back.png" id="14"]
+
+[ext_resource type="Texture2D" path="res://assets/art/items/f5_civilian/receiver_module_a.png" id="15"]
 
 [sub_resource type="Resource" id="radio_counter"]
 script = ExtResource("2")
@@ -26,10 +28,10 @@ provisional = true
 script = ExtResource("2")
 texture = ExtResource("5")
 regions = {
-"wear_detail": Rect2(0.06, 0.74, 0.63, 0.15),
-"material_detail": Rect2(0.06, 0.27, 0.20, 0.44),
-"display_damage_detail": Rect2(0.73, 0.25, 0.22, 0.22),
-"function_detail": Rect2(0.72, 0.50, 0.23, 0.34)
+"wear_detail": Rect2(0.06, 0.84, 0.62, 0.12),
+"material_detail": Rect2(0.05, 0.37, 0.13, 0.43),
+"display_damage_detail": Rect2(0.73, 0.35, 0.23, 0.14),
+"function_detail": Rect2(0.77, 0.54, 0.15, 0.29)
 }
 provisional = true
 
@@ -37,9 +39,9 @@ provisional = true
 script = ExtResource("2")
 texture = ExtResource("6")
 regions = {
-"wear_detail": Rect2(0.34, 0.22, 0.27, 0.47),
-"material_detail": Rect2(0.275, 0.22, 0.105, 0.47),
-"function_detail": Rect2(0.62, 0.35, 0.11, 0.26)
+"wear_detail": Rect2(0.37, 0.30, 0.26, 0.49),
+"material_detail": Rect2(0.337, 0.34, 0.04, 0.36),
+"function_detail": Rect2(0.455, 0.175, 0.09, 0.13)
 }
 provisional = true
 
@@ -116,12 +118,17 @@ inspection_keys = {
 "R001": "radio",
 "R003": "radio_other"
 }
-counter_fallback = "electronics"
-inspection_fallback = "electronics"
+counter_fallback = ""
+inspection_fallback = ""
 model_art = {
 "portable_radio": {"base": ExtResource("12"), "counter": ExtResource("4"), "back": ExtResource("13")},
 "fictional_watch_p2": {"base": ExtResource("6"), "back": ExtResource("14")},
 "battery": {"base": ExtResource("7")},
 "demo_tool": {"base": ExtResource("8")},
-"demo_hygiene": {"base": ExtResource("10")}
+"demo_hygiene": {"base": ExtResource("10")},
+"demo_electronics": {"base": ExtResource("9")},
+"fictional_gear": {"base": ExtResource("11")},
+"demo_service_10": {"base": ExtResource("11")},
+"demo_service_5": {"base": ExtResource("11")},
+"f3_module_a": {"base": ExtResource("15")}
 }
