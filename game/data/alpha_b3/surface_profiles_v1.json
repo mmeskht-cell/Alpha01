@@ -42,6 +42,57 @@
           "expected": "34"
         }
       }
+    },
+    "WAT02": {
+      "def_id": "fictional_watch_p2",
+      "provenance": "p2_watch_a",
+      "authored": true,
+      "surfaces": {
+        "material_detail": {
+          "family": "metal",
+          "target": "caseback",
+          "side": "back",
+          "expected": "parallel"
+        },
+        "wear_detail": {
+          "family": "metal",
+          "target": "caseback",
+          "side": "back",
+          "expected": 38
+        },
+        "display_damage_detail": {
+          "family": "glass",
+          "target": "front_crystal",
+          "side": "front",
+          "expected": 24
+        }
+      }
+    },
+    "BAT02": {
+      "def_id": "battery",
+      "provenance": "demo_BAT02",
+      "authored": true,
+      "surfaces": {
+        "wear_detail": {
+          "family": "plastic",
+          "target": "outer_wrapper",
+          "side": "front",
+          "expected": 16
+        }
+      }
+    },
+    "TL04": {
+      "def_id": "demo_tool",
+      "provenance": "demo_TL04",
+      "authored": true,
+      "surfaces": {
+        "wear_detail": {
+          "family": "metal",
+          "target": "outer_body",
+          "side": "front",
+          "expected": 52
+        }
+      }
     }
   }
 }

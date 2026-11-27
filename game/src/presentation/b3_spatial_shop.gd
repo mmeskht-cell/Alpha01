@@ -1138,6 +1138,10 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 	if Art.ITEMS.model_art.get(str(a.def_id),{}).has("back"):
 		_desk_action("turn_item",_counter_copy("뒤집기","Turn over"),Rect2(593,599,168,44),func()->void:
 			reverse = not reverse
+			if chosen_tool in SurfaceVisuals.SLOTS:
+				chosen_tool = ""
+				lens_open = false
+				surface_slot = ""
 			refresh()).flat = true
 	for row: Dictionary in a.tools:
 		if not dock_slots.has(row.id): dock_slots.append(row.id)
@@ -1163,8 +1167,9 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 			if selected_tool:
 				_slide(selected_tool.get_node_or_null("DeskVisual"),Vector2(0,7),0.13))
 		tool.visible = floori(index/3.0)==tool_page
-		tool.modulate = Color("#f4d5a7") if chosen_tool==slot else Color.WHITE
-		tool.tooltip_text = caption+(_counter_copy(" · 들고 있음"," · in use") if chosen_tool==slot else _counter_copy(" · 물건에 대기"," · apply to the item"))
+		tool.disabled = not _surface_side_matches(a,slot)
+		tool.modulate = Color("#93918c") if tool.disabled else (Color("#f4d5a7") if chosen_tool==slot else Color.WHITE)
+		tool.tooltip_text = caption+(_counter_copy(" · 반대면에서 사용"," · use on opposite face") if tool.disabled else (_counter_copy(" · 들고 있음"," · in use") if chosen_tool==slot else _counter_copy(" · 물건에 대기"," · apply to the item")))
 		motion_subjects["tool_"+slot] = tool
 		tool.set_drag_forwarding(func(_at:Vector2)->Variant:
 			var held := _r2_hand_visual(slot,Vector2(88,76)*stage.scale) if r2_room_active else _prop_drag_preview(slot)
@@ -1222,12 +1227,19 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 			if _tool_drop_allowed(at/apply.size,data,v,a): _queue_counter_drop("inspect",str(data.tool),v,a))
 
 
+func _surface_side_matches(a: Dictionary,slot: String) -> bool:
+	if slot not in SurfaceVisuals.SLOTS: return true
+	for entry: Dictionary in a.tools+a.cards:
+		if entry.get("id",entry.get("slot",""))==slot:
+			return entry.get("surface_side","front")==("back" if reverse else "front")
+	return not reverse
+
 func _appraisal_surface(a: Dictionary) -> void:
-	var available := SurfaceVisuals.observation_slots(a.cards)
+	var available: Array = SurfaceVisuals.observation_slots(a.cards).filter(func(slot:String)->bool:return _surface_side_matches(a,slot))
 	# A selected lens may be waiting for its first reading.
-	if surface_slot not in available and (surface_slot!=chosen_tool or surface_slot not in SurfaceVisuals.SLOTS):
+	if surface_slot not in available and (surface_slot!=chosen_tool or surface_slot not in SurfaceVisuals.SLOTS or not _surface_side_matches(a,surface_slot)):
 		surface_slot = str(available[0]) if not available.is_empty() else ""
-	var reading := SurfaceVisuals.observed(a.cards,surface_slot,int(a.surface_seed),a.get("surface_profiles",{})) if lens_open and not reverse else {}
+	var reading := SurfaceVisuals.observed(a.cards,surface_slot,int(a.surface_seed),a.get("surface_profiles",{})) if lens_open and _surface_side_matches(a,surface_slot) else {}
 	var image := SurfaceVisuals.texture_for(reading)
 	var plate_id := "r2_observed_sample" if image else "r2_surface_frame"
 	var plate := r2_controls.mount(interaction,plate_id,OVERHEAD_LENS,func()->Control:
@@ -1242,11 +1254,11 @@ func _appraisal_surface(a: Dictionary) -> void:
 
 	var title := _counter_copy("확대 표면","Magnified surface")
 	var index := available.find(surface_slot)
-	if index>=0 and lens_open and not reverse:
+	if index>=0 and lens_open:
 		var titles := {"material_detail":_counter_copy("표면 무늬","Surface pattern"),
 			"wear_detail":_counter_copy("외장 마모","Case wear"),"display_damage_detail":_counter_copy("표시부 훼손","Display wear")}
 		title = titles[surface_slot]
-	if index>=0 and available.size()>1 and lens_open and not reverse:
+	if index>=0 and available.size()>1 and lens_open:
 		var turn := _desk_action("surface_next",title+"  %d/%d ›"%[index+1,available.size()],Rect2(37,56,254,44),func()->void:
 			surface_slot = str(available[(index+1)%available.size()])
 			refresh())
@@ -1255,7 +1267,7 @@ func _appraisal_surface(a: Dictionary) -> void:
 		words(title,44,56,238,44,17).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 	var caption := _counter_copy("렌즈를 골라 물품에 대세요.","Use a lens on the item.")
-	if reverse:
+	if reverse and available.is_empty() and not a.tools.any(func(tool:Dictionary)->bool:return tool.id in SurfaceVisuals.SLOTS and _surface_side_matches(a,tool.id)):
 		caption = _counter_copy("뒷면 표본 없음","No reverse sample")
 	elif image:
 		caption = str(reading.caption_en if counter_language=="en" else reading.caption)
@@ -1592,7 +1604,7 @@ func _flush_counter_drop() -> void:
 				_submit("alpha_card_toggle",{"slot":slot,"selected":true})
 
 func _inspect_drop(slot: String) -> void:
-	if counter_step!=CounterStep.APPRAISAL: return
+	if counter_step!=CounterStep.APPRAISAL or not _surface_side_matches(session.alpha_view().appraisal,slot): return
 	chosen_tool = slot
 	if slot in SurfaceVisuals.SLOTS:
 		lens_open = true
@@ -1606,6 +1618,7 @@ func _tool_drop_allowed(relative:Vector2,data:Variant,v:Dictionary,a:Dictionary)
 	if counter_step!=CounterStep.APPRAISAL: return false
 	if not data is Dictionary or data.get("visit")!=v.active.id or data.get("item")!=a.item_id or not data.has("tool"): return false
 	if not a.tools.any(func(tool:Dictionary)->bool:return tool.id==data.tool) and not a.cards.any(func(card:Dictionary)->bool:return card.slot==data.tool): return false
+	if not _surface_side_matches(a,str(data.tool)): return false
 	return Rect2(0,0,1,1).has_point(relative)
 
 func _drawer(v: Dictionary) -> void:

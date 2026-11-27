@@ -86,6 +86,26 @@ func _initialize() -> void:
 	check("domain does not move a fact between slots",Domain.project("R001",item,{"display_damage_detail":fact}).is_empty())
 	fact.version.functional = 1
 	check("domain stale profile blocked",Domain.project("R001",item,{"wear_detail":fact}).is_empty())
+	var first_week := {"spatial_opening":1,"week_proposal":"first_week_proposal_1"}
+	var watch := {"def_id":"fictional_watch_p2","provenance_id":"p2_watch_a","field_versions":{"functional":0,"restored":0,"composition":0}}
+	var authored := Domain.authored_readings(first_week,"WAT02",watch)
+	check("watch has distinct authored front and back",authored.size()==3 and authored.wear_detail.side=="back" and authored.display_damage_detail.side=="front")
+	check("old profiles do not gain new readings",Domain.authored_readings({},"WAT02",watch).is_empty())
+	check("foreign watch identity rejected",Domain.authored_readings(first_week,"W002",watch).is_empty())
+	var acquired := {}
+	for slot: String in authored:
+		acquired[slot] = {"slot":slot,"value":authored[slot].value,"kind":"fact","version":watch.field_versions.duplicate(true)}
+	var surfaces := Domain.project("WAT02",watch,acquired)
+	check("watch caseback and crystal have separate targets",surfaces.size()==3 and surfaces.wear_detail.target!=surfaces.display_damage_detail.target and surfaces.wear_detail.family=="metal" and surfaces.display_damage_detail.family=="glass")
+	check("no unacquired watch surfaces",Domain.project("WAT02",watch,{}).is_empty())
+	watch.field_versions.restored = 1
+	check("changed watch has no fabricated current reading",Domain.authored_readings(first_week,"WAT02",watch).is_empty() and Domain.project("WAT02",watch,acquired).is_empty())
+	for example: Array in [["BAT02","battery","demo_BAT02","plastic"],["TL04","demo_tool","demo_TL04","metal"]]:
+		var sample_item := {"def_id":example[1],"provenance_id":example[2],"field_versions":{"functional":0,"restored":0,"composition":0}}
+		var readings := Domain.authored_readings(first_week,example[0],sample_item)
+		var reading := {"slot":"wear_detail","value":readings.get("wear_detail",{}).get("value"),"kind":"fact","version":sample_item.field_versions.duplicate(true)}
+		var projected := Domain.project(example[0],sample_item,{"wear_detail":reading})
+		check("authored real SKU "+example[0],readings.size()==1 and projected.get("wear_detail",{}).get("family")==example[3])
 	print("B3 surface projection: %d checks, %d failures"%[checks,failures])
 	quit(1 if failures>0 else 0)
 

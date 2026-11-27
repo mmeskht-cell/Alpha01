@@ -135,6 +135,10 @@ static func _tool_rows(state: Dictionary, item_id: String) -> Array:
 			if _inspected_value(item, specimen.readings[tool.id]) == null:
 				continue
 			options.append({"id":tool.id,"text_key":"b2.inspect." + str(tool.id),"kind":"fact"})
+	var authored := SurfaceProfiles.authored_readings(state.alpha_shop.profile,item_id,item)
+	for slot: String in authored:
+		if not options.any(func(option:Dictionary)->bool:return option.id==slot):
+			options.append({"id":slot,"text_key":"b2.inspect."+slot,"kind":"fact","surface_side":authored[slot].side})
 	return options
 
 static func _reading(state: Dictionary, item_id: String, slot: String) -> Dictionary:
@@ -160,6 +164,9 @@ static func _reading(state: Dictionary, item_id: String, slot: String) -> Dictio
 				if inspected == null:
 					return {}
 				return {"slot":slot,"value":inspected,"kind":"fact","version":item.field_versions.duplicate(true)}
+	var authored := SurfaceProfiles.authored_readings(state.alpha_shop.profile,item_id,item)
+	if authored.has(slot):
+		return {"slot":slot,"value":authored[slot].value,"kind":"fact","version":item.field_versions.duplicate(true)}
 	return {}
 
 static func _row(state: Dictionary, context: Dictionary) -> Dictionary:
@@ -447,6 +454,10 @@ static func view(state: Dictionary) -> Dictionary:
 			"public_active":slot in public.active_slots}
 		if slot in SurfaceProfiles.SLOTS:
 			card["surface_current"] = surface_facts.has(slot)
+			for tool: Dictionary in tools:
+				if tool.id==slot and tool.has("surface_side"):
+					card["surface_side"] = tool.surface_side
+					break
 		cards.append(card)
 	var history: Array = []
 	for offer: Dictionary in row.offers:

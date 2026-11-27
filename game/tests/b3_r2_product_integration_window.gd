@@ -5,6 +5,7 @@ const ProductSource = preload("res://src/content/b3_spatial_week_seed.gd")
 const ProductSession = preload("res://src/domain/game_session.gd")
 const ProductRepo = preload("res://src/persistence/save_repository.gd")
 const CounterArt = preload("res://src/presentation/native_v23_art.gd")
+const ProductSurface = preload("res://src/presentation/surface_visuals.gd")
 const PRODUCT_SLOT := "spatial_week_v1"
 const ProductPlanner = preload("res://src/domain/alpha_b3_visit_randomizer.gd")
 const ProductCommission = preload("res://src/domain/alpha_commission.gd")
@@ -89,6 +90,18 @@ func exact_model_face(shown: Texture2D, original: Texture2D) -> bool:
 func visible_model(node: TextureRect, original: Texture2D) -> bool:
 	return is_instance_valid(node) and node.is_visible_in_tree() and node.size.x>0 and node.size.y>0 and exact_model_face(node.texture,original)
 
+func inspect_watch_surface(slot: String,family: String) -> bool:
+	for page in range(4):
+		if visible_action("tool_"+slot): break
+		if not await click_navigation(host,"more_tools"): return false
+	if not await click_navigation(host,"tool_"+slot) or not await click("apply_tool","CUSTOMER_ACTIVE"): return false
+	var a: Dictionary = host.session.alpha_view().appraisal
+	var descriptor: Dictionary = ProductSurface.observed(a.cards,slot,int(a.surface_seed),a.get("surface_profiles",{}))
+	var plate := host.find_child("r2_observed_sample",true,false) as Control
+	var expected := ProductSurface.texture_for(descriptor)
+	return check(descriptor.get("base")==family and expected!=null and plate!=null and plate.is_visible_in_tree() and plate.get("sample")==expected
+		and a.cards.any(func(card:Dictionary)->bool:return card.slot==slot and not card.public_active),"observed watch "+slot+" displays only its acquired private surface")
+
 func shop_route(resolution: Vector2i,refund: bool) -> bool:
 	# This route starts from a real saved revision-zero profile. Fresh five-beat
 	# intro and revision-zero resume are independently exercised by the menu and week routes.
@@ -140,6 +153,16 @@ func shop_route(resolution: Vector2i,refund: bool) -> bool:
 	var correct_back := check(back!=null and back!=watch and visible_model(host.counter_item,back),"watch flip displays the distinct authored caseback and exact crop")
 	var unchanged := check(host.session.snapshot()==before,"watch flip and inspection navigation do not change authority")
 	if not (correct_back and unchanged): return false
+	if not check(host.session.alpha_view().appraisal.get("surface_profiles",{}).is_empty(),"unobserved watch surfaces not disclosed"): return false
+	if not await inspect_watch_surface("wear_detail","metal"): return false
+	await capture("r2_c7_watch_back_surface_"+str(resolution.y),resolution)
+	var acquired_back: Dictionary = host.session.snapshot()
+	if not await click_navigation(host,"turn_item"): return false
+	if not check(host.session.snapshot()==acquired_back and not visible_action("r2_observed_sample"),"front cannot display the rear observation after turning"): return false
+	if not await inspect_watch_surface("display_damage_detail","glass"): return false
+	await capture("r2_c7_watch_front_surface_"+str(resolution.y),resolution)
+	var inspected: Dictionary = host.session.snapshot()
+	if not check(inspected.items==before.items and inspected.wallets==before.wallets and inspected.ledger==before.ledger,"watch surface observations preserve goods, cash and ledger"): return false
 	if not await leave_counter_appraisal(true): return false
 	await capture("r2_c7_pledge_negotiation_"+str(resolution.y),resolution)
 	if not check(is_instance_valid(pledge_button) and pledge_button.is_visible_in_tree() and host.find_child("week_pledge",true,false)==pledge_button and host.find_children("week_pledge","Button",true,false).size()==1,"negotiation restores the same unique pledge control"): return false
