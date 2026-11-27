@@ -90,7 +90,7 @@ func exact_model_face(shown: Texture2D, original: Texture2D) -> bool:
 func visible_model(node: TextureRect, original: Texture2D) -> bool:
 	return is_instance_valid(node) and node.is_visible_in_tree() and node.size.x>0 and node.size.y>0 and exact_model_face(node.texture,original)
 
-func inspect_watch_surface(slot: String,family: String) -> bool:
+func inspect_product_surface(slot: String,family: String) -> bool:
 	for page in range(4):
 		if visible_action("tool_"+slot): break
 		if not await click_navigation(host,"more_tools"): return false
@@ -100,7 +100,7 @@ func inspect_watch_surface(slot: String,family: String) -> bool:
 	var plate := host.find_child("r2_observed_sample",true,false) as Control
 	var expected := ProductSurface.texture_for(descriptor)
 	return check(descriptor.get("base")==family and expected!=null and plate!=null and plate.is_visible_in_tree() and plate.get("sample")==expected
-		and a.cards.any(func(card:Dictionary)->bool:return card.slot==slot and not card.public_active),"observed watch "+slot+" displays only its acquired private surface")
+		and a.cards.any(func(card:Dictionary)->bool:return card.slot==slot and not card.public_active),"observed "+str(a.item_id)+" "+slot+" displays only its acquired private surface")
 
 func shop_route(resolution: Vector2i,refund: bool) -> bool:
 	# This route starts from a real saved revision-zero profile. Fresh five-beat
@@ -154,12 +154,12 @@ func shop_route(resolution: Vector2i,refund: bool) -> bool:
 	var unchanged := check(host.session.snapshot()==before,"watch flip and inspection navigation do not change authority")
 	if not (correct_back and unchanged): return false
 	if not check(host.session.alpha_view().appraisal.get("surface_profiles",{}).is_empty(),"unobserved watch surfaces not disclosed"): return false
-	if not await inspect_watch_surface("wear_detail","metal"): return false
+	if not await inspect_product_surface("wear_detail","metal"): return false
 	await capture("r2_c7_watch_back_surface_"+str(resolution.y),resolution)
 	var acquired_back: Dictionary = host.session.snapshot()
 	if not await click_navigation(host,"turn_item"): return false
 	if not check(host.session.snapshot()==acquired_back and not visible_action("r2_observed_sample"),"front cannot display the rear observation after turning"): return false
-	if not await inspect_watch_surface("display_damage_detail","glass"): return false
+	if not await inspect_product_surface("display_damage_detail","glass"): return false
 	await capture("r2_c7_watch_front_surface_"+str(resolution.y),resolution)
 	var inspected: Dictionary = host.session.snapshot()
 	if not check(inspected.items==before.items and inspected.wallets==before.wallets and inspected.ledger==before.ledger,"watch surface observations preserve goods, cash and ledger"): return false
@@ -200,6 +200,12 @@ func shop_route(resolution: Vector2i,refund: bool) -> bool:
 		if not await serve_until("tool_buy"): return false
 		if not check(host.session.alpha_view().appraisal.item_id=="TL04" and host.session.snapshot().alpha_shop.outbound.tool_search.status=="goods_offered","actual dispatched goods arrive as a regular counter visit"): return false
 		await capture("r2_c4_goods_return_"+str(resolution.y),resolution)
+		var tool_before: Dictionary = host.session.snapshot()
+		if not await start_counter_appraisal(true) or not await inspect_product_surface("wear_detail","metal"): return false
+		await capture("r2_c4_tool_surface_"+str(resolution.y),resolution)
+		var tool_after: Dictionary = host.session.snapshot()
+		if not check(tool_after.items==tool_before.items and tool_after.wallets==tool_before.wallets and tool_after.ledger==tool_before.ledger,"tool observation preserves goods, money and ledger"): return false
+		if not await leave_counter_appraisal(true): return false
 		if not await actions([["alpha_finish_customer","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]]): return false
 	if not await click("alpha_close","CLOSE_SETTLE"): return false
 	var before_document: Dictionary = host.session.snapshot()
@@ -219,6 +225,15 @@ func shop_route(resolution: Vector2i,refund: bool) -> bool:
 	await capture("r2_c7_redeemed_"+str(resolution.y),resolution)
 	if not await click_navigation(host,"close_drawer"): return false
 	if not await actions([["alpha_settle","EVENING_WORK"],["alpha_next_day","NEXT_DAY"],["alpha_prepare_day","DAY_PREP"],["alpha_open","OPEN_IDLE"]]): return false
+	if not await serve_until("hygiene_buy"): return false
+	var paper_before: Dictionary = host.session.snapshot()
+	if not check(host.session.alpha_view().appraisal.item_id=="HY05","real hygiene visit retains paper-wrapped specimen identity"): return false
+	if not await start_counter_appraisal(true) or not await inspect_product_surface("wear_detail","paper"): return false
+	await capture("r2_c7_hygiene_paper_"+str(resolution.y),resolution)
+	var paper_after: Dictionary = host.session.snapshot()
+	if not check(paper_after.items==paper_before.items and paper_after.wallets==paper_before.wallets and paper_after.ledger==paper_before.ledger,"paper observation adds knowledge without altering goods, money or ledger"): return false
+	if not await leave_counter_appraisal(true): return false
+	if not await actions([["alpha_finish_customer","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]]): return false
 	if not await next_morning() or not await next_morning(): return false
 	if not await serve_until("alpha_b3_fx_broker_d7"): return false
 	var broker := CounterArt.customer_texture("alpha_broker")

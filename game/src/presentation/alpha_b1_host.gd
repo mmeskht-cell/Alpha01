@@ -845,19 +845,20 @@ func _add_b3_fx_actions(actions: VBoxContainer, v: Dictionary) -> void:
 		status.text=_text("b3.fx.settled") if bool(offer.settled) else _text("b3.fx.unfunded")
 		actions.add_child(status)
 
-func _add_contract_actions(actions: VBoxContainer, v: Dictionary) -> void:
+func _add_contract_actions(actions: VBoxContainer, v: Dictionary, include_summary: bool = true) -> void:
 	for id: String in v.contracts:
 		var offer: Dictionary = v.contracts[id]
 		# Other characters' contracts belong in the quiet shop management
 		# phases, not in the currently speaking customer's counter actions.
 		if v.phase == "CUSTOMER_ACTIVE" and (v.active.is_empty() or str(v.active.actor_id) != str(offer.supplier)):
 			continue
-		var note := Label.new()
-		note.name = "alpha_contract_" + id
-		# The internal contract ID belongs in authority/receipts, not player prose.
-		note.text = _text("alpha.contract.header") + " · " + _text("alpha.contract.status." + str(offer.status)) + " · " + str(offer.price.VKC) + " VKC / D" + str(offer.due_day)
-		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		actions.add_child(note)
+		if include_summary:
+			var note := Label.new()
+			note.name = "alpha_contract_" + id
+			# The internal contract ID belongs in authority/receipts, not player prose.
+			note.text = _text("alpha.contract.header") + " · " + _text("alpha.contract.status." + str(offer.status)) + " · " + str(offer.price.VKC) + " VKC / D" + str(offer.due_day)
+			note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			actions.add_child(note)
 		if offer.can_accept:
 			_button(actions, "alpha_contract_accept", _text("alpha.contract.accept"),
 				func() -> void: _submit("alpha_contract_accept", {"contract_id": id}))

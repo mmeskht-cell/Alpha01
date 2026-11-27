@@ -161,7 +161,18 @@ func _draw_detail(group: Dictionary,rows: Array) -> void:
 	_line(right,"기록 상세",heading_size)
 	for row: Dictionary in rows:
 		if str(row.key)==current_record:
-			_line(right,str(row.detail),body_size)
+			if row.has("sections"):
+				var sections: Array = row.sections
+				for index in range(sections.size()):
+					var section: Dictionary = sections[index]
+					if index>0: right.add_child(HSeparator.new())
+					var heading := _line(right,str(section.heading),heading_size)
+					heading.name = "section_heading_"+str(index)
+					heading.set_meta("document_heading",true)
+					var body := _line(right,str(section.body),body_size)
+					body.name = "section_body_"+str(index)
+			else:
+				_line(right,str(row.get("detail","")),body_size)
 			break
 	var details: Callable = group.get("render",Callable())
 	if details.is_valid(): details.call(right)

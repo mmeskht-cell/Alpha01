@@ -71,6 +71,22 @@ func f2_counter(resolution:Vector2i,fixture:RefCounted)->bool:
 	await capture("f2_v2_counter_"+str(resolution.y),resolution)
 	if not await click_navigation(host,"news"): return false
 	if not check(host.drawer=="news" and host.session.snapshot()==before,"bulletin opens during actual active visit without changing authority"): return false
+	var folio := host.find_child("folio_news",true,false) as Control
+	if not check(folio!=null and folio.is_visible_in_tree(),"market bulletin is a real document spread"): return false
+	var document_rows: Array = folio.get("data").news.rows
+	var source_lines: PackedStringArray = str(view.market_bulletin).split("\n",false)
+	var rendered_lines := PackedStringArray()
+	var market_count := 0
+	for row: Dictionary in document_rows:
+		if not str(row.key).begins_with("market_notice_"): continue
+		market_count += 1
+		for section: Dictionary in row.sections: rendered_lines.append(str(section.body))
+	if not check(market_count==7 and rendered_lines==source_lines,"all seven markets preserve every public report and shop record without inventing a price"): return false
+	if not await click_navigation(host,"market_notice_1"): return false
+	var report := folio.find_child("section_body_0",true,false) as Label
+	var record := folio.find_child("section_body_1",true,false) as Label
+	if not check(report!=null and record!=null and report.text==source_lines[2] and record.text==source_lines[3]
+		and host.session.snapshot()==before,"selected market separates source report from completed shop record"): return false
 	await capture("f2_v2_news_"+str(resolution.y),resolution)
 	if not await click_navigation(host,"close_drawer"): return false
 	if not check(host.drawer.is_empty() and host.session.snapshot()==before,"return to identical counter and customer"): return false

@@ -1717,18 +1717,37 @@ func _product_document_workspace(v: Dictionary,state: Dictionary) -> void:
 		"news":
 			header = str(desk_copy.region)%v.day
 			var notices: Array = []
-			if v.has("market_bulletin"): notices.append({"key":"battery_notice","caption":"지역 시장 납품 공지","detail":v.market_bulletin})
+			if v.has("market_bulletin"):
+				notices.append_array(_market_document_rows(str(v.market_bulletin)))
 			for notice: Dictionary in v.news:
-				var stamp := "게시일 %d일차"%int(notice.day) if notice.has("day") else "게시일 기록 없음"
+				var stamp := _counter_copy("게시일 %d일차","Published day %d")%int(notice.day) if notice.has("day") else _counter_copy("게시일 기록 없음","Publication date not recorded")
 				var notice_text := _text("alpha.news."+str(notice.text_key))
-				notices.append({"key":"bulletin_"+str(notice.id),"caption":stamp+" · 공개 공지","detail":stamp+" · 상점에 게시된 공개 공지\n"+notice_text})
+				notices.append({"key":"bulletin_"+str(notice.id),"caption":stamp+" · "+notice_text.replace("\n"," ").left(90),
+					"sections":[{"heading":_counter_copy("공개 공지","Public notice"),"body":notice_text},{"heading":_counter_copy("게시 정보","Publication"),"body":stamp}]})
 			groups["news"] = {"caption":"게시된 소식","rows":notices,"empty":_text("spatial.quiet")}
 		"item_history":
 			var item: Dictionary = state.items.get(selected,{})
 			header = "물품 이력   /   "+_text("b2.item."+str(item.get("def_id","")))
 			var id := selected
 			groups["item"] = {"caption":"같은 물품의 거래와 작업","rows":[{"key":"history_"+id,"caption":_text("b2.item."+str(item.get("def_id",""))),"detail":"공개된 거래 사실과 당시 판단 기록"}],"render":func(page:VBoxContainer)->void:_history_lines(page,id)}
-	folio.open(header,groups,reading_scale,JSON.stringify([state.revision,reading_scale,selected if drawer=="item_history" else ""]))
+	folio.open(header,groups,reading_scale,JSON.stringify([state.revision,reading_scale,counter_language,selected if drawer=="item_history" else ""]))
+
+## The existing bulletin already distinguishes public supply reports from
+## the player's completed transactions. Preserve every source line, never
+## turn the latter into a forecast or fabricate a market price.
+func _market_document_rows(bulletin: String) -> Array:
+	var rows: Array = []
+	var lines := bulletin.split("\n",false)
+	var index := 0
+	while index<lines.size():
+		var report: String = lines[index]
+		var sections: Array = [{"heading":_counter_copy("공급 공지","Supply notice"),"body":report}]
+		if index+1<lines.size() and (lines[index+1].begins_with("상점 거래장") or lines[index+1].begins_with("상점 전지 거래장")):
+			sections.append({"heading":_counter_copy("상점의 실제 거래 기록","Shop transaction record"),"body":lines[index+1]})
+			index += 1
+		rows.append({"key":"market_notice_"+str(rows.size()),"caption":report,"sections":sections})
+		index += 1
+	return rows
 
 func _ledger_groups(v: Dictionary,state: Dictionary) -> Dictionary:
 	var trade_rows: Array = []
@@ -1754,7 +1773,11 @@ func _ledger_groups(v: Dictionary,state: Dictionary) -> Dictionary:
 				var basis: Variant = entry.basis[currency]
 				if basis!=null: facts.append("%s 원가 %d · 차액 %d"%[currency,int(basis),int(money[currency])-int(basis)])
 				else: facts.append(currency+" 원가 자료 부족")
-		trade_rows.push_front({"key":"r_"+str(entry.event_id),"caption":stamp+" · "+party+" · "+direction+" "+amount+"\n"+names,"detail":"\n".join(facts)})
+		var sections: Array = [{"heading":_counter_copy("거래 정보","Transaction"),"body":facts[0]+"\n"+facts[2]},
+			{"heading":_counter_copy("실제 결제","Actual payment"),"body":facts[1]}]
+		if facts.size()>3:
+			sections.append({"heading":_counter_copy("원가 및 차액","Cost and difference"),"body":"\n".join(facts.slice(3))})
+		trade_rows.push_front({"key":"r_"+str(entry.event_id),"caption":stamp+" · "+party+" · "+direction+" "+amount+"\n"+names,"sections":sections})
 	# Keep terminal-item records in the existing ledger after stock is gone.
 	if state.alpha_shop.profile.has("f3_composite_trial"):
 		for event:Dictionary in state.object_events:
@@ -1791,7 +1814,10 @@ func _ledger_groups(v: Dictionary,state: Dictionary) -> Dictionary:
 		var offer: Dictionary = v.contracts[id]
 		if v.phase=="CUSTOMER_ACTIVE" and v.active.actor_id!=offer.supplier: continue
 		var status := _text("alpha.contract.status."+str(offer.status))
-		contracts.append({"key":"contract_"+id,"caption":_record_alias(state,str(offer.supplier))+" · "+status,"detail":_text("alpha.contract.header")+"\n%s · %d VKC · 기한 %d일차"%[status,offer.price.VKC,offer.due_day]})
+		contracts.append({"key":"contract_"+id,"caption":_record_alias(state,str(offer.supplier))+" · "+status,
+			"sections":[{"heading":_text("alpha.contract.header"),"body":_record_alias(state,str(offer.supplier))+" · "+status},
+				{"heading":_counter_copy("약정 금액","Agreed amount"),"body":"%d VKC"%offer.price.VKC},
+				{"heading":_counter_copy("약정 기한","Agreed due date"),"body":_counter_copy("%d일차","Day %d")%offer.due_day}]})
 	return {
 		"trades":{"caption":"거래","rows":trade_rows,"render":func(page:VBoxContainer)->void:
 			_board_line(page,"cash_in","거래 유입 · %d VKC / %d USD"%[incoming.VKC,incoming.USD])
@@ -1800,7 +1826,7 @@ func _ledger_groups(v: Dictionary,state: Dictionary) -> Dictionary:
 			if v.phase in ["OPEN_IDLE","EVENING_WORK"]: _add_b2_commission_actions(page,v)},
 		"outbound":{"caption":"맡긴 의뢰","rows":outbound},
 		"contracts":{"caption":"계약·담보","rows":contracts,"render":func(page:VBoxContainer)->void:
-			if v.phase!="CUSTOMER_ACTIVE": _add_contract_actions(page,v)
+			if v.phase!="CUSTOMER_ACTIVE": _add_contract_actions(page,v,v.contracts.size()>1)
 			_pawn_folio(page,v,state)},
 	}
 
@@ -2104,15 +2130,20 @@ func _book_option(row: HBoxContainer,id: String,caption: String,selected_now: bo
 	row.add_child(option)
 
 func _spoken_facts(pages: VBoxContainer,a: Dictionary) -> void:
+	if not a.get("customer_claims",[]).is_empty():
+		_book_chapter(pages,_counter_copy("손님 주장 · 확인 전 정보","Customer claims · unverified statements"))
 	for claim: Dictionary in a.get("customer_claims",[]):
 		_board_line(pages,"claim_"+str(claim.claim_key),_counter_copy("손님 주장 · ","Customer claim · ")+_text(claim.text_key))
 		if claim.can_challenge:
 			_button(pages,"query_"+str(claim.claim_key),_counter_copy("확인한 단서로 되묻기","Challenge with observed evidence"),func()->void:_submit("alpha_claim_challenge",{"claim_key":claim.claim_key}))
+	if a.get("cards",[]).any(func(fact:Dictionary)->bool:return fact.ever_disclosed):
+		_book_chapter(pages,_counter_copy("이미 공개한 관찰 근거","Previously shared observations"))
 	for fact: Dictionary in a.get("cards",[]):
 		if fact.ever_disclosed:
 			var slot: String = fact.slot
 			var kind := "alpha_statement_retract" if fact.public_active else "alpha_statement_reaffirm"
-			_button(pages,"spoken_"+slot,("공개 진술 철회 · " if fact.public_active else "진술 재확인 · ")+_text(fact.text_key),func()->void: _submit(kind,{"slot":slot}))
+			_board_line(pages,"shared_"+slot,_counter_copy("공개 중 · ","Active · ")+_card_caption(fact) if fact.public_active else _counter_copy("철회됨 · ","Withdrawn · ")+_card_caption(fact))
+			_button(pages,"spoken_"+slot,(_counter_copy("공개 진술 철회 · ","Withdraw · ") if fact.public_active else _counter_copy("진술 재확인 · ","Reaffirm · "))+_text(fact.text_key),func()->void: _submit(kind,{"slot":slot}))
 
 func _price_page(pages: VBoxContainer,v: Dictionary) -> void:
 	var a: Dictionary = v.appraisal
@@ -2125,6 +2156,7 @@ func _price_page(pages: VBoxContainer,v: Dictionary) -> void:
 	if not actual.is_empty():
 		var action_id := "customer_bid" if actual.source=="public_quote" else "basis_posted"
 		_button(pages,action_id,_basis_caption(actual)+" 적용",func()->void: _choose_offer_basis(actual))
+	_book_chapter(pages,_counter_copy("내가 선택한 제안 기준","My selected offer basis"))
 	_board_line(pages,"basis_status",_basis_caption(offer_basis),true)
 	if v.has("market_bulletin"):
 		_button(pages,"market_leaf","지역 시장 공지 접기" if market_leaf else "지역 시장 공지 펼치기",func()->void:
