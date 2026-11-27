@@ -778,12 +778,19 @@ func _pawn_ticket(state: Dictionary,minimized: bool) -> void:
 	if pawn.status!="available": return
 	if minimized:
 		var shortcut := _desk_action("week_pledge",_counter_copy("시계 담보  ·  %d VKC","Pledge watch  ·  %d VKC")%WeekPawn.PRINCIPAL.VKC,Rect2(803,226,208,44),func()->void: _submit("week_pledge"))
+		# Both pledge layouts retain one visit-scoped desk control. Restore the
+		# normal desk styling when leaving the paper ticket.
+		for style: String in ["normal","hover","pressed","disabled","focus"]:
+			shortcut.remove_theme_stylebox_override(style)
+		for color: String in ["font_color","font_hover_color","font_pressed_color","font_focus_color","font_hover_pressed_color","font_disabled_color"]:
+			shortcut.remove_theme_color_override(color)
 		shortcut.tooltip_text = "갚을 돈 %d VKC · %d일차까지"%[WeekPawn.REPAYMENT.VKC,pawn.due]
 		return
 	var sheet := _desk_paper("pawn",Rect2(32,555,314,144))
 	_ink_label(sheet,"시계 담보  ·  %d VKC"%WeekPawn.PRINCIPAL.VKC,Rect2(20,11,272,38),17)
 	_ink_label(sheet,"갚을 돈 %d VKC · %d일차까지"%[WeekPawn.REPAYMENT.VKC,pawn.due],Rect2(20,53,272,44),15)
-	var pledge := _workspace_action("week_pledge","담보로 받기",Rect2(51,649,271,44),func()->void:_submit("week_pledge"))
+	var pledge := _desk_action("week_pledge",_counter_copy("담보로 받기","Accept pledge"),Rect2(51,649,271,44),func()->void:_submit("week_pledge"))
+	pledge.tooltip_text = ""
 	PaperProp.ink_action(pledge)
 
 func _finish_counter(v: Dictionary) -> void:

@@ -128,8 +128,11 @@ func shop_route(resolution: Vector2i,refund: bool) -> bool:
 		"real pledge counter displays the original Meridian face or its exact alpha crop")
 	var correct_grid := check(host.session.spatial_dimensions("WAT02")==[1,1],"pledge watch retains its authoritative one-cell footprint")
 	if not (correct_actor and correct_face and correct_grid): return false
+	var pledge_button := host.find_child("week_pledge",true,false) as Button
+	if not check(is_instance_valid(pledge_button) and pledge_button.is_visible_in_tree() and host.find_children("week_pledge","Button",true,false).size()==1,"presented pledge has one visible named control"): return false
 	var before: Dictionary = host.session.snapshot()
 	if not await start_counter_appraisal(true): return false
+	if not check(is_instance_valid(pledge_button) and not pledge_button.is_visible_in_tree() and not visible_action("week_pledge"),"appraisal hides the retained pledge control without replacing it"): return false
 	if not check(visible_model(host.counter_item,watch),"watch appraisal displays the same model face and exact crop as the counter"): return false
 	if not await click_navigation(host,"turn_item"): return false
 	var back: Texture2D = CounterArt.ITEMS.model_texture("fictional_watch_p2","inspection","WAT02",true)
@@ -138,7 +141,10 @@ func shop_route(resolution: Vector2i,refund: bool) -> bool:
 	var unchanged := check(host.session.snapshot()==before,"watch flip and inspection navigation do not change authority")
 	if not (correct_back and unchanged): return false
 	if not await leave_counter_appraisal(true): return false
+	await capture("r2_c7_pledge_negotiation_"+str(resolution.y),resolution)
+	if not check(is_instance_valid(pledge_button) and pledge_button.is_visible_in_tree() and host.find_child("week_pledge",true,false)==pledge_button and host.find_children("week_pledge","Button",true,false).size()==1,"negotiation restores the same unique pledge control"): return false
 	if not await actions([["week_pledge","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]]): return false
+	if not check(not visible_action("week_pledge"),"settled pledge control no longer visible"): return false
 	if not check(host.session.snapshot().items.WAT02.inventory=="pawn_grid" and host.session.snapshot().wallets.player.VKC==before.wallets.player.VKC-40,"pledge retains custody and exact principal"): return false
 	var pledged: Dictionary = host.session.snapshot()
 	if not await click_navigation(host,"stockroom") or not await click_navigation(host,"tab_pawn_grid"): return false
