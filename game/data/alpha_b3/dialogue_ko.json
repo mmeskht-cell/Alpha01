@@ -154,7 +154,114 @@
     ],
     "opening_g01": [
       "안녕하세요. 이 라디오 한번 봐주시겠어요?"
+    ],
+    "catalog_ask": [
+      "{amount} VKC 정도 받고 싶습니다. 어떠세요?",
+      "{amount} VKC 생각하고 왔어요. 한번 보시죠.",
+      "이 물건에 {amount} VKC 주실 수 있나요?"
+    ],
+    "catalog_retry": [
+      "아직 있군요. 지금은 {amount} VKC에 살 생각입니다.",
+      "오늘도 팔 생각이 있으시면 {amount} VKC 어떻습니까?",
+      "이 물건에 {amount} VKC 제안하겠습니다."
     ]
   },
-  "actor_lines": {}
+  "actor_lines": {
+    "G02": {
+      "catalog_ask": [
+        "{amount} VKC만 받을 수 있을까요?"
+      ],
+      "bid_open": [
+        "{amount} VKC 정도면 어떨까요?"
+      ]
+    },
+    "G06": {
+      "catalog_ask": [
+        "{amount} VKC입니다. 직접 보시죠."
+      ],
+      "bid_open": [
+        "{amount} VKC. 이 조건이면 사겠습니다."
+      ]
+    },
+    "G09": {
+      "bid_open": [
+        "{amount} VKC면 거래 가능할까요?"
+      ],
+      "catalog_ask": [
+        "{amount} VKC면 서로 괜찮지 않을까요?"
+      ]
+    },
+    "G11": {
+      "bid_open": [
+        "제 제안은 {amount} VKC입니다."
+      ],
+      "catalog_ask": [
+        "제가 원하는 금액은 {amount} VKC입니다."
+      ]
+    },
+    "G01": {
+      "catalog_ask": [
+        "이 정도면 {amount} VKC은 받아야겠어요."
+      ],
+      "bid_open": [
+        "{amount} VKC에 넘기실래요?"
+      ]
+    },
+    "G03": {
+      "catalog_ask": [
+        "먼저 물건부터 보세요. {amount} VKC 생각했습니다."
+      ],
+      "bid_open": [
+        "제 쪽에서는 {amount} VKC를 제안할게요."
+      ]
+    },
+    "G04": {
+      "catalog_ask": [
+        "{amount} VKC 정도 받고 싶네요."
+      ],
+      "bid_open": [
+        "{amount} VKC라면 살 생각이에요."
+      ]
+    },
+    "G05": {
+      "catalog_ask": [
+        "이걸 팔려고 왔어요. {amount} VKC 어떨까요?"
+      ],
+      "bid_open": [
+        "가격은 {amount} VKC로 생각하고 왔습니다."
+      ]
+    },
+    "G07": {
+      "catalog_ask": [
+        "{amount} VKC에 넘기고 싶습니다."
+      ],
+      "bid_open": [
+        "한번 봤는데요. {amount} VKC 어떻습니까?"
+      ]
+    },
+    "G08": {
+      "catalog_ask": [
+        "가격부터 말씀드리죠. {amount} VKC입니다."
+      ],
+      "bid_open": [
+        "제가 제안할 가격은 {amount} VKC입니다."
+      ]
+    },
+    "G10": {
+      "catalog_ask": [
+        "이것 좀 보시죠. {amount} VKC 생각합니다."
+      ],
+      "bid_open": [
+        "{amount} VKC로 제안하겠습니다."
+      ]
+    },
+    "G12": {
+      "catalog_ask": [
+        "{amount} VKC에 팔 수 있을지 보러 왔습니다."
+      ],
+      "bid_open": [
+        "이 물건에 {amount} VKC면 어떻겠습니까?"
+      ]
+    }
+  }
 }

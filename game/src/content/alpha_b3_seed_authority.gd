@@ -49,7 +49,8 @@ static func _saved_seed(path: String, slot: String) -> Dictionary:
 		if not Rules.integer(profile.get("integrated_catalog"),1,1) or profile.has("civilian_supply"):
 			return {}
 		var planner: Variant = profile.get("visit_plan_policy",1)
-		if not Rules.integer(planner,1,3) or (profile.has("visit_plan_policy") and planner not in [2,3]):
+		# JSON numeric values may be floats even for integer schema fields.
+		if not Rules.integer(planner,1,3) or (profile.has("visit_plan_policy") and int(planner)==1):
 			return {}
 		result["campaign_version"] = int(planner)
 		result["binding"] = snapshot.alpha_shop.binding

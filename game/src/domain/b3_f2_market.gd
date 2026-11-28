@@ -258,21 +258,31 @@ static func public_bid(state:Dictionary, appraisal:Dictionary)->int:
 	var visit:Dictionary = state.visits[a.active]
 	return 0 if visit.scope.completed else int(visit.prices[rule[0]].VKC)
 
+static func public_market_rows(state: Dictionary,language: String="ko") -> Array:
+	var rows: Array = []
+	var day := int(state.alpha_shop.day)
+	var profile: Dictionary = state.alpha_shop.profile
+	if not regional(profile): return rows
+	var past: Dictionary = market_history(state,day)
+	var labels: Dictionary = MARKET_LABELS.duplicate()
+	if expanded(profile): labels.merge(EXTRA_LABELS)
+	if Catalog.enabled(profile): labels.merge({"market_food":"시장 구역 · 식량","market_medical":"시장 구역 · 의료용품"})
+	var english := {"port_battery":"Port · Batteries","port_electronics":"Port · Electronics","market_radio":"Market · Radios","market_watch":"Market · Watches","workshop_tools":"Workshop · Tools","workshop_goods":"Workshop · General goods","market_hygiene":"Market · Hygiene","market_food":"Market · Food","market_medical":"Market · Medical supplies"}
+	for market: String in labels:
+		var count := int(past.counts.get(market,0))
+		var net := int(past.flows.get(market,0))
+		var late := market_shortage(profile,market,day)
+		var supply := ("Delivery delayed" if late else "Normal supply notice") if language=="en" else ("납품 지연" if late else "정상 공급 공지")
+		var trend := ("Insufficient trade records" if count==0 else ("Net purchases" if net<0 else ("Net sales" if net>0 else "No net trade movement"))) if language=="en" else ("거래 자료 부족" if count==0 else ("순매입" if net<0 else ("순매출" if net>0 else "순거래량 변동 없음")))
+		rows.append({"id":market,"day":day,"label":str(english.get(market,labels[market])) if language=="en" else str(labels[market]),"supply":supply,"trade_count":count,"trend":trend})
+	return rows
+
 static func bulletin(state:Dictionary)->String:
 	var day := int(state.alpha_shop.day)
 	if regional(state.alpha_shop.profile):
-		var past:Dictionary = market_history(state,day)
 		var lines:Array[String] = []
-		var labels:Dictionary = MARKET_LABELS.duplicate()
-		if expanded(state.alpha_shop.profile): labels.merge(EXTRA_LABELS)
-		if Catalog.enabled(state.alpha_shop.profile):
-			labels.merge({"market_food":"시장 구역 · 식량","market_medical":"시장 구역 · 의료용품"})
-		for market:String in labels:
-			var supply:String = "납품 지연" if market_shortage(state.alpha_shop.profile,market,day) else "정상 공급 공지"
-			var count:int = int(past.counts.get(market,0))
-			var net:int = int(past.flows.get(market,0))
-			var trend:String = "거래 자료 부족" if count==0 else ("순매입" if net<0 else ("순매출" if net>0 else "순거래량 변동 없음"))
-			lines.append("%s · %d일차 · 지역 납품 공지: %s\n상점 거래장(전일까지 %d건): %s"%[labels[market],day,supply,count,trend])
+		for row: Dictionary in public_market_rows(state):
+			lines.append("%s · %d일차 · 지역 납품 공지: %s\n상점 거래장(전일까지 %d건): %s"%[row.label,row.day,row.supply,row.trade_count,row.trend])
 		return "\n".join(lines)
 	var arrival := "전지 납품 지연" if shortage(state.alpha_shop.profile,day) else "전지 정상 공급"
 	var net := int(history(state,day).net)

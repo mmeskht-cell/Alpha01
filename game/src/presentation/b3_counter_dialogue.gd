@@ -4,7 +4,7 @@ const PATH = "res://data/alpha_b3/dialogue_ko.json"
 const Rules = preload("res://src/domain/value_rules.gd")
 const REQUIRED = ["challenge_topic","challenge_plain","withdraw_topic","withdraw_plain","reaffirm_topic","reaffirm_plain","accept_buy","accept_sell","decline_remembered","decline_topic","decline_withdrawn","decline_buy","decline_sell","return_traded","return_commission","return_service","return_declined","return_accepted","opening_buy","opening_sell","bid_return","bid_open"]
 const TOPIC_KEYS = ["challenge_topic","withdraw_topic","reaffirm_topic","decline_remembered","decline_topic"]
-const AMOUNT_KEYS = ["bid_return","bid_open"]
+const AMOUNT_KEYS = ["bid_return","bid_open","catalog_ask","catalog_retry"]
 static var _catalogs: Dictionary = {}
 
 static func validate(raw: Variant) -> bool:

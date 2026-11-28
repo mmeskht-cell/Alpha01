@@ -60,6 +60,10 @@ func sources() -> void:
 	var witnessed_stock := {}
 	for row: Dictionary in models.values():
 		traced[row.model] = true
+		var guide := Catalog.reference(row.model)
+		check(guide=={"model":row.model,"category":row.category,"width":int(row.width),"height":int(row.height),
+			"surface_family":row.family,"function_check":row.functional,"workshop_supported":int(row.repair)>0},
+			"model-only guide excludes specimen state, prices and private owner "+str(row.id))
 		check(expected.has(row.model) and exact_art(row.model,row.id,row.model,str(expected.get(row.model,""))),"exact stock, counter and inspection art "+str(row.id))
 	for seed_value: int in range(101,125):
 		var src := Seed.content(seed_value)
@@ -84,6 +88,7 @@ func sources() -> void:
 			check(src.state.visits.has(Catalog.visit_id(id,true)) and src.state.visits.has(Catalog.visit_id(id,false)),"finite purchase and resale visits "+id)
 			check(Surface.project(id,stock,{},src.alpha_profile).is_empty(),"no actual appearance in an unread observation "+id)
 	check(witnessed_stock.size()==models.size(),"at least one initial physical source for every added model")
+	check(Catalog.reference("nonexistent_model").is_empty(),"unknown model has no fabricated guide")
 	var source := Seed.content(101)
 	if source.is_empty(): return
 	for key: String in EXISTING:
@@ -179,8 +184,20 @@ func retry_witness() -> void:
 			var root := "user://zt_rebuild/catalog_retry_%d"%Time.get_ticks_usec()
 			var disk := Repo.new(Slots.directory(root,0))
 			var replay := Play.fresh(source)
-			if not check(disk.save_session(s,Slots.KEY).get("ok",false) and Slots.inspect(root,0).status=="valid"
-				and disk.load_session(replay,Slots.KEY).get("ok",false) and replay.snapshot()==after,"product source v3 cold replay after retry"): return
+			if not check(disk.save_session(s,Slots.KEY).get("ok",false),"v3 retry: actual transaction generation saved"): return
+			var save_home := Slots.directory(root,0)
+			var save_path := save_home.path_join(Slots.KEY+".a.json")
+			var saved_bytes := FileAccess.get_file_as_string(save_path)
+			var selected := preload("res://src/content/alpha_b3_seed_authority.gd").select_seed(save_home,Slots.KEY)
+			var selected_ok := check(selected.get("ok",false) and selected.get("seed",0)==seed_value
+				and selected.get("campaign_version",0)==3,"v3 retry: bootstrap resolves same seed and planner: "+str(selected))
+			var summary := Slots.inspect(root,0)
+			var slot_ok := check(summary.get("status")=="valid","v3 retry: product slot accepted: "+str(summary.get("status","missing")))
+			var loaded := disk.load_session(replay,Slots.KEY)
+			var load_ok := check(loaded.get("ok",false),"v3 retry: strict command replay: "+str(loaded.get("error","")))
+			var snapshot_ok := check(load_ok and replay.snapshot()==after,"v3 retry: complete saved state equals actual settlement")
+			var bytes_ok := check(not saved_bytes.is_empty() and FileAccess.get_file_as_string(save_path)==saved_bytes,"v3 retry: recovery does not rewrite generation")
+			if not (selected_ok and slot_ok and load_ok and snapshot_ok and bytes_ok): return
 			print("B3_CATALOG_RETRY_JSON ",JSON.stringify({"seed":seed_value,"item":target,"buyer":resale.buyer,"primary_day":primary_day,"retry_day":retry_day,"ledger":after.ledger.size()}))
 			return
 		if attempts>8: break
@@ -282,6 +299,83 @@ func compat() -> void:
 		and recovered_slot.get("stamp")==int(FileAccess.get_modified_time(v2_home.path_join(Slots.KEY+".b.json")))
 		and recovered_slot.get("revision")==v2.snapshot().revision and recovered_slot.get("day")==v2.snapshot().alpha_shop.day,
 		"slot metadata derives from restored generation, not recently modified corrupt sibling")
+
+
+	# v3 uses the same product slot, but its source descriptor is distinct.
+	# Exercise two generations, a valid v2/v3 conflict and recovery without
+	# changing the default new-game policy or any existing saved bytes.
+	var v3_root := location+"_v3"
+	var v3_home := Slots.directory(v3_root,0)
+	var v3_disk := Repo.new(v3_home)
+	var v3 := Play.fresh(Seed.content(109,3))
+	if not check(v3!=null and v3_disk.save_session(v3,Slots.KEY).get("ok",false)
+		and Play.go(v3,"alpha_open") and v3_disk.save_session(v3,Slots.KEY).get("ok",false),"v3 A/B product generations"): return
+	var v3_before: Dictionary = v3.snapshot()
+	var v3_a := v3_home.path_join(Slots.KEY+".a.json")
+	var v3_b := v3_home.path_join(Slots.KEY+".b.json")
+	var v3_original_a := FileAccess.get_file_as_string(v3_a)
+	var v3_original_b := FileAccess.get_file_as_string(v3_b)
+	var authority := preload("res://src/content/alpha_b3_seed_authority.gd")
+	var v3_selected := authority.select_seed(v3_home,Slots.KEY)
+	var v3_loaded := Play.fresh(Seed.content(109,3))
+	check(v3_selected.get("ok",false) and v3_selected.get("seed",0)==109
+		and v3_selected.get("campaign_version",0)==3 and Slots.inspect(v3_root,0).status=="valid",
+		"v3 selects the actual saved planner")
+	check(v3_disk.load_session(v3_loaded,Slots.KEY).get("ok",false)
+		and v3_loaded.snapshot()==v3_before,"v3 newer generation strictly replays")
+	var wrong_v2 := Play.fresh(Seed.content(109,2))
+	check(not v3_disk.load_session(wrong_v2,Slots.KEY).get("ok",false),"same seed v2 cannot replay v3")
+	var v2_bytes := FileAccess.get_file_as_string(v2_home.path_join(Slots.KEY+".b.json"))
+	var v3_output := FileAccess.open(v3_b,FileAccess.WRITE)
+	if not check(v3_output!=null and not v2_bytes.is_empty(),"isolated v2/v3 conflicting generation"): return
+	v3_output.store_string(v2_bytes)
+	v3_output.close()
+	var v3_conflict := authority.select_seed(v3_home,Slots.KEY)
+	check(not v3_conflict.get("ok",false) and v3_conflict.get("error")=="campaign_source_conflict"
+		and Slots.inspect(v3_root,0).status=="damaged"
+		and FileAccess.get_file_as_string(v3_a)==v3_original_a
+		and FileAccess.get_file_as_string(v3_b)==v2_bytes,"mixed v2/v3 generations rejected without writes")
+	v3_output = FileAccess.open(v3_b,FileAccess.WRITE)
+	if not check(v3_output!=null,"isolated v3 corrupt newer generation"): return
+	v3_output.store_string("{damaged")
+	v3_output.close()
+	var v3_fallback := Play.fresh(Seed.content(109,3))
+	var v3_expected: Dictionary = v3_fallback.snapshot()
+	var v3_summary := Slots.inspect(v3_root,0)
+	check(v3_summary.get("status")=="valid" and v3_summary.get("generation")=="a" and v3_summary.get("recovered")==true
+		and v3_summary.get("revision")==v3_expected.revision,"v3 fallback reports actual older generation")
+	check(v3_disk.load_session(v3_fallback,Slots.KEY).get("ok",false)
+		and v3_fallback.snapshot()==v3_expected and FileAccess.get_file_as_string(v3_a)==v3_original_a
+		and FileAccess.get_file_as_string(v3_b)=="{damaged" and not v3_original_b.is_empty(),
+		"v3 fallback strictly restores prior state without replacing either generation")
+
+func public_market_copy() -> void:
+	var s := Play.fresh(Seed.content(101))
+	if not check(s!=null and Play.go(s,"alpha_open"),"public market fixture opens"): return
+	var state: Dictionary = s.snapshot()
+	var ko := Market.public_market_rows(state,"ko")
+	var en := Market.public_market_rows(state,"en")
+	if not check(ko.size()==9 and en.size()==ko.size(),"all nine market groups in both languages"): return
+	var lines := PackedStringArray()
+	for i: int in range(ko.size()):
+		var left: Dictionary = ko[i]
+		var right: Dictionary = en[i]
+		if not check(left.id==right.id and left.day==right.day and left.trade_count==right.trade_count
+			and left.trade_count==0 and left.label!=right.label,"localized market facts unchanged and no imaginary trade"): return
+		lines.append("%s · %d일차 · 지역 납품 공지: %s\n상점 거래장(전일까지 %d건): %s"%[left.label,left.day,left.supply,left.trade_count,left.trend])
+	check("\n".join(lines)==Market.bulletin(state) and s.snapshot()==state,"legacy bulletin same facts, projection read-only")
+	var dialogue := preload("res://src/presentation/b3_counter_dialogue.gd")
+	for language: String in ["ko","en"]:
+		var asks: Dictionary = {}
+		var bids: Dictionary = {}
+		for index: int in range(1,13):
+			var actor := "G%02d"%index
+			var ask := dialogue.bid("catalog_ask",37,actor,language)
+			var bid := dialogue.bid("bid_open",41,actor,language)
+			check(ask.contains("37") and bid.contains("41") and dialogue.bid("catalog_retry",43,actor,language).contains("43"),"public amount retained in localized actor voice")
+			asks[ask]=true
+			bids[bid]=true
+		check(asks.size()==12 and bids.size()==12,"distinct authored seller and buyer voices for all regular actors")
 
 func wallet_total(wallets: Dictionary,currency: String) -> int:
 	var total := 0
@@ -583,6 +677,7 @@ func _initialize() -> void:
 		"source":
 			sources()
 			retry_sources()
+			public_market_copy()
 		"compat": compat()
 		"repair": repair()
 		"retry": retry_witness()

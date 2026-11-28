@@ -56,6 +56,16 @@ static func _load() -> bool:
 static func models() -> Dictionary:
 	return _models.duplicate(true) if _load() else {}
 
+## Public model guide, deliberately independent of the current specimen,
+## hidden condition, market quote, owner, seed and chosen weekly inventory.
+static func reference(model_id: String) -> Dictionary:
+	if not _load(): return {}
+	for row: Dictionary in _models.values():
+		if row.model!=model_id: continue
+		return {"model":model_id,"category":str(row.category),"width":int(row.width),"height":int(row.height),
+			"surface_family":str(row.family),"function_check":bool(row.functional),"workshop_supported":int(row.repair)>0}
+	return {}
+
 static func definition(row: Dictionary) -> Dictionary:
 	var result := Objects.definition({"def_id":row.model,"category":row.category,"localization_key":"item."+str(row.model),"render_key":row.model,"width":row.width,"height":row.height})
 	if not result.is_empty() and int(row.repair)>0:

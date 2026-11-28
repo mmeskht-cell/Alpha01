@@ -57,6 +57,8 @@ var terms_page := 0
 var counter_reply := ""
 var counter_language := "ko"
 const CounterDialogue = preload("res://src/presentation/b3_counter_dialogue.gd")
+const CampaignMarket = preload("res://src/domain/b3_f2_market.gd")
+const CampaignCatalog = preload("res://src/domain/b3_integrated_catalog.gd")
 const SurfaceVisuals = preload("res://src/presentation/surface_visuals.gd")
 const SurfaceLeaf = preload("res://src/presentation/b3_surface_leaf.gd")
 const INTRO_FILE = "res://data/alpha_b3/spatial_intro_ko.json"
@@ -935,7 +937,7 @@ func _draft_controls(x: float,y: float,id: String) -> void:
 	var result: Dictionary = draft.result
 	if result.ok:
 		words(_text("spatial.preview_cash")%[result.VKC,result.USD],x,y,404,36,17)
-		var button := action(id,"영구 폐기 확정" if draft.kind=="spatial_discard" else _text("spatial.confirm"),x,y+39,168,42,func()->void:
+		var button := action(id,_counter_copy("영구 폐기 확정","Confirm discard") if draft.kind=="spatial_discard" else _text("spatial.confirm"),x,y+39,168,42,func()->void:
 			if draft.is_empty() or not draft.result.ok: return
 			if session.snapshot().revision != draft.result.revision:
 				_preview(draft.kind,draft.payload)
@@ -1496,11 +1498,19 @@ func _counter_speech(v: Dictionary,purposes: Array[String] = []) -> String:
 		var original := _b2_npc_line(v)
 		return original if not original.is_empty() else _text(v.active.purpose_key)
 	if v.has("customer_bid_vkc") and public_context.get("current_offer",{}).is_empty() and public_context.get("latest_spoken",{}).is_empty():
+		var visit_id := str(v.active.id)
+		var state: Dictionary = session.snapshot()
+		var item_id := CampaignCatalog.visit_item(state.alpha_shop.profile,visit_id)
+		if not item_id.is_empty() and visit_id==CampaignCatalog.retry_id(item_id):
+			# Only acknowledge a previous encounter if it actually happened.
+			var prior_visit := CampaignCatalog.visit_id(item_id,false)
+			if state.alpha_shop.outcomes.get(prior_visit,"")=="departed":
+				return CounterDialogue.bid("catalog_retry",int(v.customer_bid_vkc),actor,counter_language)
 		if public_context.get("prior",{}).get("outcome","")=="departed":
 			return CounterDialogue.bid("bid_return",int(v.customer_bid_vkc),actor,counter_language)
 		return CounterDialogue.bid("bid_open",int(v.customer_bid_vkc),actor,counter_language)
 	if v.has("customer_ask_vkc") and public_context.get("current_offer",{}).is_empty() and public_context.get("latest_spoken",{}).is_empty():
-		return _counter_copy("이 물건은 %d VKC 받고 싶어요.","I'm asking %d VKC for it.")%int(v.customer_ask_vkc)
+		return CounterDialogue.bid("catalog_ask",int(v.customer_ask_vkc),actor,counter_language)
 	if counter_step==CounterStep.NEGOTIATION and public_context.get("current_offer",{}).is_empty() and public_context.get("latest_spoken",{}).is_empty():
 		# Contextual transition, not a repeat of the opening purpose or a fabricated quote.
 		return _counter_copy("어느 정도로 생각하세요?","What price did you have in mind?")
@@ -1749,19 +1759,26 @@ func _product_document_workspace(v: Dictionary,state: Dictionary) -> void:
 	var header := ""
 	match drawer:
 		"ledger":
-			header = "장부   /   보유 현금 %d VKC · %d USD"%[state.wallets.player.VKC,state.wallets.player.USD]
+			header = _counter_copy("장부   /   보유 현금 %d VKC · %d USD","Ledger   /   Cash %d VKC · %d USD")%[state.wallets.player.VKC,state.wallets.player.USD]
 			groups = _ledger_groups(v,state)
 		"news":
 			header = str(desk_copy.region)%v.day
 			var notices: Array = []
 			if v.has("market_bulletin"):
-				notices.append_array(_market_document_rows(str(v.market_bulletin)))
+				var public_rows := CampaignMarket.public_market_rows(state,counter_language)
+				if public_rows.is_empty():
+					notices.append_array(_market_document_rows(str(v.market_bulletin)))
+				else:
+					for report: Dictionary in public_rows:
+						var supply := _counter_copy("%s · %d일차 · 지역 납품 공지: %s","%s · Day %d · Regional supply: %s")%[report.label,report.day,report.supply]
+						var trades := _counter_copy("상점 거래장(전일까지 %d건): %s","Shop ledger (%d trades before today): %s")%[report.trade_count,report.trend]
+						notices.append({"key":"market_notice_"+str(notices.size()),"caption":supply,"sections":[{"heading":_counter_copy("공급 공지","Supply notice"),"body":supply},{"heading":_counter_copy("상점의 실제 거래 기록","Shop transaction record"),"body":trades}]})
 			for notice: Dictionary in v.news:
 				var stamp := _counter_copy("게시일 %d일차","Published day %d")%int(notice.day) if notice.has("day") else _counter_copy("게시일 기록 없음","Publication date not recorded")
 				var notice_text := _text("alpha.news."+str(notice.text_key))
 				notices.append({"key":"bulletin_"+str(notice.id),"caption":stamp+" · "+notice_text.replace("\n"," ").left(90),
 					"sections":[{"heading":_counter_copy("공개 공지","Public notice"),"body":notice_text},{"heading":_counter_copy("게시 정보","Publication"),"body":stamp}]})
-			groups["news"] = {"caption":"게시된 소식","rows":notices,"empty":_text("spatial.quiet")}
+			groups["news"] = {"caption":_counter_copy("게시된 소식","Published news"),"rows":notices,"empty":_text("spatial.quiet")}
 		"item_history":
 			var item: Dictionary = state.items.get(selected,{})
 			header = _counter_copy("물품 이력   /   ","Item history   /   ")+_text("b2.item."+str(item.get("def_id","")))
@@ -1801,20 +1818,20 @@ func _ledger_groups(v: Dictionary,state: Dictionary) -> Dictionary:
 		for currency: String in ["VKC","USD"]: flow[currency] += int(money[currency])
 		var party := _record_alias(state,str(entry.to if paid else entry.from))
 		var names := _receipt_items(state,entry.root_ids)
-		var stamp := "%d일차"%[int(entry.game_minutes/1440)+1]
+		var stamp := _counter_copy("%d일차","Day %d")%[int(entry.game_minutes/1440)+1]
 		var amount := "%d VKC · %d USD"%[money.VKC,money.USD]
-		var direction := "지출" if paid else "입금"
-		var facts := PackedStringArray([stamp+" · "+party,direction+" "+amount,names if not names.is_empty() else "물품 이체 기록 없음"])
+		var direction := _counter_copy("지출","Paid") if paid else _counter_copy("입금","Received")
+		var facts := PackedStringArray([stamp+" · "+party,direction+" "+amount,names if not names.is_empty() else _counter_copy("물품 이체 기록 없음","No item transfer")])
 		if not paid and not entry.root_ids.is_empty():
 			for currency: String in ["VKC","USD"]:
 				var basis: Variant = entry.basis[currency]
-				if basis!=null: facts.append("%s 원가 %d · 차액 %d"%[currency,int(basis),int(money[currency])-int(basis)])
-				else: facts.append(currency+" 원가 자료 부족")
+				if basis!=null: facts.append(_counter_copy("%s 원가 %d · 차액 %d","%s basis %d · difference %d")%[currency,int(basis),int(money[currency])-int(basis)])
+				else: facts.append(currency+_counter_copy(" 원가 자료 부족"," basis unknown"))
 		var sections: Array = [{"heading":_counter_copy("거래 정보","Transaction"),"body":facts[0]+"\n"+facts[2]},
 			{"heading":_counter_copy("실제 결제","Actual payment"),"body":facts[1]}]
 		if facts.size()>3:
 			sections.append({"heading":_counter_copy("원가 및 차액","Cost and difference"),"body":"\n".join(facts.slice(3))})
-		trade_rows.push_front({"key":"r_"+str(entry.event_id),"caption":stamp+" · "+party+" · "+direction+" "+amount+"\n"+names,"sections":sections})
+		trade_rows.push_front({"key":"r_"+str(entry.event_id),"revision":int(entry.revision),"caption":stamp+" · "+party+" · "+direction+" "+amount+"\n"+names,"sections":sections})
 	# The journal is the authority for all paid maintenance and terminal
 	# stock losses, not only the original receiver prototype.
 	var maintenance := {"VKC":0,"USD":0}
@@ -1842,13 +1859,48 @@ func _ledger_groups(v: Dictionary,state: Dictionary) -> Dictionary:
 					detail+="\n"+_counter_copy("당시 제안 %d %s","Past offer %d %s")%[offer.amount,offer.currency]
 					for fact: Dictionary in offer.facts:
 						detail+="\n"+_text("b2.inspect."+str(fact.slot))+" · "+_fact_caption(fact.slot,fact.value)
-			trade_rows.push_front({"key":"work_"+str(event.event_id),"caption":title,"detail":detail})
+			trade_rows.push_front({"key":"work_"+str(event.event_id),"revision":int(event.revision),"caption":title,"detail":detail})
 	for transfer: Dictionary in state.alpha_shop.get("fx",{}).get("settlements",{}).values():
-		var change := "%d %s 지급 · %d %s 수령"%[transfer.give_amount,transfer.give_currency,transfer.receive_amount,transfer.receive_currency]
-		var stamp := "%d일차 · 환전"%transfer.day
-		trade_rows.push_front({"key":"fx_"+str(transfer.event_id),"caption":stamp+" · "+change,"detail":stamp+"\n"+_record_alias(state,str(transfer.counterparty))+"\n"+change})
+		var change := _counter_copy("%d %s 지급 · %d %s 수령","Paid %d %s · Received %d %s")%[transfer.give_amount,transfer.give_currency,transfer.receive_amount,transfer.receive_currency]
+		var stamp := _counter_copy("%d일차 · 환전","Day %d · Exchange")%transfer.day
+		var revision := 0
+		for command: Dictionary in state.alpha_shop.commands:
+			if command.action_id==transfer.event_id:
+				revision=int(command.expected_revision)+1
+				break
+		trade_rows.push_front({"key":"fx_"+str(transfer.event_id),"revision":revision,"caption":stamp+" · "+change,"detail":stamp+"\n"+_record_alias(state,str(transfer.counterparty))+"\n"+change})
 		outgoing[transfer.give_currency] += int(transfer.give_amount)
 		incoming[transfer.receive_currency] += int(transfer.receive_amount)
+	trade_rows.sort_custom(func(left: Dictionary,right: Dictionary)->bool:
+		if left.revision!=right.revision: return int(left.revision)>int(right.revision)
+		return str(left.key)<str(right.key))
+	var held_basis := {"VKC":0,"USD":0}
+	var held_unknown := {"VKC":0,"USD":0}
+	var held_count := 0
+	for item: Dictionary in state.items.values():
+		# Individually recorded basis, including attached components, once
+		# each. Exclude collateral and any property held for another owner.
+		if item.owner_id!="player" or item.custodian_id!="player": continue
+		var location: Dictionary = item
+		if not item.parent_id.is_empty():
+			location=state.items.get(item.parent_id,{})
+		# A nested item belongs to the stock totals only if its real host
+		# chain ends in one of the two merchandise grids.
+		var seen_hosts: Dictionary = {}
+		while not location.is_empty():
+			var grid: Dictionary = state.inventories.get(location.inventory,{})
+			var host := str(grid.get("host_item",""))
+			if host.is_empty(): break
+			if seen_hosts.has(host):
+				location={}
+				break
+			seen_hosts[host]=true
+			location=state.items.get(host,{})
+		if location.is_empty() or location.inventory not in ["player_stock","storefront_grid"] or location.owner_id!="player" or location.custodian_id!="player": continue
+		held_count+=1
+		for currency: String in ["VKC","USD"]:
+			if item.basis[currency]==null: held_unknown[currency]+=1
+			else: held_basis[currency]+=int(item.basis[currency])
 	for job: Dictionary in v.services.entries:
 		var title := _text("b2.item."+str(job.def_id))
 		inbound.append({"key":"service_"+str(job.job_id),"caption":_record_alias(state,str(job.actor_id))+" · "+title,"detail":_text("b2.service.receipt")%[title,job.due_day,job.fee.VKC,_text("b2.service.status."+str(job.status))]})
@@ -1873,12 +1925,15 @@ func _ledger_groups(v: Dictionary,state: Dictionary) -> Dictionary:
 			_board_line(page,"cash_out",_counter_copy("거래 유출 · %d VKC / %d USD","Trade outflow · %d VKC / %d USD")%[outgoing.VKC,outgoing.USD])
 			_board_line(page,"maintenance_total",_counter_copy("정비 지출 · %d VKC / %d USD","Maintenance expense · %d VKC / %d USD")%[maintenance.VKC,maintenance.USD])
 			_board_line(page,"discarded_basis",_counter_copy("확인된 폐기 원가 손실 · %d VKC / %d USD","Known discarded stock basis · %d VKC / %d USD")%[discarded_basis.VKC,discarded_basis.USD])
+			_board_line(page,"held_basis",_counter_copy("보유 재고 %d개 · 확인 원가 %d VKC / %d USD","Held stock %d objects · Known basis %d VKC / %d USD")%[held_count,held_basis.VKC,held_basis.USD])
+			if held_unknown.VKC>0 or held_unknown.USD>0:
+				_board_line(page,"held_unknown",_counter_copy("재고 원가 미상 · VKC %d개 / USD %d개","Unknown stock basis · VKC %d / USD %d")%[held_unknown.VKC,held_unknown.USD])
 			if unknown_basis.VKC>0 or unknown_basis.USD>0:
 				_board_line(page,"discarded_unknown",_counter_copy("원가 미상 기록 · VKC %d건 / USD %d건","Unknown basis records · VKC %d / USD %d")%[unknown_basis.VKC,unknown_basis.USD])},
-		"inbound":{"caption":"받은 의뢰","rows":inbound,"render":func(page:VBoxContainer)->void:
+		"inbound":{"caption":_counter_copy("받은 의뢰","Incoming jobs"),"rows":inbound,"render":func(page:VBoxContainer)->void:
 			if v.phase in ["OPEN_IDLE","EVENING_WORK"]: _add_b2_commission_actions(page,v)},
-		"outbound":{"caption":"맡긴 의뢰","rows":outbound},
-		"contracts":{"caption":"계약·담보","rows":contracts,"render":func(page:VBoxContainer)->void:
+		"outbound":{"caption":_counter_copy("맡긴 의뢰","Outgoing jobs"),"rows":outbound},
+		"contracts":{"caption":_counter_copy("계약·담보","Contracts & pledges"),"rows":contracts,"render":func(page:VBoxContainer)->void:
 			if v.phase!="CUSTOMER_ACTIVE": _add_contract_actions(page,v,v.contracts.size()>1)
 			_pawn_folio(page,v,state)},
 	}
@@ -2044,7 +2099,8 @@ func _model_page(pages: VBoxContainer) -> void:
 	pages.add_child(groups)
 	for group in range(4):
 		var link := Button.new()
-		link.text = desk_copy.groups[group]
+		link.name = "model_group_"+str(group)
+		link.text = ["Other","Food","Medical","Utilities"][group] if counter_language=="en" else str(desk_copy.groups[group])
 		groups.add_child(link)
 		link.pressed.connect(func()->void:
 			index_group=group
@@ -2056,6 +2112,7 @@ func _model_page(pages: VBoxContainer) -> void:
 	for k in range(index_page*3,mini(index_page*3+3,keys.size())):
 		var model := keys[k]
 		var tile := Button.new()
+		tile.name = "guide_"+model
 		tile.custom_minimum_size = Vector2(0,78)
 		tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tile.icon = Art.ITEMS.model_texture(model,"inspection")
@@ -2093,13 +2150,27 @@ func _model_page(pages: VBoxContainer) -> void:
 			for tool: Dictionary in doc.get("profiles",{}).get(reference_model,{}).get("tools",[]):
 				var feature := _text("b2.inspect."+str(tool.id))
 				if feature not in features: features.append(feature)
-		if not features.is_empty(): _board_line(pages,"reference_features","확인할 항목 · "+", ".join(features))
+		var guide := CampaignCatalog.reference(reference_model)
+		if not guide.is_empty():
+			_board_line(pages,"catalog_guide_heading",_counter_copy("모델 참고 · 실물 확인 필요","Model reference · inspect the actual article"),true)
+			var materials := {"metal":"Metal","plastic":"Plastic","paper":"Paper","fabric":"Fabric","glass":"Glass"} if counter_language=="en" else {"metal":"금속","plastic":"플라스틱","paper":"종이","fabric":"직물","glass":"유리"}
+			var material := str(materials.get(guide.surface_family,_counter_copy("미확정","Not specified")))
+			_board_line(pages,"catalog_guide_surface",_counter_copy("참고 외부 재질 · %s","Reference exterior material · %s")%material)
+			_board_line(pages,"catalog_guide_size",_counter_copy("기본 점유 · %d × %d칸","Base footprint · %d × %d cells")%[guide.width,guide.height])
+			features.append(_text("b2.inspect.identity"))
+			if not guide.surface_family.is_empty():
+				features.append(_text("b2.inspect.wear_detail"))
+			if guide.function_check:
+				features.append(_text("b2.inspect.function_detail"))
+			_board_line(pages,"catalog_guide_work",_counter_copy("가상 작업장 정비 대상 모델","Model supported by fictional workshop") if guide.workshop_supported else _counter_copy("별도 정비 대상 아님","Not a workshop repair model"))
+			_board_line(pages,"catalog_guide_limit",_counter_copy("도감은 개체 상태·진위·내용물 안전성·실제 가격을 보증하지 않습니다.","Reference does not certify condition, authenticity, contents, safety or actual price."))
+		if not features.is_empty(): _board_line(pages,"reference_features",_counter_copy("확인할 항목 · ","Checks · ")+", ".join(features))
 		if Art.ITEMS.model_art.has(reference_model):
-			_button(pages,"record_model","이 모델로 추정",func()->void:
+			_button(pages,"record_model",_counter_copy("이 모델로 추정","Select as my model hypothesis"),func()->void:
 				private_model = reference_model
 				_refresh_book(pages))
 	if not private_model.is_empty():
-		_button(pages,"clear_model","내 가설 · "+_text("b2.item."+private_model)+"  ×",func()->void:
+		_button(pages,"clear_model",_counter_copy("내 가설 · ","My hypothesis · ")+_text("b2.item."+private_model)+"  ×",func()->void:
 			private_model = ""
 			_refresh_book(pages))
 
@@ -2335,7 +2406,7 @@ func _known_price(pages: VBoxContainer,appraisal: Dictionary,day: int) -> void:
 		_board_line(pages,"known_empty","과거 동일 물품 개별 매각 기록 없음")
 	elif known.omitted>0:
 		_board_line(pages,"known_omitted","최근 표시된 기록 기준 · 이전 기록 제외")
-	_board_line(pages,"market_source","크라벤스크 D%d · 지역 예상 매각 범위 · 시장 자료 부족"%day)
+	_board_line(pages,"market_source",_counter_copy("크라벤스크 D%d · 지역 예상 매각 범위 · 시장 자료 부족","Kravensk D%d · Regional sale range · Insufficient market data")%day)
 
 func _history_lines(pages: VBoxContainer,id: String) -> void:
 	var history: Dictionary = session.alpha_item_history(id,last_visit)
@@ -2520,7 +2591,7 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 	_inventory_grid_art(s)
 	placement_hint = words("",76,122,640,36,16)
 	var grids := ["player_stock","storefront_grid","service_grid","pawn_grid"]
-	var titles := ["창고","외부 매대","수탁 보관","담보 보관"]
+	var titles := [_counter_copy("창고","Stockroom"),_counter_copy("외부 매대","Display shelf"),_counter_copy("수탁 보관","Custody"),_counter_copy("담보 보관","Pledges")]
 	for n: int in range(grids.size()):
 		var destination: String = grids[n]
 		if s.inventories.has(destination):
@@ -2616,32 +2687,33 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 			if footprint.size()==2:
 				var cell_count := Vector2i(footprint[1],footprint[0]) if original.rotated else Vector2i(footprint[0],footprint[1])
 				_mark_cells(Rect2i(Vector2i(original.x,original.y),cell_count),cell,PlacementMark.Kind.ORIGIN,"inventory_origin")
-		words("%d×%d 보관 격자"%[spec.width,spec.height],76,557,642,34,16)
-	if not s.items.has(selected) or s.items[selected].inventory not in grids or not str(s.items[selected].parent_id).is_empty():
-		selected = ""
-		draft.clear()
-		words("물건을 골라 살펴보세요.",760,211,400,84)
-		return
-	var item: Dictionary = s.items[selected]
-	var history: Dictionary = session.alpha_item_history(selected,last_visit)
-	var condition := "기능 관찰 기록 없음"
-	for row: Dictionary in history.records:
-		var known := false
-		for fact: Dictionary in row.get("offer_reference",{}).get("facts",[]):
-			if fact.slot in ["condition_detail","function_detail"]:
-				condition = "거래 당시 기능 · "+_fact_caption(str(fact.slot),fact.value)
-				known = true
-				break
-		if known: break
-	if r2_review_mode:
+		words(_counter_copy("%d×%d 보관 격자","%d×%d storage grid")%[spec.width,spec.height],76,557,642,34,16)
 		var occupied := 0
 		for id: String in s.items:
 			var row: Dictionary = s.items[id]
 			if row.inventory!=storage or not str(row.parent_id).is_empty(): continue
 			var footprint: Array = session.spatial_dimensions(id)
 			if footprint.size()==2: occupied += int(footprint[0])*int(footprint[1])
-		words("사용 %d / %d칸 · 거래 이력 %d건"%[occupied,int(spec.width)*int(spec.height),history.records.size()+int(history.omitted)],76,596,642,34,16)
-		words(condition,76,634,642,35,16)
+		var capacity := words(_counter_copy("사용 %d / %d칸","Occupied %d / %d cells")%[occupied,int(spec.width)*int(spec.height)],76,596,642,34,16)
+		capacity.name="inventory_capacity"
+	if not s.items.has(selected) or s.items[selected].inventory not in grids or not str(s.items[selected].parent_id).is_empty():
+		selected = ""
+		draft.clear()
+		words(_counter_copy("물건을 골라 살펴보세요.","Select an article to inspect."),760,211,400,84)
+		return
+	var item: Dictionary = s.items[selected]
+	var history: Dictionary = session.alpha_item_history(selected,last_visit)
+	var condition := _counter_copy("기능 관찰 기록 없음","No function observation recorded")
+	for row: Dictionary in history.records:
+		var known := false
+		for fact: Dictionary in row.get("offer_reference",{}).get("facts",[]):
+			if fact.slot in ["condition_detail","function_detail"]:
+				condition = _counter_copy("거래 당시 기능 · ","Function at trade · ")+_fact_caption(str(fact.slot),fact.value)
+				known = true
+				break
+		if known: break
+	if r2_review_mode:
+		words(condition+" · "+_counter_copy("거래 이력 %d건","%d trade records")%(history.records.size()+int(history.omitted)),76,634,642,35,16)
 	else:
 		words(condition+"   /   거래 이력 %d건"%(history.records.size()+int(history.omitted)),76,560,642,42,16)
 	words(_text("b2.item."+str(item.def_id)),746,146,434,46)
@@ -2657,9 +2729,9 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 		unavailable.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if item.owner_id=="player":
 		words(_text("spatial.basis") % [str(item.basis.VKC) if item.basis.VKC!=null else "?",str(item.basis.USD) if item.basis.USD!=null else "?"],746,319,420,38,17)
-	var permission := _text("spatial.locked") if not str(item.reservation_id).is_empty() else ("보호품" if item.protected else "")
-	words("소유 "+_actor_label(item.owner_id)+"  /  보관 "+_actor_label(item.custodian_id)+"  "+permission,747,360,435,40)
-	_workspace_action("rotate","배치 방향 · "+("90°" if item.rotated else "0°")+("  →  "+("90°" if rotated else "0°") if rotated!=item.rotated else ""),Rect2(746,406,400,44),func()->void:
+	var permission := _text("spatial.locked") if not str(item.reservation_id).is_empty() else (_counter_copy("보호품","Protected") if item.protected else "")
+	words(_counter_copy("소유 ","Owner ")+_actor_label(item.owner_id)+_counter_copy("  /  보관 "," / Custodian ")+_actor_label(item.custodian_id)+"  "+permission,747,360,435,40)
+	_workspace_action("rotate",_counter_copy("배치 방향 · ","Orientation · ")+("90°" if item.rotated else "0°")+("  →  "+("90°" if rotated else "0°") if rotated!=item.rotated else ""),Rect2(746,406,400,44),func()->void:
 		draft.clear()
 		rotated = not rotated
 		refresh())
@@ -2677,7 +2749,10 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 		var summary := _work_label(draft.kind)
 		if draft.kind=="spatial_discard":
 			var loss:Dictionary=session.discard_preview(selected)
-			summary="영구 폐기 %d개 · 원가 %s VKC / %s USD 손실"%[pending.confirmed_ids.size(),str(loss.get("basis",{}).get("VKC","?")),str(loss.get("basis",{}).get("USD","?"))]
+			var basis: Dictionary = loss.get("basis",{})
+			var vk := str(basis.VKC) if basis.get("VKC")!=null else _counter_copy("미상","Unknown")
+			var usd := str(basis.USD) if basis.get("USD")!=null else _counter_copy("미상","Unknown")
+			summary=_counter_copy("영구 폐기 %d개 · 원가 %s VKC / %s USD 손실","Discard %d objects · Basis loss %s VKC / %s USD")%[pending.confirmed_ids.size(),vk,usd]
 		var part_id := str(pending.get("child_id",""))
 		if s.items.has(part_id): summary += " · "+_text("b2.item."+str(s.items[part_id].def_id))
 		words(summary,746,455,445,38)
@@ -2689,14 +2764,14 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 			_draft_controls(746,506,"confirm_work")
 	elif selected in v.displayed_items and storage=="storefront_grid":
 		var tag: Dictionary = Alpha.displayed_ask(s,selected)
-		words("매대 표시가 · "+("%d %s"%[tag.amount,tag.currency] if not tag.is_empty() else "미설정"),746,461,435,40)
+		words(_counter_copy("매대 표시가 · ","Shelf price · ")+("%d %s"%[tag.amount,tag.currency] if not tag.is_empty() else _counter_copy("미설정","Not set")),746,461,435,40)
 		if v.phase in ["OPEN_IDLE","EVENING_WORK"]:
 			var slip := preload("res://scenes/app/spatial_price_slip.tscn").instantiate() as HBoxContainer
 			place(slip,746,515,420,48)
 			var amount := slip.get_node("Amount") as LineEdit
 			var currency := slip.get_node("Currency") as OptionButton
 			var apply_button := slip.get_node("Apply") as Button
-			amount.placeholder_text = "표시가"
+			amount.placeholder_text = _counter_copy("표시가","Price")
 			if tag_draft.get("item") != selected or tag_draft.get("source") != tag:
 				tag_draft = {"item":selected,"source":tag.duplicate(),"amount":str(tag.get("amount","")),"currency":str(tag.get("currency","VKC"))}
 			amount.text = tag_draft.amount
@@ -2705,7 +2780,7 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 			currency.add_item("USD")
 			currency.select(1 if tag_draft.currency=="USD" else 0)
 			currency.item_selected.connect(func(index:int)->void: tag_draft.currency=currency.get_item_text(index))
-			apply_button.text = "가격표 갱신"
+			apply_button.text = _counter_copy("가격표 갱신","Update price")
 			apply_button.pressed.connect(func()->void:
 				if amount.text.is_valid_int() and int(amount.text)>0:
 					_submit("alpha_reprice_display",{"item_id":selected,"amount":int(amount.text),"currency":currency.get_item_text(currency.selected)}))
@@ -2734,11 +2809,11 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 			if job.get("item_id")==selected and job.can_repair:
 				action("b2_service_repair",_text("b2.service.repair"),746,459,420,52,func()->void:
 					_preview("alpha_service_repair",{"job_id":job.job_id,"item_id":selected}))
-	_workspace_action("item_history","물품 이력",Rect2(746,630 if r2_review_mode else 611,212,44),func()->void:open_drawer("item_history")).visible = not r2_review_mode or draft.is_empty()
+	_workspace_action("item_history",_counter_copy("물품 이력","Item history"),Rect2(746,630 if r2_review_mode else 611,212,44),func()->void:open_drawer("item_history")).visible = not r2_review_mode or draft.is_empty()
 	if draft.is_empty() and v.phase=="EVENING_WORK" and item.inventory=="player_stock" and s.alpha_shop.profile.has("f3_composite_trial"):
 		var disposal:Dictionary=session.alpha_discard_preview(selected)
 		if not disposal.is_empty():
-			_workspace_action("f3_discard","물품 폐기",Rect2(966,630 if r2_review_mode else 611,212,44),func()->void:_preview("spatial_discard",disposal.payload))
+			_workspace_action("f3_discard",_counter_copy("물품 폐기","Discard item"),Rect2(966,630 if r2_review_mode else 611,212,44),func()->void:_preview("spatial_discard",disposal.payload))
 	if not _message.is_empty(): words(_visible_notice(),74,645 if r2_review_mode else 608,650,55,16)
 
 func _inventory_difference(state: Dictionary,pending: Dictionary) -> String:
@@ -2763,7 +2838,7 @@ func _inventory_difference(state: Dictionary,pending: Dictionary) -> String:
 		var cash_caption := "작업 지출 %d VKC / %d USD"%[-delta_vkc,-delta_usd] if delta_vkc<=0 and delta_usd<=0 else "현금 변동 %+d VKC / %+d USD"%[delta_vkc,delta_usd]
 		var wallet: Dictionary = state.wallets.player
 		return cash_caption+"\n현금 %s → %s"%[_document_money(wallet),_document_money({"VKC":int(wallet.VKC)+delta_vkc,"USD":int(wallet.USD)+delta_usd})]
-	if draft.kind=="spatial_discard": return "확정하면 물품은 영구 제거됩니다. 기존 거래와 작업 기록은 보존됩니다."
+	if draft.kind=="spatial_discard": return _counter_copy("확정하면 물품은 영구 제거됩니다. 기존 거래와 작업 기록은 보존됩니다.","Confirm to remove the article permanently. Trade and work records remain.")
 	return "작업 후 상태는 확정하면 기록됩니다."
 
 func _hover_inventory_cell(target: Vector2i,detach: Dictionary={}) -> void:

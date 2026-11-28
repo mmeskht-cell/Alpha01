@@ -154,7 +154,114 @@
     ],
     "opening_g01": [
       "Hello. Would you take a look at this radio?"
+    ],
+    "catalog_ask": [
+      "I was hoping for {amount} VKC. Would that work?",
+      "I'm asking {amount} VKC. Have a look.",
+      "Could you give me {amount} VKC for it?"
+    ],
+    "catalog_retry": [
+      "I can offer {amount} VKC for this now.",
+      "It's still here? I'd offer {amount} VKC.",
+      "If you're willing to sell today, how about {amount} VKC?"
     ]
   },
-  "actor_lines": {}
+  "actor_lines": {
+    "G02": {
+      "catalog_ask": [
+        "Could you manage {amount} VKC for this?"
+      ],
+      "bid_open": [
+        "Would {amount} VKC be enough?"
+      ]
+    },
+    "G06": {
+      "catalog_ask": [
+        "{amount} VKC. See what you think."
+      ],
+      "bid_open": [
+        "{amount} VKC. I'd buy on those terms."
+      ]
+    },
+    "G09": {
+      "bid_open": [
+        "Would {amount} VKC work for you?"
+      ],
+      "catalog_ask": [
+        "Would {amount} VKC work for both of us?"
+      ]
+    },
+    "G11": {
+      "bid_open": [
+        "My offer is {amount} VKC."
+      ],
+      "catalog_ask": [
+        "I'm asking {amount} VKC."
+      ]
+    },
+    "G01": {
+      "catalog_ask": [
+        "I'd like {amount} VKC for it."
+      ],
+      "bid_open": [
+        "Would you let it go for {amount} VKC?"
+      ]
+    },
+    "G03": {
+      "catalog_ask": [
+        "Take a look first. I had {amount} VKC in mind."
+      ],
+      "bid_open": [
+        "I'd offer {amount} VKC."
+      ]
+    },
+    "G04": {
+      "catalog_ask": [
+        "I was hoping for around {amount} VKC."
+      ],
+      "bid_open": [
+        "I'd buy it at {amount} VKC."
+      ]
+    },
+    "G05": {
+      "catalog_ask": [
+        "I've come to sell this. How about {amount} VKC?"
+      ],
+      "bid_open": [
+        "I had {amount} VKC in mind."
+      ]
+    },
+    "G07": {
+      "catalog_ask": [
+        "I'd like to let it go for {amount} VKC."
+      ],
+      "bid_open": [
+        "I've had a look. How about {amount} VKC?"
+      ]
+    },
+    "G08": {
+      "catalog_ask": [
+        "I'll start with the price: {amount} VKC."
+      ],
+      "bid_open": [
+        "My offer would be {amount} VKC."
+      ]
+    },
+    "G10": {
+      "catalog_ask": [
+        "Have a look at this. I'm thinking {amount} VKC."
+      ],
+      "bid_open": [
+        "I'll offer {amount} VKC."
+      ]
+    },
+    "G12": {
+      "catalog_ask": [
+        "I came to see whether I could get {amount} VKC."
+      ],
+      "bid_open": [
+        "What about {amount} VKC for this?"
+      ]
+    }
+  }
 }

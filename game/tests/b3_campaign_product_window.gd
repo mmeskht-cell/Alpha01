@@ -112,6 +112,18 @@ func menu_route(size: Vector2i,location: String) -> bool:
 		and not host._intro,"same product title selects correct versioned source"): return false
 	if not await to_title() or not await click_navigation(title,"menu_load") or not await wait_for_shop("menu_slot_2"): return false
 	if not check(host.session.snapshot()==progressed and not host.session.snapshot().alpha_shop.profile.has("visit_plan_policy"),"previous v1 slot remains exactly loadable"): return false
+	# Separate save root keeps the prior v1/v2/corrupt slot witness intact.
+	var retry_location := location+"_retry"
+	var retry := Play.fresh(preload("res://src/content/b3_integrated_campaign_seed.gd").content(105,3))
+	if not check(retry!=null and Play.go(retry,"alpha_open"),"v3 fixture opens"): return false
+	var retry_state: Dictionary = retry.snapshot()
+	if not check(TitlePreferences.write(Slots.preferences_path(retry_location),prefs)
+		and ProductRepo.new(Slots.directory(retry_location,0)).save_session(retry,Slots.KEY).get("ok",false),"isolated v3 product fixture saved"): return false
+	if not await to_title(): return false
+	title.set("save_directory_override",retry_location)
+	# Opening the load list refreshes actual slot metadata from disk.
+	if not await click_navigation(title,"menu_load") or not await wait_for_shop("menu_slot_1"): return false
+	if not check(host.session.snapshot()==retry_state and host.session.snapshot().alpha_shop.profile.get("visit_plan_policy")==3,"real product loads v3 source without default activation"): return false
 	return true
 
 func settle_quote() -> bool:
@@ -162,10 +174,14 @@ func product_route(target: String,size: Vector2i,location: String) -> bool:
 	var row: Dictionary = Catalog.models()[target]
 	var specimen: Texture2D = CounterArt.ITEMS.model_texture(row.model,"inspection",target)
 	var ask: int = int(host.session.alpha_view().customer_ask_vkc)
+	var public_view: Dictionary = host.session.alpha_view()
+	if not check(host._counter_speech(public_view).contains(str(ask)),"actual asking amount in localized customer line"): return false
 	if not await appraise_model(target,row,specimen,size) or not await settle_quote(): return false
 	var purchased: Dictionary = host.session.snapshot()
 	if not check(purchased.items[target].owner_id=="player" and purchased.items[target].basis.VKC==ask,"physical purchase and cost basis"): return false
 	if not await click_navigation(host,"stockroom") or not await click_navigation(host,"stock_"+target): return false
+	var capacity := host.find_child("inventory_capacity",true,false) as Label
+	if not check(capacity!=null and capacity.text.contains("/ 60") and capacity.text.contains("Occupied" if prefs.language=="en" else "사용"),"localized actual grid capacity"): return false
 	var token := host.find_child("stock_"+target,true,false) as Control
 	var sprite := token.get_node_or_null("ItemArt") as Sprite2D if token else null
 	if not check(sprite!=null and sprite.is_visible_in_tree() and exact_model_face(sprite.texture,CounterArt.ITEMS.model_texture(row.model,"stock",target)),"stock image keeps exact same model "+target): return false
@@ -215,18 +231,41 @@ func maintenance_ledger_route(size: Vector2i,location: String) -> bool:
 	var discard_event: Dictionary = final.object_events.back()
 	if not check(final.wallets==repaired.wallets and discard_event.basis.VKC==trade.amount+cost.VKC and repair_event.expenses==cost
 		and final.tombstones.has("CS20"),"disposal basis is not another cash payment"): return false
-	if not check(ProductRepo.new(Slots.directory(location,1)).save_session(fixture,Slots.KEY).get("ok",false),"ledger fixture saved"): return false
+	# Preserve the real repaired state in a separate slot, then execute the
+	# same disposition through the player's physical stock drawer.
+	var live_fixture := Play.fresh(route.source)
+	if not check(live_fixture!=null and live_fixture.restore(repaired)
+		and ProductRepo.new(Slots.directory(location,1)).save_session(live_fixture,Slots.KEY).get("ok",false),"repaired article fixture saved"): return false
 	if not await to_title() or not await click_navigation(title,"menu_load") or not await wait_for_shop("menu_slot_2"): return false
-	if not check(host.session.snapshot()==final,"actual product loads repaired and discarded specimen history"): return false
+	if not check(host.session.snapshot()==repaired,"actual product loads repaired specimen"): return false
+	if not await click_navigation(host,"stockroom") or not await click_navigation(host,"stock_CS20") or not await click_navigation(host,"f3_discard"): return false
+	if not check(host.session.snapshot()==repaired and host.draft.get("kind")=="spatial_discard","real disposal preview leaves game unchanged"): return false
+	if not await click_navigation(host,"discard_draft"): return false
+	if not check(host.session.snapshot()==repaired and host.draft.is_empty(),"cancel does not dispose"): return false
+	if not await click_navigation(host,"f3_discard") or not await click("confirm_work","EVENING_WORK"): return false
+	var actual: Dictionary = host.session.snapshot()
+	if not check(actual.wallets==final.wallets and actual.tombstones.has("CS20") and not actual.items.has("CS20")
+		and actual.tombstones.CS20.basis==final.tombstones.CS20.basis and actual.ledger==final.ledger,"real confirmed disposal matches authority result"): return false
+	var actual_discard: Dictionary = actual.object_events.back()
+	if not await click_navigation(host,"close_drawer") or not await to_title() or not await click_navigation(title,"menu_load") or not await wait_for_shop("menu_slot_2"): return false
+	if not check(host.session.snapshot()==actual,"actual disposal history persists after title reload"): return false
 	if not await click_navigation(host,"ledger"): return false
 	var repair_row := host.find_child("work_"+str(repair_event.event_id),true,false) as Button
-	var discard_row := host.find_child("work_"+str(discard_event.event_id),true,false) as Button
+	var discard_row := host.find_child("work_"+str(actual_discard.event_id),true,false) as Button
+	var held := host.find_child("held_basis",true,false) as Label
 	var paid := host.find_child("maintenance_total",true,false) as Label
 	var lost := host.find_child("discarded_basis",true,false) as Label
 	if not check(repair_row!=null and discard_row!=null and paid!=null and lost!=null
 		and paid.text.contains("5 VKC") and lost.text.contains("%d VKC"%int(discard_event.basis.VKC))
-		and host.session.snapshot()==final,"ledger shows actual non-F3 repair and loss separately, read-only"): return false
+		and host.session.snapshot()==actual,"ledger shows actual non-F3 repair and loss separately, read-only"): return false
+	if not check(held!=null and held.text.contains("Held stock" if size.y==1080 else "보유 재고")
+		and discard_row.get_index()<repair_row.get_index(),"stock basis visible and later disposal sorted before repair"): return false
 	await capture("campaign_maintenance_ledger_"+str(size.y),size)
+	if not await click_navigation(host,"close_drawer") or not await click_navigation(host,"news"): return false
+	var market := host.find_child("market_notice_0",true,false) as Button
+	if not check(market!=null and market.text.contains("Regional supply" if size.y==1080 else "지역 납품 공지")
+		and host.session.snapshot()==actual,"actual news presents localized public supply information read-only"): return false
+	await capture("campaign_market_news_"+str(size.y),size)
 	return true
 
 func run() -> void:
