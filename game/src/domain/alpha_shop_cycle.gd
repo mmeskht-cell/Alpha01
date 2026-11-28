@@ -174,31 +174,44 @@ static func seed(state: Dictionary, profile: Dictionary) -> Dictionary:
 ## Each replayed opening freezes an eligible nonstory visitor plan. Existing
 ## authored rows remain the only identities; committed returns cannot be dropped.
 static func _admissible(state: Dictionary, visit_id: String, allow_same_day_supply: bool=true) -> bool:
+	return admission_reason(state,visit_id,allow_same_day_supply).is_empty()
+
+## Internal diagnostic only. An empty reason is the original admission
+## predicate. First blocking condition in the same short-circuit order.
+## Never persist these reasons or expose private wallets/custody in the UI.
+static func admission_reason(state: Dictionary, visit_id: String, allow_same_day_supply: bool=true) -> String:
 	var a: Dictionary = state.alpha_shop
 	if visit_id == "tool_buy" and a.get("outbound", {}).get("tool_search", {}).get("status") == "empty":
-		return false
+		return "outbound_empty"
 	if a.has("week_pawn") and state.visits.has(visit_id) and visit_id not in a.profile.visit_random.locked_ids:
 		var visit: Dictionary = state.visits[visit_id]
 		# Appointments/service visits may trade an encumbered object under their
 		# own authority. Ordinary merchandise has to have a real free root.
 		if visit_id not in ["visit_g01","watch_a","tool_buy"] and visit.scope.kind == "ordinary" and visit.prices.size() == 1 and not Commission.is_return_visit(visit_id,str(a.profile.commission_profile_id)) and not ServiceCustody.is_return_visit(visit_id,str(a.profile.service_profile_id)):
 			var id: String = str(visit.prices.keys()[0])
-			if not state.items.has(id): return false
+			if not state.items.has(id): return "item_missing"
 			var item: Dictionary = state.items[id]
-			if visit.scope.completed or item.status != "stock" or item.protected or not item.reservation_id.is_empty() or not item.parent_id.is_empty():
-				return false
+			if visit.scope.completed: return "already_settled"
+			if item.status != "stock": return "not_stock"
+			if item.protected: return "protected_item"
+			if not item.reservation_id.is_empty(): return "reserved_item"
+			if not item.parent_id.is_empty(): return "attached_component"
 			if visit.seller == "player":
 				if item.owner_id != "player" or item.custodian_id != "player" or id not in a.displayed:
 					# At opening a later same-day shelf sale can follow a real
 					# funded supply. At the door require actual display.
 					if not allow_same_day_supply or a.phase != "DAY_PREP" or not _same_day_supply(state,id):
-						return false
+						return "not_player_displayed"
 				for currency: String in ["VKC","USD"]:
 					if state.wallets[visit.buyer][currency] < visit.prices[id][currency]:
-						return false
+						return "buyer_funds"
 			elif item.owner_id != visit.seller or item.custodian_id != visit.seller:
-				return false
-	return (not a.has("commissions") or Commission.scheduled(state, visit_id)) and (not a.has("services") or ServiceCustody.scheduled(state, visit_id)) and B3Interest.eligible(state, visit_id) and BatteryMarket.eligible(state,visit_id)
+				return "seller_custody"
+	if a.has("commissions") and not Commission.scheduled(state,visit_id): return "commission_unavailable"
+	if a.has("services") and not ServiceCustody.scheduled(state,visit_id): return "service_unavailable"
+	if not B3Interest.eligible(state,visit_id): return "buyer_interest_unavailable"
+	if not BatteryMarket.eligible(state,visit_id): return "market_unavailable"
+	return ""
 
 static func _same_day_supply(state: Dictionary, item_id: String) -> bool:
 	var a: Dictionary = state.alpha_shop

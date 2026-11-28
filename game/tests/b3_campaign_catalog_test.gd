@@ -60,7 +60,7 @@ func sources() -> void:
 	var witnessed_stock := {}
 	for row: Dictionary in models.values():
 		traced[row.model] = true
-		var guide := Catalog.reference(row.model)
+		var guide := Catalog.model_reference(row.model)
 		check(guide=={"model":row.model,"category":row.category,"width":int(row.width),"height":int(row.height),
 			"surface_family":row.family,"function_check":row.functional,"workshop_supported":int(row.repair)>0},
 			"model-only guide excludes specimen state, prices and private owner "+str(row.id))
@@ -88,7 +88,7 @@ func sources() -> void:
 			check(src.state.visits.has(Catalog.visit_id(id,true)) and src.state.visits.has(Catalog.visit_id(id,false)),"finite purchase and resale visits "+id)
 			check(Surface.project(id,stock,{},src.alpha_profile).is_empty(),"no actual appearance in an unread observation "+id)
 	check(witnessed_stock.size()==models.size(),"at least one initial physical source for every added model")
-	check(Catalog.reference("nonexistent_model").is_empty(),"unknown model has no fabricated guide")
+	check(Catalog.model_reference("nonexistent_model").is_empty(),"unknown model has no fabricated guide")
 	var source := Seed.content(101)
 	if source.is_empty(): return
 	for key: String in EXISTING:
@@ -425,6 +425,29 @@ func visit_trade(s: RefCounted,id: String,report: Dictionary) -> bool:
 	report["bought" if purchase else "sold"].append(id)
 	return not purchase or Play.display(s,id)
 
+## Diagnostic data for development matrices, not a second gameplay authority.
+## At the actual OPEN_IDLE snapshot immediately before a door or close,
+## the cursor identifies precisely the plan rows that were skipped.
+func record_door_omissions(before: Dictionary,stop: int,rows: Array) -> bool:
+	var a: Dictionary = before.alpha_shop
+	var plan: Array = a.random_visits.plan
+	if not check(a.phase=="OPEN_IDLE" and stop>=int(a.cursor) and stop<=plan.size(),"door omission boundary"): return false
+	for index: int in range(int(a.cursor),stop):
+		var id: String = plan[index]
+		var reason := Cycle.admission_reason(before,id)
+		if not check(not reason.is_empty(),"actual skipped visitor has authoritative blocker "+id): return false
+		rows.append({"visit":id,"reason":reason,"day":int(a.day),"revision":int(before.revision),"plan_index":index})
+	return true
+
+func opening_observation(state: Dictionary) -> Array:
+	var a: Dictionary = state.alpha_shop
+	var rows: Array = []
+	for candidate: Dictionary in a.profile.days[int(a.day)-1]:
+		var id: String = candidate.id
+		rows.append({"visit":id,"kind":str(candidate.kind),"planned":id in a.random_visits.plan,
+			"door_blocker_after_open":Cycle.admission_reason(state,id)})
+	return rows
+
 func week(seed_value: int,version: int=1) -> void:
 	var source := Seed.content(seed_value,version)
 	var s := Play.fresh(source)
@@ -437,12 +460,16 @@ func week(seed_value: int,version: int=1) -> void:
 		var opening: Dictionary = s.snapshot()
 		var opened: Dictionary = s.alpha_view().attendance.duplicate(true)
 		var arrived: Array = []
+		var door_omissions: Array = []
 		var regular := 0
 		var named := 0
 		var anchors := 0
 		var anchor_ids: Array = ["alpha_marcus_intro","alpha_ian_hygiene_offer_d1"]
 		while int(s.alpha_view().remaining)>0:
+			var before_door: Dictionary = s.snapshot()
 			if not check(Play.next_customer(s),"real customer enters"): return
+			var after_door: Dictionary = s.snapshot()
+			if not record_door_omissions(before_door,int(after_door.alpha_shop.cursor)-1,door_omissions): return
 			seen+=1
 			var view: Dictionary = s.alpha_view()
 			arrived.append(str(view.active.id))
@@ -464,7 +491,9 @@ func week(seed_value: int,version: int=1) -> void:
 		for candidate: Dictionary in source.alpha_profile.days[day-1]:
 			if candidate.id not in planned: not_planned.append(candidate.id)
 		var not_arrived: Array = planned.filter(func(id: String)->bool: return id not in arrived)
-		report.attendance.append({"day":day,"opening":opened,"planned_ids":planned,"arrived_ids":arrived,"unplanned_ids":not_planned,"unarrived_planned_ids":not_arrived,"regular_count":regular,"named_count":named,"opening_story_anchor_count":anchors,"other_count":seen-regular-named,"cash_open":opening.wallets.player.duplicate(),"cash_close":s.snapshot().wallets.player.duplicate(),"displayed_open":opening.alpha_shop.displayed.duplicate(),"displayed_close":s.snapshot().alpha_shop.displayed.duplicate()})
+		if not record_door_omissions(s.snapshot(),planned.size(),door_omissions): return
+		if not check(door_omissions.size()==not_arrived.size() and door_omissions.map(func(row:Dictionary)->String:return row.visit)==not_arrived,"all unarrived planned rows have exact door or closing blockers"): return
+		report.attendance.append({"day":day,"opening":opened,"planned_ids":planned,"arrived_ids":arrived,"unplanned_ids":not_planned,"unarrived_planned_ids":not_arrived,"door_omissions":door_omissions,"after_open_candidates":opening_observation(opening),"regular_count":regular,"named_count":named,"opening_story_anchor_count":anchors,"other_count":seen-regular-named,"cash_open":opening.wallets.player.duplicate(),"cash_close":s.snapshot().wallets.player.duplicate(),"displayed_open":opening.alpha_shop.displayed.duplicate(),"displayed_close":s.snapshot().alpha_shop.displayed.duplicate()})
 		if not check(arrived.size()==seen and seen<=planned.size() and seen<=10 and anchors<=named
 			and (day!=1 or anchors==2) and Play.sequence(s,["alpha_close","alpha_settle","alpha_next_day"]),"bounded attendance, opening story anchors and closing %d"%day): return
 		if day<7 and not check(Play.go(s,"alpha_prepare_day"),"prepare following day"): return
@@ -501,14 +530,18 @@ func mixed(seed_value: int,version: int=1) -> void:
 		if not check(Play.go(s,"alpha_open"),"mixed open"): return
 		var count := 0
 		var daily: Dictionary = s.alpha_view().attendance.duplicate(true)
-		var planned: Array = s.snapshot().alpha_shop.random_visits.plan.duplicate()
+		var opening: Dictionary = s.snapshot()
+		var planned: Array = opening.alpha_shop.random_visits.plan.duplicate()
 		var arrived: Array = []
+		var door_omissions: Array = []
 		var regular := 0
 		while int(s.alpha_view().remaining)>0:
+			var before_door: Dictionary = s.snapshot()
 			if not check(Play.next_customer(s),"mixed customer enters"): return
 			count+=1
 			var view: Dictionary = s.alpha_view()
 			var state: Dictionary = s.snapshot()
+			if not record_door_omissions(before_door,int(state.alpha_shop.cursor)-1,door_omissions): return
 			var visit_id: String = str(view.active.id)
 			arrived.append(visit_id)
 			if view.active.kind=="regular": regular+=1
@@ -552,6 +585,10 @@ func mixed(seed_value: int,version: int=1) -> void:
 		daily["planned_ids"] = planned
 		daily["arrived_ids"] = arrived
 		daily["unarrived_planned_ids"] = planned.filter(func(id:String)->bool:return id not in arrived)
+		if not record_door_omissions(s.snapshot(),planned.size(),door_omissions): return
+		if not check(door_omissions.map(func(row:Dictionary)->String:return row.visit)==daily.unarrived_planned_ids,"mixed exact unarrived planned reasons"): return
+		daily["door_omissions"]=door_omissions
+		daily["after_open_candidates"]=opening_observation(opening)
 		report.daily.append(daily)
 		if not check(count<=planned.size() and count<=10 and Play.sequence(s,["alpha_close","alpha_settle","alpha_next_day"]),"mixed closing"): return
 		if day<7 and not check(Play.go(s,"alpha_prepare_day"),"mixed next preparation"): return

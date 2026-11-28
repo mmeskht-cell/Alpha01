@@ -58,7 +58,7 @@ static func models() -> Dictionary:
 
 ## Public model guide, deliberately independent of the current specimen,
 ## hidden condition, market quote, owner, seed and chosen weekly inventory.
-static func reference(model_id: String) -> Dictionary:
+static func model_reference(model_id: String) -> Dictionary:
 	if not _load(): return {}
 	for row: Dictionary in _models.values():
 		if row.model!=model_id: continue

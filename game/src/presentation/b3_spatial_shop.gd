@@ -2150,7 +2150,7 @@ func _model_page(pages: VBoxContainer) -> void:
 			for tool: Dictionary in doc.get("profiles",{}).get(reference_model,{}).get("tools",[]):
 				var feature := _text("b2.inspect."+str(tool.id))
 				if feature not in features: features.append(feature)
-		var guide := CampaignCatalog.reference(reference_model)
+		var guide := CampaignCatalog.model_reference(reference_model)
 		if not guide.is_empty():
 			_board_line(pages,"catalog_guide_heading",_counter_copy("모델 참고 · 실물 확인 필요","Model reference · inspect the actual article"),true)
 			var materials := {"metal":"Metal","plastic":"Plastic","paper":"Paper","fabric":"Fabric","glass":"Glass"} if counter_language=="en" else {"metal":"금속","plastic":"플라스틱","paper":"종이","fabric":"직물","glass":"유리"}
