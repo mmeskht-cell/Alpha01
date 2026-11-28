@@ -17,6 +17,10 @@ var sheet_key := ""
 var sheet_scroll: ScrollContainer
 var preview_revision := -1
 var headings: Array[Label] = []
+var language := "ko"
+
+func _copy(ko: String,en: String) -> String:
+	return en if language=="en" else ko
 
 func _paper(rect: Rect2, title: String) -> VBoxContainer:
 	var panel := PanelContainer.new()
@@ -83,15 +87,23 @@ func _clear(parent: Control) -> void:
 		parent.remove_child(child)
 		child.queue_free()
 
-func populate(contacts: Array,terms: Array,receipts: Dictionary,actor: String,rev: int,scale_percent: int) -> void:
+func populate(contacts: Array,terms: Array,receipts: Dictionary,actor: String,rev: int,scale_percent: int,locale: String="ko") -> void:
+	language = locale
 	options = terms
 	payments = receipts
 	revision = rev
 	percent = scale_percent
 	for heading in headings:
 		heading.add_theme_font_size_override("font_size",roundi(20*percent/100.0))
-	selected = actor if contacts.any(func(row:Dictionary)->bool:return row.actor==actor) else ""
-	var next_key := JSON.stringify([contacts,percent])
+	if headings.size()==2:
+		headings[0].text=_copy("연락처 수첩","Address book")
+		headings[1].text=_copy("회수 의뢰 전표","Recovery order slip")
+	var next_selected: String = actor if contacts.any(func(row:Dictionary)->bool:return row.actor==actor) else ""
+	if selected!=next_selected or (not preview.is_empty() and preview_revision!=rev):
+		preview=""
+		preview_revision=-1
+	selected=next_selected
+	var next_key := JSON.stringify([contacts,percent,language])
 	if contact_key!=next_key:
 		contact_key = next_key
 		_clear(book)
@@ -106,7 +118,7 @@ func populate(contacts: Array,terms: Array,receipts: Dictionary,actor: String,re
 				preview = ""
 				show_sheet())
 			button.toggle_mode = true
-		if contacts.is_empty(): body(book,"교환한 연락처가 없습니다.")
+		if contacts.is_empty(): body(book,_copy("교환한 연락처가 없습니다.","No exchanged contacts."))
 	show_sheet()
 
 func _show_contact_selection() -> void:
@@ -115,14 +127,14 @@ func _show_contact_selection() -> void:
 
 func show_sheet() -> void:
 	_show_contact_selection()
-	var next_key := JSON.stringify([selected,preview,options,payments.get(selected,[]),percent,revision])
+	var next_key := JSON.stringify([selected,preview,options,payments.get(selected,[]),percent,revision,language])
 	if sheet_key==next_key: return
 	sheet_key = next_key
 	var scroll_offset := sheet_scroll.scroll_vertical
 	_clear(sheet)
 	_clear(footer)
 	if selected.is_empty():
-		body(sheet,"수첩에서 연락처를 고르세요.")
+		body(sheet,_copy("수첩에서 연락처를 고르세요.","Select a contact in the address book."))
 		return
 	var match_count := 0
 	for option: Dictionary in options:
@@ -132,29 +144,29 @@ func show_sheet() -> void:
 		var command := str(option.command)
 		var dispatch := command=="alpha_salvage_dispatch"
 		if preview.is_empty():
-			link(sheet,"terms_"+id,"회수 조건 보기" if dispatch else "의뢰 취소 조건",func()->void:
+			link(sheet,"terms_"+id,_copy("회수 조건 보기","Review recovery terms") if dispatch else _copy("의뢰 취소 조건","Review cancellation terms"),func()->void:
 				preview=id
 				preview_revision=revision
 				show_sheet()
 				sheet_scroll.scroll_vertical=0)
 		elif preview==id:
-			body(sheet,"발주 조건" if dispatch else "취소와 환급",20)
+			body(sheet,_copy("발주 조건","Order terms") if dispatch else _copy("취소와 환급","Cancellation and refund"),20)
 			body(sheet,option.body)
-			link(footer,"phone_"+id,"의뢰 확정" if dispatch else "취소 확정",func()->void:
+			link(footer,"phone_"+id,_copy("의뢰 확정","Confirm order") if dispatch else _copy("취소 확정","Confirm cancellation"),func()->void:
 				if preview!=id: return
 				preview=""
 				confirm_order.emit(selected,id,command,preview_revision))
 	if not preview.is_empty() and footer.get_child_count()==0:
-		body(sheet,"조건이 바뀌었습니다. 전표를 접고 다시 확인하세요.")
+		body(sheet,_copy("조건이 바뀌었습니다. 전표를 접고 다시 확인하세요.","Terms changed. Close the slip and review again."))
 	if not preview.is_empty():
-		link(footer,"cancel_call","전표 접기",func()->void:
+		link(footer,"cancel_call",_copy("전표 접기","Close slip"),func()->void:
 			preview=""
 			show_sheet())
 	else:
 		var lines: PackedStringArray = payments.get(selected,PackedStringArray())
 		if not lines.is_empty():
-			body(sheet,"수첩에 남은 영수증",20)
+			body(sheet,_copy("수첩에 남은 영수증","Recorded receipts"),20)
 			for row in lines: body(sheet,row)
 		elif match_count==0:
-			body(sheet,"지금 확인할 의뢰 조건이 없습니다.")
+			body(sheet,_copy("지금 확인할 의뢰 조건이 없습니다.","No order terms are currently available."))
 		sheet_scroll.set_deferred("scroll_vertical",scroll_offset)

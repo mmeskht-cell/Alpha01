@@ -1749,7 +1749,7 @@ func _record_alias(state: Dictionary, actor: String) -> String:
 	var book: Dictionary = state.alpha_shop.get("contacts",{})
 	var ids := book.keys()
 	var index := ids.find(actor)
-	return "수첩의 연락처 %02d"%(index+1) if index>=0 else label
+	return _counter_copy("수첩의 연락처 %02d","Contact %02d")%(index+1) if index>=0 else label
 
 func _product_document_workspace(v: Dictionary,state: Dictionary) -> void:
 	var name_key := drawer
@@ -1906,7 +1906,7 @@ func _ledger_groups(v: Dictionary,state: Dictionary) -> Dictionary:
 		inbound.append({"key":"service_"+str(job.job_id),"caption":_record_alias(state,str(job.actor_id))+" · "+title,"detail":_text("b2.service.receipt")%[title,job.due_day,job.fee.VKC,_text("b2.service.status."+str(job.status))]})
 	for request: Dictionary in v.commissions.entries:
 		var caption := _text("b2.commission.status."+str(request.status))
-		inbound.append({"key":"request_"+str(request.request_id),"caption":_record_alias(state,str(request.actor_id))+" · "+caption,"detail":_text(request.text_key)+"\n기한 %d일차 · %s"%[request.due_day,caption]})
+		inbound.append({"key":"request_"+str(request.request_id),"caption":_record_alias(state,str(request.actor_id))+" · "+caption,"sections":[{"heading":_counter_copy("의뢰 내용","Requested work"),"body":_text(request.text_key)},{"heading":_counter_copy("기한 및 상태","Due date and status"),"body":_counter_copy("%d일차 · %s","Day %d · %s")%[request.due_day,caption]}]})
 	for id: String in state.alpha_shop.get("outbound",{}):
 		var order: Dictionary = state.alpha_shop.outbound[id]
 		var lines := _outbound_order_lines(order)
@@ -1921,6 +1921,9 @@ func _ledger_groups(v: Dictionary,state: Dictionary) -> Dictionary:
 				{"heading":_counter_copy("약정 기한","Agreed due date"),"body":_counter_copy("%d일차","Day %d")%offer.due_day}]})
 	return {
 		"trades":{"caption":_counter_copy("거래","Trades"),"rows":trade_rows,"render":func(page:VBoxContainer)->void:
+			page.add_child(HSeparator.new())
+			var totals := _board_line(page,"ledger_totals_heading",_counter_copy("전체 장부 집계","All ledger totals"),true)
+			totals.set_meta("document_heading",true)
 			_board_line(page,"cash_in",_counter_copy("거래 유입 · %d VKC / %d USD","Trade inflow · %d VKC / %d USD")%[incoming.VKC,incoming.USD])
 			_board_line(page,"cash_out",_counter_copy("거래 유출 · %d VKC / %d USD","Trade outflow · %d VKC / %d USD")%[outgoing.VKC,outgoing.USD])
 			_board_line(page,"maintenance_total",_counter_copy("정비 지출 · %d VKC / %d USD","Maintenance expense · %d VKC / %d USD")%[maintenance.VKC,maintenance.USD])
@@ -1970,8 +1973,8 @@ func _pawn_folio(page: VBoxContainer,v: Dictionary,state: Dictionary) -> void:
 func _outbound_order_lines(order: Dictionary) -> PackedStringArray:
 	var lines := PackedStringArray([_text("week."+str(order.status))])
 	for payment: Dictionary in order.payments:
-		var verb := "선금 지급" if payment.from=="player" else "환급 수령"
-		lines.append("%d일차 · %s · %d %s"%[payment.day,verb,payment.amount,payment.currency])
+		var verb := _counter_copy("선금 지급","Advance paid") if payment.from=="player" else _counter_copy("환급 수령","Refund received")
+		lines.append(_counter_copy("%d일차 · %s · %d %s","Day %d · %s · %d %s")%[payment.day,verb,payment.amount,payment.currency])
 	return lines
 
 func _ledger_workspace(v: Dictionary,current: Dictionary) -> void:
@@ -2279,21 +2282,21 @@ func _price_page(pages: VBoxContainer,v: Dictionary) -> void:
 	var actual := _public_offer_basis(v)
 	if not actual.is_empty():
 		var action_id := "customer_bid" if actual.source=="public_quote" else "basis_posted"
-		_button(pages,action_id,_basis_caption(actual)+" 적용",func()->void: _choose_offer_basis(actual))
+		_button(pages,action_id,_basis_caption(actual)+_counter_copy(" 적용"," · Use"),func()->void: _choose_offer_basis(actual))
 	_book_chapter(pages,_counter_copy("내가 선택한 제안 기준","My selected offer basis"))
 	_board_line(pages,"basis_status",_basis_caption(offer_basis),true)
 	if v.has("market_bulletin"):
-		_button(pages,"market_leaf","지역 시장 공지 접기" if market_leaf else "지역 시장 공지 펼치기",func()->void:
+		_button(pages,"market_leaf",_counter_copy("지역 시장 공지 접기","Hide regional notices") if market_leaf else _counter_copy("지역 시장 공지 펼치기","Show regional notices"),func()->void:
 			market_leaf = not market_leaf
 			_refresh_book(pages))
 	var updated := _updated_offer_basis(v)
 	if not updated.is_empty():
-		_board_line(pages,"basis_update_notice","새 평가 "+_basis_caption(updated)+" · 현재 제안 기준 유지 중")
-		var apply_update := _button(pages,"basis_update","새 평가 적용 · 비율 유지",func()->void: _apply_updated_basis(updated))
+		_board_line(pages,"basis_update_notice",_counter_copy("새 평가 ","New assessment ")+_basis_caption(updated)+_counter_copy(" · 현재 제안 기준 유지 중"," · Current basis unchanged"))
+		var apply_update := _button(pages,"basis_update",_counter_copy("새 평가 적용 · 비율 유지","Apply assessment · keep ratio"),func()->void: _apply_updated_basis(updated))
 		apply_update.disabled = RatioQuote.amount(updated,offer_ratio)<=0
 	var known := _known_offer_basis(v)
 	if not known.is_empty():
-		_button(pages,"basis_known","내 감정가 적용 · %d %s"%[known.amount,currency],func()->void: _choose_offer_basis(known))
+		_button(pages,"basis_known",_counter_copy("내 감정가 적용 · %d %s","Use my estimate · %d %s")%[known.amount,currency],func()->void: _choose_offer_basis(known))
 	# These are dated/provisional public catalogue candidates. Choosing one
 	# does not identify the actual hidden model. No default is selected.
 	var catalog := _public_offer_catalog(a)
@@ -2302,9 +2305,9 @@ func _price_page(pages: VBoxContainer,v: Dictionary) -> void:
 		for candidate: Dictionary in slot.get("candidates",[]):
 			var base := RatioQuote.catalog_basis(catalog,candidate,str(a.surface_judgments.get("exterior","unknown")),currency)
 			if base.is_empty(): continue
-			_button(pages,"basis_catalog_"+str(candidate.id),("도감 평가 · " if base.get("judgment","unknown")!="unknown" else "도감 참고 · ")+str({"selvar_r18":"셀바르 R18","selvar_r18s":"셀바르 R18S","meridian_12":"메리디언 12","meridian_12a":"메리디언 12A"}.get(str(candidate.id),_text(str(candidate.label_key))))+" · %d %s"%[base.amount,currency],func()->void: _choose_offer_basis(base))
+			_button(pages,"basis_catalog_"+str(candidate.id),(_counter_copy("도감 평가 · ","Guide assessment · ") if base.get("judgment","unknown")!="unknown" else _counter_copy("도감 참고 · ","Guide reference · "))+str({"selvar_r18":"셀바르 R18","selvar_r18s":"셀바르 R18S","meridian_12":"메리디언 12","meridian_12a":"메리디언 12A"}.get(str(candidate.id),_text(str(candidate.label_key))))+" · %d %s"%[base.amount,currency],func()->void: _choose_offer_basis(base))
 	if market_leaf and v.has("market_bulletin"): _board_line(pages,"market_notice",v.market_bulletin)
-	_board_line(pages,"provisional_caption","내 임시 평가액 · 자료 부족 시 직접 판단 (시세 아님)")
+	_board_line(pages,"provisional_caption",_counter_copy("내 임시 평가액 · 자료 부족 시 직접 판단 (시세 아님)","My provisional valuation · personal judgment, not a market price"))
 	var provisional := Label.new()
 	provisional.name = "provisional_amount"
 	provisional.text = "%d %s"%[provisional_amount,currency]
@@ -2322,7 +2325,7 @@ func _price_page(pages: VBoxContainer,v: Dictionary) -> void:
 			adjust.pressed.connect(func()->void:
 				provisional_amount = clampi(provisional_amount+delta,1,RatioQuote.MAX_AMOUNT)
 				provisional.text = "%d %s"%[provisional_amount,currency])
-	_button(pages,"basis_provisional","내 임시 평가액 적용",func()->void:
+	_button(pages,"basis_provisional",_counter_copy("내 임시 평가액 적용","Use my provisional valuation"),func()->void:
 		_choose_offer_basis(RatioQuote.basis({},currency,{"kind":"personal_provisional","source":"player","amount":provisional_amount,"currency":currency})))
 	_known_price(pages,a,int(v.day))
 	_history_lines(pages,str(a.item_id))
@@ -2334,13 +2337,16 @@ func _phone_workspace(v: Dictionary) -> void:
 	for contact: Dictionary in v.contacts:
 		var actor := str(contact.actor_id)
 		var alias := _record_alias(state,actor)
-		contacts.append({"actor":actor,"caption":alias+"\n%d일차에 교환"%int(contact.acquired_day)})
+		contacts.append({"actor":actor,"caption":alias+"\n"+_counter_copy("%d일차에 교환","Exchanged on day %d")%int(contact.acquired_day)})
 	var options: Array = []
 	for option: Dictionary in v.get("outbound_options",[]):
 		options.append({"id":str(option.id),"actor":str(option.actor),"command":str(option.command),"body":_text(option.label)})
 	var receipts: Dictionary = {}
 	for order: Dictionary in state.alpha_shop.get("outbound",{}).values():
-		receipts[order.actor_id] = _outbound_order_lines(order)
+		var previous: PackedStringArray = receipts.get(order.actor_id,PackedStringArray())
+		if not previous.is_empty(): previous.append("—")
+		previous.append_array(_outbound_order_lines(order))
+		receipts[order.actor_id] = previous
 	var phone: PhoneDesk
 	if r2_review_mode:
 		phone = workspaces.mount(interaction,"r2_phone_workspace",Rect2(0,0,1280,720),_make_phone_desk) as PhoneDesk
@@ -2348,7 +2354,7 @@ func _phone_workspace(v: Dictionary) -> void:
 		phone = _make_phone_desk()
 		place(phone,0,0,1280,720)
 	phone_view = phone
-	phone.populate(contacts,options,receipts,phone_contact,int(state.revision),reading_scale)
+	phone.populate(contacts,options,receipts,phone_contact,int(state.revision),reading_scale,counter_language)
 	if not hint.is_empty(): words(hint,783,585,442,74,16)
 
 func _make_phone_desk() -> PhoneDesk:
@@ -2358,7 +2364,7 @@ func _make_phone_desk() -> PhoneDesk:
 	phone.confirm_order.connect(func(actor:String,id:String,command:String,revision:int)->void:
 		var view: Dictionary = session.alpha_view()
 		if view.phase!="EVENING_WORK" or revision!=int(session.snapshot().revision) or not view.get("outbound_options",[]).any(func(now:Dictionary)->bool:return now.id==id and now.actor==actor and now.command==command):
-			hint="의뢰 조건이 바뀌었습니다. 전표를 다시 확인하세요."
+			hint=_counter_copy("의뢰 조건이 바뀌었습니다. 전표를 다시 확인하세요.","The order terms changed. Review the slip again.")
 			refresh()
 			return
 		hint=""
@@ -2387,25 +2393,25 @@ func _fact_caption(slot: String,value: Variant) -> String:
 
 func _price_band_text(band: Dictionary,currency: String) -> String:
 	var bounds: String = str(band.low) if band.low==band.high else "%d–%d"%[band.low,band.high]
-	return "%s %s · D%d–D%d · %d건"%[bounds,currency,band.first_day,band.last_day,band.count]
+	return _counter_copy("%s %s · D%d–D%d · %d건","%s %s · D%d–D%d · %d records")%[bounds,currency,band.first_day,band.last_day,band.count]
 
 func _known_price(pages: VBoxContainer,appraisal: Dictionary,day: int) -> void:
 	var history: Dictionary = session.alpha_item_history(str(appraisal.item_id),last_visit)
 	var known: Dictionary = KnownEstimate.evaluate(history,appraisal,private_model,day)
 	if known.estimate.is_empty():
-		_board_line(pages,"personal_estimate","내 감정 추정가 · 자료 부족")
+		_board_line(pages,"personal_estimate",_counter_copy("내 감정 추정가 · 자료 부족","My estimate · insufficient records"))
 	else:
 		for currency: String in ["VKC","USD"]:
 			if known.estimate.has(currency):
-				_board_line(pages,"estimate_"+currency,"내 감정 추정가 · "+_price_band_text(known.estimate[currency],currency))
-		_board_line(pages,"estimate_basis","내 상점 장부 · 모델·판단·공개 단서가 일치한 과거 개별 매각 표본. 미확인 상태·현재 수요는 미반영.")
+				_board_line(pages,"estimate_"+currency,_counter_copy("내 감정 추정가 · ","My estimate · ")+_price_band_text(known.estimate[currency],currency))
+		_board_line(pages,"estimate_basis",_counter_copy("내 상점 장부 · 모델·판단·공개 단서가 일치한 과거 개별 매각 표본. 미확인 상태·현재 수요는 미반영.","Shop ledger · past individual sales with matching model, assessment and disclosed facts. Excludes unknown condition and current demand."))
 	for currency: String in ["VKC","USD"]:
 		if known.reference.has(currency):
-			_board_line(pages,"known_"+currency,"과거 동일 물품 매각 · "+_price_band_text(known.reference[currency],currency))
+			_board_line(pages,"known_"+currency,_counter_copy("과거 동일 물품 매각 · ","Past sales of the same article · ")+_price_band_text(known.reference[currency],currency))
 	if known.reference.is_empty():
-		_board_line(pages,"known_empty","과거 동일 물품 개별 매각 기록 없음")
+		_board_line(pages,"known_empty",_counter_copy("과거 동일 물품 개별 매각 기록 없음","No recorded individual sale of the same article"))
 	elif known.omitted>0:
-		_board_line(pages,"known_omitted","최근 표시된 기록 기준 · 이전 기록 제외")
+		_board_line(pages,"known_omitted",_counter_copy("최근 표시된 기록 기준 · 이전 기록 제외","Based on displayed recent records; earlier records excluded"))
 	_board_line(pages,"market_source",_counter_copy("크라벤스크 D%d · 지역 예상 매각 범위 · 시장 자료 부족","Kravensk D%d · Regional sale range · Insufficient market data")%day)
 
 func _history_lines(pages: VBoxContainer,id: String) -> void:
@@ -2515,7 +2521,9 @@ func _attachment_rejection(root_id: String, child_id: String, revision: int) -> 
 	if int(state.revision)!=revision or not state.items.has(child_id): return ""
 	if state.items[child_id].inventory!="player_stock": return ""
 	var result: Dictionary = session.spatial_action_preview("spatial_attach",{"actor":"player","root_id":root_id,"child_id":child_id})
-	if result.get("ok",false): return "이 부품은 다른 자리에 맞습니다."
+	if result.get("ok",false): return _counter_copy("이 부품은 다른 자리에 맞습니다.","This component fits another slot.")
+	if counter_language=="en":
+		return str({"inventory_placement":"Not enough room for the assembled article.","composition_compatibility":"Incompatible component.","duplicate_component":"The slot is already occupied.","attach_permission":"Attachment is not permitted now.","composition_permission":"No authority to work on this article.","spatial_evening":"Work on shop-owned stock in the evening.","spatial_work_permission":"This article cannot be worked on in stock."}.get(result.get("error",""),"Attachment is not permitted now."))
 	return str({
 		"inventory_placement":"조립 뒤 본체가 놓일 빈 칸이 부족합니다.",
 		"composition_compatibility":"이 본체에 맞지 않는 부품입니다.",
@@ -2700,6 +2708,9 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 		selected = ""
 		draft.clear()
 		words(_counter_copy("물건을 골라 살펴보세요.","Select an article to inspect."),760,211,400,84)
+		if r2_review_mode:
+			var help := words(_counter_copy("물건을 선택한 뒤 빈 칸에 놓거나 다른 보관함 탭으로 옮길 수 있습니다. 변경은 확정 전까지 적용되지 않습니다.","Select an article, then move it to an empty cell or another storage tab. Confirm to apply changes."),760,307,410,150,16)
+			help.name="inventory_empty_help"
 		return
 	var item: Dictionary = s.items[selected]
 	var history: Dictionary = session.alpha_item_history(selected,last_visit)
@@ -2762,6 +2773,10 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 			_draft_controls(746,568,"confirm_work")
 		else:
 			_draft_controls(746,506,"confirm_work")
+	elif r2_review_mode and v.phase=="OPEN_IDLE" and item.inventory=="player_stock" and storage=="player_stock" and item.owner_id=="player" and item.custodian_id=="player" and not item.protected and item.reservation_id.is_empty():
+		var display_help := words(_counter_copy("판매할 물건은 외부 매대에 진열하세요. 빈 칸을 직접 고르거나 배치 미리보기를 사용할 수 있습니다.","Put goods on the display shelf to sell. Choose a cell or preview placement."),746,459,444,96,16)
+		display_help.name="stock_display_help"
+		_workspace_action("preview_shelf_move",_counter_copy("매대 배치 미리보기","Preview shelf placement"),Rect2(746,561,420,44),func()->void:_preview_storage_move("storefront_grid"))
 	elif selected in v.displayed_items and storage=="storefront_grid":
 		var tag: Dictionary = Alpha.displayed_ask(s,selected)
 		words(_counter_copy("매대 표시가 · ","Shelf price · ")+("%d %s"%[tag.amount,tag.currency] if not tag.is_empty() else _counter_copy("미설정","Not set")),746,461,435,40)
@@ -2784,6 +2799,8 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 			apply_button.pressed.connect(func()->void:
 				if amount.text.is_valid_int() and int(amount.text)>0:
 					_submit("alpha_reprice_display",{"item_id":selected,"amount":int(amount.text),"currency":currency.get_item_text(currency.selected)}))
+			if r2_review_mode:
+				_workspace_action("preview_stock_move",_counter_copy("창고 회수 미리보기","Preview stock return"),Rect2(746,572,420,44),func()->void:_preview_storage_move("player_stock"))
 	elif v.phase=="EVENING_WORK" and item.inventory=="player_stock":
 		var root_id := selected
 		var tray: WorkTray
@@ -2803,7 +2820,7 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 				if r2_review_mode: _queue_inventory_drop("attach",payload,data)
 				else:
 					selected = root_id
-					_preview("spatial_attach",payload),stage.scale.x,_attachment_rejection,not catalog_campaign or not restore.is_empty())
+					_preview("spatial_attach",payload),stage.scale.x,_attachment_rejection,not catalog_campaign or not restore.is_empty(),counter_language)
 	if draft.is_empty() and v.phase=="EVENING_WORK" and item.status=="custody_service":
 		for job: Dictionary in v.services.entries:
 			if job.get("item_id")==selected and job.can_repair:
@@ -2816,6 +2833,22 @@ func _inventory(v: Dictionary,s: Dictionary) -> void:
 			_workspace_action("f3_discard",_counter_copy("물품 폐기","Discard item"),Rect2(966,630 if r2_review_mode else 611,212,44),func()->void:_preview("spatial_discard",disposal.payload))
 	if not _message.is_empty(): words(_visible_notice(),74,645 if r2_review_mode else 608,650,55,16)
 
+## Optional click alternative to tab/cell drag. Only previews an actual fit;
+## existing placement authority and explicit confirmation remain mandatory.
+func _preview_storage_move(destination: String) -> void:
+	if drawer!="stock" or not draft.is_empty() or destination not in ["player_stock","storefront_grid"]: return
+	var state: Dictionary = session.snapshot()
+	var item: Dictionary = state.items.get(selected,{})
+	if item.is_empty() or item.owner_id!="player" or item.custodian_id!="player" or item.inventory==destination: return
+	var fit: Dictionary = session.spatial_fit(selected,destination)
+	if not fit.get("ok",false):
+		if is_instance_valid(placement_hint):
+			placement_hint.text=_counter_copy("대상 보관함에 빈 자리가 부족합니다.","No free space in the destination.")
+		return
+	storage=destination
+	rotated=bool(fit.rotated)
+	_place_selection(Vector2i(int(fit.x),int(fit.y)))
+
 func _inventory_difference(state: Dictionary,pending: Dictionary) -> String:
 	var item: Dictionary = state.items.get(selected,{})
 	if item.is_empty(): return ""
@@ -2823,23 +2856,23 @@ func _inventory_difference(state: Dictionary,pending: Dictionary) -> String:
 		var key := "spatial.error."+str(draft.result.get("error",""))
 		return _text(key if _strings.has(key) else "spatial.error.permission")
 	if draft.kind in ["alpha_display","alpha_withdraw_display","spatial_move"]:
-		var shelves := {"player_stock":"창고","storefront_grid":"외부 매대","service_grid":"수탁 보관","pawn_grid":"담보 보관"}
-		var names := "%s → %s"%[shelves.get(item.inventory,"현재 보관함"),shelves.get(storage,"대상 보관함")]
-		return names+"\n%d행 %d열 → %d행 %d열 · %s"%[int(item.y)+1,int(item.x)+1,int(pending.y)+1,int(pending.x)+1,"90°" if bool(pending.rotated) else "0°"]
+		var shelves := {"player_stock":"Stockroom","storefront_grid":"Display shelf","service_grid":"Custody","pawn_grid":"Pledges"} if counter_language=="en" else {"player_stock":"창고","storefront_grid":"외부 매대","service_grid":"수탁 보관","pawn_grid":"담보 보관"}
+		var names := "%s → %s"%[shelves.get(item.inventory,_counter_copy("현재 보관함","Current storage")),shelves.get(storage,_counter_copy("대상 보관함","Destination"))]
+		return names+"\n"+_counter_copy("%d행 %d열 → %d행 %d열 · %s","Row %d Col %d → Row %d Col %d · %s")%[int(item.y)+1,int(item.x)+1,int(pending.y)+1,int(pending.x)+1,"90°" if bool(pending.rotated) else "0°"]
 	var part_id := str(pending.get("child_id",""))
 	if not part_id.is_empty():
 		var title := _receipt_items(state,[part_id])
-		if draft.kind=="spatial_attach": return title+"\n빈 슬롯 → 본체에 장착"
-		if draft.kind=="spatial_detach": return title+"\n장착 → 창고 %d행 %d열 · 슬롯 비움"%[int(pending.y)+1,int(pending.x)+1]
+		if draft.kind=="spatial_attach": return title+"\n"+_counter_copy("빈 슬롯 → 본체에 장착","Empty slot → installed")
+		if draft.kind=="spatial_detach": return title+"\n"+_counter_copy("장착 → 창고 %d행 %d열 · 슬롯 비움","Installed → stock row %d col %d · slot emptied")%[int(pending.y)+1,int(pending.x)+1]
 	if draft.kind in ["spatial_restore_item","alpha_service_repair"]:
 		# spatial_action_preview returns signed wallet deltas, not ending balances.
 		var delta_vkc := int(draft.result.VKC)
 		var delta_usd := int(draft.result.USD)
-		var cash_caption := "작업 지출 %d VKC / %d USD"%[-delta_vkc,-delta_usd] if delta_vkc<=0 and delta_usd<=0 else "현금 변동 %+d VKC / %+d USD"%[delta_vkc,delta_usd]
+		var cash_caption := _counter_copy("작업 지출 %d VKC / %d USD","Work expense %d VKC / %d USD")%[-delta_vkc,-delta_usd] if delta_vkc<=0 and delta_usd<=0 else _counter_copy("현금 변동 %+d VKC / %+d USD","Cash change %+d VKC / %+d USD")%[delta_vkc,delta_usd]
 		var wallet: Dictionary = state.wallets.player
-		return cash_caption+"\n현금 %s → %s"%[_document_money(wallet),_document_money({"VKC":int(wallet.VKC)+delta_vkc,"USD":int(wallet.USD)+delta_usd})]
+		return cash_caption+"\n"+_counter_copy("현금 %s → %s","Cash %s → %s")%[_document_money(wallet),_document_money({"VKC":int(wallet.VKC)+delta_vkc,"USD":int(wallet.USD)+delta_usd})]
 	if draft.kind=="spatial_discard": return _counter_copy("확정하면 물품은 영구 제거됩니다. 기존 거래와 작업 기록은 보존됩니다.","Confirm to remove the article permanently. Trade and work records remain.")
-	return "작업 후 상태는 확정하면 기록됩니다."
+	return _counter_copy("작업 후 상태는 확정하면 기록됩니다.","Confirm to record the resulting state.")
 
 func _hover_inventory_cell(target: Vector2i,detach: Dictionary={}) -> void:
 	if drawer!="stock": return
@@ -2891,7 +2924,7 @@ func _hover_cell(target: Vector2i,spec: Dictionary,cell: float,detach: Dictionar
 	var footprint := Vector2i(int(dims[1] if turned else dims[0]),int(dims[0] if turned else dims[1]))
 	if is_instance_valid(placement_hint):
 		var reason := "spatial.error."+str(plan.result.get("error",""))
-		placement_hint.text = ("배치 가능" if plan.result.ok else _text(reason if _strings.has(reason) else "spatial.error.permission"))+" · %d×%d"%[footprint.x,footprint.y]
+		placement_hint.text = (_counter_copy("배치 가능","Placement available") if plan.result.ok else _text(reason if _strings.has(reason) else "spatial.error.permission"))+" · %d×%d"%[footprint.x,footprint.y]
 	var bounds := Rect2i(target,footprint).intersection(Rect2i(0,0,int(spec.width),int(spec.height)))
 	if not bounds.has_area(): return
 	hover_ghost = _mark_cells(bounds,cell,PlacementMark.Kind.DESTINATION if plan.result.ok else PlacementMark.Kind.BLOCKED,"inventory_hover")
@@ -2907,7 +2940,7 @@ func _work_label(kind: String) -> String:
 		"spatial_restore_item","alpha_service_repair": return _text("spatial.work_restore")
 		"spatial_attach": return _text("spatial.work_attach")
 		"spatial_detach": return _text("spatial.work_detach")
-		"spatial_discard": return "영구 폐기"
+		"spatial_discard": return _counter_copy("영구 폐기","Permanent disposal")
 		_: return _text("spatial.place")
 
 func _discard_preview() -> void:

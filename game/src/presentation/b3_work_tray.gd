@@ -4,6 +4,10 @@ var slot_page := 0
 var part_page := 0
 var last_root := ""
 var view_key := ""
+var language := "ko"
+
+func _copy(ko: String,en: String) -> String:
+	return en if language=="en" else ko
 
 # Keep the projected options on the actual drop target, not in transient loop
 # closures. A drag is a read-only request tied to the displayed revision.
@@ -54,14 +58,15 @@ func _socket_face(socket: Button,occupied: bool) -> void:
 		socket.add_theme_stylebox_override(state,inset)
 
 ## A visible slot accepts only candidates supplied by the composition authority.
-func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog: Resource,copy: Dictionary,translate: Callable,preview: Callable,restore_quote: Dictionary = {},drop_part: Callable = Callable(), drag_scale: float = 1.0, attachment_reason: Callable = Callable(), show_repair: bool = true) -> void:
+func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog: Resource,copy: Dictionary,translate: Callable,preview: Callable,restore_quote: Dictionary = {},drop_part: Callable = Callable(), drag_scale: float = 1.0, attachment_reason: Callable = Callable(), show_repair: bool = true,locale: String="ko") -> void:
+	language=locale
 	if root_id!=last_root:
 		last_root = root_id
 		slot_page = 0
 		part_page = 0
 	var slots: Array = composition.get("slots",[])
 	slot_page = clampi(slot_page,0,maxi(0,slots.size()-1))
-	var key := JSON.stringify([root_id,composition,slot_page,part_page,restore_quote,show_repair])
+	var key := JSON.stringify([root_id,composition,slot_page,part_page,restore_quote,show_repair,language,drag_scale,copy])
 	if key==view_key: return
 	view_key = key
 	for node in get_children():
@@ -70,15 +75,16 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 	var work := self
 	var header := HBoxContainer.new()
 	work.add_child(header)
-	var redraw := func()->void: populate(root_id,composition,items,catalog,copy,translate,preview,restore_quote,drop_part,drag_scale,attachment_reason,show_repair)
+	var redraw := func()->void: populate(root_id,composition,items,catalog,copy,translate,preview,restore_quote,drop_part,drag_scale,attachment_reason,show_repair,locale)
 	if show_repair:
 		var restore := Button.new()
 		restore.name = "repair"
 		restore.text = copy.repair
 		restore.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		if not restore_quote.is_empty():
-			restore.tooltip_text = "작업비 · %d VKC / %d USD"%[int(restore_quote.VKC),int(restore_quote.USD)]
+			restore.tooltip_text = _copy("작업비 · %d VKC / %d USD","Work cost · %d VKC / %d USD")%[int(restore_quote.VKC),int(restore_quote.USD)]
 			if int(restore_quote.USD)==0: restore.text = str(copy.repair)+" · %d VKC"%int(restore_quote.VKC)
+			else: restore.text = str(copy.repair)+" · %d VKC / %d USD"%[int(restore_quote.VKC),int(restore_quote.USD)]
 		header.add_child(restore)
 		restore.custom_minimum_size.y = 44
 		restore.pressed.connect(func()->void:preview.call("spatial_restore_item",{"actor":"player","item_id":root_id}))
@@ -91,7 +97,7 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 			var selector := Button.new()
 			selector.name = "work_slot_"+str(index)
 			selector.text = ("A" if index==0 else "B")+("  ■" if occupied else "  □")
-			selector.tooltip_text = ("장착: "+str(translate.call("b2.item."+str(items[slot_info.item_id].def_id)))) if occupied and items.has(slot_info.item_id) else "빈 부품 자리"
+			selector.tooltip_text = (_copy("장착: ","Installed: ")+str(translate.call("b2.item."+str(items[slot_info.item_id].def_id)))) if occupied and items.has(slot_info.item_id) else _copy("빈 부품 자리","Empty component slot")
 			selector.toggle_mode = true
 			selector.set_pressed_no_signal(index==slot_page)
 			selector.custom_minimum_size = Vector2(84,44)
@@ -104,7 +110,7 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 				redraw.call())
 	elif slots.size()>1:
 		var next := Button.new()
-		next.text = "작업 위치 %d/%d ›"%[slot_page+1,slots.size()]
+		next.text = _copy("작업 위치 %d/%d ›","Slot %d/%d ›")%[slot_page+1,slots.size()]
 		header.add_child(next)
 		next.pressed.connect(func()->void:
 			slot_page=(slot_page+1)%slots.size()
@@ -113,7 +119,7 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 	for slot: Dictionary in slots.slice(slot_page,slot_page+1):
 		var child := str(slot.item_id)
 		var tag := str(slot.get("tag",""))
-		var slot_title: String = {"f3_module_a":"모듈 A","f3_module_b":"모듈 B"}.get(tag,"")
+		var slot_title: String = {"f3_module_a":_copy("모듈 A","Module A"),"f3_module_b":_copy("모듈 B","Module B")}.get(tag,"")
 		var socket := AttachSocket.new() if child.is_empty() else Button.new()
 		socket.custom_minimum_size = Vector2(0,50 if civilian_pair else 44)
 		socket.expand_icon = true
@@ -127,7 +133,7 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 			var detach: Dictionary = slot.get("detach",{})
 			socket.name = "detach_"+child
 			socket.disabled = detach.is_empty()
-			socket.tooltip_text = "창고로 끌어 놓거나 눌러 분리 위치를 미리 봅니다." if not detach.is_empty() else "분리할 수 있는 창고 자리 또는 권한 없음"
+			socket.tooltip_text = _copy("창고로 끌어 놓거나 눌러 분리 위치를 미리 봅니다.","Drag to stock or click to preview removal.") if not detach.is_empty() else _copy("분리할 수 있는 창고 자리 또는 권한 없음","No stock space or permission to remove")
 			socket.pressed.connect(func()->void:
 				if not detach.is_empty(): preview.call("spatial_detach",detach.duplicate(true)))
 			if civilian_pair and not detach.is_empty() and drop_part.is_valid():
@@ -141,7 +147,7 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 					return {"detach":detach.duplicate(true),"item":root_id,"origin":detach.inventory,"revision":composition.revision},Callable(),Callable())
 		else:
 			socket.name = "work_socket_"+tag if not tag.is_empty() else "work_socket"
-			socket.text = "□   "+(str(copy.empty_slot) if slot_title.is_empty() else slot_title+" · 빈 자리")
+			socket.text = "□   "+(str(copy.empty_slot) if slot_title.is_empty() else slot_title+_copy(" · 빈 자리"," · Empty"))
 			var target := socket as AttachSocket
 			target.revision = int(composition.get("revision",-1))
 			target.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -150,8 +156,8 @@ func populate(root_id: String,composition: Dictionary,items: Dictionary,catalog:
 			var choices: Array = slot.get("attach",[])
 			part_page = clampi(part_page,0,maxi(0,choices.size()-1))
 			if choices.is_empty():
-				socket.tooltip_text = "현재 장착 가능한 물품이 없습니다. 호환 여부와 조립 후 본체가 차지할 빈 공간을 확인하세요."
-				if civilian_pair: socket.text += " · 장착 불가"
+				socket.tooltip_text = _copy("현재 장착 가능한 물품이 없습니다. 호환 여부와 조립 후 본체가 차지할 빈 공간을 확인하세요.","No attachable component. Check compatibility and free space.")
+				if civilian_pair: socket.text += _copy(" · 장착 불가"," · Unavailable")
 			if attachment_reason.is_valid():
 				var guidance := Label.new()
 				guidance.name = "attach_rejection"

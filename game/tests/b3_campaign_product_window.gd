@@ -124,7 +124,14 @@ func menu_route(size: Vector2i,location: String) -> bool:
 	# Opening the load list refreshes actual slot metadata from disk.
 	if not await click_navigation(title,"menu_load") or not await wait_for_shop("menu_slot_1"): return false
 	if not check(host.session.snapshot()==retry_state and host.session.snapshot().alpha_shop.profile.get("visit_plan_policy")==3,"real product loads v3 source without default activation"): return false
-	return true
+	# Actual integrated contact and recovery order, not a separate technical scene.
+	if not await actions([["alpha_next_customer","CUSTOMER_ENTER"],["alpha_ack_entry","CUSTOMER_ACTIVE"],["alpha_contract_decline","CUSTOMER_ACTIVE"],["alpha_finish_customer","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"],["alpha_next_customer","CUSTOMER_ENTER"],["alpha_ack_entry","CUSTOMER_ACTIVE"]]): return false
+	if not check(host.session.alpha_view().active.actor_id=="G01","real opening contact in integrated product"): return false
+	if not await actions([["alpha_exchange_contact","CUSTOMER_ACTIVE"],["alpha_finish_customer","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"],["alpha_close","CLOSE_SETTLE"],["alpha_settle","EVENING_WORK"]]): return false
+	if not await phone_route(size,true): return false
+	var after_phone: Dictionary = host.session.snapshot()
+	if not await to_title() or not await wait_for_shop("menu_continue"): return false
+	return check(host.session.snapshot()==after_phone,"integrated product recovery advance and refund survive cold replay")
 
 func settle_quote() -> bool:
 	return await click_navigation(host,"use_counter_quote") and await actions([["offer","CUSTOMER_ACTIVE"],["settle_trade","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]])
@@ -185,8 +192,26 @@ func product_route(target: String,size: Vector2i,location: String) -> bool:
 	var token := host.find_child("stock_"+target,true,false) as Control
 	var sprite := token.get_node_or_null("ItemArt") as Sprite2D if token else null
 	if not check(sprite!=null and sprite.is_visible_in_tree() and exact_model_face(sprite.texture,CounterArt.ITEMS.model_texture(row.model,"stock",target)),"stock image keeps exact same model "+target): return false
+	# New click alternative is only a preview. Keep the original manual
+	# placement route as a separate real pointer regression.
+	if not await click_navigation(host,"preview_shelf_move"): return false
+	if not check(host.session.snapshot()==purchased and host.draft.get("kind")=="alpha_display"
+		and host.draft.result.ok and host.storage=="storefront_grid","shelf shortcut previews actual fit without mutation"): return false
+	if not await click_navigation(host,"discard_draft"): return false
+	if not check(host.session.snapshot()==purchased and host.draft.is_empty() and host.storage=="player_stock","cancel returns to original physical storage"): return false
 	if not await click_navigation(host,"tab_storefront_grid") or not await click_navigation(host,"cell_0_0") or not await click("confirm_work","OPEN_IDLE"): return false
 	if not check(host.session.snapshot().items[target].inventory=="storefront_grid","the real shelf holds the purchased article"): return false
+	var displayed: Dictionary = host.session.snapshot()
+	if not await click_navigation(host,"preview_stock_move"): return false
+	if not check(host.session.snapshot()==displayed and host.draft.get("kind")=="alpha_withdraw_display" and host.draft.result.ok,"return shortcut remains read-only until confirmed"): return false
+	if not await click("confirm_work","OPEN_IDLE"): return false
+	var returned: Dictionary = host.session.snapshot()
+	if not check(returned.items[target].inventory=="player_stock" and target not in returned.alpha_shop.displayed
+		and returned.wallets==displayed.wallets and returned.ledger==displayed.ledger,"confirmed return preserves money and identity"): return false
+	if not await click_navigation(host,"preview_shelf_move") or not await click("confirm_work","OPEN_IDLE"): return false
+	var listed: Dictionary = host.session.snapshot()
+	if not check(listed.items[target].inventory=="storefront_grid" and target in listed.alpha_shop.displayed
+		and listed.wallets==returned.wallets and listed.ledger==returned.ledger,"confirmed shortcut re-lists the same physical stock"): return false
 	await capture("campaign_display_"+target+"_"+str(size.y),size)
 	if not await click_navigation(host,"close_drawer"): return false
 	for day: int in range(int(purchased.alpha_shop.day),int(route.sale_day)):
@@ -253,12 +278,14 @@ func maintenance_ledger_route(size: Vector2i,location: String) -> bool:
 	var repair_row := host.find_child("work_"+str(repair_event.event_id),true,false) as Button
 	var discard_row := host.find_child("work_"+str(actual_discard.event_id),true,false) as Button
 	var held := host.find_child("held_basis",true,false) as Label
+	var totals := host.find_child("ledger_totals_heading",true,false) as Label
 	var paid := host.find_child("maintenance_total",true,false) as Label
 	var lost := host.find_child("discarded_basis",true,false) as Label
 	if not check(repair_row!=null and discard_row!=null and paid!=null and lost!=null
 		and paid.text.contains("5 VKC") and lost.text.contains("%d VKC"%int(discard_event.basis.VKC))
 		and host.session.snapshot()==actual,"ledger shows actual non-F3 repair and loss separately, read-only"): return false
-	if not check(held!=null and held.text.contains("Held stock" if size.y==1080 else "보유 재고")
+	if not check(totals!=null and totals.text.contains("All ledger totals" if size.y==1080 else "전체 장부 집계")
+		and held!=null and held.text.contains("Held stock" if size.y==1080 else "보유 재고")
 		and discard_row.get_index()<repair_row.get_index(),"stock basis visible and later disposal sorted before repair"): return false
 	await capture("campaign_maintenance_ledger_"+str(size.y),size)
 	if not await click_navigation(host,"close_drawer") or not await click_navigation(host,"news"): return false
