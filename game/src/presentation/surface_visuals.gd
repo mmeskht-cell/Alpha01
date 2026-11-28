@@ -79,8 +79,8 @@ static func _material_wear(family: String,target: String,seed_value: int,intensi
 	var proportion := intensity/100.0
 	sample.merge({"overlay":family+"_wear_"+str((key & 3)+1),
 		"turns":(key >> 2) & 3,"mirrored":bool(key & 16),
-		"coverage":lerpf(0.39,0.88,proportion)+0.04*float(geometry.substr(2,2).hex_to_int())/255.0,
-		"opacity":lerpf(0.30,1.0,proportion),
+		"coverage":lerpf(0.48,0.90,proportion)+0.04*float(geometry.substr(2,2).hex_to_int())/255.0,
+		"opacity":lerpf(0.52,1.0,proportion),
 		"offset_x":float(geometry.substr(4,2).hex_to_int())/255.0,
 		"offset_y":float(geometry.substr(6,2).hex_to_int())/255.0},true)
 	return sample
@@ -89,7 +89,12 @@ static func _material_wear(family: String,target: String,seed_value: int,intensi
 static func reference_sample(material: String, grade: int,variant_index: int=0) -> Dictionary:
 	if material not in MATERIALS or grade<0 or grade>2 or variant_index<0 or variant_index>3:
 		return {}
-	return {"base":material,"overlay":material+"_wear_"+str(variant_index+1),"opacity":[0.4,0.75,1.0][grade],"coverage":[0.45,0.75,1.0][grade],"turns":0,"caption":["경미 예시","보통 예시","심함 예시"][grade]}
+	# Each plate shows different representative marks at comparable scales.
+	var overlay_index := (variant_index+grade)%4
+	return {"base":material,"overlay":material+"_wear_"+str(overlay_index+1),
+		"opacity":[0.62,0.83,1.0][grade],"coverage":[0.52,0.73,0.94][grade],
+		"turns":(variant_index+grade*2)%4,"mirrored":grade==1,
+		"caption":["경미 예시","보통 예시","심함 예시"][grade]}
 
 static func texture_for(sample: Dictionary) -> Texture2D:
 	if sample.is_empty():
@@ -143,12 +148,14 @@ static func texture_for(sample: Dictionary) -> Texture2D:
 	marks.resize(extent,extent,Image.INTERPOLATE_NEAREST)
 	# Reduce abrupt seams from overlays that have paint at their crop edge.
 	var feather := maxi(1,roundi(extent*0.025))
+	var material_marks := base_key in MATERIALS
 	for y in range(extent):
 		var edge_y := mini(y,extent-1-y)
 		for x in range(extent):
 			var edge := mini(edge_y,mini(x,extent-1-x))
 			var pixel := marks.get_pixel(x,y)
 			if pixel.a==0.0: continue
+			if material_marks: pixel.a = pow(pixel.a,0.80)
 			pixel.a *= opacity*minf(1.0,float(edge)/float(feather))
 			marks.set_pixel(x,y,pixel)
 	image.blend_rect(marks,Rect2i(Vector2i.ZERO,marks.get_size()),offset)

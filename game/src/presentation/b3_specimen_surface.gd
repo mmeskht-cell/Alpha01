@@ -3,13 +3,13 @@ extends TextureRect
 var source: Texture2D
 var face: Texture2D
 
-func present(model: Texture2D, desk: Rect2) -> void:
+func present(model: Texture2D, desk: Rect2, centered: bool = false) -> void:
 	if source!=model:
 		source = model
 		face = model
 		if model!=null:
 			var pixels := model.get_image()
-			if pixels!=null and not pixels.is_empty():
+			if pixels!=null and not pixels.is_empty() and (not pixels.is_compressed() or pixels.decompress()==OK):
 				var bounds := pixels.get_used_rect()
 				if bounds.has_area() and bounds.size!=pixels.get_size():
 					var crop := AtlasTexture.new()
@@ -25,5 +25,6 @@ func present(model: Texture2D, desk: Rect2) -> void:
 		var natural := face.get_size()
 		if natural.x>0 and natural.y>0:
 			size = natural*minf(desk.size.x/natural.x,desk.size.y/natural.y)
-	position = Vector2(desk.get_center().x-size.x*0.5,desk.end.y-size.y)
+	position = desk.get_center()-size*0.5
+	if not centered: position.y = desk.end.y-size.y
 	show()

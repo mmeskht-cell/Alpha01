@@ -88,7 +88,7 @@ func scale_in_appraisal(percent: int,resolution: Vector2i,original: Dictionary) 
 	if not check(host.reading_scale==percent and host.zoom and not host.standing_actor.is_visible_in_tree()
 			and host.session.snapshot()==original, "font size leaves the overhead visit and authority unchanged"): return false
 	if not await click_navigation(host,"notes") or not await click_navigation(host,"book_surface"): return false
-	if not comparison_controls_fit(): return false
+	if not await comparison_controls_fit(): return false
 	if visible_action("surface_judgment_open"):
 		if not await click_navigation(host,"surface_judgment_open"): return false
 	var book := host.find_child("r2_reference_desk",true,false) as Control
@@ -112,22 +112,34 @@ func scale_in_appraisal(percent: int,resolution: Vector2i,original: Dictionary) 
 	return await click_navigation(host,"close_drawer")
 
 func comparison_controls_fit() -> bool:
-	var viewport: Rect2 = host.r2_book.scroll.get_global_rect()
+	var scroll: ScrollContainer = host.r2_book.scroll
+	var viewport := scroll.get_global_rect()
 	var controls := ["material_write","material_hold","exterior_minimal","exterior_moderate","exterior_severe","exterior_unknown"]
 	for family: String in Surface.MATERIALS:
 		controls.append("reference_"+family)
 	for id: String in controls:
+		if id.begins_with("reference_") and scroll.scroll_vertical!=0:
+			scroll.scroll_vertical = 0
+			await frames()
 		var target := host.find_child(id,true,false) as Button
-		if not check(target!=null and target.is_visible_in_tree() and target.size.x>=44 and target.size.y>=44
-			and viewport.encloses(target.get_global_rect()),"reference or judgment fits without scrolling: "+id):
-			print("F5_COMPARISON_GEOMETRY id=%s scale=%d language=%s scroll=%s target=%s pages=%s"%[id,host.reading_scale,host.counter_language,viewport,target.get_global_rect() if target else Rect2(),host.r2_book.pages.get_global_rect()])
-			return false
+		if not check(target!=null and target.is_visible_in_tree() and target.size.x>=44 and target.size.y>=44,
+			"reference or judgment has a readable target: "+id): return false
+		if host.reading_scale>100 and id in ["material_write","material_hold","exterior_minimal","exterior_moderate","exterior_severe","exterior_unknown"]:
+			scroll.ensure_control_visible(target)
+			await frames()
+		if not check(viewport.encloses(target.get_global_rect()),"reference or judgment is reachable: "+id): return false
+	scroll.scroll_vertical = 0
+	await frames()
 	for id: String in ["exterior_minimal","exterior_moderate","exterior_severe","exterior_unknown"]:
 		var grade := host.find_child(id,true,false) as Button
 		if not check(grade!=null and grade.autowrap_mode==TextServer.AUTOWRAP_OFF and grade.size.x>=grade.get_minimum_size().x,
 			"wear judgment stays on one full readable line: "+id): return false
-	for id: String in ["reference_base_caption","reference_wear_0_caption","reference_wear_1_caption","reference_wear_2_caption"]:
-		var caption := host.find_child(id,true,false) as Label
+	for id: String in ["reference_base","reference_wear_0","reference_wear_1","reference_wear_2"]:
+		var caption := host.find_child(id+"_caption",true,false) as Label
+		var plate := host.find_child(id,true,false) as Control
+		var swatch: Rect2 = plate.call("sample_rect") if plate else Rect2()
+		if not check(plate!=null and swatch.size.x>=120 and is_equal_approx(swatch.size.x,swatch.size.y)
+			and viewport.encloses(plate.get_global_rect()),"large square reference plate fits without scrolling: "+id): return false
 		if not check(caption!=null and caption.is_visible_in_tree() and caption.autowrap_mode==TextServer.AUTOWRAP_OFF
 			and caption.size.x>=caption.get_minimum_size().x and viewport.encloses(caption.get_global_rect()),
 			"reference caption fits without splitting or clipping: "+id): return false
@@ -178,8 +190,18 @@ func inspect_and_offer(resolution: Vector2i) -> bool:
 	if item.get_meta("overhead_art",false):
 		if not check(item.texture!=original_texture,"the overhead role uses separate authored art"): return false
 	else:
-		if not check(item.texture==original_texture and new_frame.size.is_equal_approx(original_frame.size),
-			"missing overhead art leaves the original crop unscaled"): return false
+		if not check(item.texture==original_texture and new_frame.size.length()>original_frame.size.length(),
+			"the original model crop grows when an overhead illustration is unavailable"): return false
+	var mat := host.find_child("appraisal_mat",true,false) as Control
+	var target := host.find_child("specimen",true,false) as Control
+	var wide_mat := mat.size.x if mat!=null else 0.0
+	if not check(mat!=null and target!=null and mat.get_global_rect().encloses(item.get_global_rect())
+		and item.position.is_equal_approx(target.position) and item.size.is_equal_approx(target.size)
+		and new_frame.get_center().is_equal_approx(Rect2(mat.position,mat.size).get_center()),
+		"the mouse target matches the centered opaque model bounds"): return false
+	if not check(not visible_action("r2_observed_sample") and visible_action("appraisal_tool_result")
+		and host.session.snapshot()==opening,"unobserved item shows tool guidance without manufacturing a sample"): return false
+	await capture("f5_menu_unknown_"+str(resolution.y),resolution)
 	for percent: int in [100,125,150]:
 		if not await scale_in_appraisal(percent,resolution,opening): return false
 	for page in range(4):
@@ -195,24 +217,36 @@ func inspect_and_offer(resolution: Vector2i) -> bool:
 	var descriptor: Dictionary = Surface.observed(observed_view.cards,"wear_detail",int(observed_view.surface_seed),observed_view.get("surface_profiles",{}))
 	if not check(observed_view.item_id=="R001" and descriptor.get("base")=="metal" and str(descriptor.get("overlay","")).begins_with("metal_wear_"),"R001 acquired wear uses authored metal surface rather than neutral"): return false
 	if not check(surface!=null and surface.is_visible_in_tree() and surface.get("sample")!=null
-		and surface.size.x>=200 and not surface.get_global_rect().intersects(item.get_global_rect())
+		and surface.size.x>=230 and surface.size.is_equal_approx(Vector2(238,238))
+		and not surface.get_global_rect().intersects(item.get_global_rect())
 		and root.get_visible_rect().encloses(surface.get_global_rect()),"larger independent surface plate has valid texture and separate bounds"): return false
 	await capture("f5_menu_observed_"+str(resolution.y),resolution)
 	if not await click_navigation(host,"notes") or not await click_navigation(host,"book_surface"): return false
 	var comparison_book := host.find_child("r2_reference_desk",true,false) as Control
+	var open_mat := host.find_child("appraisal_mat",true,false) as Control
 	surface = host.find_child("r2_observed_sample",true,false) as Control
 	if not check(comparison_book!=null and surface!=null and surface.is_visible_in_tree()
 		and not surface.get_global_rect().intersects(comparison_book.get_global_rect())
 		and not item.get_global_rect().intersects(comparison_book.get_global_rect())
+		and open_mat!=null and open_mat.size.x<wide_mat
 		and host.session.snapshot()==observed,"surface, specimen and reference guide coexist without new authority changes"): return false
 	await capture("f5_menu_surface_comparison_"+str(resolution.y),resolution)
 	var actual_pixels := displayed_surface_pixels()
+	if not await click_navigation(host,"lens"): return false
+	if not check(not visible_action("r2_observed_sample") and host.session.snapshot()==observed,
+		"folding the sample keeps the observation and the open guide"): return false
+	await capture("f5_menu_surface_folded_"+str(resolution.y),resolution)
+	if not await click_navigation(host,"lens"): return false
+	if not check(displayed_surface_pixels()==actual_pixels and host.session.snapshot()==observed,
+		"unfolding the sample restores identical observed pixels"): return false
 	for family: String in Surface.MATERIALS:
 		if not await click_navigation(host,"reference_"+family): return false
 		if not check(host.reference_material==family and host.session.snapshot()==observed
 			and displayed_surface_pixels()==actual_pixels,"turning the reference changes only the book: "+family): return false
 	if visible_action("surface_judgment_open"):
 		if not await click_navigation(host,"surface_judgment_open"): return false
+	host.r2_book.scroll.ensure_control_visible(host.find_child("material_write",true,false) as Control)
+	await frames()
 	if not await click("material_write","CUSTOMER_ACTIVE"): return false
 	var judged: Dictionary = host.session.snapshot()
 	if not check(judged.items==observed.items and judged.wallets==observed.wallets and judged.ledger==observed.ledger
@@ -220,11 +254,24 @@ func inspect_and_offer(resolution: Vector2i) -> bool:
 		"a real page action writes private judgment without changing the item or presenting it"): return false
 	if not check(displayed_surface_pixels()==actual_pixels and host.reference_material=="glass",
 		"a different private guess cannot replace the observed surface"): return false
+	host.r2_book.scroll.ensure_control_visible(host.find_child("material_hold",true,false) as Control)
+	await frames()
 	if not await click("material_hold","CUSTOMER_ACTIVE"): return false
 	if not check(host.session.alpha_view().appraisal.surface_judgments.get("material","unknown")=="unknown"
 		and host.session.snapshot().ledger==observed.ledger,"defer clears the private material judgment without a trade"): return false
+	host.r2_book.scroll.ensure_control_visible(host.find_child("next_surface_plate",true,false) as Control)
+	await frames()
+	if not await click_navigation(host,"next_surface_plate"): return false
+	var variant: int = host.reference_variant
+	if not check(variant==1,"the real plate button advances the reference variant"): return false
+	if not await click_navigation(host,"close_drawer") or not await click_navigation(host,"notes"): return false
+	if not check(host.book_tab==1 and host.reference_material=="glass" and host.reference_variant==variant
+		and displayed_surface_pixels()==actual_pixels,"folding the guide preserves the selected reference and observed specimen"): return false
 	if not await click_navigation(host,"close_drawer"): return false
 	if not await leave_counter_appraisal(true) or not await click("fact_wear_detail","CUSTOMER_ACTIVE"): return false
+	if not check(host.session.alpha_view().appraisal.cards.any(func(card: Dictionary)->bool:
+		return card.slot=="wear_detail" and card.selected and not card.public_active),
+		"choosing the private card attaches it without disclosing it"): return false
 	if not await choose_radio_offer_100(): return false
 	var selected: Dictionary = host.session.snapshot()
 	var basis: Dictionary = host.offer_basis.duplicate(true)

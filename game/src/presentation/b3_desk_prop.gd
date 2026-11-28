@@ -16,6 +16,14 @@ func _process(_delta: float) -> void:
 	visible = Rect2(Vector2.ZERO,target.size).has_point(cursor)
 	position = cursor+Vector2(12,-size.y*0.6)
 
+func sample_rect() -> Rect2:
+	var inset := 8.0 if kind=="surface_plate" else 5.0
+	var frame := Rect2(Vector2.ZERO,size).grow(-inset)
+	if sample==null or not frame.has_area(): return Rect2()
+	var natural := sample.get_size()
+	var fitted := natural*minf(frame.size.x/natural.x,frame.size.y/natural.y)
+	return Rect2(frame.get_center()-fitted*0.5,fitted)
+
 func _draw() -> void:
 	var brass := Color("#af9874")
 	var steel := Color("#a9b0a7")
@@ -26,14 +34,14 @@ func _draw() -> void:
 		draw_rect(frame.grow(3.0),Color("#17140d9e"))
 		draw_rect(frame,Color("#201f1b"))
 		draw_rect(frame.grow(-3.0),Color("#8c795a"),false,2.0)
-		if sample: draw_texture_rect(sample,frame.grow(-8.0),false)
+		if sample: draw_texture_rect(sample,sample_rect(),false)
 		return
 	if kind=="reference_plate":
 		var side := minf(size.x,size.y)-6.0
 		var mount := Rect2(center-Vector2.ONE*side/2.0,Vector2.ONE*side)
 		draw_rect(mount.grow(2.0),Color("#8c7352"))
 		draw_rect(mount,Color("#54493b"))
-		if sample: draw_texture_rect(sample,mount.grow(-2.0),false)
+		if sample: draw_texture_rect(sample,sample_rect(),false)
 		return
 	if kind=="sample":
 		var radius := minf(size.x,size.y)*0.44

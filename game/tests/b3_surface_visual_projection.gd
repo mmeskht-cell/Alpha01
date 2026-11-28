@@ -43,10 +43,21 @@ func _initialize() -> void:
 		var low: Dictionary = Surface.reference_sample(material,0)
 		var high: Dictionary = Surface.reference_sample(material,2)
 		check("reference examples distinct "+material,low.base==material and high.coverage>low.coverage and high.opacity>low.opacity)
+		var alternate: Dictionary = Surface.reference_sample(material,0,1)
+		check("reference variant turns through existing marks "+material,alternate.overlay!=low.overlay
+			and alternate.coverage==low.coverage and alternate.opacity==low.opacity
+			and alternate==Surface.reference_sample(material,0,1))
+		check("reference examples use different marks at each grade "+material,low.overlay!=high.overlay)
 	# Authored profiles are allowed only for matching acquired surface facts.
 	var profiles := {"material_detail":{"family":"metal","target":"shell"},"wear_detail":{"family":"metal","target":"shell"}}
 	var metal: Dictionary = Surface.observed(cards,"wear_detail",42,profiles)
 	check("authored metal uses matching overlay",metal.base=="metal" and str(metal.overlay).begins_with("metal_wear_"))
+	var light := Surface.observed([{"slot":"wear_detail","value":"1"}],"wear_detail",42,profiles)
+	check("small acquired wear is legible while preserving grade separation",
+		light.overlay==metal.overlay and light.coverage>=0.48 and light.coverage<metal.coverage
+		and light.opacity>=0.52 and light.opacity<metal.opacity)
+	var cached := Surface.texture_for(metal)
+	check("identical observed composition reuses cached texture",cached!=null and cached==Surface.texture_for(metal))
 	check("same shell material and wear combine",Surface.observed(cards,"material_detail",42,profiles)==metal)
 	check("unobserved wear not synthesized",Surface.observed([cards[0]],"material_detail",42,profiles).get("overlay")=="")
 	check("no unobserved profile reveal",Surface.observed([],"material_detail",42,profiles).is_empty())

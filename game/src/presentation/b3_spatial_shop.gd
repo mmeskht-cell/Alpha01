@@ -3,10 +3,12 @@ extends "res://src/presentation/alpha_b1_host.gd"
 const CounterView = preload("res://src/presentation/b3_counter_view.gd")
 const PaperProp = preload("res://src/presentation/b3_paper_prop.gd")
 const COUNTER_WOOD := "res://assets/art/shop_r2_candidate/counter.png"
-const OVERHEAD_ITEM := Rect2(306,194,479,377)
-const OVERHEAD_LENS := Rect2(44,107,238,212)
-const OVERHEAD_TOOLS := [Rect2(35,446,255,58),Rect2(35,509,255,58),Rect2(35,572,255,58)]
-const COUNTER_PRICE := Rect2(789,546,453,162)
+const APPRAISAL_MAT := Rect2(313,120,477,451)
+const FULL_APPRAISAL_MAT := Rect2(313,120,936,451)
+const APPRAISAL_BOOK := Rect2(802,56,463,593)
+const OVERHEAD_LENS := Rect2(44,103,238,238)
+const OVERHEAD_TOOLS := [Rect2(35,443,255,58),Rect2(35,506,255,58),Rect2(35,569,255,58)]
+const COUNTER_PRICE := Rect2(789,536,453,172)
 const FRONT_NEWS := Rect2(280,429,127,78)
 const EVIDENCE_TRAY := Rect2(32,559,411,44)
 const CUSTOMER_EXIT_ACTION := Rect2(505,653,258,44)
@@ -74,7 +76,7 @@ var mounting: Control
 var room_key := ""
 var drag_origin: Button
 const SpecimenSurface = preload("res://src/presentation/b3_specimen_surface.gd")
-var counter_item: TextureRect
+var counter_item: SpecimenSurface
 var standing_actor: TextureRect
 var offer_editor: RatioControl
 var editor_used := false
@@ -254,7 +256,7 @@ func open_drawer(which: String) -> void:
 	drawer_scroll = previous_book_scroll if which=="notes" else int(workspace_offsets.get(which,0))
 	draft.clear()
 	drawer = which
-	if which=="notes" and counter_step==CounterStep.APPRAISAL and lens_open and (not book_choice or book_tab==2): book_tab = 1
+	if which=="notes" and counter_step==CounterStep.APPRAISAL and not book_choice: book_tab = 1
 	hint = ""
 	refresh()
 	if which!=previous_drawer and which in ["notes","ledger","item_history","news"]:
@@ -385,7 +387,7 @@ func refresh() -> void:
 		if replacement and replacement.is_visible_in_tree() and not replacement.has_focus():
 			replacement.grab_focus()
 			replacement.caret_column = mini(caret,replacement.text.length())
-	elif r2_review_mode and preserve_button and get_viewport().gui_get_focus_owner()==null:
+	elif preserve_button and get_viewport().gui_get_focus_owner()==null and (r2_review_mode or drawer=="notes"):
 		var replacement := stage.find_child(field,true,false) as BaseButton
 		if replacement and replacement.is_visible_in_tree() and not replacement.disabled and replacement.focus_mode!=Control.FOCUS_NONE:
 			replacement.grab_focus()
@@ -508,7 +510,7 @@ func _rebuild_stage() -> void:
 		return
 	if not _message.is_empty() or not hint.is_empty():
 		if overhead:
-			words(_visible_notice(),316,646,487,65,15).max_lines_visible = 2
+			_surface_caption_label(_visible_notice(),Rect2(505,574,283,59),"appraisal_notice")
 		elif v.phase=="CUSTOMER_ACTIVE" and not v.appraisal.is_empty():
 			words(_visible_notice(),461,606,314,45,14).max_lines_visible = 2
 		else:
@@ -530,7 +532,7 @@ func _rebuild_stage() -> void:
 			var paid_items: bool = not records.is_empty() and records.back().visit_id==visit and not records.back().get("root_ids",[]).is_empty()
 			if paid_items and v.npc_context.get("current_offer",{}).get("response","")=="accepted":
 				speech_key = "exit_purchase" if records.back().to=="player" else "exit_delivered"
-			_counter_caption(CounterDialogue.situation(speech_key,str(v.active.get("actor_id","")),counter_language))
+			_counter_caption(CounterDialogue.situation(speech_key,str(v.active.get("actor_id","")),counter_language),str(v.active.get("actor_id","")))
 			if not records.is_empty() and records.back().visit_id==visit:
 				var receipt: Dictionary = records.back()
 				var docket := _desk_paper("receipt",Rect2(817,449,391,144))
@@ -558,9 +560,9 @@ func _rebuild_stage() -> void:
 		greet.tooltip_text = _actor_label(v.active.actor_id)
 		if r2_room_active and visit!="visit_g01":
 			var purpose_key := str(v.active.get("purpose_key",""))
-			if _strings.has(purpose_key): _counter_caption(_text(purpose_key))
+			if _strings.has(purpose_key): _counter_caption(_text(purpose_key),str(v.active.actor_id))
 		if visit=="visit_g01":
-			_counter_caption(str(captions.g01) if counter_language=="ko" else CounterDialogue.situation("opening_g01","G01",counter_language))
+			_counter_caption(str(captions.g01) if counter_language=="ko" else CounterDialogue.situation("opening_g01","G01",counter_language),str(v.active.actor_id))
 
 	if not overhead: _front_desk_links(v)
 	if v.phase == "EVENING_WORK":
@@ -664,7 +666,7 @@ func _counter(v: Dictionary) -> void:
 	var purposes := _customer_requests(v)
 	var pawn_available: bool = v.active.id=="watch_a" and session.snapshot().alpha_shop.week_pawn.status=="available"
 	if pawn_available: purposes.append("pawn")
-	if counter_step!=CounterStep.APPRAISAL: _counter_caption(_counter_speech(v,purposes))
+	if counter_step!=CounterStep.APPRAISAL: _counter_caption(_counter_speech(v,purposes),actor)
 	if v.active.id=="alpha_marcus_intro":
 		var sheet := _terms_sheet(_counter_copy("공급 계약서","Supply agreement"),"contract")
 		_add_contract_actions(sheet,v)
@@ -674,6 +676,7 @@ func _counter(v: Dictionary) -> void:
 		match counter_step:
 			CounterStep.PRESENTED:
 				_appraisal_hint()
+				_open_bargaining_action(v)
 				if not purposes.is_empty(): words("별도 매매 물품",475,548,310,26,15).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			CounterStep.APPRAISAL:
 				_appraisal_controls(v)
@@ -712,28 +715,48 @@ func _appraisal_hint() -> void:
 	entry.flat = true
 
 
+func _open_bargaining_action(v: Dictionary) -> void:
+	var quote := _public_offer_basis(v)
+	var caption := _counter_copy("가격 제안하기","Discuss price")
+	if not quote.is_empty():
+		caption = _counter_copy("손님과 흥정 · %d %s","Bargain · %d %s")%[quote.amount,quote.currency]
+	var slip := _desk_paper("price",Rect2(805,550,421,63))
+	slip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var start := _desk_action("start_bargaining",caption,Rect2(815,557,400,48),func()->void:
+		counter_step = CounterStep.NEGOTIATION
+		if offer_basis.is_empty() and not quote.is_empty(): _choose_offer_basis(quote)
+		else: refresh())
+	PaperProp.ink_action(start,true)
+
 func _appraisal_controls(v: Dictionary) -> void:
-	var finish := _desk_action("finish_appraisal",_counter_copy("협상으로 복귀   F","Back to bargaining   F"),Rect2(939,663,294,45),_finish_appraisal)
-	finish.flat = true
+	_desk_paper("card",Rect2(946,653,295,61))
+	var finish := _desk_action("finish_appraisal",_counter_copy("카운터로 복귀  [F]","Back to counter  [F]"),Rect2(953,659,281,48),_finish_appraisal)
+	PaperProp.ink_action(finish,true)
 	if drawer.is_empty():
-		_desk_object("notes","book",_counter_copy("감정 도감 펼치기","Open appraisal guide"),Rect2(908,277,281,186),func()->void:
-			if lens_open or not book_choice:
-				book_tab = 1
-				previous_book_scroll = 0
+		_desk_object("notes","book",_counter_copy("감정 도감","Appraisal guide"),Rect2(804,573,137,135),func()->void:
 			open_drawer("notes"))
+	if drawer=="notes" and book_tab==1:
+		var judgment := _desk_action("surface_judgment_open",_counter_copy("내 감정 판단","My assessment"),Rect2(513,578,274,44),func()->void:
+			var target := r2_book.pages.find_child("exterior_unknown",true,false) as Button
+			if target:
+				target.grab_focus()
+				r2_book.scroll.ensure_control_visible(target))
+		judgment.flat = true
+		judgment.tooltip_text = _counter_copy("표본을 대조한 뒤 재질과 외관에 대한 내 판단을 기록합니다.","Compare the samples and record your material and wear assessment.")
 	var a: Dictionary = v.appraisal
 	if a.get("composite_access","")=="not_requested":
-		var consent := _desk_action("f3_consent",_counter_copy("안쪽도 봐도 될까요?","May I look inside?"),Rect2(501,103,282,44),func()->void:_submit("alpha_composite_consent"))
+		var consent := _desk_action("f3_consent",_counter_copy("안쪽도 봐도 될까요?","May I look inside?"),Rect2(504,69,282,44),func()->void:_submit("alpha_composite_consent"))
 		consent.flat = true
 		consent.tooltip_text = _counter_copy("손님의 허락을 받아 안쪽을 살핍니다.","Ask the customer for permission to look inside.")
 	elif a.get("composite_access","") in ["granted","denied"]:
-		words(_counter_copy("안쪽도 보세요.","You can look inside.") if a.composite_access=="granted" else _counter_copy("겉만 봐 주세요.","Only the outside, please."),499,102,285,44,16)
+		words(_counter_copy("안쪽도 보세요.","You can look inside.") if a.composite_access=="granted" else _counter_copy("겉만 봐 주세요.","Only the outside, please."),504,69,282,44,16)
 	if not a.cards.is_empty():
 		var recorded: Dictionary = a.cards.back()
-		var record := _desk_paper("card",Rect2(307,649,482,65))
-		_ink_label(record,_counter_copy("내 기록","My note"),Rect2(18,5,445,22),14)
-		var fact := _ink_label(record,_card_caption(recorded),Rect2(18,25,445,36),14)
+		var record := _desk_paper("card",Rect2(313,634,477,73))
+		_ink_label(record,_counter_copy("최근 관찰 기록","Latest observation"),Rect2(17,5,443,25),14)
+		var fact := _ink_label(record,_observation_line(recorded),Rect2(17,29,443,40),14)
 		fact.max_lines_visible = 2
+		record.tooltip_text = _observation_line(recorded)
 		motion_subjects["observation"] = record
 
 func _start_appraisal() -> void:
@@ -758,7 +781,6 @@ func _finish_appraisal() -> void:
 	counter_step = CounterStep.NEGOTIATION
 	chosen_tool = ""
 	zoom = false
-	reverse = false
 	hint = ""
 	refresh()
 	_carry_counter_item(old_item)
@@ -1094,24 +1116,28 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 	var item_area := Rect2(470,385,314,167) if r2_room_active else Rect2(324,390,460,166)
 	if r2_room_active and str(a.item_id)=="R001": item_area = Rect2(498,365,248,188)
 	if zoom:
-		if angle!=null:
-			item_area = OVERHEAD_ITEM
-		else:
-			# An unillustrated view keeps the existing model crop at its original
-			# scale until a distinct overhead sprite is available for this model.
-			item_area.position = OVERHEAD_ITEM.get_center()-item_area.size*0.5
+		var mat := FULL_APPRAISAL_MAT if drawer.is_empty() else APPRAISAL_MAT
+		var rim := paper(mat.position.x,mat.position.y,mat.size.x,mat.size.y,Color("#6d5842"))
+		rim.name = "appraisal_mat"
+		rim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var lining := mat.grow(-3)
+		paper(lining.position.x,lining.position.y,lining.size.x,lining.size.y,Color("#302b26")).mouse_filter = Control.MOUSE_FILTER_IGNORE
+		item_area = mat.grow(-minf(mat.size.x,mat.size.y)*0.055)
+		var facing := _counter_copy("뒷면","Back") if reverse else _counter_copy("앞면","Front")
+		_surface_caption_label(facing,Rect2(314,69,168,44),"specimen_face")
 	counter_item.set_meta("overhead_art",angle!=null)
-	counter_item.call("present",angle if angle!=null else texture,item_area)
+	counter_item.present(angle if angle!=null else texture,item_area,zoom)
 	interaction.move_child(counter_item,-1)
 	var specimen := counter_item
-	if texture==null and str(a.def_id).begins_with("f3_"):
+	if specimen.texture==null and str(a.def_id).begins_with("f3_"):
 		var missing := words(_text("b2.item."+str(a.def_id))+"\n제품 이미지 준비 중",specimen.position.x+12,specimen.position.y+24,specimen.size.x-24,70,18)
 		missing.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var shadow_rect := Rect2(specimen.position.x+9,specimen.position.y+specimen.size.y-6,maxf(1,specimen.size.x-10),13 if zoom else 9)
-	if r2_room_active or zoom:
-		r2_controls.mount(interaction,"r2_contact_shadow",shadow_rect,_make_r2_contact_shadow)
-	else:
-		paper(shadow_rect.position.x,shadow_rect.position.y,shadow_rect.size.x,7,Color("#28251fb8")).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if not zoom:
+		var shadow_rect := Rect2(specimen.position.x+9,specimen.position.y+specimen.size.y-6,maxf(1,specimen.size.x-10),9)
+		if r2_room_active:
+			r2_controls.mount(interaction,"r2_contact_shadow",shadow_rect,_make_r2_contact_shadow)
+		else:
+			paper(shadow_rect.position.x,shadow_rect.position.y,shadow_rect.size.x,7,Color("#28251fb8")).mouse_filter = Control.MOUSE_FILTER_IGNORE
 	interaction.move_child(specimen,-1)
 	motion_subjects["item"] = specimen
 	specimen.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1134,17 +1160,11 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 		focus_item.tooltip_text = _counter_copy("도구를 선택해 물품에 적용","Pick a tool to inspect the item")
 		focus_item.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	_appraisal_surface(a)
-	specimen.mouse_filter = Control.MOUSE_FILTER_STOP
-	specimen.set_drag_forwarding(Callable(),func(at:Vector2,data:Variant)->bool:
-		return _tool_drop_allowed(at/specimen.size,data,v,a),func(at:Vector2,data:Variant)->void:
-		if _tool_drop_allowed(at/specimen.size,data,v,a): _queue_counter_drop("inspect",str(data.tool),v,a))
 	if id!="R003" and Art.ITEMS.model_art.get(str(a.def_id),{}).has("back"):
-		_desk_action("turn_item",_counter_copy("뒤집기","Turn over"),Rect2(593,599,168,44),func()->void:
+		_desk_action("turn_item",_counter_copy("뒤집기","Turn over"),Rect2(318,578,168,44),func()->void:
 			reverse = not reverse
-			if chosen_tool in SurfaceVisuals.SLOTS:
+			if not _surface_side_matches(a,chosen_tool):
 				chosen_tool = ""
-				lens_open = false
-				surface_slot = ""
 			refresh()).flat = true
 	for row: Dictionary in a.tools:
 		if not dock_slots.has(row.id): dock_slots.append(row.id)
@@ -1161,10 +1181,7 @@ func _specimen(v: Dictionary,a: Dictionary) -> void:
 			if chosen_tool==slot:
 				_release_appraisal_tool()
 				return
-			chosen_tool = slot
-			if slot in SurfaceVisuals.SLOTS:
-				lens_open = true
-				surface_slot = slot
+			_select_appraisal_tool(slot)
 			refresh()
 			var selected_tool := interaction.get_node_or_null("tool_"+slot) as Control
 			if selected_tool:
@@ -1238,53 +1255,42 @@ func _surface_side_matches(a: Dictionary,slot: String) -> bool:
 	return not reverse
 
 func _appraisal_surface(a: Dictionary) -> void:
-	var available: Array = SurfaceVisuals.observation_slots(a.cards).filter(func(slot:String)->bool:return _surface_side_matches(a,slot))
-	# A selected lens may be waiting for its first reading.
-	if surface_slot not in available and (surface_slot!=chosen_tool or surface_slot not in SurfaceVisuals.SLOTS or not _surface_side_matches(a,surface_slot)):
+	var face_cards: Array = a.cards.filter(func(card: Dictionary)->bool:
+		return _surface_side_matches(a,str(card.slot)))
+	var available := SurfaceVisuals.observation_slots(face_cards)
+	# Keep an untried selected lens on its own target until it is applied.
+	var awaiting_reading := surface_slot==chosen_tool and surface_slot in SurfaceVisuals.SLOTS and _surface_side_matches(a,surface_slot)
+	if surface_slot not in available and not awaiting_reading:
 		surface_slot = str(available[0]) if not available.is_empty() else ""
-	var reading := SurfaceVisuals.observed(a.cards,surface_slot,int(a.surface_seed),a.get("surface_profiles",{})) if lens_open and _surface_side_matches(a,surface_slot) else {}
+	var reading := SurfaceVisuals.observed(face_cards,surface_slot,int(a.surface_seed),a.get("surface_profiles",{})) if lens_open else {}
 	var image := SurfaceVisuals.texture_for(reading)
-	var plate_id := "r2_observed_sample" if image else "r2_surface_frame"
-	var plate := r2_controls.mount(interaction,plate_id,OVERHEAD_LENS,func()->Control:
-		var mount := DeskProp.new()
-		mount.kind = "surface_plate"
-		mount.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		return mount) as DeskProp
-	plate.sample = image
-	plate.queue_redraw()
-	if image:
-		motion_subjects["sample"] = plate
-
-	var title := _counter_copy("확대 표면","Magnified surface")
+	var title := _counter_copy("관찰 도구","Inspection tools")
 	var index := available.find(surface_slot)
-	if index>=0 and lens_open:
-		var titles := {"material_detail":_counter_copy("표면 무늬","Surface pattern"),
-			"wear_detail":_counter_copy("외장 마모","Case wear"),"display_damage_detail":_counter_copy("표시부 훼손","Display wear")}
-		title = titles[surface_slot]
-	if index>=0 and available.size()>1 and lens_open:
-		var turn := _desk_action("surface_next",title+"  %d/%d ›"%[index+1,available.size()],Rect2(37,56,254,44),func()->void:
+	if lens_open and not surface_slot.is_empty():
+		title = _tool_caption(surface_slot)
+	if lens_open and index>=0 and available.size()>1:
+		var turn := _desk_action("surface_next",title+"  %d/%d ›"%[index+1,available.size()],Rect2(36,54,254,44),func()->void:
 			surface_slot = str(available[(index+1)%available.size()])
 			refresh())
 		turn.flat = true
 	else:
-		words(title,44,56,238,44,17).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_surface_caption_label(title,Rect2(36,54,254,44),"surface_target")
 
-	var caption := _counter_copy("렌즈를 골라 물품에 대세요.","Use a lens on the item.")
-	if reverse and available.is_empty() and not a.tools.any(func(tool:Dictionary)->bool:return tool.id in SurfaceVisuals.SLOTS and _surface_side_matches(a,tool.id)):
-		caption = _counter_copy("뒷면 표본 없음","No reverse sample")
-	elif image:
-		caption = str(reading.caption_en if counter_language=="en" else reading.caption)
-	elif not reading.is_empty():
-		caption = _counter_copy("확대 이미지 자료 없음","Surface image unavailable")
-	elif not available.is_empty() and not lens_open:
-		caption = _counter_copy("관찰한 표면을 다시 볼 수 있습니다.","Reopen an observed surface.")
-	elif available.is_empty() and not a.tools.any(func(tool:Dictionary)->bool: return tool.id in SurfaceVisuals.SLOTS):
-		caption = _counter_copy("확대 관찰 자료 없음","No surface sample available")
-	var caption_rect := Rect2(35,322,256,76) if image else Rect2(45,174,236,104)
-	_surface_caption_label(caption,caption_rect)
+	if image:
+		var plate := r2_controls.mount(interaction,"r2_observed_sample",OVERHEAD_LENS,func()->Control:
+			var mount := DeskProp.new()
+			mount.kind = "surface_plate"
+			mount.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			return mount) as DeskProp
+		plate.sample = image
+		plate.queue_redraw()
+		motion_subjects["sample"] = plate
+		_surface_caption_label(str(reading.caption_en if counter_language=="en" else reading.caption),Rect2(36,347,254,44))
+	else:
+		_appraisal_tool_result(face_cards,not reading.is_empty())
 
-	if lens_open or not available.is_empty():
-		var toggle := _desk_action("lens",_counter_copy("표본 접기","Fold") if lens_open else _counter_copy("표본 보기","Show"),Rect2(36,402,119,44),func()->void:
+	if (lens_open and not surface_slot.is_empty()) or not available.is_empty():
+		var toggle := _desk_action("lens",_counter_copy("표본 접기","Fold") if lens_open else _counter_copy("표본 보기","Show"),Rect2(36,394,119,44),func()->void:
 			lens_open = not lens_open
 			refresh()
 			_slide(motion_subjects.get("sample"),Vector2(0,5),0.14))
@@ -1293,19 +1299,41 @@ func _appraisal_surface(a: Dictionary) -> void:
 		toggle.size = Vector2(119,44)
 		toggle.tooltip_text = _counter_copy("표본 접기","Fold surface plate") if lens_open else _counter_copy("표본 보기","Show surface plate")
 	if not chosen_tool.is_empty():
-		var release := _desk_action("close_mat",_counter_copy("도구 놓기","Release"),Rect2(157,402,133,44),_release_appraisal_tool)
+		var release := _desk_action("close_mat",_counter_copy("도구 놓기","Release"),Rect2(157,394,133,44),_release_appraisal_tool)
 		release.flat = true
 		release.autowrap_mode = TextServer.AUTOWRAP_OFF
 		release.size = Vector2(133,44)
-		release.tooltip_text = _counter_copy("도구 놓기","Release selected tool")
+
+func _appraisal_tool_result(cards: Array, missing_image: bool) -> void:
+	var title := _counter_copy("물품 살펴보기","Inspect the item")
+	var result := _counter_copy("도구를 선택하고 물품에 대세요.","Choose a tool and apply it to the item.")
+	if not chosen_tool.is_empty():
+		title = _tool_caption(chosen_tool)
+		result = _counter_copy("선택한 도구를 물품에 대세요.","Apply the selected tool to the item.")
+		for card: Dictionary in cards:
+			if card.slot!=chosen_tool: continue
+			title = _counter_copy("기록된 관찰","Recorded observation")
+			result = _observation_line(card)
+			break
+	if missing_image:
+		title = _counter_copy("확대 이미지 자료 없음","Image unavailable")
+	var note := _desk_paper("card",Rect2(36,119,254,139))
+	note.name = "appraisal_tool_result"
+	note.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var heading := _ink_label(note,title,Rect2(14,10,226,29),14)
+	var detail := _ink_label(note,result,Rect2(14,43,226,89),15)
+	heading.name = "tool_result_title"
+	detail.name = "tool_result_text"
+	detail.max_lines_visible = 3
 
 # Label's automatic wrapping initially measures against an unset width and
 # can leave its actual rect hundreds of pixels high after the text reflows.
 # Measure at the real font size and explicitly break words before setting
 # text. No clipping, smaller font, or hidden overflow is used.
-func _surface_caption_label(caption: String,rect: Rect2) -> void:
+func _surface_caption_label(caption: String,rect: Rect2,id: String = "surface_caption") -> void:
 	var label := Label.new()
-	label.name = "surface_caption"
+	label.name = id
+	if id=="appraisal_notice": label.max_lines_visible = 2
 	label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -1329,6 +1357,11 @@ func _surface_caption_label(caption: String,rect: Rect2) -> void:
 		lines.append(line)
 	label.text = "\n".join(lines)
 	label.size = rect.size
+
+func _select_appraisal_tool(slot: String) -> void:
+	chosen_tool = slot
+	lens_open = slot in SurfaceVisuals.SLOTS
+	if lens_open: surface_slot = slot
 
 func _release_appraisal_tool() -> void:
 	chosen_tool = ""
@@ -1385,7 +1418,7 @@ func _evidence_hand(v: Dictionary,a: Dictionary) -> void:
 		var slot := str(card.slot)
 		var fact := _card_caption(card)
 		var marked := bool(card.selected)
-		var stamp := _counter_copy("값과 함께 제시","Send with offer") if marked else _counter_copy("내 기록","My note")
+		var stamp := _counter_copy("값과 함께 제시","Send with offer") if marked else _counter_copy("내 관찰","Private observation")
 		if card.public_active: stamp = _counter_copy("공개됨 · 다시 제시","Shown · send again") if marked else _counter_copy("손님에게 공개됨","Shown to customer")
 		elif card.get("ever_disclosed",false) and not marked: stamp = _counter_copy("철회함","Withdrawn")
 		var caption := stamp+"\n"+fact
@@ -1395,7 +1428,7 @@ func _evidence_hand(v: Dictionary,a: Dictionary) -> void:
 		note.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		note.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		note.tooltip_text = _text(card.text_key)+" · "+fact
+		note.tooltip_text = stamp+"\n"+_observation_line(card)
 		motion_subjects["card_"+slot] = note
 		note.set_drag_forwarding(func(_at:Vector2)->Variant:
 			var preview := Button.new()
@@ -1520,8 +1553,12 @@ func _counter_speech(v: Dictionary,purposes: Array[String] = []) -> String:
 	return CounterDialogue.line(public_context,bool(a.we_buy),actor,counter_language)
 
 
-func _counter_caption(speech: String) -> void:
-	var subtitle := r2_controls.mount(interaction,"counter_subtitle",Rect2(796,60,434,110),func()->Control:
+func _counter_caption(speech: String,actor: String) -> void:
+	if not speech.is_empty():
+		var speaker := words(_actor_label(actor),796,49,342,26,14)
+		speaker.name = "counter_speaker"
+		speaker.add_theme_color_override("font_color",Color("#f2d7ac"))
+	var subtitle := r2_controls.mount(interaction,"counter_subtitle",Rect2(796,76,434,106),func()->Control:
 		return CounterSubtitle.new()) as CounterSubtitle
 	subtitle.bind(speech,reading_scale,_counter_copy("다음 대사","Next subtitle"))
 	subtitle.visible = not speech.is_empty()
@@ -1547,13 +1584,19 @@ func _public_offer_basis(v: Dictionary) -> Dictionary:
 func _offer_docket(v: Dictionary,a: Dictionary,id: String) -> void:
 	if not a.accepted.is_empty():
 		var paper_slip := _desk_paper("receipt",COUNTER_PRICE)
-		_ink_label(paper_slip,_counter_copy("서로 정한 값   %d %s","Agreed   %d %s")%[a.accepted.amount,a.accepted.currency],Rect2(22,14,411,49),21)
-		var confirm := _desk_action("settle_trade",_counter_copy("이 값에 거래하기","Settle at this price"),Rect2(814,617,394,48),func()->void:
+		_ink_label(paper_slip,_counter_copy("합의가   %d %s","Agreed price   %d %s")%[a.accepted.amount,a.accepted.currency],Rect2(22,15,411,49),21).name = "agreed_price"
+		_ink_label(paper_slip,_counter_copy("거래 확정 전","Awaiting settlement"),Rect2(22,58,411,34),14).name = "settlement_status"
+		var confirm := _desk_action("settle_trade",_counter_copy("이 값에 거래하기","Settle at this price"),Rect2(814,640,394,48),func()->void:
 			_settle_counter_trade(v.active.id,id))
 		PaperProp.ink_action(confirm,true)
 		return
 
-	_desk_paper("price",COUNTER_PRICE)
+	var paper_slip := _desk_paper("price",COUNTER_PRICE)
+	var status := _counter_copy("내 가격 제안","My offer")
+	if not a.offers.is_empty():
+		var last: Dictionary = a.offers.back()
+		status = _counter_copy("직전 제안 %d %s · 거절","Last offer %d %s · declined")%[last.amount,last.currency] if last.response=="declined" else _counter_copy("직전 제안 %d %s","Last offer %d %s")%[last.amount,last.currency]
+	_ink_label(paper_slip,status,Rect2(26,1,400,24),14).name = "negotiation_status"
 	if not a.cards.is_empty():
 		var pocket := r2_controls.mount(interaction,"attachment_pocket",EVIDENCE_TRAY,func()->Control:
 			var target := AttachmentPocket.new()
@@ -1571,10 +1614,6 @@ func _offer_docket(v: Dictionary,a: Dictionary,id: String) -> void:
 			var quote := _desk_action("use_counter_quote",_basis_caption(actual),Rect2(806,435,216,55),func()->void: _choose_offer_basis(actual))
 			quote.flat = true
 			quote.tooltip_text = _counter_copy("제시된 값을 전표에 옮기기","Use this price on the offer slip")
-		elif not a.offers.is_empty():
-			var last: Dictionary = a.offers.back()
-			var label := words(_counter_copy("직전 제안  %d %s","Last offer  %d %s")%[last.amount,last.currency],804,445,219,56,15)
-			label.max_lines_visible = 2
 		_desk_object("notes","book",_counter_copy("도감·손님 말","Book and claims"),Rect2(1033,415,195,104),func()->void: open_drawer("notes"))
 	var reappraise := _desk_action("reappraise",_counter_copy("다시 보기   [Space]","Look again   [Space]"),Rect2(510,565,253,44),_start_appraisal)
 	reappraise.flat = true
@@ -1583,21 +1622,26 @@ func _offer_docket(v: Dictionary,a: Dictionary,id: String) -> void:
 	var denomination := str(a.offer_currency)
 	var updated := _updated_offer_basis(v)
 	var title := _basis_caption(offer_basis)
-	if not updated.is_empty(): title = _counter_copy("기준 %d · 새 평가 %d %s","Basis %d · New estimate %d %s")%[offer_basis.amount,updated.amount,updated.currency]
-	var basis_button := _desk_action("counter_offer",title,Rect2(817,552,394,44),_open_offer_basis)
-	basis_button.tooltip_text = _basis_caption(offer_basis) if updated.is_empty() else _counter_copy("현재 기준 유지. 도감에서 새 기준 적용 가능.","Current basis kept. Apply the new basis from the guide.")+"\n"+_basis_caption(updated)
+	if not updated.is_empty():
+		title += _counter_copy(" · 새 %d"," · New %d")%updated.amount
+	var basis_button := _desk_action("counter_offer",title,Rect2(817,561,394,44),_open_offer_basis)
+	basis_button.autowrap_mode = TextServer.AUTOWRAP_OFF
+	basis_button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	basis_button.tooltip_text = _basis_caption(offer_basis)
+	if not updated.is_empty():
+		basis_button.tooltip_text += "\n"+_counter_copy("도감에서 새 기준 적용","Apply the new basis in the guide")+" · "+_basis_caption(updated)
 	PaperProp.ink_action(basis_button)
 	if not is_instance_valid(offer_editor):
 		offer_editor = RatioControl.new()
-		place(offer_editor,815,597,400,54)
+		place(offer_editor,815,605,400,54)
 		offer_editor.ratio_changed.connect(func(value:int)->void: offer_ratio=value)
-	offer_editor.present_as_receipt(true,reading_scale)
+	offer_editor.present_as_receipt(true,reading_scale,counter_language)
 	offer_editor.move_ink = not reduce_motion
 	offer_editor.bind(offer_basis,offer_ratio)
 	editor_used = true
 	offer_editor.show()
 	interaction.move_child(offer_editor,-1)
-	var send_offer := _desk_action("offer",(_counter_copy("매입 제안","Make buy offer") if a.we_buy else _counter_copy("판매 제안","Make sell offer"))+" · "+denomination,Rect2(815,659,400,44),func()->void:
+	var send_offer := _desk_action("offer",(_counter_copy("매입 제안","Make buy offer") if a.we_buy else _counter_copy("판매 제안","Make sell offer"))+" · "+denomination,Rect2(815,660,400,44),func()->void:
 		var proposed: int = RatioQuote.amount(offer_basis,offer_ratio)
 		if proposed>0 and offer_basis.get("currency")==denomination:
 			_submit("alpha_price_offer",{"amount":proposed}))
@@ -1654,10 +1698,7 @@ func _flush_counter_drop() -> void:
 
 func _inspect_drop(slot: String) -> void:
 	if counter_step!=CounterStep.APPRAISAL or not _surface_side_matches(session.alpha_view().appraisal,slot): return
-	chosen_tool = slot
-	if slot in SurfaceVisuals.SLOTS:
-		lens_open = true
-		surface_slot = slot
+	_select_appraisal_tool(slot)
 	if session.alpha_view().appraisal.cards.any(func(card:Dictionary)->bool:return card.slot==slot):
 		refresh()
 		return
@@ -1677,7 +1718,7 @@ func _drawer(v: Dictionary) -> void:
 		if counter_step==CounterStep.APPRAISAL:
 			_appraisal_controls(v)
 		else:
-			_counter_caption(_counter_speech(v,_customer_requests(v)))
+			_counter_caption(_counter_speech(v,_customer_requests(v)),str(v.active.actor_id))
 			_front_desk_links(v)
 			_evidence_hand(v,v.appraisal)
 			_offer_docket(v,v.appraisal,str(v.appraisal.item_id))
@@ -2046,7 +2087,7 @@ func _ledger_workspace(v: Dictionary,current: Dictionary) -> void:
 
 func _show_r2_book(v: Dictionary) -> void:
 	# Preserve the 376-unit readable page plus the spine, outer margins and scrollbar.
-	var book_rect := Rect2(800,92,465,555) if zoom else Rect2(796,184,465,351)
+	var book_rect := APPRAISAL_BOOK if zoom else Rect2(796,184,465,351)
 	r2_book = r2_controls.mount(interaction,"r2_reference_desk",book_rect,func()->Control:
 		var desk := R2Book.new()
 		desk.closed.connect(func()->void:
@@ -2054,22 +2095,24 @@ func _show_r2_book(v: Dictionary) -> void:
 			var cover := interaction.get_node_or_null("notes") as Button
 			if cover and cover.is_visible_in_tree(): cover.grab_focus())
 		desk.page_requested.connect(func(index:int)->void:
-			if book_tab!=index: sound.local_page()
 			book_choice = true
+			if book_tab==index: return
+			sound.local_page()
 			book_tab = index
-			_refresh_book(desk.pages,true))
+			drawer_scroll = 0
+			refresh())
 		desk.ready.connect(func()->void:
 			desk.scroll.get_v_scroll_bar().value_changed.connect(func(value:float)->void:
 				if desk.is_visible_in_tree() and drawer=="notes": drawer_scroll = roundi(value)))
 		return desk) as R2Book
 	if r2_book_content_key!=_r2_book_key(v):
 		_refresh_r2_book_body(r2_book.pages,v,drawer_scroll)
-	else:
-		r2_book.scroll.set_deferred("scroll_vertical",drawer_scroll)
 	motion_subjects["book"] = r2_book
 
 func _r2_book_key(v: Dictionary) -> String:
-	return JSON.stringify([reading_scale,counter_language,book_tab,counter_step,v.day,v.appraisal,offer_basis,offer_ratio,market_leaf,reference_material,reference_variant])
+	# Proposal ratio affects the live slip, not the reference or model leaf.
+	var price_state := [offer_basis,offer_ratio,market_leaf] if book_tab==2 else []
+	return JSON.stringify([reading_scale,counter_language,book_tab,counter_step,v.day,v.appraisal,price_state,reference_material,reference_variant])
 
 func _refresh_r2_book_body(pages: VBoxContainer,v: Dictionary, offset: int) -> void:
 	r2_book_content_key = _r2_book_key(v)
@@ -2087,11 +2130,11 @@ func _refresh_r2_book_body(pages: VBoxContainer,v: Dictionary, offset: int) -> v
 	drawer_scroll = offset
 	r2_book.scroll.set_deferred("scroll_vertical",offset)
 
-func _refresh_book(pages: VBoxContainer,top: bool=false) -> void:
+func _refresh_book(pages: VBoxContainer) -> void:
 	if drawer!="notes" or not is_instance_valid(r2_book) or pages!=r2_book.pages: return
 	var focus := get_viewport().gui_get_focus_owner()
 	var local_id := str(focus.name) if focus and pages.is_ancestor_of(focus) else ""
-	var offset := 0 if top else r2_book.scroll.scroll_vertical
+	var offset := r2_book.scroll.scroll_vertical
 	_refresh_r2_book_body(pages,session.alpha_view(),offset)
 	if not local_id.is_empty():
 		var replacement := pages.find_child(local_id,true,false) as Control
@@ -2137,7 +2180,7 @@ func _model_page(pages: VBoxContainer) -> void:
 			index_group=group
 			index_page=0
 			reference_model=""
-			_refresh_book(pages,true))
+			_refresh_book(pages))
 	var strips := HBoxContainer.new()
 	pages.add_child(strips)
 	for k in range(index_page*3,mini(index_page*3+3,keys.size())):
@@ -2223,7 +2266,7 @@ func _surface_page(pages: VBoxContainer,v: Dictionary) -> void:
 		if family!=reference_material or variant!=reference_variant: sound.local_page()
 		reference_material = family
 		reference_variant = variant
-		_refresh_book(pages,true))
+		_refresh_book(pages))
 	var a: Dictionary = v.appraisal
 	var choices: Dictionary = preload("res://src/domain/alpha_card_trade.gd").SURFACE_CHOICES
 	var judgments: Dictionary = a.surface_judgments
@@ -2231,32 +2274,30 @@ func _surface_page(pages: VBoxContainer,v: Dictionary) -> void:
 	var exterior: Array = choices.exterior
 	var grade_row := HBoxContainer.new()
 	grade_row.add_theme_constant_override("separation",2)
-	var assessment := Button.new()
-	assessment.name = "surface_judgment_open"
-	assessment.text = _counter_copy("내 판단 · 외관","My assessment · Wear")
-	assessment.tooltip_text = _counter_copy("외관 판단 항목으로 이동","Focus the wear choices")
-	assessment.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	assessment.pressed.connect(func()->void: (grade_row.get_child(0) as Button).grab_focus())
-	pages.add_child(assessment)
+	var exterior_label := Label.new()
+	exterior_label.text = _counter_copy("외관","Wear")
+	exterior_label.set_meta("book_single_line",true)
+	grade_row.add_child(exterior_label)
 	pages.add_child(grade_row)
 	for i in range(exterior.size()):
 		var value := str(exterior[i])
 		_book_option(grade_row,"exterior_"+value,grades[i],value==judgments.get("exterior","unknown"),func()->void:
 			_record_hypothesis("exterior",value))
-		grade_row.get_child(i).set_meta("book_tab",true)
-		grade_row.get_child(i).set_meta("book_single_line",true)
+		grade_row.get_child(i+1).set_meta("book_tab",true)
+		grade_row.get_child(i+1).set_meta("book_single_line",true)
 	var saved := str(judgments.get("material","unknown"))
-	_book_chapter(pages,_counter_copy("재질 판단 · ","Material · ")+SurfaceLeaf.material_name(saved,counter_language))
 	var material_row := HBoxContainer.new()
 	pages.add_child(material_row)
 	var sample_name := SurfaceLeaf.material_name(reference_material,counter_language)
-	_book_option(material_row,"material_write",_counter_copy("기록 · ","Record ")+sample_name,saved==reference_material,func()->void:
+	var write_caption := _counter_copy("재질 판단 · ","Material guess · ")+sample_name
+	_book_option(material_row,"material_write",write_caption,saved==reference_material,func()->void:
 		_record_hypothesis("material",reference_material))
+	(material_row.get_child(0) as Button).tooltip_text = _counter_copy("현재 재질 판단 · ","Current material guess · ")+SurfaceLeaf.material_name(saved,counter_language)
 	_book_option(material_row,"material_hold",_counter_copy("보류","Defer"),saved=="unknown",func()->void:
 		_record_hypothesis("material","unknown"))
 	for guess: Dictionary in a.get("hypotheses",[]):
 		var slot: String = guess.slot
-		_book_chapter(pages,_tool_caption(slot))
+		_book_chapter(pages,_counter_copy("내 기능 판단 · ","My function assessment · ")+_tool_caption(slot))
 		var functional := HBoxContainer.new()
 		pages.add_child(functional)
 		_book_option(functional,"guess_"+slot+"_serviceable",_counter_copy("사용 가능","Usable"),guess.judgment=="serviceable",func()->void:
@@ -2398,6 +2439,14 @@ func _make_phone_desk() -> PhoneDesk:
 		hint=""
 		_submit(command,{"request_id":id}))
 	return phone
+
+func _observation_line(card: Dictionary) -> String:
+	var slot := str(card.slot)
+	var caption := _card_caption(card)
+	if slot in SurfaceVisuals.SLOTS:
+		var face := _counter_copy("뒷면","Back") if card.get("surface_side","front")=="back" else _counter_copy("앞면","Front")
+		return "%s · %s · %s"%[face,_tool_caption(slot),caption]
+	return "%s · %s"%[_tool_caption(slot),caption]
 
 func _card_caption(card: Dictionary) -> String:
 	var caption := _fact_caption(str(card.slot),card.value)
@@ -2996,7 +3045,6 @@ func _cancel_local() -> bool:
 	elif counter_step==CounterStep.APPRAISAL:
 		counter_step = appraisal_return
 		zoom = false
-		reverse = false
 	else: return false
 	return true
 
@@ -3007,6 +3055,7 @@ func _input(event: InputEvent) -> void:
 	if focus is LineEdit or focus is TextEdit or get_viewport().gui_is_dragging(): return
 	if drawer not in ["","notes"] or session.alpha_view().phase!="CUSTOMER_ACTIVE": return
 	if event.keycode==KEY_F and counter_step!=CounterStep.APPRAISAL: return
+	if event.keycode==KEY_SPACE and (counter_step==CounterStep.APPRAISAL or drawer=="notes"): return
 	# Claim Space before a focused price/settlement button can treat it as ui_accept.
 	get_viewport().set_input_as_handled()
 	if not event.pressed or event.echo: return

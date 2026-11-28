@@ -188,11 +188,11 @@ func integrated_service_route(size: Vector2i,location: String,prefs: Dictionary)
 	for seed_value: int in range(101,125):
 		var source: Dictionary = preload("res://src/content/b3_integrated_campaign_seed.gd").content(seed_value)
 		var session := Play.fresh(source)
-		if session==null or not Play.go(session,"alpha_open"): return false
-		if "visit_g02_buy" not in session.snapshot().alpha_shop.random_visits.plan: continue
-		if not Play.reach(session,"visit_g02_buy"): continue
+		if session==null or not Play.go(session,"alpha_open") or not Play.advance(session): return false
+		if "watch_a" not in session.snapshot().alpha_shop.random_visits.plan: continue
+		if not Play.reach(session,"watch_a"): continue
 		var view: Dictionary = session.alpha_view()
-		if not view.services.entries.any(func(job:Dictionary)->bool:return job.job_id=="service_w001" and job.can_accept): continue
+		if not view.services.entries.any(func(job:Dictionary)->bool:return job.job_id=="service_w002s" and job.can_accept): continue
 		fixture=session
 		break
 	if not check(fixture!=null,"integrated v1 actual service intake exists"): return false
@@ -205,27 +205,36 @@ func integrated_service_route(size: Vector2i,location: String,prefs: Dictionary)
 	if not check(host.session.snapshot()==before,"actual product service witness loads"): return false
 	if not await click_navigation(host,"visitor_papers") or not await click("b2_service_accept","CUSTOMER_ACTIVE"): return false
 	var accepted: Dictionary = host.session.snapshot()
-	if not check(accepted.items.W001.owner_id=="G02" and accepted.items.W001.custodian_id=="player"
-		and accepted.items.W001.inventory=="service_grid" and accepted.wallets==before.wallets and accepted.ledger==before.ledger,"intake changes custody without charge or ownership"): return false
+	if not check(accepted.items.W002S.owner_id=="G04" and accepted.items.W002S.custodian_id=="player"
+		and accepted.items.W002S.inventory=="service_grid" and accepted.wallets==before.wallets and accepted.ledger==before.ledger,"intake changes custody without charge or ownership"): return false
 	if not await actions([["alpha_finish_customer","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"],["alpha_close","CLOSE_SETTLE"],["alpha_settle","EVENING_WORK"]]): return false
-	if not await work_service(size): return false
+	if not await click_navigation(host,"stockroom") or not await click_navigation(host,"tab_service_grid") or not await click_navigation(host,"stock_W002S"): return false
+	var before_work: Dictionary = host.session.snapshot()
+	if not await click_navigation(host,"b2_service_repair"): return false
+	if not check(host.draft.result.ok and host.session.snapshot()==before_work,"actual customer work preview is read-only"): return false
+	var expense: int = int(host.draft.result.VKC)
+	if not await click_navigation(host,"discard_draft"): return false
+	if not check(host.session.snapshot()==before_work,"cancel preserves custody and cash"): return false
+	if not await click_navigation(host,"b2_service_repair") or not await click("confirm_work","EVENING_WORK"): return false
+	if not check(host.session.snapshot().wallets.player.VKC==before_work.wallets.player.VKC+expense,"actual work expense exactly once"): return false
+	if not await click_navigation(host,"close_drawer"): return false
 	var repaired: Dictionary = host.session.snapshot()
-	if not check(repaired.items.W001.functional and repaired.items.W001.owner_id=="G02" and repaired.items.W001.custodian_id=="player","permitted repair of same customer property"): return false
+	if not check(repaired.items.W002S.functional and repaired.items.W002S.owner_id=="G04" and repaired.items.W002S.custodian_id=="player","permitted repair of same customer property"): return false
 	if not await actions([["alpha_next_day","NEXT_DAY"],["alpha_prepare_day","DAY_PREP"],["alpha_open","OPEN_IDLE"]]): return false
-	if not await serve_until("alpha_service_g02_return_d2"): return false
+	if not await serve_until("alpha_service_g04_return_d3"): return false
 	var before_return: Dictionary = host.session.snapshot()
 	if not await click_navigation(host,"visitor_papers") or not await click("b2_service_deliver","CUSTOMER_ACTIVE"): return false
 	var delivered: Dictionary = host.session.snapshot()
-	if not check(delivered.items.W001.owner_id=="G02" and delivered.items.W001.custodian_id=="G02"
-		and delivered.items.W001.provenance_id==before.items.W001.provenance_id
-		and delivered.wallets.player.VKC==before_return.wallets.player.VKC+30
-		and delivered.wallets.G02.VKC==before_return.wallets.G02.VKC-30
+	if not check(delivered.items.W002S.owner_id=="G04" and delivered.items.W002S.custodian_id=="G04"
+		and delivered.items.W002S.provenance_id==before.items.W002S.provenance_id
+		and delivered.wallets.player.VKC==before_return.wallets.player.VKC+40
+		and delivered.wallets.G04.VKC==before_return.wallets.G04.VKC-40
 		and delivered.ledger==before_return.ledger,"actual paid return transfers only the contracted fee and custody"): return false
 	if not await actions([["alpha_finish_customer","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]]): return false
 	var final: Dictionary = host.session.snapshot()
-	if not await click_navigation(host,"ledger") or not await click_navigation(host,"folio_inbound") or not await click_navigation(host,"service_service_w001"): return false
+	if not await click_navigation(host,"ledger") or not await click_navigation(host,"folio_inbound") or not await click_navigation(host,"service_service_w002s"): return false
 	var paid := host.find_child("section_body_3",true,false) as Label
-	if not check(paid!=null and paid.text.contains("30 VKC") and host.session.snapshot()==final,"receipt shows actual settled service fee without mutation"): return false
+	if not check(paid!=null and paid.text.contains("40 VKC") and host.session.snapshot()==final,"receipt shows actual settled service fee without mutation"): return false
 	await capture("campaign_service_delivered_"+str(size.y),size)
 	if not await click_navigation(host,"close_drawer") or not await to_title() or not await wait_for_shop("menu_continue"): return false
 	return check(host.session.snapshot()==final,"integrated service settlement cold-replays exactly")
@@ -233,13 +242,41 @@ func integrated_service_route(size: Vector2i,location: String,prefs: Dictionary)
 func settle_quote() -> bool:
 	return await click_navigation(host,"use_counter_quote") and await actions([["offer","CUSTOMER_ACTIVE"],["settle_trade","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]])
 
+func check_quote_reply(size: Vector2i,ask: int) -> bool:
+	var before: Dictionary = host.session.snapshot()
+	if not await click_navigation(host,"ratio_plus_fine"): return false
+	if not await click("offer","CUSTOMER_ACTIVE"): return false
+	var declined: Dictionary = host.session.snapshot()
+	var view: Dictionary = host.session.alpha_view()
+	var status := host.find_child("negotiation_status",true,false) as Label
+	if not check(view.npc_context.current_offer.response=="declined" and view.appraisal.offers.back().amount>ask
+		and view.appraisal.accepted.is_empty() and not visible_action("settle_trade") and status!=null
+		and status.text.contains(str(view.appraisal.offers.back().amount))
+		and declined.ledger==before.ledger and declined.items==before.items and declined.wallets==before.wallets,
+		"actual quote response rejects a higher purchase proposal without making a trade"): return false
+	await capture("campaign_offer_declined_"+str(size.y),size)
+	if not await click_navigation(host,"use_counter_quote") or not await click("offer","CUSTOMER_ACTIVE"): return false
+	var accepted: Dictionary = host.session.snapshot()
+	if not check(host.session.alpha_view().appraisal.accepted.get("amount",0)==ask
+		and visible_action("agreed_price") and visible_action("settlement_status") and not visible_action("offer")
+		and accepted.ledger==declined.ledger and accepted.items==declined.items and accepted.wallets==declined.wallets,
+		"quote agreement is visible before actual settlement"): return false
+	if not await click("settle_trade","CUSTOMER_EXIT"): return false
+	if not check(not visible_action("settle_trade") and host.session.snapshot().ledger.size()==accepted.ledger.size()+1,
+		"settling closes the confirmation and creates exactly one ledger entry"): return false
+	return await click("alpha_ack_exit","OPEN_IDLE")
+
 func appraise_model(target: String,row: Dictionary,model: Texture2D,size: Vector2i) -> bool:
 	if not check(host.session.alpha_view().appraisal.item_id==target and visible_model(host.counter_item,model),"matching counter specimen "+target): return false
-	if not await start_counter_appraisal(): return false
-	if not check(visible_model(host.counter_item,model),"same physical article in inspection "+target): return false
+	if not await start_counter_appraisal(visible_action("reappraise")): return false
+	if not check(visible_model(host.counter_item,model),"same physical article in inspection "+target) or not fitted_specimen(target): return false
 	if row.functional:
 		if not await click_navigation(host,"tool_function_detail") or not await click("apply_tool","CUSTOMER_ACTIVE"): return false
 		if not check(host.session.alpha_view().appraisal.cards.any(func(card: Dictionary)->bool: return card.slot=="function_detail" and not card.public_active),"private function observation "+target): return false
+		var recorded := host.find_child("tool_result_text",true,false) as Label
+		if not check(recorded!=null and recorded.is_visible_in_tree() and not recorded.text.is_empty()
+			and not visible_action("r2_observed_sample") and not visible_action("r2_surface_frame")
+			and fitted_specimen(target+" with function tool"),"function-only item shows its recorded result and no empty surface plate"): return false
 	elif not str(row.family).is_empty():
 		if not await inspect_product_surface("wear_detail",row.family): return false
 		await frames()
@@ -280,7 +317,16 @@ func product_route(target: String,size: Vector2i,location: String) -> bool:
 	var ask: int = int(host.session.alpha_view().customer_ask_vkc)
 	var public_view: Dictionary = host.session.alpha_view()
 	if not check(host._counter_speech(public_view).contains(str(ask)),"actual asking amount in localized customer line"): return false
-	if not await appraise_model(target,row,specimen,size) or not await settle_quote(): return false
+	if target=="CS01":
+		var before_quick: Dictionary = host.session.snapshot()
+		if not await click_navigation(host,"start_bargaining"): return false
+		if not check(visible_action("offer") and host.offer_basis.get("amount",0)==ask
+			and not host.zoom and host.session.snapshot()==before_quick,
+			"a public quote starts an offer draft without requiring an appraisal"): return false
+	if not await appraise_model(target,row,specimen,size): return false
+	if target=="CS01":
+		if not await check_quote_reply(size,ask): return false
+	elif not await settle_quote(): return false
 	var purchased: Dictionary = host.session.snapshot()
 	if not check(purchased.items[target].owner_id=="player" and purchased.items[target].basis.VKC==ask,"physical purchase and cost basis"): return false
 	if not await click_navigation(host,"stockroom") or not await click_navigation(host,"stock_"+target): return false

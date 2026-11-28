@@ -6,6 +6,7 @@ const Quote = preload("res://src/presentation/b3_ratio_offer.gd")
 const PaperProp = preload("res://src/presentation/b3_paper_prop.gd")
 var move_ink := true
 var _ink_motion: Tween
+var _language := "ko"
 var _basis: Dictionary = {}
 var _ratio: int = 1000
 var _amount: Label
@@ -30,6 +31,7 @@ func _ready() -> void:
 			_amount.add_theme_font_size_override("font_size",20)
 			center.add_child(_amount)
 			_percent = Label.new()
+			_percent.name = "offer_percentage"
 			_percent.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			_percent.add_theme_font_size_override("font_size",14)
 			center.add_child(_percent)
@@ -64,22 +66,31 @@ func _change(delta: int) -> void:
 
 func _render() -> void:
 	var valid: bool = proposed_amount()>0
-	var title: String = "감정가 자료 부족"
+	var english := _language=="en"
+	var title := "Choose a price basis" if english else "가격 기준 선택"
 	match str(_basis.get("source","")):
-		"appraisal_range": title = "내 감정가 기준"
-		"catalog_reference": title = "도감 참고가 기준"
-		"posted_ask": title = "내 매대 표시가 기준"
-		"public_quote": title = "손님 공개 요구가 기준"
-		"personal_provisional": title = "내 임시 평가액 기준"
+		"appraisal_range": title = "My appraisal" if english else "내 감정가 기준"
+		"catalog_reference": title = "Guide reference" if english else "도감 참고가 기준"
+		"posted_ask": title = "Shelf price" if english else "내 매대 표시가 기준"
+		"public_quote": title = "Customer's price" if english else "손님 공개 요구가 기준"
+		"personal_provisional": title = "My provisional valuation" if english else "내 임시 평가액 기준"
 	tooltip_text = ("%s · %d %s" % [title,int(_basis.amount),str(_basis.currency)]) if not _basis.is_empty() else title
 	_amount.text = ("%d %s" % [proposed_amount(),str(_basis.get("currency",""))]) if valid else "—"
 	_percent.text = "%.1f%%" % (float(_ratio)/10.0) if valid else "—"
 	for i: int in range(_buttons.size()):
 		var delta: int = [-50,-1,1,50][i]
+		var step := absf(float(delta)/10.0)
 		_buttons[i].disabled = not valid or Quote.shift(_basis,_ratio,delta)==_ratio
+		if _buttons[i].disabled:
+			_buttons[i].tooltip_text = tooltip_text
+		elif english:
+			_buttons[i].tooltip_text = ("Decrease" if delta<0 else "Increase")+" by %.1f percentage points"%step
+		else:
+			_buttons[i].tooltip_text = "비율 %.1f%%p "%step+("내리기" if delta<0 else "올리기")
 
 
-func present_as_receipt(enabled: bool,reading_scale: int = 100) -> void:
+func present_as_receipt(enabled: bool,reading_scale: int = 100,language: String = "ko") -> void:
+	_language = language
 	var was_paper := _amount.has_theme_color_override("font_color")
 	if not enabled and not was_paper: return
 	# The handwritten sum and ratio share a fixed-height row on the slip.

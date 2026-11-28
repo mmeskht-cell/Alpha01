@@ -45,15 +45,15 @@ func bind(visit_id: String,slips: Dictionary,owner_item: String = "",language: S
 	if use_desk_finish:
 		_paper.size = size
 		if not selected.is_empty() and not shown.is_empty():
-			text = "대기 %d장  /  공개 %d장"%[selected.size(),shown.size()]
+			text = "제시 예정 %d장  /  공개 %d장"%[selected.size(),shown.size()]
 		elif not selected.is_empty():
-			text = "값과 함께 건넬 근거 %d장"%selected.size()
+			text = "다음 제안에 첨부 · %d장"%selected.size()
 		elif not shown.is_empty():
 			text = "손님에게 공개한 근거 %d장"%shown.size()
 		elif cards.is_empty():
 			text = "감정한 근거를 여기에 제시"
 		if language=="en":
-			text = "Lay evidence here"
+			text = "Drop evidence here"
 			if not selected.is_empty() and not shown.is_empty():
 				text = "To show %d  /  Shown %d"%[selected.size(),shown.size()]
 			elif not selected.is_empty():

@@ -198,6 +198,20 @@ func exact_model_face(shown: Texture2D, original: Texture2D) -> bool:
 func visible_model(node: TextureRect, original: Texture2D) -> bool:
 	return is_instance_valid(node) and node.is_visible_in_tree() and node.size.x>0 and node.size.y>0 and exact_model_face(node.texture,original)
 
+func fitted_specimen(subject: String) -> bool:
+	var item := host.counter_item as TextureRect
+	var mat := host.find_child("appraisal_mat",true,false) as Control
+	var target := host.find_child("apply_tool" if not host.chosen_tool.is_empty() else "specimen",true,false) as Control
+	if not check(item!=null and item.texture!=null and mat!=null and target!=null and target.is_visible_in_tree(),
+		"visible fitted image, mat and direct interaction for "+subject): return false
+	var inner := Rect2(mat.position,mat.size).grow(-minf(mat.size.x,mat.size.y)*0.055)
+	var frame := Rect2(item.position,item.size)
+	var texture_size := item.texture.get_size()
+	var ideal := texture_size*minf(inner.size.x/texture_size.x,inner.size.y/texture_size.y)
+	return check(item.size.is_equal_approx(ideal) and frame.get_center().is_equal_approx(inner.get_center())
+		and item.get_global_rect().is_equal_approx(target.get_global_rect())
+		and root.get_visible_rect().encloses(item.get_global_rect()),"fills the available mat without stretching or changing the hit area: "+subject)
+
 func inspect_product_surface(slot: String,family: String) -> bool:
 	for page in range(4):
 		if visible_action("tool_"+slot): break
@@ -255,12 +269,13 @@ func shop_route(resolution: Vector2i,refund: bool) -> bool:
 	if not await start_counter_appraisal(true): return false
 	if not check(is_instance_valid(pledge_button) and not pledge_button.is_visible_in_tree() and not visible_action("week_pledge"),"appraisal hides the retained pledge control without replacing it"): return false
 	if not check(visible_model(host.counter_item,watch),"watch appraisal displays the same model face and exact crop as the counter"): return false
+	if not fitted_specimen("Meridian watch front"): return false
 	if not await click_navigation(host,"turn_item"): return false
 	var back: Texture2D = CounterArt.ITEMS.model_texture("fictional_watch_p2","inspection","WAT02",true)
 	await capture("r2_c7_watch_caseback_"+str(resolution.y),resolution)
 	var correct_back := check(back!=null and back!=watch and visible_model(host.counter_item,back),"watch flip displays the distinct authored caseback and exact crop")
 	var unchanged := check(host.session.snapshot()==before,"watch flip and inspection navigation do not change authority")
-	if not (correct_back and unchanged): return false
+	if not (correct_back and unchanged) or not fitted_specimen("Meridian watch rear"): return false
 	if not check(host.session.alpha_view().appraisal.get("surface_profiles",{}).is_empty(),"unobserved watch surfaces not disclosed"): return false
 	if not await inspect_product_surface("wear_detail","metal"): return false
 	await capture("r2_c7_watch_back_surface_"+str(resolution.y),resolution)
@@ -309,7 +324,8 @@ func shop_route(resolution: Vector2i,refund: bool) -> bool:
 		if not check(host.session.alpha_view().appraisal.item_id=="TL04" and host.session.snapshot().alpha_shop.outbound.tool_search.status=="goods_offered","actual dispatched goods arrive as a regular counter visit"): return false
 		await capture("r2_c4_goods_return_"+str(resolution.y),resolution)
 		var tool_before: Dictionary = host.session.snapshot()
-		if not await start_counter_appraisal(true) or not await inspect_product_surface("wear_detail","metal"): return false
+		if not await start_counter_appraisal(true) or not fitted_specimen("TL04 long tool") or not await inspect_product_surface("wear_detail","metal"): return false
+		if not fitted_specimen("TL04 with tool selected"): return false
 		await capture("r2_c4_tool_surface_"+str(resolution.y),resolution)
 		var tool_after: Dictionary = host.session.snapshot()
 		if not check(tool_after.items==tool_before.items and tool_after.wallets==tool_before.wallets and tool_after.ledger==tool_before.ledger,"tool observation preserves goods, money and ledger"): return false
