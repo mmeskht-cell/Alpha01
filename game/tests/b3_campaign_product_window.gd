@@ -67,7 +67,7 @@ func menu_route(size: Vector2i,location: String) -> bool:
 	if not await click_navigation(title,"menu_slot_back") or not await wait_for_shop("menu_new"): return false
 	var initial: Dictionary = host.session.snapshot()
 	if not check(host.save_directory_override==Slots.directory(location,1) and host.reading_scale==150 and host.counter_language==prefs.language and host.reduce_motion,"new campaign skips occupied damage and receives title preferences"): return false
-	if not check(initial.alpha_shop.profile.integrated_catalog==1 and not initial.alpha_shop.profile.has("civilian_supply") and initial.wallets.player.VKC==180,"normal opening is the integrated source"): return false
+	if not check(initial.alpha_shop.profile.integrated_catalog==1 and not initial.alpha_shop.profile.has("civilian_supply") and not initial.alpha_shop.profile.has("visit_plan_policy") and initial.wallets.player.VKC==180,"normal opening is the unchanged v1 integrated source"): return false
 	if not check(AudioServer.is_bus_mute(0) and not host.sound.diagnostic_view().sound,"title mute reaches counter audio authority"): return false
 	if not await click_navigation(host,"intro_mute"): return false
 	var music_bus := AudioServer.get_bus_index("ZT Music")
@@ -95,6 +95,20 @@ func menu_route(size: Vector2i,location: String) -> bool:
 	if not await to_title() or not await click_navigation(title,"menu_load") or not await wait_for_shop("menu_slot_2"): return false
 	if not check(host.session.snapshot()==progressed and FileAccess.get_file_as_string(corrupt)=="{damaged","explicit load replays and preserves damaged slot bytes"): return false
 	await capture("campaign_continued_"+str(size.y),size)
+	# Seed an explicit versioned fixture in the third slot. Loading it uses
+	# the same real title/counter; no trial-mode button is exposed.
+	var v2_source: Dictionary = preload("res://src/content/b3_integrated_campaign_seed.gd").content(105,2)
+	var v2 := Play.fresh(v2_source)
+	if not check(v2!=null and Play.go(v2,"alpha_open"),"versioned integrated fixture opens"): return false
+	var v2_state: Dictionary = v2.snapshot()
+	var v2_disk := ProductRepo.new(Slots.directory(location,2))
+	if not check(v2_disk.save_session(v2,Slots.KEY).get("ok",false),"versioned product fixture saved"): return false
+	if not await to_title(): return false
+	if not await click_navigation(title,"menu_load") or not await wait_for_shop("menu_slot_3"): return false
+	if not check(host.session.snapshot()==v2_state and host.session.snapshot().alpha_shop.profile.get("visit_plan_policy")==2
+		and not host._intro,"same product title selects correct versioned source"): return false
+	if not await to_title() or not await click_navigation(title,"menu_load") or not await wait_for_shop("menu_slot_2"): return false
+	if not check(host.session.snapshot()==progressed and not host.session.snapshot().alpha_shop.profile.has("visit_plan_policy"),"previous v1 slot remains exactly loadable"): return false
 	return true
 
 func settle_quote() -> bool:

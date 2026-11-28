@@ -5,6 +5,7 @@ extends RefCounted
 ## This reader never deletes, repairs, or overwrites old save files.
 const Rules = preload("res://src/domain/value_rules.gd")
 const Repo = preload("res://src/persistence/save_repository.gd")
+const PRODUCT_SLOT := "b3_campaign_v1"
 const EXPECTED_LOCKS: Array = ["alpha_marcus_intro", "alpha_ian_hygiene_offer_d1", "hygiene_buy", "hygiene_sale"]
 
 static func _saved_seed(path: String, slot: String) -> Dictionary:
@@ -41,7 +42,18 @@ static func _saved_seed(path: String, slot: String) -> Dictionary:
 		return {}
 	if snapshot.alpha_shop.get("binding") != Rules.canonical(profile).sha256_text():
 		return {}
-	return {"seed": int(random_policy.seed), "revision": int(raw.revision)}
+	var result := {"seed": int(random_policy.seed), "revision": int(raw.revision)}
+	# Product source descriptors are read from the checksum-bound profile.
+	# Legacy callers retain their existing seed-only contract.
+	if slot==PRODUCT_SLOT:
+		if not Rules.integer(profile.get("integrated_catalog"),1,1) or profile.has("civilian_supply"):
+			return {}
+		var planner: Variant = profile.get("visit_plan_policy",1)
+		if not Rules.integer(planner,1,2) or (profile.has("visit_plan_policy") and planner!=2):
+			return {}
+		result["campaign_version"] = int(planner)
+		result["binding"] = snapshot.alpha_shop.binding
+	return result
 
 static func select_seed(directory: String, slot: String) -> Dictionary:
 	if not Rules.identifier(slot):
@@ -61,7 +73,13 @@ static func select_seed(directory: String, slot: String) -> Dictionary:
 		for row: Dictionary in found:
 			if row.seed != found[0].seed:
 				return {"ok": false, "error": "seed_save_conflict"}
-		return {"ok": true, "seed": int(found[0].seed), "new": false}
+		var result := {"ok": true, "seed": int(found[0].seed), "new": false}
+		if slot==PRODUCT_SLOT:
+			for row: Dictionary in found:
+				if row.campaign_version!=found[0].campaign_version or row.binding!=found[0].binding:
+					return {"ok":false,"error":"campaign_source_conflict"}
+			result["campaign_version"]=int(found[0].campaign_version)
+		return result
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	return {"ok": true, "seed": int(rng.randi_range(1, Rules.LIMIT)), "new": true}

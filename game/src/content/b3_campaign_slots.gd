@@ -5,7 +5,7 @@ const Seeds = preload("res://src/content/alpha_b3_seed_authority.gd")
 const Session = preload("res://src/domain/game_session.gd")
 const Repo = preload("res://src/persistence/save_repository.gd")
 const ROOT := "user://zt_rebuild/b3_campaign"
-const KEY := "b3_campaign_v1"
+const KEY := Seeds.PRODUCT_SLOT
 const COUNT := 3
 
 static func directory(root: String,index: int) -> String:
@@ -28,7 +28,7 @@ static func inspect(root: String,index: int) -> Dictionary:
 	var selected := Seeds.select_seed(location,KEY)
 	if not selected.get("ok",false) or selected.new:
 		return {"status":"damaged","stamp":stamp}
-	var source := Campaign.content(int(selected.seed))
+	var source := Campaign.content(int(selected.seed),int(selected.get("campaign_version",1)))
 	var session := Session.new()
 	if source.is_empty() or not session.initialize(source.defs,source.state,false,false,{},source.alpha_profile):
 		return {"status":"damaged","stamp":stamp}

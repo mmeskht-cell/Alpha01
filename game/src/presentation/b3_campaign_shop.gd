@@ -10,6 +10,12 @@ func _slot() -> String:
 func _week_source(seed_value: int) -> Dictionary:
 	return Campaign.content(seed_value)
 
+func _week_source_for_selection(seed_value: int,selection: Dictionary) -> Dictionary:
+	# New Game remains v1 until the comparative planner trial is accepted.
+	# Load uses the existing save's actual source, never today's default.
+	var version: int = Campaign.DEFAULT_VERSION if selection.get("new",false) else int(selection.get("campaign_version",1))
+	return Campaign.content(seed_value,version)
+
 func _counter_preferences_path() -> String:
 	return Slots.preferences_path(campaign_save_root)
 

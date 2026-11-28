@@ -152,6 +152,44 @@ func compat() -> void:
 		var summary := Slots.inspect(location,0)
 		check(summary.status==("valid" if generation=="b" else "damaged") and FileAccess.get_file_as_string(path)=="{damaged","read-only valid-generation fallback or fail closed")
 	check(not disk.save_session(current,Slots.KEY).get("ok",false),"two corrupt revisions cannot be overwritten")
+	# Explicit fixture only: the same product slot contract can read the
+	# next source without changing default New Game or old slot bytes.
+	var v2_home := Slots.directory(location,1)
+	var v2_disk := Repo.new(v2_home)
+	var v2 := Play.fresh(Seed.content(109,2))
+	if not check(v2!=null and v2_disk.save_session(v2,Slots.KEY).get("ok",false)
+		and Play.go(v2,"alpha_open") and v2_disk.save_session(v2,Slots.KEY).get("ok",false),"versioned product-slot fixture"): return
+	var v2_selection := preload("res://src/content/alpha_b3_seed_authority.gd").select_seed(v2_home,Slots.KEY)
+	var v2_cold := Play.fresh(Seed.content(109,2))
+	check(v2_selection.get("campaign_version",0)==2 and Slots.inspect(location,1).status=="valid"
+		and v2_disk.load_session(v2_cold,Slots.KEY).get("ok",false) and v2_cold.snapshot()==v2.snapshot(),"product slot resolves actual versioned source")
+	var v1 := Play.fresh(Seed.content(109))
+	check(not v2_disk.load_session(v1,Slots.KEY).get("ok",false),"old source cannot load new profile")
+	var v1_home := Slots.directory(location,2)
+	var v1_disk := Repo.new(v1_home)
+	var old_initial: Dictionary = v1.snapshot()
+	check(v1_disk.save_session(v1,Slots.KEY).get("ok",false)
+		and Slots.inspect(location,2).status=="valid","v1 remains a valid product slot")
+	var old_selection := preload("res://src/content/alpha_b3_seed_authority.gd").select_seed(v1_home,Slots.KEY)
+	check(old_selection.get("campaign_version",0)==1 and v1.snapshot()==old_initial,"implicit original source resolves to v1 without migration")
+	# Two individually valid generations with incompatible sources must
+	# never be interpreted as a single campaign, even with the same seed.
+	var conflicting := v2_home.path_join(Slots.KEY+".a.json")
+	var old_bytes := FileAccess.get_file_as_string(v1_home.path_join(Slots.KEY+".a.json"))
+	var output := FileAccess.open(conflicting,FileAccess.WRITE)
+	if not check(output!=null,"write isolated mixed-source fixture"): return
+	output.store_string(old_bytes)
+	output.close()
+	var conflict := preload("res://src/content/alpha_b3_seed_authority.gd").select_seed(v2_home,Slots.KEY)
+	check(not conflict.get("ok",false) and conflict.get("error")=="campaign_source_conflict"
+		and Slots.inspect(location,1).status=="damaged" and FileAccess.get_file_as_string(conflicting)==old_bytes,"mixed valid sources fail closed without rewriting")
+	output = FileAccess.open(conflicting,FileAccess.WRITE)
+	if not check(output!=null,"isolated corrupt versioned generation fixture"): return
+	output.store_string("{damaged")
+	output.close()
+	var recovered_v2 := Play.fresh(Seed.content(109,2))
+	check(Slots.inspect(location,1).status=="valid" and v2_disk.load_session(recovered_v2,Slots.KEY).get("ok",false)
+		and recovered_v2.snapshot()==v2.snapshot() and FileAccess.get_file_as_string(conflicting)=="{damaged","valid v2 generation survives corrupted sibling without migration")
 
 func wallet_total(wallets: Dictionary,currency: String) -> int:
 	var total := 0
@@ -201,12 +239,12 @@ func visit_trade(s: RefCounted,id: String,report: Dictionary) -> bool:
 	report["bought" if purchase else "sold"].append(id)
 	return not purchase or Play.display(s,id)
 
-func week(seed_value: int) -> void:
-	var source := Seed.content(seed_value)
+func week(seed_value: int,version: int=1) -> void:
+	var source := Seed.content(seed_value,version)
 	var s := Play.fresh(source)
 	if not check(s!=null,"integrated campaign initializes %d"%seed_value): return
 	var start: Dictionary = s.snapshot()
-	var report := {"seed":seed_value,"visible":[],"offers":[],"bought":[],"sold":[],"refusals":[],"daily":[],"attendance":[],"profit":0}
+	var report := {"seed":seed_value,"planner_version":version,"visible":[],"offers":[],"bought":[],"sold":[],"refusals":[],"daily":[],"attendance":[],"profit":0}
 	for day: int in range(1,8):
 		if not check(Play.go(s,"alpha_open"),"real day opens %d"%day): return
 		var seen := 0
@@ -254,7 +292,12 @@ func week(seed_value: int) -> void:
 	check(tallies==end.ledger.size(),"regional activity arises from settled catalog trades")
 	var disk := Repo.new("user://zt_rebuild/catalog_week_%d_%d"%[seed_value,Time.get_ticks_usec()])
 	var replay := Play.fresh(source)
-	check(disk.save_session(s,Slots.KEY).get("ok",false) and disk.load_session(replay,Slots.KEY).get("ok",false) and replay.snapshot()==end,"seven-day save and cold exact replay")
+	var key: String = Seed.PLANNER_TRIAL_KEY if version==2 else Slots.KEY
+	check(disk.save_session(s,key).get("ok",false) and disk.load_session(replay,key).get("ok",false) and replay.snapshot()==end,"seven-day save and cold exact replay")
+	if version==2:
+		var legacy := Play.fresh(Seed.content(seed_value))
+		check(legacy!=null and not disk.load_session(legacy,key).get("ok",false),"v1 cannot reinterpret v2 planner journal")
+		check(start.wallets==Seed.content(seed_value).state.wallets,"v2 initial wallets unchanged")
 	print("B3_CATALOG_WEEK_JSON ",JSON.stringify(report))
 
 # Supplement, not a replacement for the 24-model matrix. Exercise a real
@@ -402,9 +445,9 @@ func _initialize() -> void:
 		"mixed":
 			if arguments.size()==2 and arguments[1].is_valid_int(): mixed(int(arguments[1]))
 			else: check(false,"mixed requires a campaign seed")
-		"week":
+		"week","week_v2":
 			if arguments.size()==2 and arguments[1].is_valid_int():
-				week(int(arguments[1]))
+				week(int(arguments[1]),2 if mode=="week_v2" else 1)
 			else:
 				check(false,"week requires a campaign seed")
 		_: check(false,"unknown B3 catalog check")

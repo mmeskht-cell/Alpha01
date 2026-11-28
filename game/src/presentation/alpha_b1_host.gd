@@ -84,9 +84,10 @@ func _ready() -> void:
 	# from a checksum-valid existing A/B generation. New campaigns persist
 	# their first snapshot before any interaction or displayed random visitors.
 	var random_seed: int = 101
+	var selected_seed: Dictionary = {}
 	if b3_random_mode:
 		var random_dir: String = save_directory_override if not save_directory_override.is_empty() else ("user://zt_rebuild/b3_week_candidate" if week_candidate else "user://zt_rebuild/alpha_b3_m7_interest" if b3_m7_mode else "user://zt_rebuild/alpha_b3_random_m5")
-		var selected_seed: Dictionary = B3SeedAuthority.select_seed(random_dir, _slot())
+		selected_seed = B3SeedAuthority.select_seed(random_dir, _slot())
 		if not selected_seed.get("ok", false):
 			_blocked = true
 			_message = "랜덤 방문 저장 시드를 검증하지 못했습니다: " + str(selected_seed.get("error", "invalid"))
@@ -100,7 +101,7 @@ func _ready() -> void:
 		random_seed = int(selected_seed.seed)
 	var source: Dictionary = {}
 	if b3_m7_mode:
-		source = _week_source(random_seed) if week_candidate else B3M7Seed.content(random_seed)
+		source = _week_source_for_selection(random_seed,selected_seed) if week_candidate else B3M7Seed.content(random_seed)
 	else:
 		source = B3RandomSeed.content(random_seed) if b3_random_mode else (B3FxSeed.content() if b3_fx_mode else (B3MarketM2Seed.content() if b3_market_m2_mode else (B3MarketSeed.content() if b3_market_mode else (MultiServiceSeed.content() if b2_multi_service_mode else (RecoverySeed.content() if b2_recovery_mode else (ServiceSeed.content() if b2_service_mode else (NamedCommissionSeed.content() if b2_named_commission_mode else (CommissionSeed.content() if b2_commission_mode else (CardSeed.content() if b2_interactive_mode else (B2Seed.content() if b2_mode else Seed.content()))))))))))
 	if source.is_empty():
@@ -133,6 +134,9 @@ func _ready() -> void:
 					_blocked = true
 					_message = "초기 랜덤 시드 저장에 실패했습니다: " + str(first_save.get("error", "unknown"))
 	refresh()
+
+func _week_source_for_selection(seed_value: int,_selection: Dictionary) -> Dictionary:
+	return _week_source(seed_value)
 
 func _week_source(seed_value: int) -> Dictionary:
 	return WeekSeed.content(seed_value)

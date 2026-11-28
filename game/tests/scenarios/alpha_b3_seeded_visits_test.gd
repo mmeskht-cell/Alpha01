@@ -113,6 +113,22 @@ func _initialize() -> void:
 	check(overload_rows.size()==9 and extra.get("ok", false) and int(extra.get("target", 0))==9
 		and extra.get("visits", []).size()==9,
 		"nine pre-accepted appointments override soft 5–8 attendance without cancellation")
+	var trial_locked: Array = [str(overload_rows[0].id)]
+	var trial_firm: Dictionary = {}
+	for i: int in range(overload_rows.size()):
+		trial_firm[overload_rows[i].id] = i<6
+	var trial_policy := {"firm":trial_firm,"story_anchors":trial_locked}
+	var v1 := Randomizer.plan(overload_rows,overload_allowed,trial_locked,101,1)
+	var v2 := Randomizer.plan(overload_rows,overload_allowed,trial_locked,101,1,trial_policy)
+	check(v2.get("ok",false) and v2==Randomizer.plan(overload_rows,overload_allowed,trial_locked,101,1,trial_policy)
+		and v2.target==mini(10,int(v1.target)+1),"v2 deterministic quota excludes one story anchor")
+	var selected_firm := 0
+	for row: Dictionary in v2.get("visits",[]):
+		if trial_firm[row.id]: selected_firm+=1
+	check(selected_firm==6 and v2.visits.size()<=10,"firm source candidates selected before contingencies")
+	var invalid_policy := trial_policy.duplicate(true)
+	invalid_policy.story_anchors.append(str(overload_rows[1].id))
+	check(not Randomizer.plan(overload_rows,overload_allowed,trial_locked,101,1,invalid_policy).get("ok",false),"unprotected row cannot claim story quota")
 	check(source == copy, "planner never mutates source wallets, items, offers or calendar")
 	check(not day_two.is_empty(), "real source includes multiple D2 potential visits")
 	var baseline: Dictionary = Randomizer.plan(day_two, day_two_flags, day_two_fixed, 101, 2)

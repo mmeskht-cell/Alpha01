@@ -45,6 +45,10 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 	if profile is Dictionary and profile.has("integrated_catalog"):
 		if not IntegratedCatalog.seed_valid(state,profile): return false
 		keys.append("integrated_catalog")
+	if profile is Dictionary and profile.has("visit_plan_policy"):
+		if not Rules.integer(profile.visit_plan_policy,2,2) or not IntegratedCatalog.enabled(profile) or not profile.has("visit_random"):
+			return false
+		keys.append("visit_plan_policy")
 	if profile is Dictionary and profile.has("battery_market"):
 		if not profile.has("spatial_opening") or profile.battery_market not in BatteryMarket.PROFILES: return false
 		if not BatteryMarket.seed_valid(state,profile): return false
@@ -169,7 +173,7 @@ static func seed(state: Dictionary, profile: Dictionary) -> Dictionary:
 
 ## Each replayed opening freezes an eligible nonstory visitor plan. Existing
 ## authored rows remain the only identities; committed returns cannot be dropped.
-static func _admissible(state: Dictionary, visit_id: String) -> bool:
+static func _admissible(state: Dictionary, visit_id: String, allow_same_day_supply: bool=true) -> bool:
 	var a: Dictionary = state.alpha_shop
 	if visit_id == "tool_buy" and a.get("outbound", {}).get("tool_search", {}).get("status") == "empty":
 		return false
@@ -187,7 +191,7 @@ static func _admissible(state: Dictionary, visit_id: String) -> bool:
 				if item.owner_id != "player" or item.custodian_id != "player" or id not in a.displayed:
 					# At opening a later same-day shelf sale can follow a real
 					# funded supply. At the door require actual display.
-					if a.phase != "DAY_PREP" or not _same_day_supply(state,id):
+					if not allow_same_day_supply or a.phase != "DAY_PREP" or not _same_day_supply(state,id):
 						return false
 				for currency: String in ["VKC","USD"]:
 					if state.wallets[visit.buyer][currency] < visit.prices[id][currency]:
@@ -262,7 +266,17 @@ static func _draw_day(state: Dictionary) -> String:
 			mandatory = true
 		if mandatory:
 			locked.append(id)
-	var result: Dictionary = B3Random.plan(rows, availability, locked, int(a.profile.visit_random.seed), int(a.day))
+	var policy: Dictionary = {}
+	if a.profile.get("visit_plan_policy")==2:
+		var firm: Dictionary = {}
+		var story_anchors: Array = []
+		for row: Dictionary in rows:
+			var id: String = str(row.id)
+			firm[id] = bool(availability[id]) and _admissible(state,id,false)
+			if id in locked and id in ["alpha_marcus_intro","alpha_ian_hygiene_offer_d1"]:
+				story_anchors.append(id)
+		policy = {"firm":firm,"story_anchors":story_anchors}
+	var result: Dictionary = B3Random.plan(rows, availability, locked, int(a.profile.visit_random.seed), int(a.day),policy)
 	if not bool(result.get("ok", false)):
 		return str(result.get("error", "b3_random_schedule"))
 	var ids: Array = []
