@@ -14,6 +14,10 @@ var scrolls: Array[ScrollContainer] = []
 var offsets: Dictionary = {}
 var heading_size := 20
 var body_size := 18
+var language := "ko"
+
+func _copy(ko: String,en: String) -> String:
+	return en if language=="en" else ko
 
 func _ready() -> void:
 	add_theme_constant_override("separation",8)
@@ -91,11 +95,12 @@ func _record_face(button: Button) -> void:
 	for state: String in ["font_color","font_hover_color","font_pressed_color","font_focus_color","font_hover_pressed_color"]:
 		button.add_theme_color_override(state,Color("#30271f"))
 
-func open(header: String,groups: Dictionary,percent: int,revision_key: String) -> void:
+func open(header: String,groups: Dictionary,percent: int,revision_key: String,locale: String="ko") -> void:
 	if not data.is_empty() and revision_key==view_key: return
 	if not current_tab.is_empty():
 		offsets[current_tab] = [scrolls[0].scroll_vertical,scrolls[1].scroll_vertical]
 	view_key = revision_key
+	language = locale
 	body_size = roundi(16*percent/100.0)
 	heading_size = roundi(20*percent/100.0)
 	summary.text = header
@@ -109,7 +114,10 @@ func open(header: String,groups: Dictionary,percent: int,revision_key: String) -
 			var tab := _button(tabs,"folio_"+key,str(data[key].caption),func()->void:_change_tab(key))
 			tab.toggle_mode = true
 	tabs.visible = data.size()>1
-	for tab: Button in tabs.get_children(): tab.add_theme_font_size_override("font_size",body_size)
+	for tab: Button in tabs.get_children():
+		tab.add_theme_font_size_override("font_size",body_size)
+		var key := str(tab.name).trim_prefix("folio_")
+		tab.text = str(data[key].caption)
 	_draw_pages()
 
 func _change_tab(key: String) -> void:
@@ -132,7 +140,7 @@ func _draw_pages() -> void:
 	var rows: Array = group.get("rows",[])
 	if rows.is_empty():
 		current_record = ""
-		_line(left,str(group.get("empty","기록 없음")),body_size)
+		_line(left,str(group.get("empty",_copy("기록 없음","No records"))),body_size)
 	elif not rows.any(func(row:Dictionary)->bool:return str(row.key)==current_record):
 		current_record = str(rows[0].key)
 	for row: Dictionary in rows:
@@ -158,7 +166,7 @@ func _highlight_record() -> void:
 
 func _draw_detail(group: Dictionary,rows: Array) -> void:
 	_clear(right)
-	_line(right,"기록 상세",heading_size)
+	_line(right,_copy("기록 상세","Record details"),heading_size)
 	for row: Dictionary in rows:
 		if str(row.key)==current_record:
 			if row.has("sections"):
@@ -176,7 +184,7 @@ func _draw_detail(group: Dictionary,rows: Array) -> void:
 			break
 	var details: Callable = group.get("render",Callable())
 	if details.is_valid(): details.call(right)
-	elif current_record.is_empty(): _line(right,"왼쪽에서 기록을 고르세요.",body_size)
+	elif current_record.is_empty(): _line(right,_copy("왼쪽에서 기록을 고르세요.","Select a record on the left."),body_size)
 	for label: Label in right.find_children("*","Label",true,false):
 		label.add_theme_font_size_override("font_size",heading_size if label.has_meta("document_heading") else body_size)
 		label.add_theme_color_override("font_color",Color("#30271f"))

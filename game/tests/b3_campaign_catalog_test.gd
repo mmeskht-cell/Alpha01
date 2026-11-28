@@ -125,6 +125,24 @@ func compat() -> void:
 		check(FileAccess.get_file_as_string(home.path_join(key+".a.json"))==preserved[key],"old generation stays byte-identical "+key)
 		var old := Play.fresh(old_slots[key])
 		check(disk.load_session(old,key).get("ok",false),"legacy slot remains readable "+key)
+	# Structurally valid JSON with an invalid envelope revision must not
+	# influence bootstrap or throw before the valid A generation is loaded.
+	var newest_path := home.path_join(Slots.KEY+".b.json")
+	var newest: Variant = JSON.parse_string(FileAccess.get_file_as_string(newest_path))
+	if not check(newest is Dictionary,"two-generation fixture includes new envelope"): return
+	for bad_revision: Variant in [{"invalid":1},-1,int(newest.revision)+1]:
+		var damaged: Dictionary = newest.duplicate(true)
+		damaged.revision = bad_revision
+		var encoded := JSON.stringify(damaged)
+		var output := FileAccess.open(newest_path,FileAccess.WRITE)
+		if not check(output!=null,"write malformed revision fixture"): return
+		output.store_string(encoded)
+		output.close()
+		var selection := preload("res://src/content/alpha_b3_seed_authority.gd").select_seed(home,Slots.KEY)
+		var fallback := Play.fresh(Seed.content(109))
+		if not check(selection.get("ok",false) and selection.seed==109 and Slots.inspect(location,0).status=="valid"
+			and disk.load_session(fallback,Slots.KEY).get("ok",false) and int(fallback.snapshot().revision)==0
+			and FileAccess.get_file_as_string(newest_path)==encoded,"bad revision ignored; genuine older generation stays readable"): return
 	for generation: String in ["b","a"]:
 		var path := home.path_join(Slots.KEY+"."+generation+".json")
 		var file := FileAccess.open(path,FileAccess.WRITE)
@@ -195,13 +213,18 @@ func week(seed_value: int) -> void:
 		var opening: Dictionary = s.snapshot()
 		var opened: Dictionary = s.alpha_view().attendance.duplicate(true)
 		var arrived: Array = []
-		var nonstory := 0
+		var regular := 0
+		var named := 0
+		var anchors := 0
+		var anchor_ids: Array = ["alpha_marcus_intro","alpha_ian_hygiene_offer_d1"]
 		while int(s.alpha_view().remaining)>0:
 			if not check(Play.next_customer(s),"real customer enters"): return
 			seen+=1
 			var view: Dictionary = s.alpha_view()
 			arrived.append(str(view.active.id))
-			if str(view.active.kind)!="story": nonstory+=1
+			if str(view.active.kind)=="regular": regular+=1
+			elif str(view.active.kind)=="named": named+=1
+			if str(view.active.id) in anchor_ids: anchors+=1
 			var id := Catalog.visit_item(source.alpha_profile,str(view.active.id))
 			if id.is_empty():
 				if not check(Play.leave(s),"inherited customer can be served or declined"): return
@@ -217,8 +240,9 @@ func week(seed_value: int) -> void:
 		for candidate: Dictionary in source.alpha_profile.days[day-1]:
 			if candidate.id not in planned: not_planned.append(candidate.id)
 		var not_arrived: Array = planned.filter(func(id: String)->bool: return id not in arrived)
-		report.attendance.append({"day":day,"opening":opened,"planned_ids":planned,"arrived_ids":arrived,"unplanned_ids":not_planned,"unarrived_planned_ids":not_arrived,"nonstory_kind_count":nonstory,"cash_open":opening.wallets.player.duplicate(),"cash_close":s.snapshot().wallets.player.duplicate(),"displayed_open":opening.alpha_shop.displayed.duplicate(),"displayed_close":s.snapshot().alpha_shop.displayed.duplicate()})
-		if not check(arrived.size()==seen and seen<=planned.size() and seen<=10 and Play.sequence(s,["alpha_close","alpha_settle","alpha_next_day"]),"bounded attendance and closing %d"%day): return
+		report.attendance.append({"day":day,"opening":opened,"planned_ids":planned,"arrived_ids":arrived,"unplanned_ids":not_planned,"unarrived_planned_ids":not_arrived,"regular_count":regular,"named_count":named,"opening_story_anchor_count":anchors,"other_count":seen-regular-named,"cash_open":opening.wallets.player.duplicate(),"cash_close":s.snapshot().wallets.player.duplicate(),"displayed_open":opening.alpha_shop.displayed.duplicate(),"displayed_close":s.snapshot().alpha_shop.displayed.duplicate()})
+		if not check(arrived.size()==seen and seen<=planned.size() and seen<=10 and anchors<=named
+			and (day!=1 or anchors==2) and Play.sequence(s,["alpha_close","alpha_settle","alpha_next_day"]),"bounded attendance, opening story anchors and closing %d"%day): return
 		if day<7 and not check(Play.go(s,"alpha_prepare_day"),"prepare following day"): return
 	var end: Dictionary = s.snapshot()
 	report.profit = int(end.wallets.player.VKC)-int(start.wallets.player.VKC)
@@ -335,6 +359,9 @@ func repair() -> void:
 	var historic: Dictionary = after.alpha_shop.appraisal.visits[purchase_id].duplicate(true)
 	if not check(historic.observed.function_detail.value=="inoperable" and historic.observed.function_detail.version.functional!=after.items[target].field_versions.functional
 		and not historic.offers.is_empty(),"repair preserves the earlier faulty observation and its version"): return
+	var history_after: Dictionary = s.alpha_item_history(target)
+	if not check(history_after.prior_offers.size()==1 and history_after.prior_offers[0].facts.any(func(fact:Dictionary)->bool:return fact.slot=="function_detail" and fact.value=="inoperable" and fact.get("current",true)==false)
+		and s.snapshot()==after,"history flags the previous disclosed fault as stale without changing it"): return
 	if not check(Play.display(s,target),"repaired physical item goes on the finite shelf"): return
 	var first_day := int(after.alpha_shop.day)
 	var sale_day := int(route.sale_day)
@@ -356,9 +383,14 @@ func repair() -> void:
 	var final: Dictionary = s.snapshot()
 	if not check(final.items[target].owner_id==trade.buyer and final.items[target].provenance_id==before.items[target].provenance_id
 		and final.alpha_shop.appraisal.visits[purchase_id]==historic and final.ledger.size()==after.ledger.size()+1,"same identity and immutable historic appraisal survive resale"): return
+	var history_final: Dictionary = s.alpha_item_history(target)
+	if not check(history_final.prior_offers.size()==2 and int(history_final.prior_offers[0].revision)<int(history_final.prior_offers[1].revision)
+		and history_final.prior_offers[0].facts.any(func(fact:Dictionary)->bool:return fact.slot=="function_detail" and fact.value=="inoperable" and fact.get("current",true)==false)
+		and history_final.prior_offers[1].facts.any(func(fact:Dictionary)->bool:return fact.slot=="function_detail" and fact.value=="serviceable" and fact.get("current",false)==true)
+		and s.snapshot()==final,"ordered public history distinguishes old and newly verified function"): return
 	var disk := Repo.new("user://zt_rebuild/catalog_reappraisal_%d"%Time.get_ticks_usec())
 	var replay := Play.fresh(route.source)
-	check(disk.save_session(s,Slots.KEY).get("ok",false) and disk.load_session(replay,Slots.KEY).get("ok",false) and replay.snapshot()==final,"repair and both versioned observations survive cold exact replay")
+	check(disk.save_session(s,Slots.KEY).get("ok",false) and disk.load_session(replay,Slots.KEY).get("ok",false) and replay.snapshot()==final and replay.alpha_item_history(target)==history_final,"repair and both versioned observations survive cold exact replay")
 
 func _initialize() -> void:
 	var arguments := OS.get_cmdline_user_args()

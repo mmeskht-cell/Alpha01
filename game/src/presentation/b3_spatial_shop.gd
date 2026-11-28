@@ -352,11 +352,12 @@ func _intro_scene() -> void:
 	paper(56,360,1168,318)
 	words(beat[0],92,380,1040,46,32)
 	words(beat[1],92,442,1080,168)
-	action("intro_motion","동작 줄이기" if not reduce_motion else "동작 줄임",90,610,160,45,func()->void:
+	action("intro_motion",_counter_copy("동작 줄이기","Reduce motion") if not reduce_motion else _counter_copy("동작 줄임","Motion reduced"),90,610,160,45,func()->void:
 		reduce_motion = not reduce_motion
 		sound.set_motion(not reduce_motion)
+		_store_counter_preferences()
 		refresh())
-	action("intro_mute","음소거",264,610,120,45,func()->void:AudioServer.set_bus_mute(0,not AudioServer.is_bus_mute(0)))
+	action("intro_mute",_counter_copy("음소거","Mute"),264,610,120,45,_toggle_counter_sound)
 	action("intro_next","개점 준비" if _intro_page == 4 else "다음",998,610,168,48,intro_next)
 	action("intro_skip","건너뛰기",810,610,168,48,intro_skip)
 
@@ -1278,13 +1279,7 @@ func _appraisal_surface(a: Dictionary) -> void:
 	elif available.is_empty() and not a.tools.any(func(tool:Dictionary)->bool: return tool.id in SurfaceVisuals.SLOTS):
 		caption = _counter_copy("확대 관찰 자료 없음","No surface sample available")
 	var caption_rect := Rect2(35,322,256,76) if image else Rect2(45,174,236,104)
-	var text := words(caption,caption_rect.position.x,caption_rect.position.y,caption_rect.size.x,caption_rect.size.y,15)
-	text.name = "surface_caption"
-	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	text.max_lines_visible = -1
-	# Keep the label at its allotted height after font and wrap measurement.
-	text.size = caption_rect.size
+	_surface_caption_label(caption,caption_rect)
 
 	if lens_open or not available.is_empty():
 		var toggle := _desk_action("lens",_counter_copy("표본 접기","Fold") if lens_open else _counter_copy("표본 보기","Show"),Rect2(36,402,119,44),func()->void:
@@ -1301,6 +1296,37 @@ func _appraisal_surface(a: Dictionary) -> void:
 		release.autowrap_mode = TextServer.AUTOWRAP_OFF
 		release.size = Vector2(133,44)
 		release.tooltip_text = _counter_copy("도구 놓기","Release selected tool")
+
+# Label's automatic wrapping initially measures against an unset width and
+# can leave its actual rect hundreds of pixels high after the text reflows.
+# Measure at the real font size and explicitly break words before setting
+# text. No clipping, smaller font, or hidden overflow is used.
+func _surface_caption_label(caption: String,rect: Rect2) -> void:
+	var label := Label.new()
+	label.name = "surface_caption"
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size",roundi(15.0*reading_scale/100.0))
+	label.add_theme_constant_override("outline_size",4)
+	label.add_theme_constant_override("line_spacing",2)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	place(label,rect.position.x,rect.position.y,rect.size.x,rect.size.y)
+	var font := label.get_theme_font("font")
+	var points := label.get_theme_font_size("font_size")
+	var lines := PackedStringArray()
+	for paragraph: String in caption.split("\n"):
+		var line := ""
+		for word: String in paragraph.split(" ",false):
+			var candidate := word if line.is_empty() else line+" "+word
+			if not line.is_empty() and font.get_string_size(candidate,HORIZONTAL_ALIGNMENT_LEFT,-1,points).x>rect.size.x-8.0:
+				lines.append(line)
+				line = word
+			else:
+				line = candidate
+		lines.append(line)
+	label.text = "\n".join(lines)
+	label.size = rect.size
 
 func _release_appraisal_tool() -> void:
 	chosen_tool = ""
@@ -1705,9 +1731,7 @@ func _drawer(v: Dictionary) -> void:
 				sound.set_motion(not reduce_motion)
 				_store_counter_preferences()
 				refresh())
-			_button(pages,"mute","음소거 전환",func()->void:
-				AudioServer.set_bus_mute(0,not AudioServer.is_bus_mute(0))
-				_store_counter_preferences())
+			_button(pages,"mute",_counter_copy("음소거 전환","Toggle sound"),_toggle_counter_sound)
 			_button(pages,"return_title","제목 화면",_return_to_title)
 func _record_alias(state: Dictionary, actor: String) -> String:
 	var label := _actor_label(actor)
@@ -1740,10 +1764,10 @@ func _product_document_workspace(v: Dictionary,state: Dictionary) -> void:
 			groups["news"] = {"caption":"게시된 소식","rows":notices,"empty":_text("spatial.quiet")}
 		"item_history":
 			var item: Dictionary = state.items.get(selected,{})
-			header = "물품 이력   /   "+_text("b2.item."+str(item.get("def_id","")))
+			header = _counter_copy("물품 이력   /   ","Item history   /   ")+_text("b2.item."+str(item.get("def_id","")))
 			var id := selected
-			groups["item"] = {"caption":"같은 물품의 거래와 작업","rows":[{"key":"history_"+id,"caption":_text("b2.item."+str(item.get("def_id",""))),"detail":"공개된 거래 사실과 당시 판단 기록"}],"render":func(page:VBoxContainer)->void:_history_lines(page,id)}
-	folio.open(header,groups,reading_scale,JSON.stringify([state.revision,reading_scale,counter_language,selected if drawer=="item_history" else ""]))
+			groups["item"] = {"caption":_counter_copy("같은 물품의 거래와 작업","Trades and work on this item"),"rows":[{"key":"history_"+id,"caption":_text("b2.item."+str(item.get("def_id",""))),"detail":_counter_copy("공개된 거래 사실과 당시 판단 기록","Disclosed trade facts and past assessments")}],"render":func(page:VBoxContainer)->void:_history_lines(page,id)}
+	folio.open(header,groups,reading_scale,JSON.stringify([state.revision,reading_scale,counter_language,selected if drawer=="item_history" else ""]),counter_language)
 
 ## The existing bulletin already distinguishes public supply reports from
 ## the player's completed transactions. Preserve every source line, never
@@ -2299,48 +2323,49 @@ func _known_price(pages: VBoxContainer,appraisal: Dictionary,day: int) -> void:
 
 func _history_lines(pages: VBoxContainer,id: String) -> void:
 	var history: Dictionary = session.alpha_item_history(id,last_visit)
-	_board_line(pages,"history_heading","공개 거래 이력 · 최근 거래부터",true)
-	if history.records.is_empty(): _board_line(pages,"empty_history","기록된 거래가 없습니다.")
+	_board_line(pages,"history_heading",_counter_copy("공개 거래 이력 · 최근 거래부터","Public trade history · newest first"),true)
+	if history.records.is_empty(): _board_line(pages,"empty_history",_counter_copy("기록된 거래가 없습니다.","No recorded trades."))
 	for row: Dictionary in history.records:
-		var label := "매입" if row.direction=="purchase" else "판매"
+		var label := _counter_copy("매입","Purchase") if row.direction=="purchase" else _counter_copy("판매","Sale")
 		var amounts: Variant = row.get("amounts")
-		var price := "%d VKC / %d USD"%[amounts.VKC,amounts.USD] if amounts is Dictionary else "개별 체결가 미기록"
+		var price := "%d VKC / %d USD"%[amounts.VKC,amounts.USD] if amounts is Dictionary else _counter_copy("개별 체결가 미기록","Individual price not recorded")
 		_board_line(pages,"record_"+str(row.event_id),"D%d · %s · %s"%[int(row.minute/1440)+1,label,price])
 		var sheet: Dictionary = row.get("offer_reference",{})
 		if not sheet.is_empty():
-			_board_line(pages,"sheet_"+str(row.event_id),"실제 체결에 연결된 제안 · 공개 단서 %d건"%sheet.get("facts",[]).size())
+			_board_line(pages,"sheet_"+str(row.event_id),_counter_copy("실제 체결에 연결된 제안 · 공개 단서 %d건","Settled offer · %d disclosed facts")%sheet.get("facts",[]).size())
 			for fact: Dictionary in sheet.get("facts",[]):
 				var key := "b2.inspect."+str(fact.get("slot",""))
 				if _strings.has(key): _board_line(pages,"historical_fact",_text(key)+" · "+_fact_caption(str(fact.slot),fact.get("value","")))
 	var past: Array = history.prior_offers
 	if r2_review_mode:
-		_board_line(pages,"past_appraisal_heading","당시의 제안과 내 판단",true)
-		if past.is_empty(): _board_line(pages,"empty_appraisal","이전 제안 기록이 없습니다.")
+		_board_line(pages,"past_appraisal_heading",_counter_copy("당시의 제안과 내 판단","Past offers and assessments"),true)
+		if past.is_empty(): _board_line(pages,"empty_appraisal",_counter_copy("이전 제안 기록이 없습니다.","No previous offers."))
 	for offer: Dictionary in past:
-		var response := "수락" if offer.response=="accepted" else "거절"
-		_board_line(pages,"past_offer","당시 가격 제안 · %d %s · %s"%[offer.amount,offer.currency,response])
-		var terms := {"metal":"금속","plastic":"플라스틱","paper":"종이","fabric":"직물","glass":"유리","minimal":"경미","moderate":"보통","severe":"심함"}
+		var response := _counter_copy("수락","Accepted") if offer.response=="accepted" else _counter_copy("거절","Declined")
+		_board_line(pages,"past_offer",_counter_copy("당시 가격 제안 · %d %s · %s","Past offer · %d %s · %s")%[offer.amount,offer.currency,response])
+		var terms := {"metal":"Metal","plastic":"Plastic","paper":"Paper","fabric":"Fabric","glass":"Glass","minimal":"Minimal","moderate":"Moderate","severe":"Severe"} if counter_language=="en" else {"metal":"금속","plastic":"플라스틱","paper":"종이","fabric":"직물","glass":"유리","minimal":"경미","moderate":"보통","severe":"심함"}
 		for group: String in offer.assessment:
-			_board_line(pages,"past_guess","당시 내 "+("재질" if group=="material" else "외관")+" 추정 · "+str(terms.get(offer.assessment[group],"보류")))
+			_board_line(pages,"past_guess",(_counter_copy("당시 내 재질 추정 · ","Past material assessment · ") if group=="material" else _counter_copy("당시 내 외관 추정 · ","Past wear assessment · "))+str(terms.get(offer.assessment[group],_counter_copy("보류","Undecided"))))
 		if not offer.assessment.is_empty():
 			var known := PackedStringArray()
 			for slot: String in offer.observed_slots: known.append(_text("b2.inspect."+slot))
-			_board_line(pages,"past_basis","당시 확인한 단서 · "+("없음" if known.is_empty() else ", ".join(known)))
+			_board_line(pages,"past_basis",_counter_copy("당시 확인한 단서 · ","Facts observed then · ")+(_counter_copy("없음","None") if known.is_empty() else ", ".join(known)))
 		for fact: Dictionary in offer.facts:
-			_board_line(pages,"past_fact",_text("b2.inspect."+str(fact.slot))+" · "+_fact_caption(fact.slot,fact.value)+(" · "+("현재 유효" if fact.current else "이전 관찰") if fact.has("current") else ""))
+			_board_line(pages,"past_fact",_text("b2.inspect."+str(fact.slot))+" · "+_fact_caption(fact.slot,fact.value)+(" · "+(_counter_copy("관찰 후 변경 기록 없음","No recorded change since observation") if fact.current else _counter_copy("이전 관찰 · 재확인 필요","Past observation · recheck required")) if fact.has("current") else ""))
 	for work: Dictionary in history.get("work_records",[]):
 		var action_name := str(work.kind)
-		var title: String = {"attach":"구성품 결합","detach":"구성품 분리","restore_item":"재생·정비 작업","discard":"폐기"}.get(action_name,"구성 또는 정비")
+		var work_names := {"attach":"Component attached","detach":"Component detached","restore_item":"Restoration","discard":"Discard"} if counter_language=="en" else {"attach":"구성품 결합","detach":"구성품 분리","restore_item":"재생·정비 작업","discard":"폐기"}
+		var title: String = work_names.get(action_name,_counter_copy("구성 또는 정비","Composition or maintenance"))
 		var related := str(work.get("related_item_id",""))
 		var names := _receipt_items(session.snapshot(),[related]) if not related.is_empty() else ""
-		_board_line(pages,"work_"+str(work.event_id),"작업 기록 · "+title+(" · "+names if not names.is_empty() else ""))
-		if work.has("expense"): _board_line(pages,"work_cost","정비 비용 · %s VKC / %s USD"%[work.expense.VKC,work.expense.USD])
-		if work.has("group_size"): _board_line(pages,"work_loss","폐기 %d개 · "%work.group_size+("%s VKC 손실"%work.loss.VKC if work.loss is Dictionary else "묶음 원가 손실"))
+		_board_line(pages,"work_"+str(work.event_id),_counter_copy("작업 기록 · ","Work record · ")+title+(" · "+names if not names.is_empty() else ""))
+		if work.has("expense"): _board_line(pages,"work_cost",_counter_copy("정비 비용 · %s VKC / %s USD","Repair cost · %s VKC / %s USD")%[work.expense.VKC,work.expense.USD])
+		if work.has("group_size"): _board_line(pages,"work_loss",_counter_copy("폐기 %d개 · ","Discarded %d · ")%work.group_size+(_counter_copy("%s VKC 손실","%s VKC loss")%work.loss.VKC if work.loss is Dictionary else _counter_copy("묶음 원가 손실","Group basis loss")))
 	if r2_review_mode:
-		_board_line(pages,"claim_boundary","미확인 주장",true)
-		_board_line(pages,"claim_data","현재 물품 이력에는 확인되지 않은 주장 기록이 제공되지 않습니다.")
-	if int(history.get("omitted",0))>0: _board_line(pages,"older","이전 거래는 전체 장부에서 확인")
-	if int(history.get("work_omitted",0))>0: _board_line(pages,"older_work","이전 작업 기록 일부 생략")
+		_board_line(pages,"claim_boundary",_counter_copy("미확인 주장","Unverified claims"),true)
+		_board_line(pages,"claim_data",_counter_copy("현재 물품 이력에는 확인되지 않은 주장 기록이 제공되지 않습니다.","Unverified claims are not included in this item history."))
+	if int(history.get("omitted",0))>0: _board_line(pages,"older",_counter_copy("이전 거래는 전체 장부에서 확인","Older trades are in the full ledger"))
+	if int(history.get("work_omitted",0))>0: _board_line(pages,"older_work",_counter_copy("이전 작업 기록 일부 생략","Some older work records omitted"))
 
 func _receipt_items(state: Dictionary, roots: Array) -> String:
 	var names := PackedStringArray()
@@ -2875,6 +2900,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	else: return
 	get_viewport().set_input_as_handled()
 	refresh()
+
+func _toggle_counter_sound() -> void:
+	var enabled := AudioServer.is_bus_mute(0)
+	AudioServer.set_bus_mute(0,not enabled)
+	sound.set_sound(enabled)
+	_store_counter_preferences()
 
 func _store_counter_preferences() -> void:
 	pass

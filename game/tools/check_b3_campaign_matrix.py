@@ -73,3 +73,19 @@ mixed_coverage = {side: sorted({entry["item"] for row in mixed for entry in row[
                 "legacy_not_witnessed": {side: sorted(legacy - set(ids)) for side, ids in mixed_coverage.items()}},
                indent=2) + "\n", encoding="utf-8")
 print(f"Mixed ordinary-trade diagnostic: {len(mixed)} actual weeks; legacy witnessed {mixed_coverage}")
+
+# The legacy isolated F3 regression is retained; additionally run its actual
+# full lifecycle against the default integrated campaign, not cloned stock.
+log = args.out / "integrated-composite.log"
+command = [engine, "--headless", "--path", str(root), "--script",
+           "res://tests/scenarios/b3_f3_composite_lineage_test.gd", "--", "integrated_route"]
+with log.open("w", encoding="utf-8") as output:
+    completed = subprocess.run(command, env=env, stdout=output, stderr=subprocess.STDOUT, timeout=300)
+contents = log.read_text(encoding="utf-8", errors="replace")
+witness = re.search(r"^B3_INTEGRATED_COMPOSITE_WITNESS (.+)$", contents, re.M)
+passed = re.search(r"^B3_F3_COMPOSITE_PART integrated_route: [1-9][0-9]* checks, 0 failures", contents, re.M)
+if completed.returncode or not witness or not passed or fatal.search(contents):
+    sys.exit(f"Invalid or failed integrated composite witness: {log}")
+(args.out / "integrated-composite.json").write_text(
+    json.dumps(json.loads(witness[1]), indent=2) + "\n", encoding="utf-8")
+print("Integrated campaign composite purchase, replacement, repair, resale and return witnessed.")

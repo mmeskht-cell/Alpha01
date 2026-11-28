@@ -20,6 +20,7 @@ func _ready() -> void:
 	reading_scale = roundi(float(counter_preferences.font_size)*100.0/16.0)
 	reduce_motion = not counter_preferences.motion
 	AudioServer.set_bus_mute(0,not counter_preferences.sound)
+	sound.configure_preferences(counter_preferences)
 	super._ready()
 
 func _store_counter_preferences() -> void:

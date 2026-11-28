@@ -51,6 +51,7 @@ func menu_route(size: Vector2i,location: String) -> bool:
 	var prefs := TitlePreferences.defaults()
 	prefs.font_size = 24
 	prefs.motion = false
+	prefs.sound = false
 	prefs.language = "ko" if size.y==720 else "en"
 	if not check(TitlePreferences.write(Slots.preferences_path(location),prefs),"title settings fixture"): return false
 	if not await boot_title(location): return false
@@ -67,9 +68,27 @@ func menu_route(size: Vector2i,location: String) -> bool:
 	var initial: Dictionary = host.session.snapshot()
 	if not check(host.save_directory_override==Slots.directory(location,1) and host.reading_scale==150 and host.counter_language==prefs.language and host.reduce_motion,"new campaign skips occupied damage and receives title preferences"): return false
 	if not check(initial.alpha_shop.profile.integrated_catalog==1 and not initial.alpha_shop.profile.has("civilian_supply") and initial.wallets.player.VKC==180,"normal opening is the integrated source"): return false
+	if not check(AudioServer.is_bus_mute(0) and not host.sound.diagnostic_view().sound,"title mute reaches counter audio authority"): return false
+	if not await click_navigation(host,"intro_mute"): return false
+	var music_bus := AudioServer.get_bus_index("ZT Music")
+	var sfx_bus := AudioServer.get_bus_index("ZT SFX")
+	if not check(music_bus>=0 and sfx_bus>=0 and not AudioServer.is_bus_mute(0) and not AudioServer.is_bus_mute(music_bus)
+		and not AudioServer.is_bus_mute(sfx_bus) and host.sound.diagnostic_view().sound and TitlePreferences.read(Slots.preferences_path(location)).sound,"intro unmute restores channels and persists"): return false
+	if not await click_navigation(host,"intro_motion"): return false
+	if not check(not host.reduce_motion and host.sound.diagnostic_view().motion and TitlePreferences.read(Slots.preferences_path(location)).motion,"intro motion preference persists"): return false
+	if not await click_navigation(host,"intro_motion"): return false
+	if not check(host.reduce_motion and not host.sound.diagnostic_view().motion and not TitlePreferences.read(Slots.preferences_path(location)).motion,"intro reduced motion restored on disk"): return false
 	for beat in range(5):
 		if not await click_navigation(host,"intro_next"): return false
 	if not await click("alpha_open","OPEN_IDLE"): return false
+	var settings_revision: int = host.session.snapshot().revision
+	if not await click_navigation(host,"preferences") or not await click_navigation(host,"mute"): return false
+	if not check(AudioServer.is_bus_mute(0) and AudioServer.is_bus_mute(sfx_bus) and not host.sound.diagnostic_view().sound
+		and not TitlePreferences.read(Slots.preferences_path(location)).sound,"counter mute updates both authorities and disk"): return false
+	if not await click_navigation(host,"mute"): return false
+	if not check(not AudioServer.is_bus_mute(0) and not AudioServer.is_bus_mute(sfx_bus) and host.sound.diagnostic_view().sound
+		and host.session.snapshot().revision==settings_revision,"counter unmute restores channel without gameplay mutation"): return false
+	if not await click_navigation(host,"close_drawer"): return false
 	var progressed: Dictionary = host.session.snapshot()
 	if not await to_title() or not await wait_for_shop("menu_continue"): return false
 	if not check(host.session.snapshot()==progressed and not host._intro,"continue cold-replays actual played snapshot"): return false
@@ -96,9 +115,13 @@ func appraise_model(target: String,row: Dictionary,model: Texture2D,size: Vector
 		var release := host.find_child("close_mat",true,false) as Button
 		await capture("campaign_surface_geometry_"+target+"_"+str(size.y),size)
 		if caption!=null and fold!=null and release!=null:
-			print("B3_SURFACE_GEOMETRY ",JSON.stringify({"target":target,"caption":str(caption.get_global_rect()),"lines":caption.get_line_count(),"visible_lines":caption.get_visible_line_count(),"fold":str(fold.get_global_rect()),"release":str(release.get_global_rect()),"fold_min":str(fold.get_combined_minimum_size()),"release_min":str(release.get_combined_minimum_size())}))
+			print("B3_SURFACE_GEOMETRY ",JSON.stringify({"target":target,"caption":str(caption.get_global_rect()),"lines":caption.get_line_count(),"visible_lines":caption.get_visible_line_count(),"caption_min":str(caption.get_combined_minimum_size()),"caption_text":caption.text,"fold":str(fold.get_global_rect()),"release":str(release.get_global_rect()),"fold_min":str(fold.get_combined_minimum_size()),"release_min":str(release.get_combined_minimum_size())}))
 		if not check(caption!=null and fold!=null and release!=null and caption.is_visible_in_tree() and fold.is_visible_in_tree() and release.is_visible_in_tree()
+			and not caption.text.strip_edges().is_empty()
 			and caption.get_visible_line_count()==caption.get_line_count()
+			and caption.get_combined_minimum_size().x<=caption.size.x and caption.get_combined_minimum_size().y<=caption.size.y
+			and caption.get_global_rect().position.x>=fold.get_global_rect().position.x-2.0
+			and caption.get_global_rect().end.x<=release.get_global_rect().end.x+2.0
 			and caption.get_global_rect().end.y<=minf(fold.get_global_rect().position.y,release.get_global_rect().position.y)
 			and not fold.get_global_rect().intersects(release.get_global_rect()),"150 percent surface reading and lens actions remain separate "+target): return false
 	else:

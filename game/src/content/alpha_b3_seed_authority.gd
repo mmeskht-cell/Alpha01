@@ -23,7 +23,7 @@ static func _saved_seed(path: String, slot: String) -> Dictionary:
 	var raw: Variant = decoder.data
 	if not Rules.keys(raw, ["schema_version", "content_version", "slot_id", "revision", "payload", "checksum"]):
 		return {}
-	if raw.schema_version != Repo.SCHEMA_VERSION or raw.content_version != Repo.CONTENT_VERSION or raw.slot_id != slot or not raw.payload is String or not raw.checksum is String:
+	if raw.schema_version != Repo.SCHEMA_VERSION or raw.content_version != Repo.CONTENT_VERSION or raw.slot_id != slot or not Rules.integer(raw.revision) or not raw.payload is String or not raw.checksum is String:
 		return {}
 	if raw.payload.sha256_text() != raw.checksum:
 		return {}
@@ -31,7 +31,7 @@ static func _saved_seed(path: String, slot: String) -> Dictionary:
 	if payload_decoder.parse(raw.payload) != OK:
 		return {}
 	var snapshot: Variant = payload_decoder.data
-	if not snapshot is Dictionary or not snapshot.get("alpha_shop") is Dictionary:
+	if not snapshot is Dictionary or not Rules.integer(snapshot.get("revision")) or snapshot.revision!=raw.revision or not snapshot.get("alpha_shop") is Dictionary:
 		return {}
 	var profile: Variant = snapshot.alpha_shop.get("profile", {})
 	if not profile is Dictionary or not profile.get("visit_random") is Dictionary:

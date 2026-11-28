@@ -2,6 +2,8 @@ extends "res://tests/scenarios/b3_f2_regional_market_test.gd"
 ## New opt-in civilian composite path; all operations use GameSession.
 const F3Source=preload("res://src/content/b3_f3_composite_seed.gd")
 const F3=preload("res://src/domain/b3_f3_composite_trial.gd")
+const IntegratedSource=preload("res://src/content/b3_integrated_campaign_seed.gd")
+const CampaignPlay=preload("res://tests/fixtures/b3_campaign_play.gd")
 
 func f3_basis(state:Dictionary,ids:Array)->int:
 	var sum:int=0
@@ -50,13 +52,17 @@ func scope_test()->void:
 	check(not rejected.initialize(bad.defs,bad.state,false,false,{},bad.alpha_profile),"tampered trial visit terms rejected")
 	check(s.alpha_view().appraisal.is_empty() and s.alpha_item_history(F3.ROOT).records.is_empty(),"unseen item has no fabricated appraisal or history")
 
-func f3_route()->bool:
+func f3_enter(s:RefCounted,integrated:bool,id:String)->bool:
+	return CampaignPlay.reach(s,id) if integrated else enter(s,id)
+
+func f3_route(integrated:bool=false)->bool:
 	for seed_value:int in range(101,125):
-		var src:Dictionary=F3Source.content(seed_value)
+		var src:Dictionary=IntegratedSource.content(seed_value) if integrated else F3Source.content(seed_value)
 		if src.is_empty(): return check(false,"source schedule must exist")
 		var s:RefCounted=fresh(src)
 		if s==null or not go(s,"alpha_open"): return false
-		if not enter(s,F3.BUY): continue
+		if integrated and not check(s.snapshot().alpha_shop.profile.get("integrated_catalog")==1,"same regular campaign source with legacy components"): return false
+		if not f3_enter(s,integrated,F3.BUY): continue
 		# No assertions until the necessary deterministic visitor witness
 		# is found; failures on the chosen path remain fatal.
 		if not f3_observe(s,"identity") or not f3_observe(s,"function_detail") or not settle_item(s,F3.ROOT,70): return check(false,"real inspected composite purchase")
@@ -67,7 +73,7 @@ func f3_route()->bool:
 		var disassembled:Dictionary=s.snapshot()
 		if not f3_open(s): return false
 		if F3.SUPPLY not in s.snapshot().alpha_shop.random_visits.plan: continue
-		if not enter(s,F3.SUPPLY) or not settle_item(s,F3.SPARE,15) or not f3_close(s): return false
+		if not f3_enter(s,integrated,F3.SUPPLY) or not settle_item(s,F3.SPARE,15) or not f3_close(s): return false
 		var incomplete:Dictionary=s.snapshot()
 		check(not s.spatial_action_preview("spatial_restore_item",{"actor":"player","item_id":F3.ROOT}).get("ok",false) and s.snapshot()==incomplete,"incomplete composite cannot be restored")
 		check(f3_basis(purchased,[F3.ROOT,"F3R01_A",F3.BAD])==70 and f3_basis(disassembled,[F3.ROOT,"F3R01_A",F3.BAD])==70,"actual allocated purchase basis preserved on detach")
@@ -88,7 +94,7 @@ func f3_route()->bool:
 		check(s.alpha_item_history(F3.BAD).work_records.size()==1 and s.alpha_item_history(F3.SPARE).work_records.size()==1 and s.snapshot()==restored,"read-only distinct part histories")
 		if not display_item(s,F3.ROOT) or not f3_open(s): return false
 		if F3.SELL not in s.snapshot().alpha_shop.random_visits.plan: continue
-		if not enter(s,F3.SELL) or not f3_observe(s,"function_detail"): return false
+		if not f3_enter(s,integrated,F3.SELL) or not f3_observe(s,"function_detail"): return false
 		check(f3_value(s.alpha_view(),"function_detail")=="serviceable","new actual appraisal sees changed aggregate condition")
 		if not settle_item(s,F3.ROOT,100): return false
 		var sold:Dictionary=s.snapshot()
@@ -96,7 +102,7 @@ func f3_route()->bool:
 		check(sold.ledger.back().root_ids==[F3.ROOT] and sold.ledger.back().basis.VKC==90-int(sold.items[F3.BAD].basis.VKC) and s.alpha_item_history(F3.SPARE).records[0].amounts==null,"root sale basis excludes detached loss and child does not inherit total price")
 		if not next_open(s): return false
 		if F3.RETURN not in s.snapshot().alpha_shop.random_visits.plan: continue
-		if not enter(s,F3.RETURN): return check(false,"actual same owner can return the original composite")
+		if not f3_enter(s,integrated,F3.RETURN): return check(false,"actual same owner can return the original composite")
 		if not f3_observe(s,"function_detail") or not settle_item(s,F3.ROOT,90): return false
 		var final:Dictionary=s.snapshot()
 		var history:Dictionary=s.alpha_item_history(F3.ROOT)
@@ -129,6 +135,8 @@ func f3_route()->bool:
 		for id:String in keys: reversed_rows[id]=old_rows[id]
 		reordered.alpha_shop.appraisal.visits=reversed_rows
 		check(cold.restore(reordered) and cold.snapshot()==final and cold.alpha_item_history(F3.ROOT)==history,"dictionary order cannot alter actual appraisal history")
+		if integrated:
+			print("B3_INTEGRATED_COMPOSITE_WITNESS ",JSON.stringify({"seed":seed_value,"root":F3.ROOT,"replacement":F3.SPARE,"ledger_entries":final.ledger.size(),"work_entries":history.work_records.size()}))
 		return true
 	return false
 
@@ -199,9 +207,10 @@ func f3_choices()->bool:
 func _initialize()->void:
 	var args:=OS.get_cmdline_user_args()
 	var part:String=args[0] if args.size()==1 else "all"
-	if part not in ["all","scope","route","choices"]: check(false,"unknown F3 part")
+	if part not in ["all","scope","route","choices","integrated_route"]: check(false,"unknown F3 part")
 	if part in ["all","scope"]: scope_test()
 	if part in ["all","route"]: check(f3_route(),"F3 actual composite vertical path reached")
+	if part=="integrated_route": check(f3_route(true),"same composite lifecycle in regular integrated campaign")
 	if part in ["all","choices"]: check(f3_choices(),"actual consent, recovery and condition-price alternatives reached")
 	print("B3_F3_COMPOSITE_PART ",part,": ",checks," checks, ",failures," failures")
 	quit(0 if failures==0 and checks>0 else 1)

@@ -408,12 +408,26 @@ static func apply(state: Dictionary, command: Dictionary) -> String:
 
 ## Only evidence already disclosed in a previous visit is historical testimony.
 ## A proposal can exist without a completed transfer.
+# This is a read-only validity marker for already disclosed observations.
+# It cannot supply a fresh observation or reveal an unobserved reading.
+# Only the integrated catalog's explicit observation types are covered here.
+static func _catalog_observation_current(item: Dictionary,observation: Dictionary) -> bool:
+	if observation.get("kind")!="fact": return false
+	var slot := str(observation.get("slot",""))
+	if slot=="identity": return observation.get("value")==item.get("def_id")
+	if slot=="function_detail":
+		var old: Dictionary = observation.get("version",{})
+		return old.has("functional") and old.functional==item.get("field_versions",{}).get("functional")
+	return SurfaceProfiles.current_fact(slot,observation,item)
+
 static func prior_disclosures(state: Dictionary,item_id: String,current_visit: String) -> Array:
 	var records: Array = []
-	# JSON canonicalization sorts dictionary keys. For the new composite
-	# profile, actual receipt revisions, not visit-key insertion order,
-	# define the chronological sequence of historical proposals.
-	var ordered:bool=F3Trial.enabled(state.alpha_shop.profile) and item_id==F3Trial.ROOT
+	# Actual receipt revisions, not serialized dictionary order, define the
+	# chronological sequence of historical proposals for these profiles.
+	var composite: bool = F3Trial.enabled(state.alpha_shop.profile) and item_id==F3Trial.ROOT
+	var item: Dictionary = state.items.get(item_id,{})
+	var catalog: bool = not item.is_empty() and not IntegratedCatalog.specimen(state.alpha_shop.profile,item_id,item).is_empty()
+	var ordered: bool = composite or catalog
 	var visits: Dictionary = state.get("alpha_shop",{}).get("appraisal",{}).get("visits",{})
 	for visit_id: String in visits:
 		var row: Dictionary = visits[visit_id]
@@ -422,8 +436,10 @@ static func prior_disclosures(state: Dictionary,item_id: String,current_visit: S
 			var facts: Array = []
 			for observation: Dictionary in offer.get("revealed",[]):
 				var fact:Dictionary={"slot":observation.slot,"value":observation.value}
-				if ordered:
+				if composite:
 					fact["current"]=F3Trial.observation_current(state,item_id,observation)
+				elif catalog:
+					fact["current"]=_catalog_observation_current(item,observation)
 				facts.append(fact)
 			var record:Dictionary={"amount":offer.amount,"currency":offer.currency,"response":offer.response,"facts":facts,"assessment":offer.get("private_assessment",{}).duplicate(),"observed_slots":offer.get("observed_slots",[]).duplicate()}
 			if ordered:

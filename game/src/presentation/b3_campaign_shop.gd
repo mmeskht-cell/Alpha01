@@ -18,7 +18,6 @@ func _ready() -> void:
 		save_directory_override = Slots.directory(campaign_save_root,0)
 	if title_preferences.is_empty() and FileAccess.file_exists(_counter_preferences_path()):
 		title_preferences = Preferences.read(_counter_preferences_path())
-	sound.configure_preferences(Preferences.normalize(title_preferences))
 	super._ready()
 
 func _title_destination() -> Node:
