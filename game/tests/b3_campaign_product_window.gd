@@ -92,7 +92,10 @@ func menu_route(size: Vector2i,location: String) -> bool:
 	var progressed: Dictionary = host.session.snapshot()
 	if not await to_title() or not await wait_for_shop("menu_continue"): return false
 	if not check(host.session.snapshot()==progressed and not host._intro,"continue cold-replays actual played snapshot"): return false
-	if not await to_title() or not await click_navigation(title,"menu_load") or not await wait_for_shop("menu_slot_2"): return false
+	if not await to_title() or not await click_navigation(title,"menu_load"): return false
+	var played_slot := title.find_child("menu_slot_2",true,false) as Button
+	if not check(played_slot!=null and not played_slot.disabled and played_slot.text.contains("1일차" if prefs.language=="ko" else "Day 1"),"load menu displays actual restored day"): return false
+	if not await wait_for_shop("menu_slot_2"): return false
 	if not check(host.session.snapshot()==progressed and FileAccess.get_file_as_string(corrupt)=="{damaged","explicit load replays and preserves damaged slot bytes"): return false
 	await capture("campaign_continued_"+str(size.y),size)
 	# Seed an explicit versioned fixture in the third slot. Loading it uses
@@ -183,6 +186,44 @@ func product_route(target: String,size: Vector2i,location: String) -> bool:
 		and final.wallets[buyer].VKC==route.buy.wallets[buyer].VKC-bid+(ask if buyer==route.buy.items[target].owner_id else 0)
 		and final.ledger.size()==route.buy.ledger.size()+2,"actual finite settlements and lineage for "+target): return false
 	await capture("campaign_resold_"+target+"_"+str(size.y),size)
+	if target=="CS20":
+		return await maintenance_ledger_route(size,location)
+	return true
+
+# Construct a real, paid workshop lifecycle in an isolated save and use
+# the normal product title and document UI to read the resulting ledger.
+func maintenance_ledger_route(size: Vector2i,location: String) -> bool:
+	var route := Play.trade_witness("CS20",true)
+	if not check(not route.is_empty(),"real faulty catalog hardware for ledger witness"): return false
+	var fixture := Play.fresh(route.source)
+	if not check(fixture!=null and fixture.restore(route.buy),"ledger fixture replay"): return false
+	var trade := Play.transfer(fixture,"CS20")
+	if not check(not trade.is_empty() and Play.go(fixture,"alpha_inspect",{"slot":"function_detail"})
+		and Play.go(fixture,"alpha_card_toggle",{"slot":"function_detail","selected":true}),"ledger fixture discloses actual fault"): return false
+	trade.amount -= clampi(roundi(int(trade.amount)*0.10),1,3)
+	if not check(Play.go(fixture,"alpha_price_offer",{"amount":trade.amount}) and fixture.alpha_view().appraisal.accepted.get("amount")==trade.amount
+		and Play.go(fixture,"alpha_trade",trade) and Play.sequence(fixture,["alpha_ack_exit","alpha_close","alpha_settle"]),"ledger fixture genuine trade and evening phase"): return false
+	var cost: Dictionary = fixture.alpha_stock_restore_cost("CS20")
+	if not check(cost.VKC==5 and Play.go(fixture,"spatial_restore_item",{"actor":"player","item_id":"CS20"}),"ledger fixture pays for catalog repair"): return false
+	var repaired: Dictionary = fixture.snapshot()
+	if not check(Play.go(fixture,"spatial_discard",{"actor":"player","item_id":"CS20","confirmed_ids":["CS20"]}),"ledger fixture disposes same physical hardware"): return false
+	var final: Dictionary = fixture.snapshot()
+	var repair_event: Dictionary = repaired.object_events.back()
+	var discard_event: Dictionary = final.object_events.back()
+	if not check(final.wallets==repaired.wallets and discard_event.basis.VKC==trade.amount+cost.VKC and repair_event.expenses==cost
+		and final.tombstones.has("CS20"),"disposal basis is not another cash payment"): return false
+	if not check(ProductRepo.new(Slots.directory(location,1)).save_session(fixture,Slots.KEY).get("ok",false),"ledger fixture saved"): return false
+	if not await to_title() or not await click_navigation(title,"menu_load") or not await wait_for_shop("menu_slot_2"): return false
+	if not check(host.session.snapshot()==final,"actual product loads repaired and discarded specimen history"): return false
+	if not await click_navigation(host,"ledger"): return false
+	var repair_row := host.find_child("work_"+str(repair_event.event_id),true,false) as Button
+	var discard_row := host.find_child("work_"+str(discard_event.event_id),true,false) as Button
+	var paid := host.find_child("maintenance_total",true,false) as Label
+	var lost := host.find_child("discarded_basis",true,false) as Label
+	if not check(repair_row!=null and discard_row!=null and paid!=null and lost!=null
+		and paid.text.contains("5 VKC") and lost.text.contains("%d VKC"%int(discard_event.basis.VKC))
+		and host.session.snapshot()==final,"ledger shows actual non-F3 repair and loss separately, read-only"): return false
+	await capture("campaign_maintenance_ledger_"+str(size.y),size)
 	return true
 
 func run() -> void:

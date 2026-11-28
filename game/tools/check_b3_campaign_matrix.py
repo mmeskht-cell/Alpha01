@@ -110,3 +110,25 @@ for seed in range(args.first_seed, args.first_seed + 3):
 (args.out / "planner-v2-comparison.json").write_text(
     json.dumps({"v1": reports[:3], "v2": planner_trial}, indent=2) + "\n", encoding="utf-8")
 print("Three opt-in planner v2 weeks compared with unchanged v1; no improvement presumed.")
+
+# Compare the same mixed ordinary-trade strategy, rather than crediting a
+# planning policy for a deliberately catalog-only purchasing strategy.
+mixed_v2 = []
+for seed in range(args.first_seed, args.first_seed + 3):
+    log = args.out / f"mixed-v2-{seed}.log"
+    command = [engine, "--headless", "--path", str(root), "--script",
+               "res://tests/b3_campaign_catalog_test.gd", "--", "mixed_v2", str(seed)]
+    with log.open("w", encoding="utf-8") as output:
+        completed = subprocess.run(command, env=env, stdout=output, stderr=subprocess.STDOUT, timeout=180)
+    contents = log.read_text(encoding="utf-8", errors="replace")
+    witness = re.search(r"^B3_MIXED_WEEK_JSON (.+)$", contents, re.M)
+    passed = re.search(r"^B3_CAMPAIGN_CATALOG: [1-9][0-9]* checks, 0 failures", contents, re.M)
+    if completed.returncode or not witness or not passed or fatal.search(contents):
+        sys.exit(f"Invalid or failed mixed v2 comparison: {log}")
+    row = json.loads(witness[1])
+    if row["seed"] != seed or row.get("planner_version") != 2 or len(row["daily"]) != 7:
+        sys.exit(f"Incomplete mixed v2 comparison: {log}")
+    mixed_v2.append(row)
+(args.out / "planner-mixed-comparison.json").write_text(
+    json.dumps({"v1": mixed, "v2": mixed_v2}, indent=2) + "\n", encoding="utf-8")
+print("Three same-seed mixed ordinary-trade v2 weeks compared with v1.")

@@ -32,5 +32,10 @@ static func inspect(root: String,index: int) -> Dictionary:
 	var session := Session.new()
 	if source.is_empty() or not session.initialize(source.defs,source.state,false,false,{},source.alpha_profile):
 		return {"status":"damaged","stamp":stamp}
-	var loaded: Dictionary = Repo.new(location).load_session(session,KEY)
-	return {"status":"valid" if loaded.get("ok",false) else "damaged","stamp":stamp}
+	var loaded: Dictionary = Repo.new(location).load_session(session,KEY,true)
+	if not loaded.get("ok",false):
+		return {"status":"damaged","stamp":stamp}
+	var snapshot: Dictionary = session.snapshot()
+	return {"status":"valid","stamp":int(loaded.stamp),"revision":int(loaded.revision),
+		"day":int(snapshot.alpha_shop.day),"phase":str(snapshot.alpha_shop.phase),
+		"recovered":bool(loaded.recovered),"generation":str(loaded.generation)}

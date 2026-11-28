@@ -1815,21 +1815,33 @@ func _ledger_groups(v: Dictionary,state: Dictionary) -> Dictionary:
 		if facts.size()>3:
 			sections.append({"heading":_counter_copy("원가 및 차액","Cost and difference"),"body":"\n".join(facts.slice(3))})
 		trade_rows.push_front({"key":"r_"+str(entry.event_id),"caption":stamp+" · "+party+" · "+direction+" "+amount+"\n"+names,"sections":sections})
-	# Keep terminal-item records in the existing ledger after stock is gone.
+	# The journal is the authority for all paid maintenance and terminal
+	# stock losses, not only the original receiver prototype.
+	var maintenance := {"VKC":0,"USD":0}
+	var discarded_basis := {"VKC":0,"USD":0}
+	var unknown_basis := {"VKC":0,"USD":0}
 	if state.alpha_shop.profile.has("f3_composite_trial"):
-		for event:Dictionary in state.object_events:
+		for event: Dictionary in state.object_events:
 			if event.type not in ["discard","restore_item"]: continue
-			var item_id:String=str(event.item_ids[0])
-			var specimen:Dictionary=state.items.get(item_id,state.tombstones.get(item_id,{}))
-			if specimen.get("def_id") not in ["f3_receiver_v1","f3_module_a","f3_module_b"]: continue
-			var title:String=("폐기 · " if event.type=="discard" else "정비 · ")+_receipt_items(state,event.item_ids)
-			var cost:Dictionary=event.basis if event.type=="discard" else event.expenses
-			var detail:String=title+"\n"+("원가 손실" if event.type=="discard" else "실제 정비 비용")+" · %s VKC / %s USD"%[str(cost.VKC),str(cost.USD)]
-			var history:Dictionary=session.alpha_item_history(item_id)
-			for offer:Dictionary in history.prior_offers:
-				detail+="\n당시 제안 %d %s"%[offer.amount,offer.currency]
-				for fact:Dictionary in offer.facts:
-					detail+="\n"+_text("b2.inspect."+str(fact.slot))+" · "+_fact_caption(fact.slot,fact.value)
+			if event.item_ids.is_empty(): continue
+			var is_discard: bool = event.type=="discard"
+			var title: String = (_counter_copy("폐기 · ","Discard · ") if is_discard else _counter_copy("정비 · ","Maintenance · "))+_receipt_items(state,event.item_ids)
+			var cost: Dictionary = event.basis if is_discard else event.expenses
+			var vk := str(cost.VKC) if cost.VKC!=null else _counter_copy("미상","Unknown")
+			var usd := str(cost.USD) if cost.USD!=null else _counter_copy("미상","Unknown")
+			var detail: String = title+"\n"+(_counter_copy("원가 손실","Basis loss") if is_discard else _counter_copy("실제 정비 비용","Actual repair expense"))+" · %s VKC / %s USD"%[vk,usd]
+			var totals: Dictionary = discarded_basis if is_discard else maintenance
+			for currency: String in ["VKC","USD"]:
+				if cost[currency]==null: unknown_basis[currency]+=1
+				else: totals[currency]+=int(cost[currency])
+			# Discarded groups carry only their recorded aggregate basis.
+			# Do not attribute that cost to each component or count it as cash.
+			if event.item_ids.size()==1:
+				var history: Dictionary = session.alpha_item_history(str(event.item_ids[0]))
+				for offer: Dictionary in history.get("prior_offers",[]):
+					detail+="\n"+_counter_copy("당시 제안 %d %s","Past offer %d %s")%[offer.amount,offer.currency]
+					for fact: Dictionary in offer.facts:
+						detail+="\n"+_text("b2.inspect."+str(fact.slot))+" · "+_fact_caption(fact.slot,fact.value)
 			trade_rows.push_front({"key":"work_"+str(event.event_id),"caption":title,"detail":detail})
 	for transfer: Dictionary in state.alpha_shop.get("fx",{}).get("settlements",{}).values():
 		var change := "%d %s 지급 · %d %s 수령"%[transfer.give_amount,transfer.give_currency,transfer.receive_amount,transfer.receive_currency]
@@ -1856,9 +1868,13 @@ func _ledger_groups(v: Dictionary,state: Dictionary) -> Dictionary:
 				{"heading":_counter_copy("약정 금액","Agreed amount"),"body":"%d VKC"%offer.price.VKC},
 				{"heading":_counter_copy("약정 기한","Agreed due date"),"body":_counter_copy("%d일차","Day %d")%offer.due_day}]})
 	return {
-		"trades":{"caption":"거래","rows":trade_rows,"render":func(page:VBoxContainer)->void:
-			_board_line(page,"cash_in","거래 유입 · %d VKC / %d USD"%[incoming.VKC,incoming.USD])
-			_board_line(page,"cash_out","거래 유출 · %d VKC / %d USD"%[outgoing.VKC,outgoing.USD])},
+		"trades":{"caption":_counter_copy("거래","Trades"),"rows":trade_rows,"render":func(page:VBoxContainer)->void:
+			_board_line(page,"cash_in",_counter_copy("거래 유입 · %d VKC / %d USD","Trade inflow · %d VKC / %d USD")%[incoming.VKC,incoming.USD])
+			_board_line(page,"cash_out",_counter_copy("거래 유출 · %d VKC / %d USD","Trade outflow · %d VKC / %d USD")%[outgoing.VKC,outgoing.USD])
+			_board_line(page,"maintenance_total",_counter_copy("정비 지출 · %d VKC / %d USD","Maintenance expense · %d VKC / %d USD")%[maintenance.VKC,maintenance.USD])
+			_board_line(page,"discarded_basis",_counter_copy("확인된 폐기 원가 손실 · %d VKC / %d USD","Known discarded stock basis · %d VKC / %d USD")%[discarded_basis.VKC,discarded_basis.USD])
+			if unknown_basis.VKC>0 or unknown_basis.USD>0:
+				_board_line(page,"discarded_unknown",_counter_copy("원가 미상 기록 · VKC %d건 / USD %d건","Unknown basis records · VKC %d / USD %d")%[unknown_basis.VKC,unknown_basis.USD])},
 		"inbound":{"caption":"받은 의뢰","rows":inbound,"render":func(page:VBoxContainer)->void:
 			if v.phase in ["OPEN_IDLE","EVENING_WORK"]: _add_b2_commission_actions(page,v)},
 		"outbound":{"caption":"맡긴 의뢰","rows":outbound},

@@ -188,8 +188,13 @@ func compat() -> void:
 	output.store_string("{damaged")
 	output.close()
 	var recovered_v2 := Play.fresh(Seed.content(109,2))
-	check(Slots.inspect(location,1).status=="valid" and v2_disk.load_session(recovered_v2,Slots.KEY).get("ok",false)
+	var recovered_slot := Slots.inspect(location,1)
+	check(recovered_slot.status=="valid" and v2_disk.load_session(recovered_v2,Slots.KEY).get("ok",false)
 		and recovered_v2.snapshot()==v2.snapshot() and FileAccess.get_file_as_string(conflicting)=="{damaged","valid v2 generation survives corrupted sibling without migration")
+	check(recovered_slot.get("generation")=="b" and recovered_slot.get("recovered")==true
+		and recovered_slot.get("stamp")==int(FileAccess.get_modified_time(v2_home.path_join(Slots.KEY+".b.json")))
+		and recovered_slot.get("revision")==v2.snapshot().revision and recovered_slot.get("day")==v2.snapshot().alpha_shop.day,
+		"slot metadata derives from restored generation, not recently modified corrupt sibling")
 
 func wallet_total(wallets: Dictionary,currency: String) -> int:
 	var total := 0
@@ -305,22 +310,27 @@ func week(seed_value: int,version: int=1) -> void:
 const MIXED_ITEMS := ["HY05","F3R01","BAT02","TL04","EL06","F3S01","R001","R003","WAT02","GE03"]
 const Cycle = preload("res://src/domain/alpha_shop_cycle.gd")
 
-func mixed(seed_value: int) -> void:
-	var source := Seed.content(seed_value)
+func mixed(seed_value: int,version: int=1) -> void:
+	var source := Seed.content(seed_value,version)
 	var s := Play.fresh(source)
 	if not check(s!=null,"mixed integrated source"): return
 	var start: Dictionary = s.snapshot()
-	var report := {"seed":seed_value,"bought":[],"sold":[],"skips":[],"daily":[],"cash_delta":{},"stock_basis_vkc":0}
+	var report := {"seed":seed_value,"planner_version":version,"bought":[],"sold":[],"skips":[],"daily":[],"cash_delta":{},"stock_basis_vkc":0}
 	for day: int in range(1,8):
 		if not check(Play.go(s,"alpha_open"),"mixed open"): return
 		var count := 0
 		var daily: Dictionary = s.alpha_view().attendance.duplicate(true)
+		var planned: Array = s.snapshot().alpha_shop.random_visits.plan.duplicate()
+		var arrived: Array = []
+		var regular := 0
 		while int(s.alpha_view().remaining)>0:
 			if not check(Play.next_customer(s),"mixed customer enters"): return
 			count+=1
 			var view: Dictionary = s.alpha_view()
 			var state: Dictionary = s.snapshot()
 			var visit_id: String = str(view.active.id)
+			arrived.append(visit_id)
+			if view.active.kind=="regular": regular+=1
 			var visit: Dictionary = state.visits.get(visit_id,{})
 			var item_id: String = str(view.appraisal.get("item_id",""))
 			var relevant: bool = item_id in MIXED_ITEMS or not Catalog.visit_item(source.alpha_profile,visit_id).is_empty()
@@ -357,8 +367,12 @@ func mixed(seed_value: int) -> void:
 				if relevant: report.skips.append({"visit":visit_id,"item":item_id,"day":day,"reason":reason})
 				if not check(Play.leave(s),"mixed declined or unrelated visit "+visit_id): return
 		daily["actual"] = count
+		daily["regular_count"] = regular
+		daily["planned_ids"] = planned
+		daily["arrived_ids"] = arrived
+		daily["unarrived_planned_ids"] = planned.filter(func(id:String)->bool:return id not in arrived)
 		report.daily.append(daily)
-		if not check(count<=10 and Play.sequence(s,["alpha_close","alpha_settle","alpha_next_day"]),"mixed closing"): return
+		if not check(count<=planned.size() and count<=10 and Play.sequence(s,["alpha_close","alpha_settle","alpha_next_day"]),"mixed closing"): return
 		if day<7 and not check(Play.go(s,"alpha_prepare_day"),"mixed next preparation"): return
 	var end: Dictionary = s.snapshot()
 	for currency: String in ["VKC","USD"]:
@@ -442,8 +456,8 @@ func _initialize() -> void:
 		"source": sources()
 		"compat": compat()
 		"repair": repair()
-		"mixed":
-			if arguments.size()==2 and arguments[1].is_valid_int(): mixed(int(arguments[1]))
+		"mixed","mixed_v2":
+			if arguments.size()==2 and arguments[1].is_valid_int(): mixed(int(arguments[1]),2 if mode=="mixed_v2" else 1)
 			else: check(false,"mixed requires a campaign seed")
 		"week","week_v2":
 			if arguments.size()==2 and arguments[1].is_valid_int():

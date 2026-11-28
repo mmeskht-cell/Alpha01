@@ -76,7 +76,7 @@ func save_session(session: RefCounted, slot: String) -> Dictionary:
 		return _error("save_final_verify")
 	return {"ok": true, "revision": candidate.revision, "generation": generation}
 
-func load_session(session: RefCounted, slot: String) -> Dictionary:
+func load_session(session: RefCounted, slot: String, include_generation: bool=false) -> Dictionary:
 	if not Rules.identifier(slot):
 		return _error("slot_id")
 	if _migration_active(slot):
@@ -93,7 +93,14 @@ func load_session(session: RefCounted, slot: String) -> Dictionary:
 		return _error("revision_conflict")
 	if not session.restore(latest.state):
 		return _error("restore_rejected")
-	return {"ok": true, "revision": latest.state.revision, "recovered": (a.get("error", "") != "missing" and not a.get("ok", false)) or (b.get("error", "") != "missing" and not b.get("ok", false))}
+	var result := {"ok": true, "revision": latest.state.revision, "recovered": (a.get("error", "") != "missing" and not a.get("ok", false)) or (b.get("error", "") != "missing" and not b.get("ok", false))}
+	# Optional metadata follows the exact same selection as _latest.
+	# Existing callers retain the original return shape.
+	if include_generation:
+		var generation := "a" if a.get("ok",false) and (not b.get("ok",false) or a.state.revision>=b.state.revision) else "b"
+		result["generation"] = generation
+		result["stamp"] = int(FileAccess.get_modified_time(_path(slot,generation)))
+	return result
 
 func _read(slot: String, generation: String, session: RefCounted) -> Dictionary:
 	return _read_path(_path(slot, generation), slot, session)

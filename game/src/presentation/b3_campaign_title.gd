@@ -124,6 +124,9 @@ func _build(page: String) -> void:
 			for i: int in range(Slots.COUNT):
 				var status: String = _slots[i].status
 				var caption := _copy("손상된 저장","Damaged save") if status=="damaged" else _label("occupied" if status=="valid" else "empty")
+				if status=="valid":
+					caption = _copy("완료","Complete") if _slots[i].phase=="COMPLETE" else _copy("%d일차","Day %d")%int(_slots[i].day)
+					if _slots[i].recovered: caption += _copy(" · 복구"," · Recovered")
 				var row := _button("menu_slot_"+str(i+1),"%s %d · %s"%[_label("slot"),i+1,caption],_launch.bind(i,false),status!="valid")
 				if first==null and not row.disabled: first = row
 			var back := _button("menu_slot_back",_label("back"),_build.bind("main"))
@@ -139,10 +142,14 @@ func _build(page: String) -> void:
 			first = _button("menu_new",_label("new"),func()->void: _choose_slot("empty"))
 			_button("menu_continue",_label("continue"),func()->void: _choose_slot("valid"),_slot_with("valid")<0)
 			# Keep damaged slots visible in Load so the player can identify them.
-			_button("menu_load",_label("load"),_build.bind("load"),_slots.all(func(slot: Dictionary)->bool: return slot.status=="empty"))
+			_button("menu_load",_label("load"),_open_load,_slots.all(func(slot: Dictionary)->bool: return slot.status=="empty"))
 			_button("menu_settings",_label("settings"),_build.bind("settings"))
 			_button("menu_quit",_label("quit"),_quit)
 	first.grab_focus()
+
+func _open_load() -> void:
+	_read_slots()
+	_build("load")
 
 func _change_preference(key: String,value: Variant) -> void:
 	var updated := _prefs.duplicate(true)
