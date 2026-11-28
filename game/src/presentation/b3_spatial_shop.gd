@@ -1903,7 +1903,16 @@ func _ledger_groups(v: Dictionary,state: Dictionary) -> Dictionary:
 			else: held_basis[currency]+=int(item.basis[currency])
 	for job: Dictionary in v.services.entries:
 		var title := _text("b2.item."+str(job.def_id))
-		inbound.append({"key":"service_"+str(job.job_id),"caption":_record_alias(state,str(job.actor_id))+" · "+title,"detail":_text("b2.service.receipt")%[title,job.due_day,job.fee.VKC,_text("b2.service.status."+str(job.status))]})
+		var status := _text("b2.service.status."+str(job.status))
+		var sections: Array = [
+			{"heading":_counter_copy("수탁 물품","Customer property"),"body":title+" · "+_record_alias(state,str(job.actor_id))},
+			{"heading":_counter_copy("기한 및 상태","Due date and status"),"body":_counter_copy("%d일차 · %s","Day %d · %s")%[job.due_day,status]},
+			{"heading":_counter_copy("약정 수리 대금","Agreed service fee"),"body":_document_money(job.fee)}
+		]
+		for settlement: Dictionary in state.alpha_shop.get("services",{}).get("settlements",[]):
+			if settlement.job_id!=job.job_id: continue
+			sections.append({"heading":_counter_copy("실제 인도 정산","Actual delivery settlement"),"body":_document_money(settlement.paid)})
+		inbound.append({"key":"service_"+str(job.job_id),"caption":_record_alias(state,str(job.actor_id))+" · "+title+" · "+status,"sections":sections})
 	for request: Dictionary in v.commissions.entries:
 		var caption := _text("b2.commission.status."+str(request.status))
 		inbound.append({"key":"request_"+str(request.request_id),"caption":_record_alias(state,str(request.actor_id))+" · "+caption,"sections":[{"heading":_counter_copy("의뢰 내용","Requested work"),"body":_text(request.text_key)},{"heading":_counter_copy("기한 및 상태","Due date and status"),"body":_counter_copy("%d일차 · %s","Day %d · %s")%[request.due_day,caption]}]})
@@ -1954,6 +1963,25 @@ func _pawn_folio(page: VBoxContainer,v: Dictionary,state: Dictionary) -> void:
 	_board_line(page,"pledge_principal",_counter_copy("최초 지급액 · %d VKC","Principal paid · %d VKC")%WeekPawn.PRINCIPAL.VKC)
 	_board_line(page,"pledge_terms",_counter_copy("약정 상환액 · %d VKC","Agreed repayment · %d VKC")%WeekPawn.REPAYMENT.VKC)
 	_board_line(page,"pledge_due",_counter_copy("약정 기한 · %d일차","Agreed due date · Day %d")%pawn.due)
+	var received := {"VKC":0,"USD":0}
+	var paid := {"VKC":0,"USD":0}
+	for event: Dictionary in pawn.events:
+		if not event.has("amount"): continue
+		var flow: Dictionary = paid if event.payer=="player" else received
+		for currency: String in ["VKC","USD"]: flow[currency]+=int(event.amount[currency])
+	_board_line(page,"pledge_actual_paid",_counter_copy("실제 지급 · ","Actually paid · ")+_document_money(paid))
+	_board_line(page,"pledge_actual_received",_counter_copy("실제 상환 수령 · ","Repayment received · ")+_document_money(received))
+	# Terms and executed cash are distinct. Forfeiture does not create a
+	# second cash payment, and an extension does not count as repayment.
+	for event: Dictionary in pawn.events:
+		var stamp := _counter_copy("%d일차","Day %d")%event.day
+		var caption := ""
+		match str(event.kind):
+			"week_pledge": caption=_counter_copy("담보 인수 · ","Pledge accepted · ")+_document_money(event.amount)
+			"week_redeem": caption=_counter_copy("상환 및 반환 · ","Redeemed and returned · ")+_document_money(event.amount)
+			"extension": caption=_counter_copy("기한 연장","Due date extended")
+			"forfeited": caption=_counter_copy("미상환 귀속 · 추가 현금 변동 없음","Forfeiture · no additional cash movement")
+		if not caption.is_empty(): _board_line(page,"pledge_event_"+str(event.action),stamp+" · "+caption)
 	var pledge_item: Dictionary = state.items.get("WAT02",state.tombstones.get("WAT02",{}))
 	var image := Art.ITEMS.model_texture(str(pledge_item.get("def_id","")),"inspection")
 	if image:

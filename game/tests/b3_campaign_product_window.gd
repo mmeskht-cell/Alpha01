@@ -131,7 +131,104 @@ func menu_route(size: Vector2i,location: String) -> bool:
 	if not await phone_route(size,true): return false
 	var after_phone: Dictionary = host.session.snapshot()
 	if not await to_title() or not await wait_for_shop("menu_continue"): return false
-	return check(host.session.snapshot()==after_phone,"integrated product recovery advance and refund survive cold replay")
+	if not check(host.session.snapshot()==after_phone,"integrated product recovery advance and refund survive cold replay"): return false
+	if not await integrated_pledge_route(size,location+"_pledge",prefs): return false
+	return await integrated_service_route(size,location+"_service",prefs)
+
+## Use the real default source and the first actual D2 plan with the
+## authored watch visit. No synthetic money, item, plan or journal.
+func integrated_pledge_route(size: Vector2i,location: String,prefs: Dictionary) -> bool:
+	var fixture: RefCounted
+	var source: Dictionary = {}
+	for seed_value: int in range(101,125):
+		var candidate: Dictionary = preload("res://src/content/b3_integrated_campaign_seed.gd").content(seed_value)
+		var session := Play.fresh(candidate)
+		if session==null or not Play.go(session,"alpha_open") or not Play.advance(session): return false
+		if "watch_a" not in session.snapshot().alpha_shop.random_visits.plan: continue
+		if not Play.reach(session,"watch_a"): continue
+		fixture=session
+		source=candidate
+		break
+	if not check(fixture!=null and not source.is_empty(),"integrated v1 actual pledge visit exists"): return false
+	var before: Dictionary = fixture.snapshot()
+	if not check(TitlePreferences.write(Slots.preferences_path(location),prefs)
+		and ProductRepo.new(Slots.directory(location,0)).save_session(fixture,Slots.KEY).get("ok",false),"pledge witness is a real source-bound saved visit"): return false
+	if not await to_title(): return false
+	title.set("save_directory_override",location)
+	if not await click_navigation(title,"menu_load") or not await wait_for_shop("menu_slot_1"): return false
+	if not check(host.session.snapshot()==before and host.session.alpha_view().active.id=="watch_a","actual title loads pledge witness"): return false
+	if not await actions([["week_pledge","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]]): return false
+	var pledged: Dictionary = host.session.snapshot()
+	if not check(pledged.items.WAT02.owner_id=="G04" and pledged.items.WAT02.custodian_id=="player"
+		and pledged.items.WAT02.inventory=="pawn_grid" and pledged.wallets.player.VKC==before.wallets.player.VKC-40,"actual product custody and principal"): return false
+	if not await next_morning() or not await next_morning() or not await click("alpha_close","CLOSE_SETTLE"): return false
+	if not await click_navigation(host,"ledger") or not await click_navigation(host,"folio_contracts"): return false
+	var paid := host.find_child("pledge_actual_paid",true,false) as Label
+	var received := host.find_child("pledge_actual_received",true,false) as Label
+	if not check(paid!=null and received!=null and paid.text.contains("40 VKC") and received.text.contains("0 VKC"),"pledge document distinguishes actual cash from agreed amount"): return false
+	var before_redeem: Dictionary = host.session.snapshot()
+	await reveal_action("week_redeem")
+	if not await click("week_redeem","CLOSE_SETTLE"): return false
+	var redeemed: Dictionary = host.session.snapshot()
+	received=host.find_child("pledge_actual_received",true,false) as Label
+	if not check(redeemed.alpha_shop.week_pawn.status=="redeemed" and redeemed.items.WAT02.owner_id=="G04"
+		and redeemed.items.WAT02.custodian_id=="G04" and redeemed.items.WAT02.provenance_id==before.items.WAT02.provenance_id
+		and redeemed.wallets.player.VKC==before_redeem.wallets.player.VKC+45 and redeemed.ledger==before_redeem.ledger
+		and received!=null and received.text.contains("45 VKC"),"actual repayment, same property return and recorded receipt"): return false
+	await capture("campaign_pledge_redeemed_"+str(size.y),size)
+	if not await click_navigation(host,"close_drawer") or not await click("alpha_settle","EVENING_WORK"): return false
+	var final: Dictionary = host.session.snapshot()
+	if not await to_title() or not await wait_for_shop("menu_continue"): return false
+	return check(host.session.snapshot()==final,"pledge history and custody cold-replay through real title")
+
+## Ordinary customer-owned property: real intake, permitted workshop
+## operation, protected return visit, fee and actual receipt.
+func integrated_service_route(size: Vector2i,location: String,prefs: Dictionary) -> bool:
+	var fixture: RefCounted
+	for seed_value: int in range(101,125):
+		var source: Dictionary = preload("res://src/content/b3_integrated_campaign_seed.gd").content(seed_value)
+		var session := Play.fresh(source)
+		if session==null or not Play.go(session,"alpha_open"): return false
+		if "visit_g02_buy" not in session.snapshot().alpha_shop.random_visits.plan: continue
+		if not Play.reach(session,"visit_g02_buy"): continue
+		var view: Dictionary = session.alpha_view()
+		if not view.services.entries.any(func(job:Dictionary)->bool:return job.job_id=="service_w001" and job.can_accept): continue
+		fixture=session
+		break
+	if not check(fixture!=null,"integrated v1 actual service intake exists"): return false
+	var before: Dictionary = fixture.snapshot()
+	if not check(TitlePreferences.write(Slots.preferences_path(location),prefs)
+		and ProductRepo.new(Slots.directory(location,0)).save_session(fixture,Slots.KEY).get("ok",false),"source-bound service visit saved"): return false
+	if not await to_title(): return false
+	title.set("save_directory_override",location)
+	if not await click_navigation(title,"menu_load") or not await wait_for_shop("menu_slot_1"): return false
+	if not check(host.session.snapshot()==before,"actual product service witness loads"): return false
+	if not await click_navigation(host,"visitor_papers") or not await click("b2_service_accept","CUSTOMER_ACTIVE"): return false
+	var accepted: Dictionary = host.session.snapshot()
+	if not check(accepted.items.W001.owner_id=="G02" and accepted.items.W001.custodian_id=="player"
+		and accepted.items.W001.inventory=="service_grid" and accepted.wallets==before.wallets and accepted.ledger==before.ledger,"intake changes custody without charge or ownership"): return false
+	if not await actions([["alpha_finish_customer","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"],["alpha_close","CLOSE_SETTLE"],["alpha_settle","EVENING_WORK"]]): return false
+	if not await work_service(size): return false
+	var repaired: Dictionary = host.session.snapshot()
+	if not check(repaired.items.W001.functional and repaired.items.W001.owner_id=="G02" and repaired.items.W001.custodian_id=="player","permitted repair of same customer property"): return false
+	if not await actions([["alpha_next_day","NEXT_DAY"],["alpha_prepare_day","DAY_PREP"],["alpha_open","OPEN_IDLE"]]): return false
+	if not await serve_until("alpha_service_g02_return_d2"): return false
+	var before_return: Dictionary = host.session.snapshot()
+	if not await click_navigation(host,"visitor_papers") or not await click("b2_service_deliver","CUSTOMER_ACTIVE"): return false
+	var delivered: Dictionary = host.session.snapshot()
+	if not check(delivered.items.W001.owner_id=="G02" and delivered.items.W001.custodian_id=="G02"
+		and delivered.items.W001.provenance_id==before.items.W001.provenance_id
+		and delivered.wallets.player.VKC==before_return.wallets.player.VKC+30
+		and delivered.wallets.G02.VKC==before_return.wallets.G02.VKC-30
+		and delivered.ledger==before_return.ledger,"actual paid return transfers only the contracted fee and custody"): return false
+	if not await actions([["alpha_finish_customer","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]]): return false
+	var final: Dictionary = host.session.snapshot()
+	if not await click_navigation(host,"ledger") or not await click_navigation(host,"folio_inbound") or not await click_navigation(host,"service_service_w001"): return false
+	var paid := host.find_child("section_body_3",true,false) as Label
+	if not check(paid!=null and paid.text.contains("30 VKC") and host.session.snapshot()==final,"receipt shows actual settled service fee without mutation"): return false
+	await capture("campaign_service_delivered_"+str(size.y),size)
+	if not await click_navigation(host,"close_drawer") or not await to_title() or not await wait_for_shop("menu_continue"): return false
+	return check(host.session.snapshot()==final,"integrated service settlement cold-replays exactly")
 
 func settle_quote() -> bool:
 	return await click_navigation(host,"use_counter_quote") and await actions([["offer","CUSTOMER_ACTIVE"],["settle_trade","CUSTOMER_EXIT"],["alpha_ack_exit","OPEN_IDLE"]])
