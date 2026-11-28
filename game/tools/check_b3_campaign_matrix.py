@@ -48,3 +48,28 @@ summary = {"weeks": reports, "coverage": {phase: sorted(items) for phase, items 
 if any(missing.values()):
     sys.exit(f"Actual visit/trade coverage incomplete: {missing}")
 print(f"Full integrated catalog turnover across {len(reports)} real first weeks.")
+# Three bounded comparison weeks, never weaken original coverage or acceptance.
+mixed = []
+for seed in range(args.first_seed, args.first_seed + 3):
+    command = [engine, "--headless", "--path", str(root), "--script",
+               "res://tests/b3_campaign_catalog_test.gd", "--", "mixed", str(seed)]
+    log = args.out / f"mixed-{seed}.log"
+    with log.open("w", encoding="utf-8") as output:
+        completed = subprocess.run(command, env=env, stdout=output, stderr=subprocess.STDOUT, timeout=180)
+    contents = log.read_text(encoding="utf-8", errors="replace")
+    witness = re.search(r"^B3_MIXED_WEEK_JSON (.+)$", contents, re.M)
+    passed = re.search(r"^B3_CAMPAIGN_CATALOG: [1-9][0-9]* checks, 0 failures", contents, re.M)
+    if completed.returncode or not witness or not passed or fatal.search(contents):
+        sys.exit(f"Invalid or failed mixed witness for seed {seed}: {log}")
+    row = json.loads(witness[1])
+    if row["seed"] != seed or len(row["daily"]) != 7:
+        sys.exit(f"Incomplete mixed week: {log}")
+    mixed.append(row)
+legacy = {"HY05", "F3R01", "BAT02", "TL04", "EL06", "F3S01", "R001", "R003", "WAT02", "GE03"}
+mixed_coverage = {side: sorted({entry["item"] for row in mixed for entry in row[side]} & legacy)
+                  for side in ("bought", "sold")}
+(args.out / "mixed-coverage.json").write_text(
+    json.dumps({"weeks": mixed, "legacy_witnessed": mixed_coverage,
+                "legacy_not_witnessed": {side: sorted(legacy - set(ids)) for side, ids in mixed_coverage.items()}},
+               indent=2) + "\n", encoding="utf-8")
+print(f"Mixed ordinary-trade diagnostic: {len(mixed)} actual weeks; legacy witnessed {mixed_coverage}")

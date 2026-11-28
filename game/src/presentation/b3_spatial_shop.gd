@@ -4,7 +4,7 @@ const CounterView = preload("res://src/presentation/b3_counter_view.gd")
 const PaperProp = preload("res://src/presentation/b3_paper_prop.gd")
 const COUNTER_WOOD := "res://assets/art/shop_r2_candidate/counter.png"
 const OVERHEAD_ITEM := Rect2(306,194,479,377)
-const OVERHEAD_LENS := Rect2(44,107,238,238)
+const OVERHEAD_LENS := Rect2(44,107,238,212)
 const OVERHEAD_TOOLS := [Rect2(35,446,255,58),Rect2(35,509,255,58),Rect2(35,572,255,58)]
 const COUNTER_PRICE := Rect2(789,546,453,162)
 const FRONT_NEWS := Rect2(280,429,127,78)
@@ -1277,11 +1277,14 @@ func _appraisal_surface(a: Dictionary) -> void:
 		caption = _counter_copy("관찰한 표면을 다시 볼 수 있습니다.","Reopen an observed surface.")
 	elif available.is_empty() and not a.tools.any(func(tool:Dictionary)->bool: return tool.id in SurfaceVisuals.SLOTS):
 		caption = _counter_copy("확대 관찰 자료 없음","No surface sample available")
-	var caption_rect := Rect2(35,347,256,54) if image else Rect2(62,184,202,89)
+	var caption_rect := Rect2(35,322,256,76) if image else Rect2(45,174,236,104)
 	var text := words(caption,caption_rect.position.x,caption_rect.position.y,caption_rect.size.x,caption_rect.size.y,15)
 	text.name = "surface_caption"
 	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	text.max_lines_visible = 3 if not image else 2
+	text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text.max_lines_visible = -1
+	# Keep the label at its allotted height after font and wrap measurement.
+	text.size = caption_rect.size
 
 	if lens_open or not available.is_empty():
 		var toggle := _desk_action("lens",_counter_copy("표본 접기","Fold") if lens_open else _counter_copy("표본 보기","Show"),Rect2(36,402,119,44),func()->void:
@@ -1289,10 +1292,14 @@ func _appraisal_surface(a: Dictionary) -> void:
 			refresh()
 			_slide(motion_subjects.get("sample"),Vector2(0,5),0.14))
 		toggle.flat = true
+		toggle.autowrap_mode = TextServer.AUTOWRAP_OFF
+		toggle.size = Vector2(119,44)
 		toggle.tooltip_text = _counter_copy("표본 접기","Fold surface plate") if lens_open else _counter_copy("표본 보기","Show surface plate")
 	if not chosen_tool.is_empty():
 		var release := _desk_action("close_mat",_counter_copy("도구 놓기","Release"),Rect2(157,402,133,44),_release_appraisal_tool)
 		release.flat = true
+		release.autowrap_mode = TextServer.AUTOWRAP_OFF
+		release.size = Vector2(133,44)
 		release.tooltip_text = _counter_copy("도구 놓기","Release selected tool")
 
 func _release_appraisal_tool() -> void:

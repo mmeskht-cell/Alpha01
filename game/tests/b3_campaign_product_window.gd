@@ -94,6 +94,9 @@ func appraise_model(target: String,row: Dictionary,model: Texture2D,size: Vector
 		var caption := host.find_child("surface_caption",true,false) as Label
 		var fold := host.find_child("lens",true,false) as Button
 		var release := host.find_child("close_mat",true,false) as Button
+		await capture("campaign_surface_geometry_"+target+"_"+str(size.y),size)
+		if caption!=null and fold!=null and release!=null:
+			print("B3_SURFACE_GEOMETRY ",JSON.stringify({"target":target,"caption":str(caption.get_global_rect()),"lines":caption.get_line_count(),"visible_lines":caption.get_visible_line_count(),"fold":str(fold.get_global_rect()),"release":str(release.get_global_rect()),"fold_min":str(fold.get_combined_minimum_size()),"release_min":str(release.get_combined_minimum_size())}))
 		if not check(caption!=null and fold!=null and release!=null and caption.is_visible_in_tree() and fold.is_visible_in_tree() and release.is_visible_in_tree()
 			and caption.get_visible_line_count()==caption.get_line_count()
 			and caption.get_global_rect().end.y<=minf(fold.get_global_rect().position.y,release.get_global_rect().position.y)

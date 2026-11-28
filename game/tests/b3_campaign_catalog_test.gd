@@ -188,14 +188,20 @@ func week(seed_value: int) -> void:
 	var s := Play.fresh(source)
 	if not check(s!=null,"integrated campaign initializes %d"%seed_value): return
 	var start: Dictionary = s.snapshot()
-	var report := {"seed":seed_value,"visible":[],"offers":[],"bought":[],"sold":[],"refusals":[],"daily":[],"profit":0}
+	var report := {"seed":seed_value,"visible":[],"offers":[],"bought":[],"sold":[],"refusals":[],"daily":[],"attendance":[],"profit":0}
 	for day: int in range(1,8):
 		if not check(Play.go(s,"alpha_open"),"real day opens %d"%day): return
 		var seen := 0
+		var opening: Dictionary = s.snapshot()
+		var opened: Dictionary = s.alpha_view().attendance.duplicate(true)
+		var arrived: Array = []
+		var nonstory := 0
 		while int(s.alpha_view().remaining)>0:
 			if not check(Play.next_customer(s),"real customer enters"): return
 			seen+=1
 			var view: Dictionary = s.alpha_view()
+			arrived.append(str(view.active.id))
+			if str(view.active.kind)!="story": nonstory+=1
 			var id := Catalog.visit_item(source.alpha_profile,str(view.active.id))
 			if id.is_empty():
 				if not check(Play.leave(s),"inherited customer can be served or declined"): return
@@ -206,7 +212,13 @@ func week(seed_value: int) -> void:
 					report.offers.append(id)
 				if not check(visit_trade(s,id,report),"real trade route "+id): return
 		report.daily.append(seen)
-		if not check(seen<=10 and Play.sequence(s,["alpha_close","alpha_settle","alpha_next_day"]),"bounded attendance and closing %d"%day): return
+		var planned: Array = opening.alpha_shop.random_visits.plan.duplicate()
+		var not_planned: Array = []
+		for candidate: Dictionary in source.alpha_profile.days[day-1]:
+			if candidate.id not in planned: not_planned.append(candidate.id)
+		var not_arrived: Array = planned.filter(func(id: String)->bool: return id not in arrived)
+		report.attendance.append({"day":day,"opening":opened,"planned_ids":planned,"arrived_ids":arrived,"unplanned_ids":not_planned,"unarrived_planned_ids":not_arrived,"nonstory_kind_count":nonstory,"cash_open":opening.wallets.player.duplicate(),"cash_close":s.snapshot().wallets.player.duplicate(),"displayed_open":opening.alpha_shop.displayed.duplicate(),"displayed_close":s.snapshot().alpha_shop.displayed.duplicate()})
+		if not check(arrived.size()==seen and seen<=planned.size() and seen<=10 and Play.sequence(s,["alpha_close","alpha_settle","alpha_next_day"]),"bounded attendance and closing %d"%day): return
 		if day<7 and not check(Play.go(s,"alpha_prepare_day"),"prepare following day"): return
 	var end: Dictionary = s.snapshot()
 	report.profit = int(end.wallets.player.VKC)-int(start.wallets.player.VKC)
@@ -220,6 +232,76 @@ func week(seed_value: int) -> void:
 	var replay := Play.fresh(source)
 	check(disk.save_session(s,Slots.KEY).get("ok",false) and disk.load_session(replay,Slots.KEY).get("ok",false) and replay.snapshot()==end,"seven-day save and cold exact replay")
 	print("B3_CATALOG_WEEK_JSON ",JSON.stringify(report))
+
+# Supplement, not a replacement for the 24-model matrix. Exercise a real
+# ordinary-trade strategy including old and new inventory, retaining limits.
+const MIXED_ITEMS := ["HY05","F3R01","BAT02","TL04","EL06","F3S01","R001","R003","WAT02","GE03"]
+const Cycle = preload("res://src/domain/alpha_shop_cycle.gd")
+
+func mixed(seed_value: int) -> void:
+	var source := Seed.content(seed_value)
+	var s := Play.fresh(source)
+	if not check(s!=null,"mixed integrated source"): return
+	var start: Dictionary = s.snapshot()
+	var report := {"seed":seed_value,"bought":[],"sold":[],"skips":[],"daily":[],"cash_delta":{},"stock_basis_vkc":0}
+	for day: int in range(1,8):
+		if not check(Play.go(s,"alpha_open"),"mixed open"): return
+		var count := 0
+		var daily: Dictionary = s.alpha_view().attendance.duplicate(true)
+		while int(s.alpha_view().remaining)>0:
+			if not check(Play.next_customer(s),"mixed customer enters"): return
+			count+=1
+			var view: Dictionary = s.alpha_view()
+			var state: Dictionary = s.snapshot()
+			var visit_id: String = str(view.active.id)
+			var visit: Dictionary = state.visits.get(visit_id,{})
+			var item_id: String = str(view.appraisal.get("item_id",""))
+			var relevant: bool = item_id in MIXED_ITEMS or not Catalog.visit_item(source.alpha_profile,visit_id).is_empty()
+			var reason := "nonordinary_or_unselected"
+			var completed := false
+			if relevant and visit.get("scope",{}).get("kind")=="ordinary" and visit.get("prices",{}).has(item_id):
+				var price: Dictionary = visit.prices[item_id]
+				var currency := "VKC" if int(price.VKC)>0 and int(price.USD)==0 else ("USD" if int(price.USD)>0 and int(price.VKC)==0 else "")
+				var dest: String = "player_stock" if visit.buyer=="player" else str(visit.buyer)+"_grid"
+				var fit: Dictionary = s.spatial_fit(item_id,dest)
+				reason = "currency_or_space"
+				if not currency.is_empty() and fit.get("ok",false):
+					var amount := int(price[currency])
+					var trade := {"visit_id":visit_id,"item_id":item_id,"seller":visit.seller,"buyer":visit.buyer,"currency":currency,"amount":amount,"inventory":dest,"x":fit.x,"y":fit.y,"rotated":fit.rotated}
+					reason = Cycle.trade_gate(state,trade)
+					if reason.is_empty():
+						if int(state.wallets[visit.buyer][currency])<amount:
+							reason = "buyer_cash"
+						elif visit.buyer=="player" and not s.spatial_fit(item_id,"storefront_grid").get("ok",false):
+							reason = "shelf_capacity"
+						else:
+							if not check(Play.go(s,"alpha_price_offer",{"amount":amount}),"mixed ordinary quote "+visit_id): return
+							if s.alpha_view().appraisal.accepted.is_empty():
+								reason = "offer_declined"
+							else:
+								if not check(Play.go(s,"alpha_trade",trade),"mixed actual settlement "+visit_id): return
+								var paid: Dictionary = s.snapshot()
+								if not check(paid.items[item_id].owner_id==visit.buyer and paid.items[item_id].provenance_id==state.items[item_id].provenance_id and paid.ledger.size()==state.ledger.size()+1,"mixed ledger and same identity "+item_id): return
+								if not check(Play.go(s,"alpha_ack_exit"),"mixed exit"): return
+								completed = true
+								report["bought" if visit.buyer=="player" else "sold"].append({"item":item_id,"visit":visit_id,"day":day,"currency":currency,"amount":amount})
+								if visit.buyer=="player" and not check(Play.display(s,item_id),"mixed real shelf "+item_id): return
+			if not completed:
+				if relevant: report.skips.append({"visit":visit_id,"item":item_id,"day":day,"reason":reason})
+				if not check(Play.leave(s),"mixed declined or unrelated visit "+visit_id): return
+		daily["actual"] = count
+		report.daily.append(daily)
+		if not check(count<=10 and Play.sequence(s,["alpha_close","alpha_settle","alpha_next_day"]),"mixed closing"): return
+		if day<7 and not check(Play.go(s,"alpha_prepare_day"),"mixed next preparation"): return
+	var end: Dictionary = s.snapshot()
+	for currency: String in ["VKC","USD"]:
+		report.cash_delta[currency] = int(end.wallets.player[currency])-int(start.wallets.player[currency])
+		check(wallet_total(end.wallets,currency)==wallet_total(start.wallets,currency),"mixed finite currency "+currency)
+	for item: Dictionary in end.items.values():
+		if item.owner_id=="player" and item.custodian_id=="player" and item.status=="stock":
+			report.stock_basis_vkc+=int(item.basis.VKC)
+	check(end.alpha_shop.phase=="COMPLETE" and end.ledger.size()==report.bought.size()+report.sold.size(),"mixed actual week ledger")
+	print("B3_MIXED_WEEK_JSON ",JSON.stringify(report))
 
 func repair() -> void:
 	var target := "CS20"
@@ -285,6 +367,9 @@ func _initialize() -> void:
 		"source": sources()
 		"compat": compat()
 		"repair": repair()
+		"mixed":
+			if arguments.size()==2 and arguments[1].is_valid_int(): mixed(int(arguments[1]))
+			else: check(false,"mixed requires a campaign seed")
 		"week":
 			if arguments.size()==2 and arguments[1].is_valid_int():
 				week(int(arguments[1]))
