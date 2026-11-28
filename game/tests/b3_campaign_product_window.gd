@@ -206,7 +206,10 @@ func maintenance_ledger_route(size: Vector2i,location: String) -> bool:
 	var cost: Dictionary = fixture.alpha_stock_restore_cost("CS20")
 	if not check(cost.VKC==5 and Play.go(fixture,"spatial_restore_item",{"actor":"player","item_id":"CS20"}),"ledger fixture pays for catalog repair"): return false
 	var repaired: Dictionary = fixture.snapshot()
-	if not check(Play.go(fixture,"spatial_discard",{"actor":"player","item_id":"CS20","confirmed_ids":["CS20"]}),"ledger fixture disposes same physical hardware"): return false
+	var disposal: Dictionary = fixture.alpha_discard_preview("CS20")
+	if not check(not disposal.is_empty() and disposal.payload.confirmed_ids==["CS20"]
+		and fixture.snapshot()==repaired,"ledger fixture uses real read-only family preview"): return false
+	if not check(Play.go(fixture,"spatial_discard",disposal.payload),"ledger fixture disposes same physical hardware"): return false
 	var final: Dictionary = fixture.snapshot()
 	var repair_event: Dictionary = repaired.object_events.back()
 	var discard_event: Dictionary = final.object_events.back()

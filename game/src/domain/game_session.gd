@@ -50,6 +50,7 @@ const Negotiation = preload("res://src/domain/gate1_negotiation.gd")
 const WeekPawn = preload("res://src/domain/alpha_b3_week_pawn.gd")
 const AlphaShop = preload("res://src/domain/alpha_shop_cycle.gd")
 const AlphaCards = preload("res://src/domain/alpha_card_trade.gd")
+const IntegratedCatalog = preload("res://src/domain/b3_integrated_catalog.gd")
 const AlphaCommission = preload("res://src/domain/alpha_commission.gd")
 const AlphaServiceCustody = preload("res://src/domain/alpha_service_custody.gd")
 const COMMAND_TYPES: Array = ["merchant_pawn_accept", "merchant_pawn_redeem", "merchant_pawn_extend", "merchant_order_accept", "merchant_order_deliver", "merchant_order_cancel", "calendar_exchange", "clean_exterior", "replace_component", "trade", "deliver", "move", "advance_time", "detach", "attach", "discard", "restore_item", "observe", "accept_rad1_contract", "next_visit", "inspect_radio", "record_hypothesis", "deck_action", "make_offer", "confirm_purchase", "decline_visit", "record_component_hypothesis", "request_open_inspection", "close_inspection", "decline_component_visit", "finish_component_visit", "begin_day_one", "day_one_next", "day_one_decline", "day_one_accept_service", "day_one_cancel_service", "day_one_close", "day_one_next_morning", "day_one_deliver_service", "day_one_pay_overhead", "open_component_sale", "day_one_composite_offer", "day_one_composite_request", "day_one_composite_close", "day_one_composite_decline", "world_sleep_family", "world_wake_family", "world_spawn_stock", "world_open_visit", "world_track_promote", "world_track_reference", "world_track_suspend", "calendar_close", "calendar_morning", "calendar_pay_overhead", "rad_reserve", "rad_decline", "rad_extend", "rad_pay", "rad_use", "rad_auto", "calendar_next_visit", "calendar_decline_visit", "calendar_accept_service", "calendar_deliver_service", "calendar_return_unpaid", "calendar_accept_contract", "calendar_decline_contract", "calendar_extend_contract", "calendar_pay_contract", "inspect_subject", "assess_subject", "link_subject_evidence", "subject_deck_action", "subject_price_offer"]
@@ -319,8 +320,12 @@ func _apply_alpha(state: Dictionary, command: Dictionary) -> String:
 		var error: String = "spatial_work"
 		match command.type:
 			"spatial_discard":
-				# Existing disposition authority, restricted to the isolated F3 stock.
-				if a.profile.has("f3_composite_trial") and state.items[root].def_id in ["f3_receiver_v1","f3_module_a","f3_module_b"]:
+				# Preserve the original F3 path. The integrated campaign also
+				# supports its real source-bound ordinary stock, under the same
+				# evening, ownership, custody, protection and family checks.
+				var legacy_f3: bool = a.profile.has("f3_composite_trial") and state.items[root].def_id in ["f3_receiver_v1","f3_module_a","f3_module_b"]
+				var catalog_stock: bool = not IntegratedCatalog.specimen(a.profile,root,state.items[root]).is_empty()
+				if legacy_f3 or catalog_stock:
 					error = _discard(state,work,command.action_id)
 			"spatial_restore_item":
 				error = _restore_item(state,work,command.action_id)

@@ -426,7 +426,8 @@ static func prior_disclosures(state: Dictionary,item_id: String,current_visit: S
 	# chronological sequence of historical proposals for these profiles.
 	var composite: bool = F3Trial.enabled(state.alpha_shop.profile) and item_id==F3Trial.ROOT
 	var item: Dictionary = state.items.get(item_id,{})
-	var catalog: bool = not item.is_empty() and not IntegratedCatalog.specimen(state.alpha_shop.profile,item_id,item).is_empty()
+	var article: Dictionary = item if not item.is_empty() else state.get("tombstones",{}).get(item_id,{})
+	var catalog: bool = not article.is_empty() and not IntegratedCatalog.specimen(state.alpha_shop.profile,item_id,article).is_empty()
 	var ordered: bool = composite or catalog
 	var visits: Dictionary = state.get("alpha_shop",{}).get("appraisal",{}).get("visits",{})
 	for visit_id: String in visits:
@@ -439,7 +440,7 @@ static func prior_disclosures(state: Dictionary,item_id: String,current_visit: S
 				if composite:
 					fact["current"]=F3Trial.observation_current(state,item_id,observation)
 				elif catalog:
-					fact["current"]=_catalog_observation_current(item,observation)
+					fact["current"]=not item.is_empty() and _catalog_observation_current(item,observation)
 				facts.append(fact)
 			var record:Dictionary={"amount":offer.amount,"currency":offer.currency,"response":offer.response,"facts":facts,"assessment":offer.get("private_assessment",{}).duplicate(),"observed_slots":offer.get("observed_slots",[]).duplicate()}
 			if ordered:

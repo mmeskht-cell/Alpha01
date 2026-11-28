@@ -391,6 +391,11 @@ func repair() -> void:
 	var s := Play.fresh(route.source)
 	if not check(s!=null and s.restore(route.buy),"exact replay to faulty specimen"): return
 	var trade := Play.transfer(s,target)
+	var forbidden := {"actor":"player","item_id":target,"confirmed_ids":[target]}
+	var customer_state: Dictionary = s.snapshot()
+	if not check(s.alpha_discard_preview(target).is_empty()
+		and not s.execute(Play.command(s,"spatial_discard",forbidden)).get("ok",false)
+		and s.snapshot()==customer_state,"customer-owned article cannot be disposed at counter"): return
 	if not check(not trade.is_empty() and Play.go(s,"alpha_inspect",{"slot":"function_detail"})
 		and Play.go(s,"alpha_card_toggle",{"slot":"function_detail","selected":true}),"explicitly test and disclose the failed function"): return
 	var discount := clampi(roundi(int(trade.amount)*0.10),1,3)
@@ -409,6 +414,41 @@ func repair() -> void:
 		and after.wallets.player.VKC==before.wallets.player.VKC-cost.VKC
 		and after.ledger==before.ledger and after.object_events.back().expenses==cost,"paid repair updates same article, basis and work record")
 	if not check(not s.execute(Play.command(s,"spatial_restore_item",request)).get("ok",false) and s.snapshot()==after,"repair cannot be collected twice"): return
+	# Independent genuine branch: disposal of ordinary owned catalog stock.
+	# The original repair/resale path below remains intact.
+	var disposal := Play.fresh(route.source)
+	if not check(disposal!=null and disposal.restore(after),"disposal branch replays real paid repair"): return
+	var preview: Dictionary = disposal.alpha_discard_preview(target)
+	if not check(not preview.is_empty() and preview.payload.confirmed_ids==[target]
+		and preview.basis==after.items[target].basis and disposal.snapshot()==after,"owned catalog root has read-only evening disposal quote"): return
+	var wrong: Dictionary = preview.payload.duplicate(true)
+	wrong.confirmed_ids=[]
+	if not check(not disposal.execute(Play.command(disposal,"spatial_discard",wrong)).get("ok",false)
+		and disposal.snapshot()==after,"incorrect family confirmation cannot dispose"): return
+	if not check(Play.go(disposal,"spatial_discard",preview.payload),"authorized catalog disposal"): return
+	var discarded: Dictionary = disposal.snapshot()
+	if not check(not discarded.items.has(target) and discarded.tombstones.has(target)
+		and discarded.tombstones[target].provenance_id==after.items[target].provenance_id
+		and discarded.object_events.back().basis==after.items[target].basis
+		and discarded.object_events.back().expenses=={"VKC":0,"USD":0}
+		and discarded.wallets==after.wallets and discarded.ledger==after.ledger,"terminal same identity and basis; no invented cash flow"): return
+	if not check(disposal.alpha_discard_preview(target).is_empty()
+		and not disposal.execute(Play.command(disposal,"spatial_discard",preview.payload)).get("ok",false)
+		and disposal.snapshot()==discarded,"cannot dispose twice"): return
+	var disposed_history: Dictionary = disposal.alpha_item_history(target)
+	if not check(disposed_history.work_records.any(func(row:Dictionary)->bool:return row.kind=="discard" and row.loss==preview.basis)
+		and disposed_history.prior_offers.size()==1
+		and disposed_history.prior_offers[0].facts.all(func(fact:Dictionary)->bool:return fact.get("current",true)==false),"terminal history retains offers as past facts only"): return
+	var disposal_disk := Repo.new("user://zt_rebuild/catalog_disposal_%d"%Time.get_ticks_usec())
+	var disposal_cold := Play.fresh(route.source)
+	if not check(disposal_disk.save_session(disposal,Slots.KEY).get("ok",false)
+		and disposal_disk.load_session(disposal_cold,Slots.KEY).get("ok",false)
+		and disposal_cold.snapshot()==discarded and disposal_cold.alpha_item_history(target)==disposed_history,"terminal history survives cold replay"): return
+	if not check(Play.sequence(disposal,["alpha_next_day","alpha_prepare_day","alpha_open"]),"open after disposal"): return
+	for day: int in range(int(after.alpha_shop.day)+1,int(route.sale_day)):
+		if not check(Play.advance(disposal),"advance to disposed item buyer day"): return
+	if not check(Catalog.visit_id(target,false) not in disposal.snapshot().alpha_shop.random_visits.plan
+		and not disposal.snapshot().items.has(target),"disposed item cannot reappear in subsequent sale plan"): return
 	# A repair changes the authoritative function, not the historic disclosure.
 	# Reappraise at the actual later customer visit, never reuse a prior card as current.
 	var purchase_id := Catalog.visit_id(target,true)
