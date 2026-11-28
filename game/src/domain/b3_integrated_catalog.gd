@@ -80,11 +80,30 @@ static func origin(item_id: String) -> String:
 static func visit_id(item_id: String, purchase: bool) -> String:
 	return "catalog_"+item_id+("_buy" if purchase else "_sale")
 
+static func retry_id(item_id: String) -> String:
+	return "catalog_"+item_id+"_retry_sale"
+
+static func _retry_key(id: String) -> bool:
+	return id.begins_with("catalog_") and id.ends_with("_retry_sale")
+
 static func visit_item(profile: Dictionary,id: String) -> String:
 	if not enabled(profile) or not id.begins_with("catalog_") or not _load():
 		return ""
+	if _retry_key(id):
+		var retry_item := id.trim_prefix("catalog_").trim_suffix("_retry_sale")
+		return retry_item if profile.get("visit_plan_policy")==3 and _models.has(retry_item) and id==retry_id(retry_item) else ""
 	var item_id := id.trim_prefix("catalog_").trim_suffix("_buy" if id.ends_with("_buy") else "_sale")
 	return item_id if _models.has(item_id) and id in [visit_id(item_id,true),visit_id(item_id,false)] else ""
+
+## A second offer cannot revive an already completed primary sale,
+## even if a later system permits the same article to be reacquired.
+static func retry_open(state: Dictionary,id: String) -> bool:
+	if not _retry_key(id): return true
+	var profile: Dictionary = state.alpha_shop.profile
+	var item_id := visit_item(profile,id)
+	if item_id.is_empty() or not state.visits.has(id): return false
+	var primary: Dictionary = state.visits.get(visit_id(item_id,false),{})
+	return not primary.is_empty() and not primary.scope.completed and not state.visits[id].scope.completed
 
 static func market_key(profile: Dictionary,item_id: String) -> String:
 	if not enabled(profile) or not _load() or not _models.has(item_id):
@@ -131,8 +150,8 @@ static func _days(profile: Dictionary,first: int,last: int) -> Array:
 		return left<right if left!=right else a<b)
 	return days
 
-static func _add_visit(state: Dictionary,profile: Dictionary,row: Dictionary,day: int,actor: String,purchase: bool) -> void:
-	var id := visit_id(row.id,purchase)
+static func _add_visit(state: Dictionary,profile: Dictionary,row: Dictionary,day: int,actor: String,purchase: bool,retry: bool=false) -> void:
+	var id := retry_id(row.id) if retry else visit_id(row.id,purchase)
 	state.visits[id] = {
 		"scope":{"visit_id":id,"kind":"ordinary","purpose":"purchase" if purchase else "sale","completed":false,"required_ids":[]},
 		"seller":actor if purchase else "player","buyer":"player" if purchase else actor,
@@ -187,6 +206,51 @@ static func extend(source: Dictionary) -> Dictionary:
 			return {}
 	return source
 
+## v3 trial: a later opportunity for the same buyer and physical article.
+## Never reserve a second purchase price for the same item: there is only
+## one transferable article. Actual door eligibility still checks stock,
+## display, ownership, prior settlements and current buyer cash.
+static func _retry_schedule(state: Dictionary,profile: Dictionary) -> Dictionary:
+	var scratch := {"days":[]}
+	for day: Variant in profile.days:
+		if not day is Array: return {}
+		var original: Array = []
+		for slot: Variant in day:
+			if not slot is Dictionary or not slot.get("id") is String or not slot.get("actor_id") is String:
+				return {}
+			if not _retry_key(slot.id): original.append(slot.duplicate(true))
+		scratch.days.append(original)
+	var extra := {"visits":{}}
+	var occupied_days: Dictionary = {}
+	var candidates: Array = selected(int(profile.visit_random.seed))
+	candidates.sort_custom(func(a: Dictionary,b: Dictionary)->bool:
+		var left: int = int(state.visits[visit_id(a.id,false)].opens)
+		var right: int = int(state.visits[visit_id(b.id,false)].opens)
+		return left<right if left!=right else str(a.id)<str(b.id))
+	for row: Dictionary in candidates:
+		var primary: Dictionary = state.visits[visit_id(row.id,false)]
+		var first := int(primary.opens/1440)+2
+		# At most one extra candidate per day, and never replace a row.
+		for day: int in range(first,8):
+			if occupied_days.has(day) or not _free(scratch,day,str(primary.buyer)): continue
+			_add_visit(extra,scratch,row,day,str(primary.buyer),false,true)
+			occupied_days[day]=true
+			break
+	return {"days":scratch.days,"visits":extra.visits}
+
+static func add_retry_opportunities(source: Dictionary) -> Dictionary:
+	if source.is_empty() or not seed_valid(source.state,source.alpha_profile) or source.alpha_profile.has("visit_plan_policy"):
+		return {}
+	var next := source.duplicate(true)
+	var schedule := _retry_schedule(next.state,next.alpha_profile)
+	if schedule.is_empty(): return {}
+	for id: String in schedule.visits:
+		if next.state.visits.has(id): return {}
+		next.state.visits[id]=schedule.visits[id]
+	next.alpha_profile.days=schedule.days
+	next.alpha_profile["visit_plan_policy"]=3
+	return next if seed_valid(next.state,next.alpha_profile) else {}
+
 static func seed_valid(state: Dictionary,profile: Dictionary) -> bool:
 	if not enabled(profile) or profile.has("civilian_supply") or profile.get("f3_composite_trial")!=1 or not profile.get("visit_random") is Dictionary or not profile.get("days") is Array or profile.days.size()!=7 or not _load():
 		return false
@@ -226,4 +290,17 @@ static func seed_valid(state: Dictionary,profile: Dictionary) -> bool:
 	for id: String in _models:
 		if not active.has(id) and (state.items.has(id) or state.visits.has(visit_id(id,true)) or state.visits.has(visit_id(id,false))):
 			return false
+	var expected: Dictionary = {}
+	if profile.get("visit_plan_policy")==3:
+		var schedule := _retry_schedule(state,profile)
+		if schedule.is_empty() or schedule.days!=profile.days: return false
+		expected=schedule.visits
+		for id: String in expected:
+			if state.visits.get(id,{})!=expected[id]: return false
+	for id: String in state.visits:
+		if _retry_key(id) and not expected.has(id): return false
+	for day: Variant in profile.days:
+		if not day is Array: return false
+		for slot: Variant in day:
+			if slot is Dictionary and slot.get("id") is String and _retry_key(slot.id) and not expected.has(slot.id): return false
 	return true

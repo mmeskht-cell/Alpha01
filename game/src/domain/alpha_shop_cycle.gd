@@ -46,7 +46,7 @@ static func profile_valid(profile: Variant, state: Dictionary) -> bool:
 		if not IntegratedCatalog.seed_valid(state,profile): return false
 		keys.append("integrated_catalog")
 	if profile is Dictionary and profile.has("visit_plan_policy"):
-		if not Rules.integer(profile.visit_plan_policy,2,2) or not IntegratedCatalog.enabled(profile) or not profile.has("visit_random"):
+		if not Rules.integer(profile.visit_plan_policy,2,3) or not IntegratedCatalog.enabled(profile) or not profile.has("visit_random"):
 			return false
 		keys.append("visit_plan_policy")
 	if profile is Dictionary and profile.has("battery_market"):
@@ -267,7 +267,7 @@ static func _draw_day(state: Dictionary) -> String:
 		if mandatory:
 			locked.append(id)
 	var policy: Dictionary = {}
-	if a.profile.get("visit_plan_policy")==2:
+	if a.profile.get("visit_plan_policy") in [2,3]:
 		var firm: Dictionary = {}
 		var story_anchors: Array = []
 		for row: Dictionary in rows:
@@ -453,7 +453,7 @@ static func trade_gate(state: Dictionary, p: Dictionary) -> String:
 	if a.has("commissions") and Commission.is_return_visit(p.visit_id, str(a.profile.get("commission_profile_id", ""))):
 		return "alpha_commission_delivery_only"
 	var visit: Dictionary = state.visits[row.id]
-	if visit.scope.completed or not visit.prices.has(p.item_id) or not state.items.has(p.item_id):
+	if visit.scope.completed or not visit.prices.has(p.item_id) or not state.items.has(p.item_id) or not IntegratedCatalog.retry_open(state,row.id):
 		return "alpha_trade_item"
 	if visit.seller != p.seller or visit.buyer != p.buyer or row.actor_id not in [p.seller, p.buyer]:
 		return "alpha_trade_actor"

@@ -99,6 +99,93 @@ func sources() -> void:
 		var texture: Texture2D = Art.ITEMS.model_texture(source.state.items[id].def_id,"stock",id)
 		check(texture!=null and texture.resource_path.ends_with(extra[id]),"additional approved article or attached component "+id)
 
+func retry_sources() -> void:
+	var total := 0
+	for seed_value: int in range(101,104):
+		var original := Seed.content(seed_value)
+		var trial := Seed.content(seed_value,3)
+		if not check(not trial.is_empty() and trial==Seed.content(seed_value,3),"deterministic retry source"): return
+		if not check(trial.defs==original.defs and trial.state.items==original.state.items
+			and trial.state.wallets==original.state.wallets and trial.state.ledger==original.state.ledger
+			and subset(original.state.visits,trial.state.visits),"no added goods, cash or modified original quotes"): return
+		if not check(trial.alpha_profile.contracts==original.alpha_profile.contracts and trial.alpha_profile.story_rules==original.alpha_profile.story_rules
+			and trial.alpha_profile.visit_random==original.alpha_profile.visit_random,"story and existing obligations unchanged"): return
+		for index: int in range(7):
+			var old: Array = original.alpha_profile.days[index]
+			var new: Array = trial.alpha_profile.days[index]
+			if not check(new.size()<=10 and new.size()<=old.size()+1 and new.slice(0,old.size())==old,"retry never displaces existing authored visit"): return
+		for id: String in trial.state.visits:
+			if original.state.visits.has(id): continue
+			var item := Catalog.visit_item(trial.alpha_profile,id)
+			if not check(not item.is_empty() and id==Catalog.retry_id(item) and Catalog.visit_item(original.alpha_profile,id).is_empty(),"retry identity is version-bound"): return
+			var primary: Dictionary = original.state.visits[Catalog.visit_id(item,false)]
+			var retry: Dictionary = trial.state.visits[id]
+			if not check(retry.opens>primary.opens and retry.buyer==primary.buyer and retry.seller=="player"
+				and retry.prices==primary.prices and retry.scope.kind=="ordinary","same buyer, item and base quote on later day"): return
+			total+=1
+		var fresh := Play.fresh(trial)
+		if not check(fresh!=null,"actual authority accepts v3 source"): return
+		var disk := Repo.new("user://zt_rebuild/catalog_retry_source_%d_%d"%[seed_value,Time.get_ticks_usec()])
+		var cold := Play.fresh(trial)
+		var legacy := Play.fresh(original)
+		if not check(disk.save_session(fresh,Slots.KEY).get("ok",false) and disk.load_session(cold,Slots.KEY).get("ok",false)
+			and cold.snapshot()==fresh.snapshot() and not disk.load_session(legacy,Slots.KEY).get("ok",false),"v3 save remains source-bound"): return
+	check(total>0,"comparison seeds contain genuine additional opportunities")
+
+func retry_witness() -> void:
+	var attempts := 0
+	for seed_value: int in range(101,109):
+		var source := Seed.content(seed_value,3)
+		if not check(not source.is_empty(),"retry campaign source"): return
+		for id: String in source.state.visits:
+			var target := Catalog.visit_item(source.alpha_profile,id)
+			if target.is_empty() or id!=Catalog.retry_id(target): continue
+			attempts+=1
+			if attempts>8: break
+			var buy := Catalog.visit_id(target,true)
+			var primary := Catalog.visit_id(target,false)
+			var buy_day := int(source.state.visits[buy].opens/1440)+1
+			var primary_day := int(source.state.visits[primary].opens/1440)+1
+			var retry_day := int(source.state.visits[id].opens/1440)+1
+			var s := Play.fresh(source)
+			if not check(s!=null and Play.go(s,"alpha_open"),"retry fixture normal opening"): return
+			for day: int in range(1,buy_day):
+				if not check(Play.advance(s),"advance to original seller"): return
+			if buy not in s.snapshot().alpha_shop.random_visits.plan or not Play.reach(s,buy): continue
+			var purchase := Play.transfer(s,target)
+			if not check(not purchase.is_empty() and Play.go(s,"alpha_price_offer",{"amount":purchase.amount})
+				and Play.go(s,"alpha_trade",purchase) and Play.go(s,"alpha_ack_exit") and Play.display(s,target),"retry fixture genuine acquisition"): return
+			for day: int in range(buy_day,primary_day):
+				if not check(Play.advance(s),"advance to primary sale date"): return
+			var primary_snapshot: Dictionary = s.snapshot()
+			if primary in primary_snapshot.alpha_shop.random_visits.plan and Play.reach(s,primary):
+				if not check(Play.leave(s),"decline primary sale without moving the article"): return
+			for day: int in range(primary_day,retry_day):
+				if not check(Play.advance(s),"advance to retry date"): return
+			if id not in s.snapshot().alpha_shop.random_visits.plan or not Play.reach(s,id): continue
+			var before: Dictionary = s.snapshot()
+			var resale := Play.transfer(s,target)
+			if not check(not resale.is_empty() and resale.buyer==source.state.visits[primary].buyer
+				and before.items[target].owner_id=="player" and before.ledger.size()==1,"retry is a genuine funded second opportunity for unsold article"): return
+			var blocked := before.duplicate(true)
+			blocked.visits[primary].scope.completed=true
+			if not check(not Catalog.retry_open(blocked,id) and not Market.eligible(blocked,id)
+				and Cycle.trade_gate(blocked,resale)=="alpha_trade_item" and s.snapshot()==before,"completed primary sale blocks repeat demand at both gates"): return
+			if not check(Play.go(s,"alpha_price_offer",{"amount":resale.amount}) and Play.go(s,"alpha_trade",resale) and Play.go(s,"alpha_ack_exit"),"actual retry settles"): return
+			var after: Dictionary = s.snapshot()
+			if not check(after.items[target].owner_id==resale.buyer and after.items[target].provenance_id==before.items[target].provenance_id
+				and after.ledger.size()==2 and after.wallets.player.VKC==before.wallets.player.VKC+resale.amount
+				and wallet_total(after.wallets,"VKC")==wallet_total(source.state.wallets,"VKC"),"one actual sale with preserved identity and currency"): return
+			var root := "user://zt_rebuild/catalog_retry_%d"%Time.get_ticks_usec()
+			var disk := Repo.new(Slots.directory(root,0))
+			var replay := Play.fresh(source)
+			if not check(disk.save_session(s,Slots.KEY).get("ok",false) and Slots.inspect(root,0).status=="valid"
+				and disk.load_session(replay,Slots.KEY).get("ok",false) and replay.snapshot()==after,"product source v3 cold replay after retry"): return
+			print("B3_CATALOG_RETRY_JSON ",JSON.stringify({"seed":seed_value,"item":target,"buyer":resale.buyer,"primary_day":primary_day,"retry_day":retry_day,"ledger":after.ledger.size()}))
+			return
+		if attempts>8: break
+	check(false,"no actual retry settlement in bounded witness search")
+
 func compat() -> void:
 	var location := "user://zt_rebuild/catalog_compat_"+str(Time.get_ticks_usec())
 	var home := Slots.directory(location,0)
@@ -493,11 +580,14 @@ func _initialize() -> void:
 	var arguments := OS.get_cmdline_user_args()
 	var mode: String = arguments[0] if not arguments.is_empty() else "source"
 	match mode:
-		"source": sources()
+		"source":
+			sources()
+			retry_sources()
 		"compat": compat()
 		"repair": repair()
-		"mixed","mixed_v2":
-			if arguments.size()==2 and arguments[1].is_valid_int(): mixed(int(arguments[1]),2 if mode=="mixed_v2" else 1)
+		"retry": retry_witness()
+		"mixed","mixed_v2","mixed_v3":
+			if arguments.size()==2 and arguments[1].is_valid_int(): mixed(int(arguments[1]),3 if mode=="mixed_v3" else (2 if mode=="mixed_v2" else 1))
 			else: check(false,"mixed requires a campaign seed")
 		"week","week_v2":
 			if arguments.size()==2 and arguments[1].is_valid_int():

@@ -232,6 +232,7 @@ static func _open_catalog_quote(state: Dictionary,slot: Dictionary,item_id: Stri
 ## Optional regional buyers may preserve a modest cash reserve. A past public
 ## refusal raises the reserve, not the wallet. No protected contract uses it.
 static func eligible(state:Dictionary, visit_id:String)->bool:
+	if not Catalog.retry_open(state,visit_id): return false
 	var a:Dictionary = state.alpha_shop
 	var item_id := Catalog.visit_item(a.profile,visit_id)
 	if not item_id.is_empty() and visit_id.ends_with("_sale"):
